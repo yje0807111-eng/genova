@@ -42,8 +42,6 @@ export default async function Home() {
         latestVideos={latestVideos}
         originals={originals}
         creators={spotlightCreators}
-        competition={competition ? { title: competition.title, prizeInfo: competition.prizeInfo } : null}
-        dDay={dDay}
       />
     </div>
   );

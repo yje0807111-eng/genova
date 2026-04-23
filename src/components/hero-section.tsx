@@ -13,6 +13,20 @@ const dmSans = DM_Sans({
   weight: ["400", "500", "600"],
 });
 
+function translateCompetitionTitle(title: string): string {
+  const map: Record<string, string> = {
+    "Genova AI 영상 공모전 2026": "Genova AI Film Contest 2026",
+  };
+  return map[title] ?? title;
+}
+
+function translateCompetitionPrize(prizeInfo: string): string {
+  const map: Record<string, string> = {
+    "총 상금 5,000만원 + Genova Original 계약": "Total Prize $50,000 + Genova Original Deal",
+  };
+  return map[prizeInfo] ?? prizeInfo;
+}
+
 export function HeroSection({
   competition,
   dDay,
@@ -20,7 +34,11 @@ export function HeroSection({
   competition: { title: string; prizeInfo: string } | null;
   dDay: number;
 }) {
+  const competitionTitle = competition ? translateCompetitionTitle(competition.title) : null;
+  const competitionPrizeInfo = competition ? translateCompetitionPrize(competition.prizeInfo) : null;
+
   return (
+    <>
     <section className="relative bg-[#080618] pb-0 pt-[56px]">
       <div className="mx-auto w-full max-w-[1680px]">
         <div className="flex flex-col justify-between gap-10 px-6 pb-12 pt-16 sm:px-12 lg:flex-row lg:items-center lg:gap-12">
@@ -67,30 +85,6 @@ export function HeroSection({
           </div>
         </div>
 
-        {competition ? (
-          <div
-            className={`${dmSans.className} flex flex-col items-start justify-between gap-4 border-t border-[rgba(255,255,255,0.06)] bg-[rgba(83,74,183,0.04)] px-6 py-5 sm:px-12 lg:flex-row lg:items-center hero-fade`}
-            style={{ animationDelay: "0.4s" }}
-          >
-            <div className="flex items-center gap-4">
-              <span className="inline-flex rounded-[20px] border border-[rgba(83,74,183,0.3)] bg-[rgba(83,74,183,0.15)] px-[10px] py-[3px] text-[10px] uppercase tracking-[0.15em] text-[#7F77DD]">
-                Live Now
-              </span>
-              <div>
-                <p className="text-[16px] font-semibold text-white">{competition.title}</p>
-                <p className="mt-[3px] text-[12px] text-[rgba(255,255,255,0.35)]">
-                  {competition.prizeInfo}  ·  D-{Math.max(0, dDay)} remaining
-                </p>
-              </div>
-            </div>
-            <Link
-              href="/competition"
-              className="inline-flex rounded-[2px] border border-[rgba(83,74,183,0.4)] px-6 py-[9px] text-[13px] text-[#7F77DD] transition duration-200 hover:border-[#534AB7] hover:bg-[rgba(83,74,183,0.1)]"
-            >
-              Enter Now →
-            </Link>
-          </div>
-        ) : null}
       </div>
 
       <style jsx>{`
@@ -110,5 +104,31 @@ export function HeroSection({
         }
       `}</style>
     </section>
+
+    <section className="relative overflow-hidden px-0">
+      <div className="relative mx-auto w-full max-w-[1900px] overflow-hidden border-l-[2px] border-l-[#534AB7] bg-[#080618] px-12 py-10">
+        <div className="relative flex w-full flex-col gap-8 md:flex-row md:items-center md:justify-between">
+          <div className="relative space-y-3">
+            <span className="eyebrow">Featured Competition</span>
+            <h3 className="text-2xl font-bold">{competitionTitle ?? "No active competition"}</h3>
+            {competition ? (
+              <>
+                <div className="inline-flex items-center gap-2 rounded-[2px] border border-[rgba(255,255,255,0.15)] bg-[#080618] px-3 py-1.5">
+                  <span className="h-2 w-2 rounded-full bg-[#FF6B6B]" />
+                  <p className="text-sm font-semibold tracking-wide text-white">
+                    {dDay > 0 ? `SUBMISSION CLOSES IN D-${dDay}` : "SUBMISSION ENDS TODAY"}
+                  </p>
+                </div>
+                <p className="text-sm text-[rgba(255,255,255,0.5)]">{competitionPrizeInfo}</p>
+              </>
+            ) : null}
+          </div>
+          <Link href="/competition" className="btn-primary relative inline-flex w-fit rounded-[2px] px-5 py-2 text-[13px] font-medium">
+            Enter Now
+          </Link>
+        </div>
+      </div>
+    </section>
+    </>
   );
 }

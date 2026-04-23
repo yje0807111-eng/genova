@@ -99,85 +99,40 @@ function translateCreatorBio(bio: string): string {
   return map[bio] ?? bio;
 }
 
-function translateCompetitionTitle(title: string): string {
-  const map: Record<string, string> = {
-    "Genova AI 영상 공모전 2026": "Genova AI Film Contest 2026",
-  };
-  return map[title] ?? title;
-}
-
-function translateCompetitionPrize(prizeInfo: string): string {
-  const map: Record<string, string> = {
-    "총 상금 5,000만원 + Genova Original 계약": "Total Prize $50,000 + Genova Original Deal",
-  };
-  return map[prizeInfo] ?? prizeInfo;
-}
-
 export function HomeAfterHero({
   latestVideos,
   originals,
   creators,
-  competition,
-  dDay,
 }: {
   latestVideos: Video[];
   originals: Video[];
   creators: Creator[];
-  competition: { title: string; prizeInfo: string } | null;
-  dDay: number;
 }) {
-  const competitionTitle = competition ? translateCompetitionTitle(competition.title) : null;
-  const competitionPrizeInfo = competition ? translateCompetitionPrize(competition.prizeInfo) : null;
   const originalsTrackRef = useRef<HTMLDivElement | null>(null);
 
   return (
     <div className="space-y-10 py-10">
       <AnimateIn delay={0.03}>
-      <section className="mx-auto max-w-[1680px] px-12 py-10">
-        {latestVideos.length === 0 ? (
-          <p className="text-[#AFA9EC]">No films yet.</p>
-        ) : (
-          <RowSlider
-            title="Latest Films"
-            href="/feed"
-            trackStyle={{ gridAutoColumns: "minmax(290px, 17vw)", gap: "1.25rem" }}
-          >
-            {latestVideos.slice(0, 12).map((video) => (
-              <FilmOverlayCard key={video.id} video={video} />
-            ))}
-          </RowSlider>
-        )}
+      <section className="bg-[#0D0B1F] py-10">
+        <div className="mx-auto max-w-[1680px] px-12">
+          {latestVideos.length === 0 ? (
+            <p className="text-[#AFA9EC]">No films yet.</p>
+          ) : (
+            <RowSlider
+              title="Latest Films"
+              href="/feed"
+              trackStyle={{ gridAutoColumns: "minmax(290px, 17vw)", gap: "1.25rem" }}
+            >
+              {latestVideos.slice(0, 12).map((video) => (
+                <FilmOverlayCard key={video.id} video={video} />
+              ))}
+            </RowSlider>
+          )}
+        </div>
       </section>
       </AnimateIn>
 
       <AnimateIn delay={0.08}>
-      <section className="relative overflow-hidden px-0">
-        <div className="relative mx-auto w-full max-w-[1900px] overflow-hidden border border-[rgba(255,255,255,0.06)] border-l-[2px] border-l-[#534AB7] bg-[#0D0B1F] px-12 py-10">
-          <div className="relative flex w-full flex-col gap-8 md:flex-row md:items-center md:justify-between">
-          <div className="relative space-y-3">
-            <span className="eyebrow">Featured Competition</span>
-            <h3 className="text-2xl font-bold">{competitionTitle ?? "No active competition"}</h3>
-            {competition ? (
-              <>
-                <div className="inline-flex items-center gap-2 rounded-[2px] border border-[rgba(255,255,255,0.15)] bg-[#080618] px-3 py-1.5">
-                  <span className="h-2 w-2 rounded-full bg-[#FF6B6B]" />
-                  <p className="text-sm font-semibold tracking-wide text-white">
-                    {dDay > 0 ? `SUBMISSION CLOSES IN D-${dDay}` : "SUBMISSION ENDS TODAY"}
-                  </p>
-                </div>
-                <p className="text-sm text-[rgba(255,255,255,0.5)]">{competitionPrizeInfo}</p>
-              </>
-            ) : null}
-          </div>
-          <Link href="/competition" className="btn-primary relative inline-flex w-fit rounded-[2px] px-5 py-2 text-[13px] font-medium">
-            Enter Now
-          </Link>
-        </div>
-        </div>
-      </section>
-      </AnimateIn>
-
-      <AnimateIn delay={0.12}>
       <section className="mx-auto max-w-[1680px] px-12 py-10">
         <div className="space-y-5">
           <div className="flex items-end justify-between">
@@ -217,7 +172,7 @@ export function HomeAfterHero({
       </section>
       </AnimateIn>
 
-      <AnimateIn delay={0.16}>
+      <AnimateIn delay={0.12}>
       <section className="relative overflow-hidden bg-[#0D0B1F] py-10">
         <div className="section-blob -right-40 -top-40" />
         <div className="section-content mx-auto max-w-[1680px] px-12">
