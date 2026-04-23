@@ -1,0 +1,11 @@
+-- App-level genre slugs for `public.videos.genre` (text column; no DB check constraint in this project).
+-- This migration documents new Feed-community slugs; existing Films slugs remain valid.
+--
+-- Films (cinematic): short_film, feature, series, documentary, animation, mv, commercial_brand, experimental_art
+-- Feed (community): feed_landscape_nature, feed_city_architecture, feed_drama, feed_comedy, feed_romance,
+--   feed_sci_fi, feed_action, feed_horror, feed_cyberpunk, feed_fantasy, feed_cinematic_emotional, feed_soundscape,
+--   feed_shocking_viral, feed_dynamic_speed, feed_funny_meme, feed_twist, feed_asmr_healing, feed_tutorial,
+--   feed_daily_life, feed_travel, feed_food, feed_pets_animals, feed_sports, feed_gaming, feed_fashion_beauty
+-- Legacy: meme_humor, other
+--
+-- No ALTER required unless you add a CHECK constraint; application validates in TypeScript.

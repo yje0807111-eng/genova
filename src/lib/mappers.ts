@@ -1,0 +1,119 @@
+import type { Competition, Creator, Video } from "@/lib/types";
+
+type CreatorRow = {
+  id: string;
+  name: string;
+  avatar_url: string;
+  bio: string;
+  is_partner: boolean;
+  award_count: number;
+};
+
+type VideoRow = {
+  id: string;
+  title: string;
+  thumbnail_url: string;
+  vimeo_id: string;
+  genre: string;
+  sub_genre?: string | null;
+  purpose?: string | null;
+  creator_id: string | null;
+  is_original: boolean;
+  is_finalist: boolean;
+  award: string | null;
+  runtime: string;
+  created_at: string;
+  uploaded_by?: string | null;
+  visibility?: string;
+  description?: string | null;
+  ai_tools?: string[] | null;
+  tags?: string[] | null;
+  series_name?: string | null;
+  episode_number?: number | null;
+  view_count?: number | null;
+  creators?: CreatorRow | CreatorRow[] | null;
+  profiles?:
+    | { display_name: string | null; avatar_url?: string | null }
+    | { display_name: string | null; avatar_url?: string | null }[]
+    | null;
+};
+
+type CompetitionRow = {
+  id: string;
+  title: string;
+  genre: string;
+  status: string;
+  deadline: string;
+  vote_end: string;
+  prize_info: string;
+  sponsor: string;
+};
+
+export function mapCreator(row: CreatorRow): Creator {
+  return {
+    id: row.id,
+    name: row.name,
+    avatarUrl: row.avatar_url,
+    bio: row.bio,
+    isPartner: row.is_partner,
+    awardCount: row.award_count,
+  };
+}
+
+export function mapVideo(row: VideoRow): Video {
+  const nested = row.creators;
+  const creator =
+    nested && !Array.isArray(nested)
+      ? nested
+      : Array.isArray(nested) && nested[0]
+        ? nested[0]
+        : null;
+
+  const prof = row.profiles;
+  const profileRow =
+    prof && !Array.isArray(prof) ? prof : Array.isArray(prof) && prof[0] ? prof[0] : null;
+
+  const vis = row.visibility === "private" ? "private" : "public";
+  const purpose = row.purpose === "competition" ? "competition" : "personal";
+
+  return {
+    id: row.id,
+    title: row.title,
+    thumbnailUrl: row.thumbnail_url,
+    vimeoId: row.vimeo_id,
+    genre: row.genre,
+    subGenre: row.sub_genre ?? null,
+    purpose,
+    creatorId: row.creator_id,
+    isOriginal: row.is_original,
+    isFinalist: row.is_finalist,
+    award: row.award,
+    runtime: row.runtime,
+    createdAt: row.created_at,
+    visibility: vis,
+    description: row.description ?? "",
+    aiTools: row.ai_tools ?? [],
+    tags: Array.isArray(row.tags) ? row.tags : [],
+    seriesName: row.series_name ?? null,
+    episodeNumber: typeof row.episode_number === "number" ? row.episode_number : null,
+    viewCount: typeof row.view_count === "number" ? row.view_count : 0,
+    uploadedBy: row.uploaded_by ?? null,
+    creatorName: creator?.name,
+    creatorAvatarUrl: creator?.avatar_url ?? null,
+    uploaderDisplayName: profileRow?.display_name ?? null,
+    uploaderAvatarUrl: profileRow?.avatar_url ?? null,
+  };
+}
+
+export function mapCompetition(row: CompetitionRow): Competition {
+  return {
+    id: row.id,
+    title: row.title,
+    genre: row.genre,
+    status: row.status,
+    deadline: row.deadline,
+    voteEnd: row.vote_end,
+    prizeInfo: row.prize_info,
+    sponsor: row.sponsor,
+  };
+}
