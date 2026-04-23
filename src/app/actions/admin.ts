@@ -49,7 +49,7 @@ if ("error" in auth) return { ok: false, message: auth.error ?? "" };
 
 export async function updateCompetitionStatusAction(id: string, status: string): Promise<AdminResult> {
   const auth = await requireAdmin();
-if ("error" in auth) return { ok: false, message: auth.error ?? "" };
+  if ("error" in auth) return { ok: false, message: auth.error ?? "" };
   const { supabase } = auth;
   const { error } = await supabase.from("competitions").update({ status }).eq("id", id);
   if (error) return { ok: false, message: error.message };
