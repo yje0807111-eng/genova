@@ -47,7 +47,7 @@ export default async function SearchPage({
       videos={videos}
       profiles={profiles}
       tags={tags}
-      genreMatch={genreMatch}
+      genreMatch={genreMatch ?? null}
       fallback={fallback}
       globalEmpty={globalEmpty}
     />
