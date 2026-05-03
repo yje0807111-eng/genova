@@ -4,8 +4,10 @@ import Link from "next/link";
 import dynamic from "next/dynamic";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
+import { useI18n } from "@/components/genova/language-provider";
 import { AI_TOOL_CATEGORIES, getOrphanTools, normalizeToolName } from "@/lib/constants/ai-tools";
 import { formatGenreDisplay } from "@/lib/constants/genres";
+import { addWindowCustomListener } from "@/lib/dom/window-custom-events";
 import { changeEmailAction, changePasswordAction, followUserAction, unfollowUserAction, updateProfileAction } from "@/app/actions/profile";
 import type { TrophyRow } from "@/lib/queries/trophies-queries";
 import type { Profile, UserAward } from "@/lib/queries/profile-queries";
@@ -38,16 +40,16 @@ type WorkSubTab = "all" | "awards" | "competition" | "series";
 type MainTab = "works" | "saved" | "awards" | "credits";
 
 const WORK_SUB_TABS: { key: WorkSubTab; label: string }[] = [
-  { key: "all", label: "All Works" },
-  { key: "awards", label: "Awards" },
-  { key: "competition", label: "Competition Entries" },
-  { key: "series", label: "Series" },
+  { key: "all", label: "all" },
+  { key: "awards", label: "awards" },
+  { key: "competition", label: "competition" },
+  { key: "series", label: "series" },
 ];
 
 const SORTS: { key: ProfileSortKey; label: string }[] = [
-  { key: "recent", label: "Latest" },
-  { key: "views", label: "Most Viewed" },
-  { key: "likes", label: "Most Liked" },
+  { key: "recent", label: "recent" },
+  { key: "views", label: "views" },
+  { key: "likes", label: "likes" },
 ];
 
 /** Works / Awards / Saved / Credits — segmented control styling */
@@ -73,6 +75,7 @@ function dedupeTools(list: string[]): string[] {
 }
 
 function WorkVideoCard({ video }: { video: Video }) {
+  const { t, locale } = useI18n();
   const [imgFailed, setImgFailed] = useState(false);
   const src = video.thumbnailUrl?.trim();
 
@@ -92,14 +95,14 @@ function WorkVideoCard({ video }: { video: Video }) {
           />
         ) : (
           <div className="flex h-full w-full flex-col items-center justify-center gap-1 bg-gradient-to-br from-[#2a2458] to-[#1A1535] px-2 text-center">
-            <span className="text-[10px] text-[#AFA9EC]/80">No Thumbnail</span>
+            <span className="typo-sidebar-tag text-[#AFA9EC]/80">{t("feed.noThumbnail")}</span>
           </div>
         )}
       </div>
       <div className="space-y-1 p-3">
-        <p className="line-clamp-2 text-sm font-semibold leading-snug text-[#EEEDFE]">{video.title}</p>
-        <p className="text-[11px] text-[#AFA9EC]">{formatGenreDisplay(video.genre, video.subGenre)}</p>
-        <p className="text-[11px] text-[#E8E4FF]">
+        <p className="typo-card-title line-clamp-2 text-[#EEEDFE]">{video.title}</p>
+        <p className="typo-card-meta text-[#AFA9EC]">{formatGenreDisplay(video.genre, video.subGenre, locale)}</p>
+        <p className="typo-card-meta text-[#E8E4FF]">
           ♥ <span className="font-medium tabular-nums">{video.likeCount ?? 0}</span>
         </p>
       </div>
@@ -133,6 +136,7 @@ function ProfileFollowButton({
   initialFollowing: boolean;
   onFollowersDelta?: (delta: number) => void;
 }) {
+  const { t } = useI18n();
   const router = useRouter();
   const [following, setFollowing] = useState(initialFollowing);
   const [pending, setPending] = useState(false);
@@ -181,7 +185,7 @@ function ProfileFollowButton({
           : "bg-[#534AB7] text-[#EEEDFE] hover:bg-[#7F77DD]"
       }`}
     >
-      {pending ? "..." : following ? "Following" : "Follow"}
+      {pending ? "..." : following ? t("profile.following") : t("profile.follow")}
     </button>
   );
 }
@@ -211,6 +215,7 @@ export function ProfilePageClient({
   showFollow: boolean;
   initialFollowing: boolean;
 }) {
+  const { t } = useI18n();
   const router = useRouter();
   const [profile, setProfile] = useState(initialProfile);
   const [editing, setEditing] = useState(false);
@@ -230,6 +235,14 @@ export function ProfilePageClient({
   const [followerCount, setFollowerCount] = useState(followers);
 
   useEffect(() => setFollowerCount(followers), [followers]);
+
+  useEffect(() => {
+    return addWindowCustomListener<MainTab>("profile-tab-change", (tab) => {
+      if (["works", "awards", "saved", "credits"].includes(tab)) {
+        setMainTab(tab);
+      }
+    });
+  }, []);
 
   useEffect(() => {
     setProfile(initialProfile);
@@ -257,10 +270,10 @@ export function ProfilePageClient({
   const seriesGroups = useMemo(() => buildSeriesGroups(works, sort), [works, sort]);
 
   const emptyBySub: Record<WorkSubTab, string> = {
-    all: "No public works yet.",
-    awards: "No awards yet.",
-    competition: "No competition entries yet.",
-    series: "No series yet.",
+    all: t("profile.noPublicWorksYet"),
+    awards: t("profile.noAwardsYet"),
+    competition: t("profile.noCompetitionEntriesYet"),
+    series: t("profile.noSeriesYet"),
   };
 
   const saveProfile = async () => {
@@ -354,7 +367,7 @@ export function ProfilePageClient({
           {seriesGroups.map((g) => (
             <div key={g.name}>
               <h3 className="mb-4 text-lg font-semibold text-[#EEEDFE]">{g.name}</h3>
-              <ProfileWorksGrid videos={g.videos} emptyLabel="No films in this series yet." />
+              <ProfileWorksGrid videos={g.videos} emptyLabel={t("profile.noFilmsInSeriesYet")} />
             </div>
           ))}
         </div>
@@ -376,7 +389,7 @@ export function ProfilePageClient({
         {seriesGroups.map((g) => (
           <div key={g.name}>
             <h3 className="mb-4 text-lg font-semibold text-[#EEEDFE]">{g.name}</h3>
-            <VisitorWorkGrid videos={g.videos} emptyText="No films in this series yet." />
+            <VisitorWorkGrid videos={g.videos} emptyText={t("profile.noFilmsInSeriesYet")} />
           </div>
         ))}
       </div>
@@ -385,7 +398,7 @@ export function ProfilePageClient({
 
   return (
     <div className="space-y-10">
-      <AnimateIn delay={0}>
+      <AnimateIn delay={0.05}>
       <section className="rounded-2xl border border-white/10 bg-[#1A1535] p-6 sm:p-8" aria-labelledby="profile-display-name">
         <div className="relative mb-6 h-44 overflow-hidden rounded-xl border border-white/10 bg-gradient-to-r from-[#1a1535] via-[#26215c] to-[#0f0d1e] sm:h-56">
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_30%,rgba(127,119,221,0.35),transparent_55%)]" />
@@ -406,7 +419,7 @@ export function ProfilePageClient({
                     value={displayName}
                     onChange={(e) => setDisplayName(e.target.value)}
                     className="w-full max-w-md rounded-lg bg-[#26215C] px-3 py-2 text-2xl font-bold text-[#EEEDFE] ring-1 ring-white/10 focus:ring-[#7F77DD]"
-                    placeholder="Display name"
+                    placeholder={t("settings.displayName")}
                   />
                 ) : (
                   <h1 id="profile-display-name" className="text-2xl font-bold text-[#EEEDFE] sm:text-3xl">
@@ -415,12 +428,13 @@ export function ProfilePageClient({
                 )}
                 <p className="mt-2 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-[#AFA9EC]">
                   <span>
-                    Followers{" "}
+                    {t("profile.followers")}{" "}
                     <strong className="font-semibold text-[#EEEDFE] tabular-nums">{isOwner ? followers : followerCount}</strong>
                   </span>
                   <span className="text-white/30">·</span>
                   <span>
-                    Following <strong className="font-semibold text-[#EEEDFE] tabular-nums">{following}</strong>
+                    {t("profile.followingCountLabel")}{" "}
+                    <strong className="font-semibold text-[#EEEDFE] tabular-nums">{following}</strong>
                   </span>
                   <span className="text-white/30">·</span>
                   <span className="rounded-full bg-[#534AB7]/50 px-2 py-0.5 text-xs text-[#EEEDFE]">{tierLabel[profile.subscriptionTier]}</span>
@@ -436,10 +450,10 @@ export function ProfilePageClient({
                         disabled={saving}
                         className="rounded-[6px] bg-[#534AB7] px-4 py-2 text-sm font-semibold text-[#EEEDFE] disabled:opacity-60"
                       >
-                        {saving ? "Saving..." : "Save"}
+                        {saving ? t("settings.saving") : t("settings.saveChanges")}
                       </button>
                       <button type="button" onClick={cancelEdit} className="rounded-[6px] border border-white/20 bg-transparent px-4 py-2 text-sm text-[#EEEDFE]">
-                        Cancel
+                        {t("common.cancel")}
                       </button>
                     </>
                   ) : (
@@ -452,7 +466,7 @@ export function ProfilePageClient({
                       }}
                       className="rounded-[6px] bg-[#534AB7] px-4 py-2 text-sm font-semibold text-[#EEEDFE] hover:bg-[#655cd0]"
                     >
-                      Edit Profile
+                      {t("settings.editProfile")}
                     </button>
                   )
                 ) : showFollow ? (
@@ -467,11 +481,11 @@ export function ProfilePageClient({
 
             <div className="flex flex-wrap gap-2">
               {profile.isGenovaPartner ? (
-                <span className="rounded-full bg-[#FFD873] px-3 py-1 text-xs font-semibold text-[#1A1535]">Genova Original Partner</span>
+                <span className="rounded-full bg-[#FFD873] px-3 py-1 text-xs font-semibold text-[#1A1535]">{t("profile.genovaOriginalPartner", "Genova Original Partner")}</span>
               ) : null}
               {(awards.length > 0 || profile.totalAwards > 0) && (
                 <span className="rounded-full border border-[#7F77DD]/60 bg-[#26215C] px-3 py-1 text-xs text-[#E8E4FF]">
-                  Competition Awards {Math.max(awards.length, profile.totalAwards)}
+                  {t("profile.competitionAwards")} {Math.max(awards.length, profile.totalAwards)}
                 </span>
               )}
             </div>
@@ -482,14 +496,14 @@ export function ProfilePageClient({
                 onChange={(e) => setBio(e.target.value)}
                 rows={4}
                 className="w-full rounded-lg bg-[#26215C] p-3 text-sm text-[#EEEDFE] ring-1 ring-white/10 focus:ring-[#7F77DD]"
-                placeholder="Write your bio"
+                placeholder={t("profile.writeBio")}
               />
             ) : (
-              <p className="whitespace-pre-wrap text-sm leading-relaxed text-[#AFA9EC]">{profile.bio || "No bio yet."}</p>
+              <p className="whitespace-pre-wrap text-sm leading-relaxed text-[#AFA9EC]">{profile.bio || t("profile.noBioYet")}</p>
             )}
 
             <div>
-              <p className="mb-3 text-xs font-medium uppercase tracking-wide text-[#AFA9EC]">AI Tools</p>
+              <p className="mb-3 text-xs font-medium uppercase tracking-wide text-[#AFA9EC]">{t("settings.aiTools")}</p>
               {isOwner && editing ? (
                 <div className="space-y-5 rounded-xl border border-white/10 bg-[#0A0A18]/50 p-4">
                   {AI_TOOL_CATEGORIES.map((cat) => (
@@ -543,29 +557,31 @@ export function ProfilePageClient({
 
             {isOwner && editing && (
               <div className="space-y-4 rounded-xl border border-white/10 bg-[#0A0A18]/50 p-4">
-                <h3 className="text-sm font-bold text-[#EEEDFE]">Account</h3>
-                <p className="text-xs text-[#AFA9EC]">Current email: {userEmail}</p>
+                <h3 className="text-sm font-bold text-[#EEEDFE]">{t("profile.account")}</h3>
+                <p className="text-xs text-[#AFA9EC]">
+                  {t("profile.currentEmail")}: {userEmail}
+                </p>
                 <div className="grid gap-4 md:grid-cols-2">
                   <div className="space-y-2">
                     <label className="text-xs font-medium text-[#AFA9EC]" htmlFor="profile-new-email">
-                      New Email
+                      {t("profile.newEmail")}
                     </label>
                     <input
                       id="profile-new-email"
                       type="email"
                       value={newEmail}
                       onChange={(e) => setNewEmail(e.target.value)}
-                      placeholder="Only if you want to change"
+                      placeholder={t("profile.newEmailPlaceholder")}
                       className="w-full rounded-lg bg-[#26215C] p-2.5 text-sm text-[#EEEDFE] ring-1 ring-white/10 focus:ring-[#7F77DD]"
                     />
                   </div>
                   <div className="space-y-2">
-                    <span className="text-xs font-medium text-[#AFA9EC]">Change Password</span>
+                    <span className="text-xs font-medium text-[#AFA9EC]">{t("profile.changePassword")}</span>
                     <input
                       type="password"
                       value={pw}
                       onChange={(e) => setPw(e.target.value)}
-                      placeholder="New password"
+                      placeholder={t("profile.newPassword")}
                       autoComplete="new-password"
                       className="w-full rounded-lg bg-[#26215C] p-2.5 text-sm text-[#EEEDFE] ring-1 ring-white/10 focus:ring-[#7F77DD]"
                     />
@@ -573,13 +589,13 @@ export function ProfilePageClient({
                       type="password"
                       value={pw2}
                       onChange={(e) => setPw2(e.target.value)}
-                      placeholder="Confirm new password"
+                      placeholder={t("profile.confirmNewPassword")}
                       autoComplete="new-password"
                       className="w-full rounded-lg bg-[#26215C] p-2.5 text-sm text-[#EEEDFE] ring-1 ring-white/10 focus:ring-[#7F77DD]"
                     />
                   </div>
                 </div>
-                <p className="text-xs text-[#AFA9EC]">Click Save to apply email/password changes.</p>
+                <p className="text-xs text-[#AFA9EC]">{t("profile.saveToApplyAccountChanges")}</p>
               </div>
             )}
 
@@ -604,7 +620,7 @@ export function ProfilePageClient({
       </section>
       </AnimateIn>
 
-      <AnimateIn delay={0.1}>
+      <AnimateIn delay={0.15}>
         <div
           className="inline-flex max-w-full flex-wrap gap-1 rounded-xl border border-white/12 bg-[linear-gradient(180deg,rgba(16,14,36,0.95)_0%,rgba(8,6,24,0.98)_100%)] p-1 shadow-[inset_0_1px_0_rgba(127,119,221,0.12)]"
           role="tablist"
@@ -617,7 +633,7 @@ export function ProfilePageClient({
             onClick={() => setMainTab("works")}
             className={profileMainTabClass(mainTab === "works")}
           >
-            Works
+            {t("profile.works")}
           </button>
           <button
             type="button"
@@ -626,7 +642,7 @@ export function ProfilePageClient({
             onClick={() => setMainTab("awards")}
             className={profileMainTabClass(mainTab === "awards")}
           >
-            Awards
+            {t("profile.awards")}
           </button>
           {isOwner ? (
             <button
@@ -636,7 +652,7 @@ export function ProfilePageClient({
               onClick={() => setMainTab("saved")}
               className={profileMainTabClass(mainTab === "saved")}
             >
-              Saved
+              {t("profile.saved")}
             </button>
           ) : null}
           {isOwner ? (
@@ -647,7 +663,7 @@ export function ProfilePageClient({
               onClick={() => setMainTab("credits")}
               className={profileMainTabClass(mainTab === "credits")}
             >
-              Credits
+              {t("profile.credits")}
             </button>
           ) : null}
         </div>
@@ -655,9 +671,9 @@ export function ProfilePageClient({
 
       {mainTab === "works" && (
         <AnimateIn delay={0.2}>
-        <section className="space-y-4" aria-labelledby="works-heading">
+        <section id="profile-section-works" className="space-y-4" aria-labelledby="works-heading">
           <h2 id="works-heading" className="text-xl font-bold text-[#EEEDFE]">
-            Works
+            {t("profile.works")}
           </h2>
 
           <div className="flex flex-wrap gap-1 border-b border-white/15" role="tablist" aria-label="Work categories">
@@ -672,7 +688,13 @@ export function ProfilePageClient({
                   workSubTab === key ? "border-b-[#7F77DD] text-[#EEEDFE]" : ""
                 }`}
               >
-                {label}
+                {label === "all"
+                  ? t("profile.allWorks")
+                  : label === "awards"
+                    ? t("profile.awards")
+                    : label === "competition"
+                      ? t("profile.competitionEntries")
+                      : t("profile.series")}
               </button>
             ))}
           </div>
@@ -687,7 +709,11 @@ export function ProfilePageClient({
                     sort === key ? "border-b-[#7F77DD] text-[#EEEDFE]" : ""
                   }`}
                 >
-                  {label}
+                  {label === "recent"
+                    ? t("profile.sortNewest")
+                    : label === "views"
+                      ? t("profile.sortMostViewed")
+                      : t("profile.sortMostLiked")}
                 </button>
               ))}
             </div>
@@ -699,48 +725,50 @@ export function ProfilePageClient({
 
       {mainTab === "awards" && (
         <AnimateIn delay={0.2}>
+          <div id="profile-section-awards">
           <ProfileAwardsTab awards={awards} trophies={trophies} />
+          </div>
         </AnimateIn>
       )}
 
       {isOwner && mainTab === "saved" && (
         <AnimateIn delay={0.25}>
-        <section className="space-y-4" aria-labelledby="saved-heading">
+        <section id="profile-section-saved" className="space-y-4" aria-labelledby="saved-heading">
           <h2 id="saved-heading" className="text-xl font-bold text-[#EEEDFE]">
-            Saved Films
+            {t("profile.savedFilms")}
           </h2>
-          <ProfileVideoGrid videos={saved} emptyLabel="No saved films yet." />
+          <ProfileVideoGrid videos={saved} emptyLabel={t("profile.noSavedFilmsYet")} />
         </section>
         </AnimateIn>
       )}
 
       {isOwner && mainTab === "credits" && (
         <AnimateIn delay={0.2}>
-          <section className="space-y-5" aria-labelledby="credits-heading">
+          <section id="profile-section-credits" className="space-y-5" aria-labelledby="credits-heading">
             <h2 id="credits-heading" className="text-xl font-bold text-[#EEEDFE]">
-              Credits &amp; Points
+              {t("profile.creditsPoints")}
             </h2>
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="rounded-xl border border-white/10 bg-[linear-gradient(165deg,rgba(19,16,40,0.9)_0%,rgba(8,6,24,0.95)_100%)] p-5 shadow-[inset_0_1px_0_rgba(127,119,221,0.1)]">
-                <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[#7F77DD]">Credits</p>
+                <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[#7F77DD]">{t("profile.credits")}</p>
                 <p className="mt-2 font-display text-3xl font-bold tabular-nums text-[#F8F7FF]">
                   {new Intl.NumberFormat("en-US").format(profile.credits)}
                 </p>
-                <p className="mt-1 text-xs text-[#AFA9EC]">Spend on Studio, recipes, and unlocks.</p>
+                <p className="mt-1 text-xs text-[#AFA9EC]">{t("profile.creditsHint")}</p>
               </div>
               <div className="rounded-xl border border-white/10 bg-[linear-gradient(165deg,rgba(19,16,40,0.9)_0%,rgba(8,6,24,0.95)_100%)] p-5 shadow-[inset_0_1px_0_rgba(127,119,221,0.1)]">
-                <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[#7F77DD]">Points</p>
+                <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[#7F77DD]">{t("profile.points", "Points")}</p>
                 <p className="mt-2 font-display text-3xl font-bold tabular-nums text-[#F8F7FF]">
                   {new Intl.NumberFormat("en-US").format(profile.points)}
                 </p>
-                <p className="mt-1 text-xs text-[#AFA9EC]">Earn and convert — 100 Points = $1 = 1,000 Credits.</p>
+                <p className="mt-1 text-xs text-[#AFA9EC]">{t("profile.pointsHint")}</p>
               </div>
             </div>
             <Link
               href="/credits"
               className="inline-flex items-center justify-center rounded-lg bg-[#534AB7] px-5 py-2.5 text-sm font-semibold text-[#EEEDFE] transition hover:bg-[#7F77DD]"
             >
-              Go to Credits page
+              {t("profile.goToCreditsPage")}
             </Link>
           </section>
         </AnimateIn>

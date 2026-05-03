@@ -1,63 +1,33 @@
-import { AnimateIn } from "@/components/animate-in";
-import { CompetitionPageClient } from "@/components/competition/competition-page-client";
-import Link from "next/link";
-import { attachEngagementToVideos } from "@/lib/queries/engagement-queries";
-import { fetchAwardedVideos, fetchCurrentCompetition, fetchFinalistVideos } from "@/lib/queries";
-import { createServerSupabaseClient } from "@/lib/supabase/server";
+import { CompetitionListClient } from "@/components/competition/competition-list-client";
+import { CompetitionHero } from "@/components/competition/competition-hero";
+import { fetchAllCompetitions } from "@/lib/queries";
 
 export default async function CompetitionPage() {
-  const supabase = await createServerSupabaseClient();
-  const { data: userData } = supabase ? await supabase.auth.getUser() : { data: { user: null } };
-  const canVote = Boolean(userData?.user);
-
-  const competition = await fetchCurrentCompetition();
-  const [finalistRaw, archiveVideos] = await Promise.all([fetchFinalistVideos(), fetchAwardedVideos()]);
-
-  const finalistWithE = await attachEngagementToVideos(finalistRaw);
-  const finalistSorted = [...finalistWithE].sort((a, b) => (b.likeCount ?? 0) - (a.likeCount ?? 0));
-  const rankedFinalists = finalistSorted.map((video, i) => ({ video, rank: i + 1 }));
-  const archiveWithE = await attachEngagementToVideos(archiveVideos);
-
-  const dDay = competition
-    ? Math.max(
-        0,
-        Math.ceil((new Date(competition.deadline).getTime() - Date.now()) / (1000 * 60 * 60 * 24)),
-      )
-    : 0;
+  const competitions = await fetchAllCompetitions();
+  const now = new Date();
+  const active = competitions.filter((c) =>
+    ["Open", "접수중", "결선 진행중", "In Review", "Voting"].includes(c.status),
+  );
+  const upcoming = competitions.filter((c) => c.status === "Upcoming" || c.status === "예정");
+  const closed = competitions.filter(
+    (c) => !["Open", "접수중", "결선 진행중", "In Review", "Voting", "Upcoming", "예정"].includes(c.status),
+  );
 
   return (
-    <div className="page-cinematic mx-auto max-w-6xl space-y-6 px-4 py-7 text-[#F8F7FF] sm:px-6">
-        <AnimateIn delay={0} className="space-y-2">
-          <p className="eyebrow">Competition</p>
-          <h1 className="page-title text-3xl sm:text-4xl">Competition Showcase</h1>
-          <p className="page-subtitle">Explore finalists, vote for your favorite, and submit your own film.</p>
-        </AnimateIn>
-        <AnimateIn delay={0.05}>
-          <CompetitionPageClient
-          competition={
-            competition
-              ? { id: competition.id, title: competition.title, prizeInfo: competition.prizeInfo }
-              : null
-          }
-          dDay={dDay}
-          rankedFinalists={rankedFinalists}
-          archiveVideos={archiveWithE}
-          canVote={canVote}
-          />
-        </AnimateIn>
+    <div className="bg-[#080618] text-white">
+      <CompetitionHero activeCount={active.length} upcomingCount={upcoming.length} />
 
-        <AnimateIn delay={0.1} className="rounded-xl border border-white/10 bg-[#1A1535]/75 p-5 sm:p-6">
-          <h2 className="text-lg font-bold">Submit Entry</h2>
-          <div className="mt-4 flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-4">
-            <Link
-              href="/upload"
-              className="inline-flex w-fit rounded-[6px] bg-[#534AB7] px-4 py-2 text-sm font-semibold text-[#EEEDFE] transition hover:bg-[#655cd0]"
-            >
-              Submit Now
-            </Link>
-            <p className="text-xs text-[#AFA9EC]">Choose Competition Entry on the upload page.</p>
-          </div>
-        </AnimateIn>
+      {/* Tab filters - client component */}
+      <div className="bg-[#080618]">
+        <div className="mx-auto max-w-[1680px] px-16 py-12">
+          <CompetitionListClient
+            active={active}
+            upcoming={upcoming}
+            closed={closed}
+            now={now.toISOString()}
+          />
+        </div>
+      </div>
     </div>
   );
 }

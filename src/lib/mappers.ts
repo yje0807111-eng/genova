@@ -13,7 +13,10 @@ type VideoRow = {
   id: string;
   title: string;
   thumbnail_url: string;
-  vimeo_id: string;
+  vimeo_id: string | null;
+  mux_playback_id?: string | null;
+  mux_asset_id?: string | null;
+  mux_upload_id?: string | null;
   genre: string;
   sub_genre?: string | null;
   purpose?: string | null;
@@ -41,11 +44,17 @@ type VideoRow = {
 type CompetitionRow = {
   id: string;
   title: string;
+  title_en?: string | null;
+  title_ko?: string | null;
+  title_ja?: string | null;
   genre: string;
   status: string;
   deadline: string;
   vote_end: string;
   prize_info: string;
+  prize_info_en?: string | null;
+  prize_info_ko?: string | null;
+  prize_info_ja?: string | null;
   sponsor: string;
 };
 
@@ -80,7 +89,8 @@ export function mapVideo(row: VideoRow): Video {
     id: row.id,
     title: row.title,
     thumbnailUrl: row.thumbnail_url,
-    vimeoId: row.vimeo_id,
+    vimeoId: row.vimeo_id ?? null,
+    muxPlaybackId: row.mux_playback_id ?? null,
     genre: row.genre,
     subGenre: row.sub_genre ?? null,
     purpose,
@@ -109,11 +119,17 @@ export function mapCompetition(row: CompetitionRow): Competition {
   return {
     id: row.id,
     title: row.title,
+    titleEn: row.title_en ?? null,
+    titleKo: row.title_ko ?? null,
+    titleJa: row.title_ja ?? null,
     genre: row.genre,
     status: row.status,
     deadline: row.deadline,
     voteEnd: row.vote_end,
     prizeInfo: row.prize_info,
+    prizeInfoEn: row.prize_info_en ?? null,
+    prizeInfoKo: row.prize_info_ko ?? null,
+    prizeInfoJa: row.prize_info_ja ?? null,
     sponsor: row.sponsor,
   };
 }

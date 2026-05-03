@@ -19,17 +19,10 @@ export default async function UploadPage() {
   const competitions = await fetchCompetitionsForUpload();
 
   return (
-    <div className="page-cinematic mx-auto max-w-6xl space-y-5 px-5 py-8 text-[#F8F7FF] sm:px-8 sm:py-10">
-        <AnimateIn delay={0}>
-        <div className="space-y-2">
-          <p className="eyebrow">Upload</p>
-          <h1 className="page-title text-3xl sm:text-4xl">Upload Film</h1>
-          <p className="page-subtitle">Publish your work with a cinematic thumbnail, tags, and release details.</p>
-        </div>
-        </AnimateIn>
-        <AnimateIn delay={0.1}>
-          <UploadVideoForm userId={user.id} competitions={competitions} />
-        </AnimateIn>
+    <div className="page-cinematic px-4 py-6 text-[#F8F7FF] sm:px-6">
+      <AnimateIn delay={0}>
+        <UploadVideoForm userId={user.id} competitions={competitions} />
+      </AnimateIn>
     </div>
   );
 }

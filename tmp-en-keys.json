@@ -1,0 +1,1022 @@
+﻿[
+  [
+    "common.language",
+    "Language"
+  ],
+  [
+    "common.languageEnglish",
+    "English"
+  ],
+  [
+    "common.languageKorean",
+    "Korean"
+  ],
+  [
+    "common.searchAiFilms",
+    "Search AI films..."
+  ],
+  [
+    "common.search",
+    "Search"
+  ],
+  [
+    "common.loadingAccount",
+    "Loading account"
+  ],
+  [
+    "common.myProfile",
+    "My profile"
+  ],
+  [
+    "common.signIn",
+    "Sign in"
+  ],
+  [
+    "common.all",
+    "All"
+  ],
+  [
+    "common.toggleMenu",
+    "Toggle menu"
+  ],
+  [
+    "common.toggleSidebar",
+    "Toggle sidebar"
+  ],
+  [
+    "nav.feed",
+    "Feed"
+  ],
+  [
+    "nav.films",
+    "Films"
+  ],
+  [
+    "nav.shorts",
+    "Shorts"
+  ],
+  [
+    "nav.competition",
+    "Competition"
+  ],
+  [
+    "nav.creators",
+    "Creators"
+  ],
+  [
+    "nav.upload",
+    "Upload"
+  ],
+  [
+    "sidebar.sections",
+    "SECTIONS"
+  ],
+  [
+    "sidebar.genres",
+    "GENRES"
+  ],
+  [
+    "sidebar.profile",
+    "PROFILE"
+  ],
+  [
+    "sidebar.moreGenres",
+    "More Genres"
+  ],
+  [
+    "sidebar.showLess",
+    "Show Less"
+  ],
+  [
+    "profile.followers",
+    "followers"
+  ],
+  [
+    "profile.works",
+    "Works"
+  ],
+  [
+    "profile.awards",
+    "Awards"
+  ],
+  [
+    "profile.saved",
+    "Saved"
+  ],
+  [
+    "profile.credits",
+    "Credits"
+  ],
+  [
+    "profile.videos",
+    "Videos"
+  ],
+  [
+    "profile.noAiTools",
+    "No AI tools added yet."
+  ],
+  [
+    "profile.awardsTrophies",
+    "Awards & Trophies"
+  ],
+  [
+    "profile.recordedAwards",
+    "Recorded awards"
+  ],
+  [
+    "profile.awardHistoryHint",
+    "Award history linked to your profile (user_awards)"
+  ],
+  [
+    "profile.noRecordedAwards",
+    "No recorded awards yet."
+  ],
+  [
+    "profile.noRecordedAwardsHint",
+    "Enter a competition to win your first award ??results will show here when added."
+  ],
+  [
+    "profile.browseCompetitions",
+    "Browse competitions"
+  ],
+  [
+    "profile.confirmDeleteFilm",
+    "Delete this film? This action cannot be undone."
+  ],
+  [
+    "profile.private",
+    "Private"
+  ],
+  [
+    "profile.edit",
+    "Edit"
+  ],
+  [
+    "profile.setPublic",
+    "Set Public"
+  ],
+  [
+    "profile.setPrivate",
+    "Set Private"
+  ],
+  [
+    "profile.delete",
+    "Delete"
+  ],
+  [
+    "profile.noUploadsYet",
+    "No uploads yet."
+  ],
+  [
+    "profile.follow",
+    "Follow"
+  ],
+  [
+    "profile.following",
+    "Following"
+  ],
+  [
+    "profile.achievements",
+    "Achievements"
+  ],
+  [
+    "profile.noAwardsYet",
+    "No awards yet."
+  ],
+  [
+    "profile.sortNewest",
+    "Newest"
+  ],
+  [
+    "profile.sortOldest",
+    "Oldest"
+  ],
+  [
+    "profile.sortMostViewed",
+    "Most Viewed"
+  ],
+  [
+    "profile.sortMostLiked",
+    "Most Liked"
+  ],
+  [
+    "profile.noVideosForAward",
+    "No videos for this award yet."
+  ],
+  [
+    "profile.awardGrandPrize",
+    "Grand Prize"
+  ],
+  [
+    "profile.awardRunnerUp",
+    "Runner Up"
+  ],
+  [
+    "profile.awardThirdPlace",
+    "3rd Place"
+  ],
+  [
+    "profile.awardSpecial",
+    "Special Award"
+  ],
+  [
+    "profile.awardGenreFirst",
+    "Genre 1st"
+  ],
+  [
+    "profile.awardGenreSecond",
+    "Genre 2nd"
+  ],
+  [
+    "profile.awardGenreThird",
+    "Genre 3rd"
+  ],
+  [
+    "profile.allAwards",
+    "All Awards"
+  ],
+  [
+    "profile.moreOptions",
+    "More options"
+  ],
+  [
+    "profile.toggleEditMode",
+    "Toggle edit mode"
+  ],
+  [
+    "profile.clearAwardFilter",
+    "Clear award filter"
+  ],
+  [
+    "profile.tooltipCompetitionGrandPrize",
+    "Competition ??Grand Prize"
+  ],
+  [
+    "profile.tooltipCompetitionRunnerUp",
+    "Competition ??Runner Up"
+  ],
+  [
+    "profile.tooltipCompetitionThird",
+    "Competition ??3rd Place"
+  ],
+  [
+    "profile.tooltipCompetitionSpecial",
+    "Competition ??Special Award"
+  ],
+  [
+    "profile.tooltipGenreFirst",
+    "Genre Award ??1st Place"
+  ],
+  [
+    "profile.tooltipGenreSecond",
+    "Genre Award ??2nd Place"
+  ],
+  [
+    "profile.tooltipGenreThird",
+    "Genre Award ??3rd Place"
+  ],
+  [
+    "profile.nowFollowing",
+    "Now following"
+  ],
+  [
+    "profile.unfollowConfirmTitle",
+    "Unfollow?"
+  ],
+  [
+    "profile.unfollowConfirmBody",
+    "Their posts will no longer appear in your feed."
+  ],
+  [
+    "profile.unfollow",
+    "Unfollow"
+  ],
+  [
+    "profile.genovaOriginalPartner",
+    "Genova Original Partner"
+  ],
+  [
+    "profile.competitionAwards",
+    "Competition Awards"
+  ],
+  [
+    "profile.writeBio",
+    "Write your bio"
+  ],
+  [
+    "profile.noBioYet",
+    "No bio yet."
+  ],
+  [
+    "profile.account",
+    "Account"
+  ],
+  [
+    "profile.currentEmail",
+    "Current email"
+  ],
+  [
+    "profile.newEmail",
+    "New Email"
+  ],
+  [
+    "profile.newEmailPlaceholder",
+    "Only if you want to change"
+  ],
+  [
+    "profile.changePassword",
+    "Change Password"
+  ],
+  [
+    "profile.newPassword",
+    "New password"
+  ],
+  [
+    "profile.confirmNewPassword",
+    "Confirm new password"
+  ],
+  [
+    "profile.saveToApplyAccountChanges",
+    "Click Save to apply email/password changes."
+  ],
+  [
+    "profile.followingCountLabel",
+    "Following"
+  ],
+  [
+    "profile.allWorks",
+    "All Works"
+  ],
+  [
+    "profile.competitionEntries",
+    "Competition Entries"
+  ],
+  [
+    "profile.series",
+    "Series"
+  ],
+  [
+    "profile.savedFilms",
+    "Saved Films"
+  ],
+  [
+    "profile.noSavedFilmsYet",
+    "No saved films yet."
+  ],
+  [
+    "profile.creditsPoints",
+    "Credits & Points"
+  ],
+  [
+    "profile.creditsHint",
+    "Spend on Studio, recipes, and unlocks."
+  ],
+  [
+    "profile.points",
+    "Points"
+  ],
+  [
+    "profile.pointsHint",
+    "Earn and convert ??100 Points = $1 = 1,000 Credits."
+  ],
+  [
+    "profile.goToCreditsPage",
+    "Go to Credits page"
+  ],
+  [
+    "profile.selectVideosTo",
+    "Select videos to:"
+  ],
+  [
+    "profile.selectBulkActionFirst",
+    "Please select Set Private or Set Public first"
+  ],
+  [
+    "profile.deselectAll",
+    "Deselect All"
+  ],
+  [
+    "profile.selectAll",
+    "Select All"
+  ],
+  [
+    "profile.apply",
+    "Apply"
+  ],
+  [
+    "profile.chooseAchievements",
+    "Choose achievements"
+  ],
+  [
+    "profile.noTrophiesYet",
+    "No trophies yet."
+  ],
+  [
+    "common.close",
+    "Close"
+  ],
+  [
+    "profile.message",
+    "Message"
+  ],
+  [
+    "profile.noPublicWorksYet",
+    "No public works yet."
+  ],
+  [
+    "profile.noCompetitionEntriesYet",
+    "No competition entries yet."
+  ],
+  [
+    "profile.noSeriesYet",
+    "No series yet."
+  ],
+  [
+    "profile.noFilmsInSeriesYet",
+    "No films in this series yet."
+  ],
+  [
+    "common.cancel",
+    "Cancel"
+  ],
+  [
+    "common.other",
+    "Other"
+  ],
+  [
+    "genre.shortFilm",
+    "Short Film"
+  ],
+  [
+    "genre.animation",
+    "Animation"
+  ],
+  [
+    "genre.musicVideo",
+    "Music Video"
+  ],
+  [
+    "genre.documentary",
+    "Documentary"
+  ],
+  [
+    "genre.drama",
+    "Drama"
+  ],
+  [
+    "genre.scifi",
+    "Sci-Fi"
+  ],
+  [
+    "genre.horror",
+    "Horror"
+  ],
+  [
+    "genre.action",
+    "Action"
+  ],
+  [
+    "genre.fantasy",
+    "Fantasy"
+  ],
+  [
+    "genre.cinematic",
+    "Cinematic"
+  ],
+  [
+    "genre.cyberpunk",
+    "Cyberpunk"
+  ],
+  [
+    "genre.comedy",
+    "Comedy"
+  ],
+  [
+    "competition.nowOpen",
+    "Now Open"
+  ],
+  [
+    "competition.upcoming",
+    "Upcoming"
+  ],
+  [
+    "competition.past",
+    "Past"
+  ],
+  [
+    "competition.heroTitle",
+    "AI Film Competitions"
+  ],
+  [
+    "competition.heroDesc1",
+    "Showcase your AI-generated films and compete with creators worldwide."
+  ],
+  [
+    "competition.heroDesc2",
+    "Turn your imagination into the next award-winning film."
+  ],
+  [
+    "competition.totalPrizes",
+    "Total Prizes"
+  ],
+  [
+    "competition.participants",
+    "Participants"
+  ],
+  [
+    "competition.aiOnly",
+    "AI-Generated Only"
+  ],
+  [
+    "competition.winUpTo",
+    "Win up to $35,000"
+  ],
+  [
+    "competition.openWorldwide",
+    "Open Worldwide"
+  ],
+  [
+    "competition.prize",
+    "Prize"
+  ],
+  [
+    "competition.allGenres",
+    "All Genres"
+  ],
+  [
+    "competition.deadline",
+    "Deadline"
+  ],
+  [
+    "competition.comingSoon",
+    "Coming soon"
+  ],
+  [
+    "competition.finalRound",
+    "Final Round"
+  ],
+  [
+    "competition.endsToday",
+    "Ends today"
+  ],
+  [
+    "competition.entering",
+    "entering"
+  ],
+  [
+    "competition.registered",
+    "registered"
+  ],
+  [
+    "competition.save",
+    "Save"
+  ],
+  [
+    "competition.unsave",
+    "Unsave"
+  ],
+  [
+    "competition.by",
+    "by"
+  ],
+  [
+    "competition.viewEnter",
+    "View & Enter"
+  ],
+  [
+    "competition.sortDeadlineSoon",
+    "Deadline Soon"
+  ],
+  [
+    "competition.sortMostParticipants",
+    "Most Participants"
+  ],
+  [
+    "competition.sortHighestPrize",
+    "Highest Prize"
+  ],
+  [
+    "competition.sortBy",
+    "Sort by"
+  ],
+  [
+    "competition.allCompetitions",
+    "All Competitions"
+  ],
+  [
+    "competition.viewAllCompetitions",
+    "View all competitions"
+  ],
+  [
+    "competition.viewAll",
+    "View all"
+  ],
+  [
+    "competition.pastCompetitions",
+    "Past Competitions"
+  ],
+  [
+    "competition.noCompetitionsYet",
+    "No competitions yet."
+  ],
+  [
+    "feed.community",
+    "Community"
+  ],
+  [
+    "feed.subtitle",
+    "Discover AI-crafted films from creators worldwide"
+  ],
+  [
+    "feed.noFilmsYet",
+    "No films yet."
+  ],
+  [
+    "feed.noThumbnail",
+    "No thumbnail"
+  ],
+  [
+    "feed.views",
+    "views"
+  ],
+  [
+    "feed.sortLabel",
+    "Sort"
+  ],
+  [
+    "feed.sortLatest",
+    "Latest"
+  ],
+  [
+    "feed.sortPopular",
+    "Popular"
+  ],
+  [
+    "feed.sortAwardWinners",
+    "Award Winners"
+  ],
+  [
+    "feed.noFilmsInCategory",
+    "No films in this category yet."
+  ],
+  [
+    "feed.today",
+    "Today"
+  ],
+  [
+    "feed.yesterday",
+    "Yesterday"
+  ],
+  [
+    "feed.daysAgoSuffix",
+    " days ago"
+  ],
+  [
+    "genre.feed_landscape_nature",
+    "Landscape/Nature"
+  ],
+  [
+    "genre.feed_city_architecture",
+    "City/Architecture"
+  ],
+  [
+    "genre.feed_drama",
+    "Drama"
+  ],
+  [
+    "genre.feed_comedy",
+    "Comedy"
+  ],
+  [
+    "genre.feed_romance",
+    "Romance"
+  ],
+  [
+    "genre.feed_sci_fi",
+    "Sci-Fi"
+  ],
+  [
+    "genre.feed_action",
+    "Action"
+  ],
+  [
+    "genre.feed_horror",
+    "Horror"
+  ],
+  [
+    "genre.feed_cyberpunk",
+    "Cyberpunk"
+  ],
+  [
+    "genre.feed_fantasy",
+    "Fantasy"
+  ],
+  [
+    "genre.feed_cinematic_emotional",
+    "Cinematic/Emotional"
+  ],
+  [
+    "genre.feed_soundscape",
+    "Soundscape"
+  ],
+  [
+    "genre.feed_shocking_viral",
+    "Shocking/Viral"
+  ],
+  [
+    "genre.feed_dynamic_speed",
+    "Dynamic/Speed"
+  ],
+  [
+    "genre.feed_funny_meme",
+    "Funny/Meme"
+  ],
+  [
+    "genre.feed_twist",
+    "Twist"
+  ],
+  [
+    "genre.feed_asmr_healing",
+    "ASMR/Healing"
+  ],
+  [
+    "genre.feed_tutorial",
+    "Tutorial"
+  ],
+  [
+    "genre.feed_daily_life",
+    "Daily Life"
+  ],
+  [
+    "genre.feed_travel",
+    "Travel"
+  ],
+  [
+    "genre.feed_food",
+    "Food"
+  ],
+  [
+    "genre.feed_pets_animals",
+    "Pets/Animals"
+  ],
+  [
+    "genre.feed_sports",
+    "Sports"
+  ],
+  [
+    "genre.feed_gaming",
+    "Gaming"
+  ],
+  [
+    "genre.feed_fashion_beauty",
+    "Fashion/Beauty"
+  ],
+  [
+    "genre.landscapeNature",
+    "Landscape/Nature"
+  ],
+  [
+    "genre.cityArchitecture",
+    "City/Architecture"
+  ],
+  [
+    "genre.romance",
+    "Romance"
+  ],
+  [
+    "genre.cinematicEmotional",
+    "Cinematic/Emotional"
+  ],
+  [
+    "genre.soundscape",
+    "Soundscape"
+  ],
+  [
+    "genre.shockingViral",
+    "Shocking/Viral"
+  ],
+  [
+    "genre.dynamicSpeed",
+    "Dynamic/Speed"
+  ],
+  [
+    "genre.funnyMeme",
+    "Funny/Meme"
+  ],
+  [
+    "genre.twist",
+    "Twist"
+  ],
+  [
+    "genre.asmrHealing",
+    "ASMR/Healing"
+  ],
+  [
+    "genre.tutorial",
+    "Tutorial"
+  ],
+  [
+    "genre.dailyLife",
+    "Daily Life"
+  ],
+  [
+    "genre.travel",
+    "Travel"
+  ],
+  [
+    "genre.food",
+    "Food"
+  ],
+  [
+    "genre.petsAnimals",
+    "Pets/Animals"
+  ],
+  [
+    "genre.sports",
+    "Sports"
+  ],
+  [
+    "genre.gaming",
+    "Gaming"
+  ],
+  [
+    "genre.fashionBeauty",
+    "Fashion/Beauty"
+  ],
+  [
+    "footer.tagline",
+    "The Home of AI Filmmakers"
+  ],
+  [
+    "footer.terms",
+    "Terms of Service"
+  ],
+  [
+    "footer.privacy",
+    "Privacy Policy"
+  ],
+  [
+    "settings.editProfile",
+    "Edit profile"
+  ],
+  [
+    "settings.viewProfile",
+    "View profile"
+  ],
+  [
+    "settings.profileImageUrl",
+    "Profile Image URL"
+  ],
+  [
+    "settings.edit",
+    "Edit"
+  ],
+  [
+    "settings.uploadingAvatar",
+    "Uploading avatar..."
+  ],
+  [
+    "settings.displayName",
+    "Display name"
+  ],
+  [
+    "settings.bio",
+    "Bio"
+  ],
+  [
+    "settings.bioPlaceholder",
+    "Tell viewers about you"
+  ],
+  [
+    "settings.aiTools",
+    "AI Tools"
+  ],
+  [
+    "settings.aiToolsHint",
+    "Tools you use (e.g. Midjourney, Runway, Kling)"
+  ],
+  [
+    "settings.quickSelect",
+    "Quick select:"
+  ],
+  [
+    "settings.customToolHint",
+    "Or type a custom tool:"
+  ],
+  [
+    "settings.customToolPlaceholder",
+    "Type a tool and press Enter"
+  ],
+  [
+    "settings.socialLinks",
+    "Social Links"
+  ],
+  [
+    "settings.websiteUrl",
+    "Website URL"
+  ],
+  [
+    "settings.xTwitter",
+    "X / Twitter"
+  ],
+  [
+    "settings.instagram",
+    "Instagram"
+  ],
+  [
+    "settings.youtube",
+    "YouTube"
+  ],
+  [
+    "settings.saveChanges",
+    "Save changes"
+  ],
+  [
+    "settings.saving",
+    "Saving??
+  ],
+  [
+    "films.continueWatching",
+    "Continue Watching"
+  ],
+  [
+    "films.viewAll",
+    "View All ??
+  ],
+  [
+    "films.top10Today",
+    "Top 10 Today"
+  ],
+  [
+    "films.top10In",
+    "Top 10 in"
+  ],
+  [
+    "films.newArrivals",
+    "New Arrivals"
+  ],
+  [
+    "films.todaysRecommendations",
+    "Today's Recommendations"
+  ],
+  [
+    "films.genovaOriginals",
+    "Genova Originals"
+  ],
+  [
+    "films.awardWinners",
+    "Award Winners"
+  ],
+  [
+    "films.editorsPicks",
+    "Editor's Picks"
+  ],
+  [
+    "films.todaysPick",
+    "Today's Pick"
+  ],
+  [
+    "films.trendingNow",
+    "Trending Now"
+  ],
+  [
+    "films.editorsChoice",
+    "Editor's Choice"
+  ],
+  [
+    "films.mostWatched",
+    "Most Watched"
+  ],
+  [
+    "films.staffFavorite",
+    "Staff Favorite"
+  ],
+  [
+    "films.play",
+    "Play"
+  ],
+  [
+    "films.addToMyList",
+    "Add to My List"
+  ],
+  [
+    "films.moreInfo",
+    "More Info"
+  ],
+  [
+    "films.completed",
+    "Completed"
+  ],
+  [
+    "films.leftMinutes",
+    "m left"
+  ],
+  [
+    "films.watched",
+    "% watched"
+  ],
+  [
+    "films.removeFromHistory",
+    "Remove from history"
+  ]
+]

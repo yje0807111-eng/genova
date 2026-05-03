@@ -10,6 +10,18 @@ export async function updateProfileAction(updates: {
   bio?: string;
   tools?: string[];
   avatarUrl?: string | null;
+  bannerUrl?: string | null;
+  websiteUrl?: string | null;
+  twitterUrl?: string | null;
+  instagramUrl?: string | null;
+  youtubeUrl?: string | null;
+  tiktokUrl?: string | null;
+  vimeoUrl?: string | null;
+  country?: string | null;
+  mainGenre?: string | null;
+  notifyLikes?: boolean;
+  notifyComments?: boolean;
+  notifyFollows?: boolean;
 }): Promise<ActionResult> {
   const supabase = await createServerSupabaseClient();
   if (!supabase) return { ok: false, message: "Please check your Supabase configuration." };
@@ -25,10 +37,23 @@ export async function updateProfileAction(updates: {
   if (updates.bio !== undefined) payload.bio = updates.bio;
   if (updates.tools !== undefined) payload.tools = updates.tools;
   if (updates.avatarUrl !== undefined) payload.avatar_url = updates.avatarUrl;
+  if (updates.bannerUrl !== undefined) payload.banner_url = updates.bannerUrl;
+  if (updates.websiteUrl !== undefined) payload.website_url = updates.websiteUrl;
+  if (updates.twitterUrl !== undefined) payload.twitter_url = updates.twitterUrl;
+  if (updates.instagramUrl !== undefined) payload.instagram_url = updates.instagramUrl;
+  if (updates.youtubeUrl !== undefined) payload.youtube_url = updates.youtubeUrl;
+  if (updates.tiktokUrl !== undefined) payload.tiktok_url = updates.tiktokUrl;
+  if (updates.vimeoUrl !== undefined) payload.vimeo_url = updates.vimeoUrl;
+  if (updates.country !== undefined) payload.country = updates.country;
+  if (updates.mainGenre !== undefined) payload.main_genre = updates.mainGenre;
+  if (updates.notifyLikes !== undefined) payload.notify_likes = updates.notifyLikes;
+  if (updates.notifyComments !== undefined) payload.notify_comments = updates.notifyComments;
+  if (updates.notifyFollows !== undefined) payload.notify_follows = updates.notifyFollows;
 
   const { error } = await supabase.from("profiles").update(payload).eq("id", user.id);
   if (error) return { ok: false, message: error.message };
   revalidatePath("/profile");
+  revalidatePath("/profile/settings");
   revalidatePath(`/profile/${user.id}`);
   return { ok: true };
 }

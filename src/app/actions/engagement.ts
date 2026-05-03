@@ -8,7 +8,10 @@ export type ToggleEngagementResult =
   | { ok: false; needAuth: true }
   | { ok: false; message: string };
 
-export type ToggleSaveResult = { ok: true; saved: boolean } | { ok: false; needAuth: true } | { ok: false; message: string };
+export type ToggleSaveResult =
+  | { ok: true; saved: boolean; count: number }
+  | { ok: false; needAuth: true }
+  | { ok: false; message: string };
 
 export async function toggleLikeAction(videoId: string): Promise<ToggleEngagementResult> {
   const supabase = await createServerSupabaseClient();
@@ -61,8 +64,11 @@ export async function toggleSaveAction(videoId: string): Promise<ToggleSaveResul
   }
 
   const saved = !existing;
+
+  const { count } = await supabase.from("saved_videos").select("*", { count: "exact", head: true }).eq("video_id", videoId);
+
   revalidatePath(`/watch/${videoId}`);
   revalidatePath("/profile");
 
-  return { ok: true, saved };
+  return { ok: true, saved, count: count ?? 0 };
 }

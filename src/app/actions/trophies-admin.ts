@@ -4,20 +4,25 @@ import { revalidatePath } from "next/cache";
 import { isAdminEmail } from "@/lib/auth/admin";
 import { FILMS_GENRE_KEYS, MAIN_GENRE_LABELS, type MainGenreKey } from "@/lib/constants/genres";
 import { createNotification } from "@/lib/notifications";
+import type { User } from "@supabase/supabase-js";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { createServiceSupabaseClient } from "@/lib/supabase/service";
 
 type AdminResult = { ok: true } | { ok: false; message: string };
 
-async function requireAdmin() {
+type RequireAdminResult =
+  | { error: string }
+  | { supabase: NonNullable<Awaited<ReturnType<typeof createServerSupabaseClient>>>; user: User };
+
+async function requireAdmin(): Promise<RequireAdminResult> {
   const supabase = await createServerSupabaseClient();
-  if (!supabase) return { error: "Please check your Supabase configuration." } as const;
+  if (!supabase) return { error: "Please check your Supabase configuration." };
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  if (!user) return { error: "Please sign in." } as const;
-  if (!isAdminEmail(user.email)) return { error: "Access denied." } as const;
-  return { supabase, user } as const;
+  if (!user) return { error: "Please sign in." };
+  if (!isAdminEmail(user.email)) return { error: "Access denied." };
+  return { supabase, user };
 }
 
 function parseWeekStartDate(input: string): string | null {

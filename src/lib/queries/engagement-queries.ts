@@ -27,10 +27,18 @@ export async function attachEngagementToVideos(videos: Video[]): Promise<Video[]
     saved = new Set((sRows ?? []).map((r: { video_id: string }) => r.video_id));
   }
 
+  const { data: saveRows } = await supabase.from("saved_videos").select("video_id").in("video_id", ids);
+  const saveCounts: Record<string, number> = {};
+  for (const row of saveRows ?? []) {
+    const r = row as { video_id: string };
+    saveCounts[r.video_id] = (saveCounts[r.video_id] ?? 0) + 1;
+  }
+
   return videos.map((v) => ({
     ...v,
     likeCount: counts[v.id] ?? 0,
     likedByMe: liked.has(v.id),
     savedByMe: saved.has(v.id),
+    saveCount: saveCounts[v.id] ?? 0,
   }));
 }

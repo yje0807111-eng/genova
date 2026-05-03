@@ -1,4 +1,7 @@
+"use client";
+
 import Link from "next/link";
+import { useI18n } from "@/components/genova/language-provider";
 import { formatGenreDisplay } from "@/lib/constants/genres";
 import type { Video } from "@/lib/types";
 
@@ -11,54 +14,87 @@ export function FilmsVideoCard({
 }: {
   video: Video;
   size?: Size;
-  /** When set, shows an award ribbon on the card */
   awardLabel?: string | null;
 }) {
+  const { locale, t } = useI18n();
   const aspect =
     size === "hero"
-      ? "aspect-[21/9] min-h-[220px] sm:min-h-[280px]"
+      ? "aspect-[21/9]"
       : size === "large"
-        ? "aspect-[16/10] min-h-[200px]"
+        ? "aspect-[16/10]"
         : "aspect-video";
+
+  const creator =
+    video.creatorName?.trim() ||
+    video.uploaderDisplayName?.trim() ||
+    t("video.creatorFallback", "Creator");
 
   return (
     <Link
       href={`/watch/${video.id}`}
-      className={`ui-card ui-card-hover group relative block w-full overflow-hidden rounded-[2px] bg-[#0F0D24] transition duration-200 ease-out will-change-transform hover:z-[1] ${aspect}`}
+      className="group relative block w-full overflow-hidden rounded-xl border border-white/[0.08] bg-[#0f0d24] transition-all duration-200 hover:-translate-y-[2px] hover:border-[rgba(127,119,221,0.3)] hover:shadow-[0_8px_32px_rgba(83,74,183,0.2)]"
     >
-      {video.thumbnailUrl ? (
-        <img
-          src={video.thumbnailUrl}
-          alt=""
-          className="h-full w-full object-cover transition duration-500 ease-out group-hover:brightness-[0.65]"
-        />
-      ) : (
-        <div className="h-full w-full bg-[#0F0D24]" />
-      )}
+      <div className={`relative w-full overflow-hidden ${aspect}`}>
+        {video.thumbnailUrl ? (
+          <img
+            src={video.thumbnailUrl}
+            alt=""
+            className="h-full w-full object-cover transition duration-500 group-hover:scale-105 group-hover:brightness-90"
+          />
+        ) : (
+          <div className="h-full w-full bg-gradient-to-br from-[#1a1547] to-[#0f0d24]" />
+        )}
 
-      {awardLabel ? (
-        <span className="absolute left-2 top-2 max-w-[calc(100%-1rem)] rounded-[2px] border border-[rgba(83,74,183,0.3)] bg-[rgba(83,74,183,0.2)] px-2 py-1 text-[10px] font-semibold uppercase tracking-wide text-[#534AB7]">
-          {awardLabel}
-        </span>
-      ) : null}
+        {/* Gradient overlay */}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent" />
 
-      <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/85 via-black/15 to-transparent opacity-0 transition duration-200 group-hover:opacity-100" />
-      <div className="pointer-events-none absolute inset-x-0 bottom-0 translate-y-2 p-4 opacity-0 transition duration-200 group-hover:translate-y-0 group-hover:opacity-100 sm:p-5">
-        <p className="line-clamp-2 text-[14px] font-medium leading-snug text-white">{video.title}</p>
-        <p className="mt-1 line-clamp-1 text-[12px] text-[rgba(255,255,255,0.5)]">{formatGenreDisplay(video.genre, video.subGenre)}</p>
+        {/* Award badge */}
+        {awardLabel ? (
+          <span className="typo-stat-xs absolute left-3 top-3 rounded-md border border-[#FFD700]/30 bg-black/60 px-2.5 py-1 uppercase tracking-[0.12em] text-[#FFD700] backdrop-blur-sm">
+            🏆 {awardLabel}
+          </span>
+        ) : null}
+
+        {/* Runtime if available */}
+        {video.runtime ? (
+          <span className="typo-overlay-duration absolute bottom-3 right-3 rounded-md bg-black/60 px-2 py-0.5 text-white backdrop-blur-sm">
+            {video.runtime}
+          </span>
+        ) : null}
+      </div>
+
+      {/* Info */}
+      <div className="p-4">
+        <h3 className="typo-filmstrip-title line-clamp-2 text-white transition group-hover:text-[#AFA9EC]">
+          {video.title}
+        </h3>
+        <div className="mt-2 flex items-center justify-between gap-2">
+          <span className="typo-sidebar-tag text-white/45">{formatGenreDisplay(video.genre, video.subGenre, locale)}</span>
+          <span className="typo-card-meta truncate text-right text-white/35">{creator}</span>
+        </div>
+        {video.viewCount ? (
+          <p className="typo-card-meta mt-1 text-white/30">
+            {video.viewCount >= 1000
+              ? `${(video.viewCount / 1000).toFixed(1)}K views`
+              : `${video.viewCount} views`}
+          </p>
+        ) : null}
       </div>
     </Link>
   );
 }
 
 export function FilmsComingSoon({ className = "" }: { className?: string }) {
+  const { t } = useI18n();
   return (
     <div
-      className={`flex min-h-[200px] flex-col items-center justify-center rounded-[2px] border border-dashed border-[rgba(255,255,255,0.15)] bg-[#0F0D24] px-6 py-16 text-center ${className}`}
+      className={`flex min-h-[200px] flex-col items-center justify-center rounded-xl border border-dashed border-white/10 bg-white/[0.02] px-6 py-16 text-center ${className}`}
     >
-      <p className="eyebrow">Genova</p>
-      <p className="mt-3 text-lg font-medium text-white">Coming Soon</p>
-      <p className="mt-2 max-w-sm text-sm text-[rgba(255,255,255,0.5)]">This lineup is being curated. Check back shortly.</p>
+      <p className="typo-sidebar-heading text-[#7F77DD]/65">{t("meta.brand", "Genova")}</p>
+      <p className="mt-3 text-lg font-semibold text-white">{t("films.comingSoonTitle", "Coming Soon")}</p>
+      <p className="mt-2 max-w-sm text-sm text-white/40">
+        {t("films.comingSoonLineup", "This lineup is being curated. Check back shortly.")}
+      </p>
     </div>
   );
 }

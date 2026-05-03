@@ -139,6 +139,45 @@ export async function fetchCompetitionsForUpload(): Promise<{ id: string; title:
   return data;
 }
 
+export async function fetchAllCompetitions() {
+  const supabase = await createServerSupabaseClient();
+  if (!supabase) return [];
+  const { data } = await supabase
+    .from("competitions")
+    .select("*")
+    .order("deadline", { ascending: false });
+  return data ?? [];
+}
+
+export async function fetchCompetitionById(id: string) {
+  const supabase = await createServerSupabaseClient();
+  if (!supabase) return null;
+
+  const { data, error } = await supabase
+    .from("competitions")
+    .select("*")
+    .eq("id", id)
+    .single();
+
+  if (error || !data) return null;
+  return data as {
+    id: string;
+    title: string;
+    genre: string;
+    status: string;
+    deadline: string;
+    vote_end: string;
+    prize_info: string;
+    sponsor: string | null;
+    description: string | null;
+    rules: string | null;
+    thumbnail_url: string | null;
+    banner_url: string | null;
+    concept: string | null;
+    eligibility: string | null;
+  };
+}
+
 export async function fetchRelatedVideos(excludeId: string, limit = 3): Promise<Video[]> {
   const supabase = await createServerSupabaseClient();
   if (!supabase) return [];
@@ -155,6 +194,114 @@ export async function fetchRelatedVideos(excludeId: string, limit = 3): Promise<
   }
   const merged = await mergeVideoRows(data as Parameters<typeof mapVideo>[0][]);
   return merged.map((row) => mapVideo(row));
+}
+
+/** Same genre as current video, public, excluding id; ordered by view_count desc (watch page “For You”). */
+export async function fetchForYouSameGenreVideos(excludeId: string, genre: string, limit = 8): Promise<Video[]> {
+  const supabase = await createServerSupabaseClient();
+  if (!supabase) return [];
+  const { data, error } = await supabase
+    .from("videos")
+    .select("*, creators(*)")
+    .eq("visibility", "public")
+    .eq("genre", genre)
+    .neq("id", excludeId)
+    .order("view_count", { ascending: false })
+    .limit(limit);
+  if (error || !data) {
+    console.error("[fetchForYouSameGenreVideos] fetch failed", { message: error?.message, code: error?.code });
+    return [];
+  }
+  const merged = await mergeVideoRows(data as Parameters<typeof mapVideo>[0][]);
+  return merged.map((row) => mapVideo(row));
+}
+
+/** 팔로우한 크리에이터의 공개 영상 (최신순). */
+export async function fetchFollowingVideos(userId: string | null, limit = 8): Promise<Video[]> {
+  if (!userId) return [];
+  const supabase = await createServerSupabaseClient();
+  if (!supabase) return [];
+
+  const { data: follows } = await supabase
+    .from("follows")
+    .select("following_id")
+    .eq("follower_id", userId);
+
+  if (!follows || follows.length === 0) return [];
+  const followingIds = follows.map((f) => f.following_id);
+
+  const { data, error } = await supabase
+    .from("videos")
+    .select("*, creators(*)")
+    .eq("visibility", "public")
+    .in("uploaded_by", followingIds)
+    .order("created_at", { ascending: false })
+    .limit(limit);
+
+  if (error || !data) return [];
+  const merged = await mergeVideoRows(data as Parameters<typeof mapVideo>[0][]);
+  return merged.map((row) => mapVideo(row));
+}
+
+/**
+ * 최근 본 영상과 시청 패턴이 비슷한 사용자들이 본 다른 공개 영상 (협업 필터링).
+ */
+export async function fetchBecauseYouWatched(userId: string | null, limit = 8): Promise<Video[]> {
+  if (!userId) return [];
+  const supabase = await createServerSupabaseClient();
+  if (!supabase) return [];
+
+  const { data: myHistory } = await supabase
+    .from("watch_history")
+    .select("video_id")
+    .eq("user_id", userId)
+    .order("watched_at", { ascending: false })
+    .limit(3);
+
+  if (!myHistory || myHistory.length === 0) return [];
+  const myVideoIds = myHistory.map((h) => h.video_id);
+  const myVideoIdSet = new Set(myVideoIds);
+
+  const { data: sameWatchers } = await supabase
+    .from("watch_history")
+    .select("user_id")
+    .in("video_id", myVideoIds)
+    .neq("user_id", userId)
+    .limit(50);
+
+  if (!sameWatchers || sameWatchers.length === 0) return [];
+  const otherUserIds = [...new Set(sameWatchers.map((w) => w.user_id))];
+
+  const { data: recommendedRaw } = await supabase
+    .from("watch_history")
+    .select("video_id")
+    .in("user_id", otherUserIds)
+    .limit(limit * 30);
+
+  const recommended = (recommendedRaw ?? []).filter((r) => !myVideoIdSet.has(r.video_id));
+  if (recommended.length === 0) return [];
+
+  const countMap = new Map<string, number>();
+  for (const r of recommended) {
+    countMap.set(r.video_id, (countMap.get(r.video_id) ?? 0) + 1);
+  }
+  const topVideoIds = [...countMap.entries()]
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, limit)
+    .map(([id]) => id);
+
+  if (topVideoIds.length === 0) return [];
+
+  const { data, error } = await supabase
+    .from("videos")
+    .select("*, creators(*)")
+    .eq("visibility", "public")
+    .in("id", topVideoIds);
+
+  if (error || !data) return [];
+  const merged = await mergeVideoRows(data as Parameters<typeof mapVideo>[0][]);
+  const byId = new Map(merged.map((row) => [row.id as string, mapVideo(row)]));
+  return topVideoIds.map((id) => byId.get(id)).filter((v): v is Video => v != null);
 }
 
 export async function fetchCreatorById(id: string): Promise<Creator | null> {
@@ -245,6 +392,7 @@ export async function fetchSeriesEpisodesForVideo(video: Video): Promise<{
 
   const { data, error } = await supabase
     .from("videos")
+    // `*` includes `view_count` and `runtime` (watch page series episode cards).
     .select("*, creators(*)")
     .eq("uploaded_by", video.uploadedBy)
     .eq("genre", "series")
@@ -262,4 +410,95 @@ export async function fetchSeriesEpisodesForVideo(video: Video): Promise<{
   const nextId = idx >= 0 && idx < episodes.length - 1 ? episodes[idx + 1].id : null;
 
   return { seriesTitle: name, episodes, prevId, nextId };
+}
+
+type VideoRow = Parameters<typeof mapVideo>[0];
+
+export async function fetchSpotlightCreators(): Promise<{
+  uploadedBy: string;
+  displayName: string;
+  avatarUrl: string | null;
+  videoCount: number;
+  totalLikes: number;
+  recentVideos: Video[];
+}[]> {
+  const supabase = await createServerSupabaseClient();
+  if (!supabase) return [];
+
+  // 최근 60일 업로드 영상 가져오기
+  const since = new Date(Date.now() - 60 * 24 * 60 * 60 * 1000).toISOString();
+  const { data: videos, error } = await supabase
+    .from("videos")
+    .select("*")
+    .eq("visibility", "public")
+    .gte("created_at", since)
+    .order("created_at", { ascending: false });
+
+  if (error || !videos || videos.length === 0) return [];
+
+  const rows = videos as VideoRow[];
+
+  // 좋아요 수 가져오기
+  const videoIds = rows.map((v) => v.id);
+  const { data: likes } = await supabase.from("likes").select("video_id").in("video_id", videoIds);
+
+  const likeCountMap = new Map<string, number>();
+  for (const like of likes ?? []) {
+    const vid = (like as { video_id: string }).video_id;
+    likeCountMap.set(vid, (likeCountMap.get(vid) ?? 0) + 1);
+  }
+
+  // 크리에이터별 그룹핑
+  const creatorMap = new Map<
+    string,
+    {
+      videoCount: number;
+      totalLikes: number;
+      recentVideos: VideoRow[];
+    }
+  >();
+
+  for (const v of rows) {
+    if (!v.uploaded_by) continue;
+    const existing =
+      creatorMap.get(v.uploaded_by) ?? { videoCount: 0, totalLikes: 0, recentVideos: [] };
+    existing.videoCount += 1;
+    existing.totalLikes += likeCountMap.get(v.id) ?? 0;
+    if (existing.recentVideos.length < 3) existing.recentVideos.push(v);
+    creatorMap.set(v.uploaded_by, existing);
+  }
+
+  // 최소 영상 2개 이상, 좋아요 합산 기준 정렬
+  const sorted = [...creatorMap.entries()]
+    .filter(([, v]) => v.videoCount >= 2)
+    .sort((a, b) => b[1].totalLikes - a[1].totalLikes)
+    .slice(0, 8);
+
+  if (sorted.length === 0) return [];
+
+  // 프로필 가져오기
+  const uploaderIds = sorted.map(([id]) => id);
+  const { data: profiles } = await supabase
+    .from("profiles")
+    .select("id, display_name, avatar_url")
+    .in("id", uploaderIds);
+
+  const profileMap = new Map(
+    (profiles ?? []).map((p: { id: string; display_name: string | null; avatar_url?: string | null }) => [
+      p.id,
+      p,
+    ]),
+  );
+
+  return sorted.map(([uploadedBy, data]) => {
+    const profile = profileMap.get(uploadedBy);
+    return {
+      uploadedBy,
+      displayName: profile?.display_name ?? "Creator",
+      avatarUrl: profile?.avatar_url ?? null,
+      videoCount: data.videoCount,
+      totalLikes: data.totalLikes,
+      recentVideos: data.recentVideos.map((row) => mapVideo(row)),
+    };
+  });
 }

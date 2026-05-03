@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { createPortal } from "react-dom";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { MAIN_GENRE_LABELS } from "@/lib/constants/genres";
-import { EXPLORE_GENRE_KEYS, genreCardGradient } from "@/lib/search-ui";
+import { EXPLORE_GENRE_KEYS } from "@/lib/search-ui";
 import type { SearchGenreMatch, SearchProfile } from "@/lib/queries/search-queries";
 import type { Video } from "@/lib/types";
 import { HighlightText } from "@/components/ui/highlight-text";
@@ -182,7 +182,11 @@ export function SearchNav() {
                 <div
                   ref={panelRef}
                   onPointerDown={(e) => e.stopPropagation()}
-                  className="pointer-events-auto flex h-full max-h-[92dvh] min-h-0 w-full max-w-6xl flex-col overflow-hidden rounded-2xl border border-white/10 bg-[#0f0d1f]/98 shadow-2xl ring-1 ring-white/5"
+                  className="pointer-events-auto flex h-full max-h-[92dvh] min-h-0 w-full max-w-6xl flex-col overflow-hidden rounded-2xl border border-white/[0.08] shadow-2xl"
+                  style={{
+                    background: "linear-gradient(135deg, rgba(15,13,36,0.99) 0%, rgba(8,6,24,1) 100%)",
+                    boxShadow: "0 0 0 1px rgba(127,119,221,0.08), 0 40px 80px rgba(0,0,0,0.8)",
+                  }}
                   role="dialog"
                   aria-modal="true"
                   aria-label="Search"
@@ -214,12 +218,16 @@ export function SearchNav() {
                       }
                     }}
                     placeholder="Title, tags, creators, genre..."
-                    className="w-full rounded-2xl border border-white/15 bg-[#1A1535]/80 py-5 pl-6 pr-28 text-2xl text-[#EEEDFE] outline-none ring-0 transition placeholder:text-[#AFA9EC] focus:border-[#7F77DD]/60 focus:ring-2 focus:ring-[#534AB7]/35"
+                    className="w-full rounded-2xl border border-white/[0.12] bg-[#0d0b20] py-5 pl-6 pr-28 text-2xl text-white outline-none transition placeholder:text-white/20 focus:border-[#7F77DD]/60 focus:ring-2 focus:ring-[#534AB7]/30"
                   />
                   <button
                     type="button"
                     onClick={() => goSearch()}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 rounded-xl bg-[#534AB7] px-5 py-2.5 text-sm font-semibold text-[#EEEDFE] transition hover:bg-[#7F77DD]"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 rounded-xl px-5 py-2.5 text-sm font-bold text-white transition hover:opacity-90"
+                    style={{
+                      background: "linear-gradient(135deg, #534AB7 0%, #7B6FE8 100%)",
+                      boxShadow: "0 4px 16px rgba(83,74,183,0.4)",
+                    }}
                   >
                     Search
                   </button>
@@ -374,16 +382,15 @@ export function SearchNav() {
                               key={v.id}
                               href={`/watch/${v.id}`}
                               onClick={() => setOpen(false)}
-                              className="group overflow-hidden rounded-xl border border-white/10 bg-[#1A1535] transition hover:border-[#7F77DD]"
+                              className="group/card relative block overflow-hidden rounded-xl border border-white/[0.08] transition hover:scale-[1.03] hover:border-[#7F77DD]/40"
                             >
-                              <div className="aspect-video w-full overflow-hidden bg-black/30">
-                                <img
-                                  src={v.thumbnailUrl}
-                                  alt=""
-                                  className="h-full w-full object-cover transition group-hover:scale-[1.03]"
-                                />
+                              <div className="relative aspect-video w-full overflow-hidden">
+                                <img src={v.thumbnailUrl} alt="" className="h-full w-full object-cover transition-transform duration-500 group-hover/card:scale-105" />
+                                <div className="absolute inset-x-0 bottom-0 z-[1]" style={{ height: "75%", background: "linear-gradient(to top, rgba(8,6,24,1) 0%, rgba(8,6,24,0.8) 40%, transparent 100%)" }} />
+                                <div className="absolute bottom-0 left-0 right-0 z-[2] px-2.5 pb-2">
+                                  <p className="line-clamp-1 text-[12px] font-bold text-white">{v.title}</p>
+                                </div>
                               </div>
-                              <p className="line-clamp-2 p-2 text-xs font-semibold text-[#EEEDFE]">{v.title}</p>
                             </Link>
                           ))}
                         </div>
@@ -401,17 +408,18 @@ export function SearchNav() {
                               key={p.id}
                               href={`/profile/${p.id}`}
                               onClick={() => setOpen(false)}
-                              className="flex flex-col items-center rounded-xl border border-white/10 bg-[#131028] p-4 text-center transition hover:border-[#7F77DD]"
+                              className="flex flex-col items-center rounded-xl border border-white/[0.08] p-4 text-center transition hover:border-[#7F77DD]/30"
+                              style={{ background: "rgba(255,255,255,0.02)" }}
                             >
-                              <div className="mb-2 h-14 w-14 overflow-hidden rounded-full bg-[#26215C]">
+                              <div className="mb-2 h-12 w-12 overflow-hidden rounded-full border border-white/10" style={{ boxShadow: "0 0 0 2px rgba(83,74,183,0.3)" }}>
                                 {p.avatarUrl ? (
                                   <img src={p.avatarUrl} alt="" className="h-full w-full object-cover" />
                                 ) : (
-                                  <div className="flex h-full w-full items-center justify-center text-sm text-[#AFA9EC]">?</div>
+                                  <div className="flex h-full w-full items-center justify-center text-sm text-white/40 bg-[#26215C]">?</div>
                                 )}
                               </div>
-                              <p className="truncate text-sm font-semibold text-[#EEEDFE]">{p.displayName ?? "Creator"}</p>
-                              <p className="mt-1 text-xs text-[#AFA9EC]">Followers {p.followerCount}</p>
+                              <p className="truncate text-sm font-bold text-white">{p.displayName ?? "Creator"}</p>
+                              <p className="mt-0.5 text-[11px] text-white/35">{p.followerCount} followers</p>
                             </Link>
                           ))}
                         </div>
@@ -428,10 +436,11 @@ export function SearchNav() {
                             key={key}
                             href={`/genre/${key}`}
                             onClick={closeSearch}
-                            className={`relative overflow-hidden rounded-xl border border-white/10 bg-gradient-to-br p-5 text-left transition hover:scale-[1.02] hover:border-[#7F77DD]/50 ${genreCardGradient(key)}`}
+                            className="relative overflow-hidden rounded-xl border border-white/[0.08] p-5 text-left transition hover:scale-[1.02] hover:border-[#7F77DD]/40"
+                            style={{ background: "rgba(83,74,183,0.1)" }}
                           >
-                            <span className="text-sm font-bold text-[#EEEDFE]">{MAIN_GENRE_LABELS[key]}</span>
-                            <span className="mt-2 block text-[11px] text-[#E8E4FF]/80">Watch Films</span>
+                            <span className="text-sm font-bold text-white">{MAIN_GENRE_LABELS[key]}</span>
+                            <span className="mt-1 block text-[11px] text-white/35">Watch Films →</span>
                           </Link>
                         ))}
                       </div>

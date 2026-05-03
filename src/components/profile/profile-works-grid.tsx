@@ -4,17 +4,19 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { deleteVideoAction, updateVideoVisibilityAction } from "@/app/actions/video";
+import { useI18n } from "@/components/genova/language-provider";
 import { formatGenreDisplay } from "@/lib/constants/genres";
 import type { Video } from "@/lib/types";
 
 export function ProfileWorksGrid({ videos, emptyLabel }: { videos: Video[]; emptyLabel?: string }) {
+  const { t } = useI18n();
   const router = useRouter();
   const [pending, setPending] = useState<string | null>(null);
 
   if (videos.length === 0) {
     return (
       <p className="rounded-xl bg-[#1A1535]/80 p-8 text-center text-sm text-[#AFA9EC]">
-        {emptyLabel ?? "No uploads yet."}
+        {emptyLabel ?? t("profile.noUploadsYet")}
       </p>
     );
   }
@@ -31,7 +33,7 @@ export function ProfileWorksGrid({ videos, emptyLabel }: { videos: Video[]; empt
   };
 
   const remove = async (videoId: string) => {
-    if (!confirm("Delete this film? This action cannot be undone.")) return;
+    if (!confirm(t("profile.confirmDeleteFilm"))) return;
     setPending(videoId);
     try {
       const res = await deleteVideoAction(videoId);
@@ -58,7 +60,7 @@ export function ProfileWorksGrid({ videos, emptyLabel }: { videos: Video[]; empt
                 {isPrivate && (
                   <span
                     className="absolute right-2 top-2 rounded-full bg-black/60 p-1.5 text-[#EEEDFE]"
-                    title="Private"
+                    title={t("profile.private")}
                   >
                     <svg className="h-4 w-4" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
                       <path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zM9 6c0-1.66 1.34-3 3-3s3 1.34 3 3v2H9V6z" />
@@ -78,7 +80,7 @@ export function ProfileWorksGrid({ videos, emptyLabel }: { videos: Video[]; empt
                 href={`/upload/edit/${v.id}`}
                 className="rounded-full bg-[#534AB7]/70 px-3 py-1 text-xs font-medium text-[#EEEDFE] ring-1 ring-[#7F77DD]/40 hover:bg-[#534AB7]"
               >
-                Edit
+                {t("profile.edit")}
               </Link>
               <button
                 type="button"
@@ -86,7 +88,7 @@ export function ProfileWorksGrid({ videos, emptyLabel }: { videos: Video[]; empt
                 onClick={() => void toggleVis(v.id, isPrivate ? "public" : "private")}
                 className="rounded-full bg-[#26215C] px-3 py-1 text-xs text-[#EEEDFE] ring-1 ring-white/15 hover:bg-[#534AB7]/40 disabled:opacity-50"
               >
-                {busy ? "..." : isPrivate ? "Set Public" : "Set Private"}
+                {busy ? "..." : isPrivate ? t("profile.setPublic") : t("profile.setPrivate")}
               </button>
               <button
                 type="button"
@@ -94,7 +96,7 @@ export function ProfileWorksGrid({ videos, emptyLabel }: { videos: Video[]; empt
                 onClick={() => void remove(v.id)}
                 className="rounded-full bg-red-950/50 px-3 py-1 text-xs text-red-200 ring-1 ring-red-800/50 hover:bg-red-950 disabled:opacity-50"
               >
-                Delete
+                {t("profile.delete")}
               </button>
             </div>
           </div>

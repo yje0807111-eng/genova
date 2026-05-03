@@ -1,10 +1,18 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
+import { useI18n } from "@/components/genova/language-provider";
 import { AuthNav } from "@/components/auth-nav";
-import { GenovaSymbol } from "./genova-symbol";
+import { ChatDrawer } from "@/components/chat-drawer";
+
+type ChatTarget = {
+  userId: string;
+  displayName: string;
+  avatarUrl?: string;
+};
 
 function NavItem({ href, label, active }: { href: string; label: string; active: boolean }) {
   return (
@@ -25,12 +33,15 @@ function NavItem({ href, label, active }: { href: string; label: string; active:
 }
 
 export function SiteHeader() {
+  const { t } = useI18n();
   const pathname = usePathname();
   const router = useRouter();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [search, setSearch] = useState("");
   const [searchOpen, setSearchOpen] = useState(false);
+  const [isChatOpen, setIsChatOpen] = useState(false);
+  const [chatTarget, setChatTarget] = useState<ChatTarget | null>(null);
   const searchRef = useRef<HTMLDivElement | null>(null);
   const searchInputRef = useRef<HTMLInputElement | null>(null);
 
@@ -39,6 +50,25 @@ export function SiteHeader() {
     setSearch("");
     setSearchOpen(false);
   }, [pathname]);
+
+  useEffect(() => {
+    const handler = (event: Event) => {
+      const customEvent = event as CustomEvent<ChatTarget>;
+      if (!customEvent.detail?.userId || !customEvent.detail?.displayName) return;
+      setChatTarget(customEvent.detail);
+      setIsChatOpen(true);
+    };
+    window.addEventListener("open-message", handler);
+    return () => window.removeEventListener("open-message", handler);
+  }, []);
+
+  useEffect(() => {
+    const openChatHandler = () => {
+      setIsChatOpen(true);
+    };
+    window.addEventListener("open-chat", openChatHandler);
+    return () => window.removeEventListener("open-chat", openChatHandler);
+  }, []);
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 16);
@@ -83,7 +113,7 @@ export function SiteHeader() {
       <div className="mx-auto grid h-14 w-full grid-cols-[1fr_auto_1fr] items-center gap-4 px-6">
         <div className="flex min-w-0 items-center gap-5">
         <Link href="/" className="flex min-w-0 items-center gap-3 transition hover:brightness-110">
-          <GenovaSymbol className="h-8 w-8 shrink-0" />
+          <Image src="/genova-logo.png" alt="Genova symbol" width={28} height={28} className="h-7 w-7 shrink-0" />
           <span className="flex min-w-0 items-baseline gap-1.5 text-[18px] font-bold tracking-wide text-white">
             <span>
               Genova
@@ -91,15 +121,10 @@ export function SiteHeader() {
           </span>
         </Link>
         <nav className="hidden items-center gap-4 md:flex">
-            <NavItem
-              href="/feed"
-              label="Feed"
-              active={pathname.startsWith("/feed") || pathname === "/watch"}
-            />
-            <NavItem href="/films" label="Films" active={pathname.startsWith("/films")} />
-            <NavItem href="/shorts" label="Shorts" active={pathname.startsWith("/shorts")} />
-            <NavItem href="/competition" label="Competition" active={pathname.startsWith("/competition")} />
-            <NavItem href="/creator/c1" label="Creators" active={pathname.startsWith("/creator")} />
+            <NavItem href="/films" label={t("nav.films", "Films")} active={pathname.startsWith("/films")} />
+            <NavItem href="/shorts" label={t("nav.shorts", "Shorts")} active={pathname.startsWith("/shorts")} />
+            <NavItem href="/competition" label={t("nav.competition", "Competition")} active={pathname.startsWith("/competition")} />
+            <NavItem href="/creator/c1" label={t("nav.creators", "Creators")} active={pathname.startsWith("/creator")} />
           </nav>
         </div>
         <div />
@@ -127,7 +152,7 @@ export function SiteHeader() {
                   ref={searchInputRef}
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
-                  placeholder="Search AI films..."
+                  placeholder={t("common.searchAiFilms", "Search AI films...")}
                   className="h-8 w-[220px] rounded-[20px] border border-[rgba(255,255,255,0.15)] bg-[rgba(255,255,255,0.08)] pl-9 pr-3 text-sm text-white outline-none placeholder:text-[rgba(255,255,255,0.45)] focus:border-[#534AB7]"
                 />
               </form>
@@ -136,7 +161,7 @@ export function SiteHeader() {
               type="button"
               onClick={() => setSearchOpen((v) => !v)}
               className="rounded-[2px] p-2 text-[rgba(255,255,255,0.7)] transition hover:text-white"
-              aria-label="Search"
+              aria-label={t("common.search", "Search")}
             >
               <svg className="h-[18px] w-[18px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <circle cx="11" cy="11" r="7" />
@@ -151,7 +176,7 @@ export function SiteHeader() {
             type="button"
             onClick={() => setMobileOpen((v) => !v)}
             className="inline-flex h-9 w-9 items-center justify-center rounded-[2px] text-[#EEEDFE] hover:bg-white/10"
-            aria-label="Toggle menu"
+            aria-label={t("common.toggleMenu", "Toggle menu")}
           >
             <span className="text-lg leading-none">{mobileOpen ? "×" : "☰"}</span>
           </button>
@@ -162,15 +187,10 @@ export function SiteHeader() {
           className="border-t border-white/10 bg-[rgba(8,6,24,0.95)] px-4 py-3 md:hidden"
         >
           <nav className="flex flex-col gap-3">
-            <NavItem
-              href="/feed"
-              label="Feed"
-              active={pathname.startsWith("/feed") || pathname === "/watch"}
-            />
-            <NavItem href="/films" label="Films" active={pathname.startsWith("/films")} />
-            <NavItem href="/shorts" label="Shorts" active={pathname.startsWith("/shorts")} />
-            <NavItem href="/competition" label="Competition" active={pathname.startsWith("/competition")} />
-            <NavItem href="/creator/c1" label="Creators" active={pathname.startsWith("/creator")} />
+            <NavItem href="/films" label={t("nav.films", "Films")} active={pathname.startsWith("/films")} />
+            <NavItem href="/shorts" label={t("nav.shorts", "Shorts")} active={pathname.startsWith("/shorts")} />
+            <NavItem href="/competition" label={t("nav.competition", "Competition")} active={pathname.startsWith("/competition")} />
+            <NavItem href="/creator/c1" label={t("nav.creators", "Creators")} active={pathname.startsWith("/creator")} />
             <form
               onSubmit={(e) => {
                 e.preventDefault();
@@ -187,7 +207,7 @@ export function SiteHeader() {
               <input
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                placeholder="Search AI films..."
+                placeholder={t("common.searchAiFilms", "Search AI films...")}
                 className="h-8 w-full rounded-[20px] border border-[rgba(255,255,255,0.15)] bg-[rgba(255,255,255,0.08)] pl-9 pr-3 text-sm text-white outline-none placeholder:text-[rgba(255,255,255,0.45)] focus:border-[#534AB7]"
               />
             </form>
@@ -197,11 +217,20 @@ export function SiteHeader() {
           </nav>
         </div>
       ) : null}
+      <ChatDrawer
+        open={isChatOpen}
+        onClose={() => {
+          setIsChatOpen(false);
+          setChatTarget(null);
+        }}
+        initialTarget={chatTarget}
+      />
     </header>
   );
 }
 
 export function SiteFooter() {
+  const { t } = useI18n();
   const pathname = usePathname();
   if (pathname.startsWith("/shorts")) {
     return null;
@@ -211,24 +240,22 @@ export function SiteFooter() {
     <footer className="relative mt-0 overflow-hidden bg-[#030211]">
       <div className="section-blob left-1/2 -top-64 -translate-x-1/2 opacity-50" />
       <div className="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 opacity-[0.03]">
-        <GenovaSymbol className="h-72 w-72" />
+        <Image src="/genova-logo.png" alt="" width={288} height={288} className="h-72 w-72" aria-hidden />
       </div>
-      <div className="section-content mx-auto max-w-6xl space-y-10 px-6 py-14 text-sm text-[#AFA9EC]">
+      <div className="section-content mx-auto max-w-6xl space-y-6 px-6 py-8 text-sm text-[#AFA9EC]">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-center gap-2 text-[#EEEDFE]">
-            <GenovaSymbol className="h-8 w-8" />
-            <span className="font-semibold">Genova</span>
+            <Image src="/genova-logo.png" alt="Genova symbol" width={36} height={36} className="h-9 w-9" />
+            <span className="font-display text-[18px] font-bold tracking-[-0.05em] text-[#ebe8ff]">Genova</span>
           </div>
-          <p className="text-sm text-[#AFA9EC]">The Home of AI Filmmakers</p>
+          <p className="text-sm text-[#AFA9EC]">{t("footer.tagline", "The Home of AI Filmmakers")}</p>
         </div>
         <div className="flex flex-wrap gap-5 text-sm">
-          <Link href="/feed" className="hover:text-[#EEEDFE]">Feed</Link>
-          <Link href="/films" className="hover:text-[#EEEDFE]">Films</Link>
-          <Link href="/shorts" className="hover:text-[#EEEDFE]">Shorts</Link>
-          <Link href="/competition" className="hover:text-[#EEEDFE]">Competition</Link>
-          <Link href="/creator/c1" className="hover:text-[#EEEDFE]">Creators</Link>
-          <Link href="#" className="hover:text-[#EEEDFE]">Terms of Service</Link>
-          <Link href="#" className="hover:text-[#EEEDFE]">Privacy Policy</Link>
+          <Link href="/films" className="hover:text-[#EEEDFE]">{t("nav.films", "Films")}</Link>
+          <Link href="/competition" className="hover:text-[#EEEDFE]">{t("nav.competition", "Competition")}</Link>
+          <Link href="/creator/c1" className="hover:text-[#EEEDFE]">{t("nav.creators", "Creators")}</Link>
+          <Link href="#" className="hover:text-[#EEEDFE]">{t("footer.terms", "Terms of Service")}</Link>
+          <Link href="#" className="hover:text-[#EEEDFE]">{t("footer.privacy", "Privacy Policy")}</Link>
         </div>
         <div className="flex flex-col gap-3 border-t border-white/10 pt-4 sm:flex-row sm:items-center sm:justify-between">
           <p className="text-xs text-[#8F89CD]">© 2026 Genova</p>

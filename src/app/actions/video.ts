@@ -13,7 +13,7 @@ export type VideoActionResult =
 
 export async function createVideoAction(form: {
   title: string;
-  vimeoUrl: string;
+  vimeoUrl: string | null;
   thumbnailUrl: string;
   /** Main genre slug */
   genre: string;
@@ -27,6 +27,9 @@ export async function createVideoAction(form: {
   runtimeMinutes: number;
   visibility: "public" | "private";
   submittedCompetitionId: string | null;
+  muxPlaybackId?: string | null;
+  muxAssetId?: string | null;
+  muxUploadId?: string | null;
 }): Promise<VideoActionResult> {
   const supabase = await createServerSupabaseClient();
   if (!supabase) return { ok: false, message: "Please check your Supabase configuration." };
@@ -35,8 +38,14 @@ export async function createVideoAction(form: {
   } = await supabase.auth.getUser();
   if (!user) return { ok: false, message: "Please sign in." };
 
-  const vimeoId = extractVimeoId(form.vimeoUrl);
-  if (!vimeoId) return { ok: false, message: "Please enter a valid Vimeo URL or video ID." };
+  const muxPlaybackId = form.muxPlaybackId?.trim() || null;
+  const muxAssetId = form.muxAssetId?.trim() || null;
+  const muxUploadId = form.muxUploadId?.trim() || null;
+  const vimeoId = extractVimeoId(form.vimeoUrl ?? "");
+
+  if (!muxPlaybackId && !vimeoId) {
+    return { ok: false, message: "Please enter a valid Vimeo URL or video ID, or complete Mux upload." };
+  }
 
   if (!form.title.trim()) return { ok: false, message: "Please enter a title." };
   if (!form.thumbnailUrl) return { ok: false, message: "Please upload a thumbnail." };
@@ -78,7 +87,10 @@ export async function createVideoAction(form: {
     id,
     title: form.title.trim(),
     thumbnail_url: form.thumbnailUrl,
-    vimeo_id: vimeoId,
+    vimeo_id: muxPlaybackId ? null : vimeoId,
+    mux_playback_id: muxPlaybackId ?? null,
+    mux_asset_id: muxAssetId ?? null,
+    mux_upload_id: muxUploadId ?? null,
     genre: form.genre,
     sub_genre: form.subGenre,
     purpose,

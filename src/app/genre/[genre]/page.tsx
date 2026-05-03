@@ -29,7 +29,7 @@ export async function generateMetadata({
 }) {
   const { genre: raw } = await params;
   const key = normalizeMainGenreKey(decodeURIComponent(raw));
-  if (!key || key === "other") {
+  if (!key) {
     return { title: "Genre | Genova" };
   }
   return { title: `${MAIN_GENRE_LABELS[key]} | Genova` };
@@ -45,7 +45,7 @@ export default async function GenreExplorePage({
   const { genre: raw } = await params;
   const sp = await searchParams;
   const key = normalizeMainGenreKey(decodeURIComponent(raw));
-  if (!key || key === "other") {
+  if (!key) {
     notFound();
   }
 
@@ -54,16 +54,12 @@ export default async function GenreExplorePage({
     sortRaw === "popular" ? "popular" : sortRaw === "award" ? "award" : "latest";
 
   const subCandidate = (sp.sub ?? "").trim();
+  const showSubFilter = MAIN_GENRES_WITH_SUB.has(key);
   const subValid =
-    subCandidate &&
-    (SUB_GENRE_KEYS as readonly string[]).includes(subCandidate) &&
-    MAIN_GENRES_WITH_SUB.has(key)
-      ? subCandidate
-      : null;
+    subCandidate && (SUB_GENRE_KEYS as readonly string[]).includes(subCandidate) && showSubFilter ? subCandidate : null;
 
   const videos = await fetchVideosByGenre(key, subValid, sort);
   const gradient = genreCardGradient(key);
-  const showSubFilter = MAIN_GENRES_WITH_SUB.has(key);
 
   return (
     <div className="page-cinematic mx-auto max-w-6xl space-y-6 px-6 py-8 text-[#F8F7FF]">

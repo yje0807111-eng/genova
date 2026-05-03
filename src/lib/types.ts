@@ -9,20 +9,24 @@ export type Creator = {
   bio: string;
   isPartner: boolean;
   awardCount: number;
+  /** Present when loaded from catalog queries that join follower stats */
+  followerCount?: number;
 };
 
 export type Video = {
   id: string;
   title: string;
   thumbnailUrl: string;
-  vimeoId: string;
-  /** 메인 장르 slug (`short_film` 등) */
+  vimeoId: string | null;
+  /** Mux playback ID when video was uploaded via Mux direct upload */
+  muxPlaybackId?: string | null;
+  /** Main genre slug (e.g. `short_film`) */
   genre: string;
-  /** 서브 장르 slug; 메인에 따라 없을 수 있음 */
+  /** Sub-genre slug; optional depending on main genre */
   subGenre: string | null;
-  /** 업로드 목적 */
+  /** Upload purpose (portfolio vs competition) */
   purpose: VideoPurpose;
-  /** 카탈로그 크리에이터 연결; 업로드 작품은 null 가능 */
+  /** Catalog creator link; null for uploads not tied to a creator row */
   creatorId: string | null;
   isOriginal: boolean;
   isFinalist: boolean;
@@ -32,26 +36,28 @@ export type Video = {
   visibility: "public" | "private";
   description: string;
   aiTools: string[];
-  /** 해시 태그(저장 시 # 제외 문자열) */
+  /** Hashtags stored without leading # */
   tags: string[];
-  /** 단편 시리즈(`series`) 전용 */
+  /** Series grouping when `genre` is series-style content */
   seriesName: string | null;
   episodeNumber: number | null;
   uploadedBy: string | null;
-  /** Set when joined with creators */
+  /** Populated when joined with creators */
   creatorName?: string;
-  /** creators 조인 시 (목록·피드 아바타) */
+  /** Avatar from creators join (lists / feed) */
   creatorAvatarUrl?: string | null;
-  /** uploaded_by 프로필 조인 시 */
+  /** Display name from uploaded_by profile join */
   uploaderDisplayName?: string | null;
-  /** profiles 조인 시 (목록·피드 아바타) */
+  /** Avatar from profiles join (lists / feed) */
   uploaderAvatarUrl?: string | null;
-  /** DB 조회수 (상세·프로필 목록) */
+  /** View count from DB (detail / profile lists) */
   viewCount?: number;
-  /** 좋아요 수 (목록·상세에서 engagement 조인 시) */
+  /** Like count when engagement is joined */
   likeCount?: number;
   likedByMe?: boolean;
   savedByMe?: boolean;
+  /** Save count when engagement is merged */
+  saveCount?: number;
 };
 
 export type VideoComment = {
@@ -71,10 +77,16 @@ export type VideoComment = {
 export type Competition = {
   id: string;
   title: string;
+  titleEn?: string | null;
+  titleKo?: string | null;
+  titleJa?: string | null;
   genre: string;
   status: string;
   deadline: string;
   voteEnd: string;
   prizeInfo: string;
+  prizeInfoEn?: string | null;
+  prizeInfoKo?: string | null;
+  prizeInfoJa?: string | null;
   sponsor: string;
 };

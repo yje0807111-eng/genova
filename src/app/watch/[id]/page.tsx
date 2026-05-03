@@ -1,19 +1,34 @@
+import MuxPlayer from "@mux/mux-player-react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { VideoCommentsSection } from "@/components/comments/video-comments-section";
-import { AnimateIn } from "@/components/animate-in";
 import { FollowButton } from "@/components/profile/follow-button";
 import { ProfileTextLink } from "@/components/links/profile-text-link";
+import { WatchMoreMenu } from "@/components/video/watch-more-menu";
+import { ShareButton } from "@/components/video/share-modal";
 import { VideoEngagementBar } from "@/components/video/video-engagement-bar";
-import { formatGenreDisplay } from "@/lib/constants/genres";
+import { CreatorFollowButton } from "@/components/video/creator-follow-button";
+import { SeriesEpisodesSlider } from "@/components/video/series-episodes-slider";
+import {
+  WatchDescriptionInner,
+  WatchRecommendationsSections,
+  WatchVideoMetaRow,
+} from "@/components/video/watch-detail-client";
+import { mapVideo } from "@/lib/mappers";
 import { hrefForVideoCreator } from "@/lib/creator-links";
 import { fetchCommentsForVideo } from "@/lib/queries/comments-queries";
 import { attachEngagementToVideos } from "@/lib/queries/engagement-queries";
 import { incrementVideoViewCount } from "@/lib/queries/video-views";
-import { fetchCreatorById, fetchRelatedVideos, fetchSeriesEpisodesForVideo, fetchVideoById } from "@/lib/queries";
+import {
+  fetchCreatorById,
+  fetchForYouSameGenreVideos,
+  fetchRelatedVideos,
+  fetchSeriesEpisodesForVideo,
+  fetchVideoById,
+} from "@/lib/queries";
 import { fetchIsFollowing, fetchProfileById } from "@/lib/queries/profile-queries";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
-import { formatViewCountShort } from "@/lib/view-count";
+import { WatchTracker } from "@/components/video/watch-tracker";
+import { WatchDesktopFlexRow } from "@/components/video/watch-comments-panel";
 
 export default async function WatchDetailPage({
   params,
@@ -34,19 +49,268 @@ export default async function WatchDetailPage({
   const [vWithE] = await attachEngagementToVideos([video]);
   video = vWithE;
 
-  const [creator, related, seriesNav, comments, uploaderProfile, isFollowing] = await Promise.all([
+  const [creator, related, forYouVideos, seriesNav, comments, uploaderProfile, isFollowing] = await Promise.all([
     video.creatorId ? fetchCreatorById(video.creatorId) : Promise.resolve(null),
     fetchRelatedVideos(video.id, 8),
+    fetchForYouSameGenreVideos(video.id, video.genre, 8),
     fetchSeriesEpisodesForVideo(video),
     fetchCommentsForVideo(video.id),
     video.uploadedBy ? fetchProfileById(video.uploadedBy) : Promise.resolve(null),
     video.uploadedBy ? fetchIsFollowing(user?.id, video.uploadedBy) : Promise.resolve(false),
   ]);
 
+  const { data: sameGenreRaw } = supabase
+    ? await supabase
+        .from("videos")
+        .select("*, creators(*)")
+        .eq("genre", video.genre)
+        .neq("id", video.id)
+        .order("view_count", { ascending: false })
+        .limit(10)
+    : { data: [] };
+
+  const { data: trendingRaw } = supabase
+    ? await supabase
+        .from("videos")
+        .select("*, creators(*)")
+        .neq("id", video.id)
+        .order("view_count", { ascending: false })
+        .limit(10)
+    : { data: [] };
+
+  const sameGenreVideos = (sameGenreRaw ?? []).map((v) => mapVideo(v));
+  const trendingVideos = (trendingRaw ?? []).map((v) => mapVideo(v));
+
+  const mockSeason1: typeof seriesNav.episodes = [
+    ...seriesNav.episodes,
+    {
+      id: "mock-ep-2",
+      title: "Suspicious Scent",
+      thumbnailUrl: "https://picsum.photos/seed/ep2dog/400/225",
+      vimeoId: "",
+      genre: "series",
+      subGenre: null,
+      purpose: "personal",
+      creatorId: null,
+      isOriginal: false,
+      isFinalist: false,
+      award: null,
+      runtime: "6:23",
+      createdAt: new Date("2026-04-15").toISOString(),
+      visibility: "public",
+      description: "The scent grows stronger, but the trail vanishes into thin air.",
+      aiTools: [],
+      tags: [],
+      seriesName: video.seriesName,
+      episodeNumber: 2,
+      uploadedBy: video.uploadedBy,
+      viewCount: 196,
+    },
+    {
+      id: "mock-ep-3",
+      title: "The Chase Begins",
+      thumbnailUrl: "https://picsum.photos/seed/ep3dog/400/225",
+      vimeoId: "",
+      genre: "series",
+      subGenre: null,
+      purpose: "personal",
+      creatorId: null,
+      isOriginal: false,
+      isFinalist: false,
+      award: null,
+      runtime: "7:45",
+      createdAt: new Date("2026-04-16").toISOString(),
+      visibility: "public",
+      description: "The clues are faint, but the tracker refuses to quit.",
+      aiTools: [],
+      tags: [],
+      seriesName: video.seriesName,
+      episodeNumber: 3,
+      uploadedBy: video.uploadedBy,
+      viewCount: 156,
+    },
+    {
+      id: "mock-ep-4",
+      title: "An Unexpected Lead",
+      thumbnailUrl: "https://picsum.photos/seed/ep4dog/400/225",
+      vimeoId: "",
+      genre: "series",
+      subGenre: null,
+      purpose: "personal",
+      creatorId: null,
+      isOriginal: false,
+      isFinalist: false,
+      award: null,
+      runtime: "5:12",
+      createdAt: new Date("2026-04-17").toISOString(),
+      visibility: "public",
+      description: "A surprising discovery in the last place anyone looked.",
+      aiTools: [],
+      tags: [],
+      seriesName: video.seriesName,
+      episodeNumber: 4,
+      uploadedBy: video.uploadedBy,
+      viewCount: 132,
+    },
+    {
+      id: "mock-ep-5",
+      title: "Closer to the Truth",
+      thumbnailUrl: "https://picsum.photos/seed/ep5dog/400/225",
+      vimeoId: "",
+      genre: "series",
+      subGenre: null,
+      purpose: "personal",
+      creatorId: null,
+      isOriginal: false,
+      isFinalist: false,
+      award: null,
+      runtime: "8:33",
+      createdAt: new Date("2026-04-18").toISOString(),
+      visibility: "public",
+      description: "The pieces slide into place; the truth is almost within reach.",
+      aiTools: [],
+      tags: [],
+      seriesName: video.seriesName,
+      episodeNumber: 5,
+      uploadedBy: video.uploadedBy,
+      viewCount: 90,
+    },
+    {
+      id: "mock-ep-6",
+      title: "The Big Reveal",
+      thumbnailUrl: "https://picsum.photos/seed/ep6dog/400/225",
+      vimeoId: "",
+      genre: "series",
+      subGenre: null,
+      purpose: "personal",
+      creatorId: null,
+      isOriginal: false,
+      isFinalist: false,
+      award: null,
+      runtime: "6:01",
+      createdAt: new Date("2026-04-19").toISOString(),
+      visibility: "public",
+      description: "At last, everything comes to light.",
+      aiTools: [],
+      tags: [],
+      seriesName: video.seriesName,
+      episodeNumber: 6,
+      uploadedBy: video.uploadedBy,
+      viewCount: 0,
+    },
+  ];
+
+  const mockSeason2: typeof seriesNav.episodes = [
+    {
+      id: "mock-s2-ep-1",
+      title: "A New Journey",
+      thumbnailUrl: "https://picsum.photos/seed/s2ep1/400/225",
+      vimeoId: "",
+      genre: "series",
+      subGenre: null,
+      purpose: "personal",
+      creatorId: null,
+      isOriginal: false,
+      isFinalist: false,
+      award: null,
+      runtime: "9:14",
+      createdAt: new Date("2026-05-01").toISOString(),
+      visibility: "public",
+      description: "A new season — and a brand-new story with our hero.",
+      aiTools: [],
+      tags: [],
+      seriesName: video.seriesName,
+      episodeNumber: 1,
+      uploadedBy: video.uploadedBy,
+      viewCount: 512,
+    },
+    {
+      id: "mock-s2-ep-2",
+      title: "Strange City",
+      thumbnailUrl: "https://picsum.photos/seed/s2ep2/400/225",
+      vimeoId: "",
+      genre: "series",
+      subGenre: null,
+      purpose: "personal",
+      creatorId: null,
+      isOriginal: false,
+      isFinalist: false,
+      award: null,
+      runtime: "7:58",
+      createdAt: new Date("2026-05-08").toISOString(),
+      visibility: "public",
+      description: "Amid the noise of the city, a new friend appears.",
+      aiTools: [],
+      tags: [],
+      seriesName: video.seriesName,
+      episodeNumber: 2,
+      uploadedBy: video.uploadedBy,
+      viewCount: 389,
+    },
+    {
+      id: "mock-s2-ep-3",
+      title: "The Secret Park",
+      thumbnailUrl: "https://picsum.photos/seed/s2ep3/400/225",
+      vimeoId: "",
+      genre: "series",
+      subGenre: null,
+      purpose: "personal",
+      creatorId: null,
+      isOriginal: false,
+      isFinalist: false,
+      award: null,
+      runtime: "6:44",
+      createdAt: new Date("2026-05-15").toISOString(),
+      visibility: "public",
+      description: "Secrets long buried in the old park begin to surface.",
+      aiTools: [],
+      tags: [],
+      seriesName: video.seriesName,
+      episodeNumber: 3,
+      uploadedBy: video.uploadedBy,
+      viewCount: 278,
+    },
+    {
+      id: "mock-s2-ep-4",
+      title: "The Calm Before the Storm",
+      thumbnailUrl: "https://picsum.photos/seed/s2ep4/400/225",
+      vimeoId: "",
+      genre: "series",
+      subGenre: null,
+      purpose: "personal",
+      creatorId: null,
+      isOriginal: false,
+      isFinalist: false,
+      award: null,
+      runtime: "8:02",
+      createdAt: new Date("2026-05-22").toISOString(),
+      visibility: "public",
+      description: "On the eve of change, an uneasy quiet settles in.",
+      aiTools: [],
+      tags: [],
+      seriesName: video.seriesName,
+      episodeNumber: 4,
+      uploadedBy: video.uploadedBy,
+      viewCount: 201,
+    },
+  ];
+
+  const mockSeasons = [
+    { season: 1, episodes: mockSeason1 },
+    { season: 2, episodes: mockSeason2 },
+  ];
+
+  const displaySeriesNav = {
+    ...seriesNav,
+    episodes: seriesNav.episodes.length > 1 ? seriesNav.episodes : mockSeason1,
+    seasons: mockSeasons,
+  };
+
   const showSeries = seriesNav.episodes.length > 0;
   const creatorHref = hrefForVideoCreator(video);
 
   const showFollow = Boolean(video.uploadedBy && user?.id && user.id !== video.uploadedBy);
+  const showFollowCreator = Boolean(video.creatorId && creator && user?.id);
 
   const hasCatalogCreator = Boolean(video.creatorId && creator);
   const displayName = hasCatalogCreator
@@ -54,217 +318,203 @@ export default async function WatchDetailPage({
     : (video.uploaderDisplayName ?? uploaderProfile?.displayName ?? "Creator");
   const avatarUrl = hasCatalogCreator ? creator!.avatarUrl : uploaderProfile?.avatarUrl ?? null;
   const bioOneLine = hasCatalogCreator ? creator!.bio : uploaderProfile?.bio ?? "";
+  const rawDescription = video.description?.trim() ? video.description.trim() : null;
+  const displayTags = video.tags.length > 0 ? video.tags :
+    ["AIFilm", "GenerativeAI", "AIcinema", "ShortFilm", "FutureCinema"];
+  const displayAiTools = video.aiTools.length > 0 ? video.aiTools :
+    ["Midjourney", "Runway", "ElevenLabs"];
 
-  const metaParts = [
-    formatGenreDisplay(video.genre, video.subGenre),
-    video.runtime,
-    video.genre === "series" && video.seriesName && video.episodeNumber
-      ? `${video.seriesName} · EP.${video.episodeNumber}`
-      : null,
-    video.purpose === "competition" ? "Competition Entry" : null,
-  ].filter(Boolean) as string[];
-  const metaLine = metaParts.join(" · ");
+  const displayComments = comments.length > 0 ? comments : [
+    {
+      id: "mock-1",
+      videoId: video.id,
+      userId: "mock-user-1",
+      displayName: "Sarah Kim",
+      avatarUrl: "https://i.pravatar.cc/32?img=1",
+      content: "Amazing cinematography! The way you used AI to create those fluid transitions is breathtaking.",
+      createdAt: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
+      likeCount: 12,
+      likedByMe: false,
+      parentId: null,
+      replies: [],
+    },
+    {
+      id: "mock-2",
+      videoId: video.id,
+      userId: "mock-user-2",
+      displayName: "Alex Chen",
+      avatarUrl: "https://i.pravatar.cc/32?img=2",
+      content: "The storytelling is so unique. What AI tools did you use for the visuals?",
+      createdAt: new Date(Date.now() - 4 * 60 * 60 * 1000).toISOString(),
+      likeCount: 8,
+      likedByMe: false,
+      parentId: null,
+      replies: [],
+    },
+    {
+      id: "mock-3",
+      videoId: video.id,
+      userId: "mock-user-3",
+      displayName: "Maya Lee",
+      avatarUrl: "https://i.pravatar.cc/32?img=3",
+      content: "Short but impactful message. Works like this show AI filmmaking has real artistic potential 🎬",
+      createdAt: new Date(Date.now() - 6 * 60 * 60 * 1000).toISOString(),
+      likeCount: 7,
+      likedByMe: false,
+      parentId: null,
+      replies: [],
+    },
+    {
+      id: "mock-4",
+      videoId: video.id,
+      userId: "mock-user-4",
+      displayName: "Ryan Ko",
+      avatarUrl: "https://i.pravatar.cc/32?img=4",
+      content: "The music and narrative work together so well. Would love to see a longer version!",
+      createdAt: new Date(Date.now() - 8 * 60 * 60 * 1000).toISOString(),
+      likeCount: 5,
+      likedByMe: false,
+      parentId: null,
+      replies: [],
+    },
+    {
+      id: "mock-5",
+      videoId: video.id,
+      userId: "mock-user-5",
+      displayName: "Minji Park",
+      avatarUrl: "https://i.pravatar.cc/32?img=5",
+      content: "The direction is really refined. Seeing new possibilities in Korean AI animation!",
+      createdAt: new Date(Date.now() - 10 * 60 * 60 * 1000).toISOString(),
+      likeCount: 4,
+      likedByMe: false,
+      parentId: null,
+      replies: [],
+    },
+  ] as typeof comments;
 
   return (
-    <div className="mx-auto max-w-[1720px] px-4 py-5 text-[#EEEDFE] sm:px-6 sm:py-8 lg:px-10">
-      <AnimateIn delay={0} className="aspect-video overflow-hidden rounded-xl border border-white/10 bg-black">
-              <iframe
-                src={`https://player.vimeo.com/video/${video.vimeoId}`}
-                className="h-full w-full"
-                allow="autoplay; fullscreen; picture-in-picture"
-                allowFullScreen
-                title={video.title}
-              />
-      </AnimateIn>
+    <div className="mx-auto max-w-[1680px] px-8 py-6 text-white">
+      {/* Top row: main + unified sidebar (Up Next + tabs + comments) */}
+      <WatchDesktopFlexRow
+        leftBeforeDescription={
+          <>
+            <div className="aspect-video overflow-hidden rounded-2xl border border-white/10 bg-black">
+              <WatchTracker videoId={video.id} />
+              {video.muxPlaybackId ? (
+                <MuxPlayer
+                  playbackId={video.muxPlaybackId}
+                  envKey={process.env.NEXT_PUBLIC_MUX_ENV_KEY}
+                  streamType="on-demand"
+                  className="h-full w-full"
+                  style={{ aspectRatio: "16/9" }}
+                  accentColor="#534AB7"
+                  title={video.title}
+                />
+              ) : (
+                <iframe
+                  src={`https://player.vimeo.com/video/${video.vimeoId}?title=0&byline=0&portrait=0&badge=0&like=0&watchlater=0&share=0`}
+                  className="h-full w-full"
+                  allow="autoplay; fullscreen; picture-in-picture"
+                  allowFullScreen
+                  title={video.title}
+                />
+              )}
+            </div>
 
-      <div className="mt-6 grid grid-cols-1 gap-8 lg:grid-cols-[minmax(0,7fr)_minmax(300px,3fr)] lg:items-start">
-          <div className="min-w-0 space-y-4">
-            <AnimateIn delay={0.1} className="flex items-start justify-between gap-4">
-              <div className="min-w-0 flex-1 space-y-2 pr-2">
-                <h1 className="text-2xl font-bold leading-tight tracking-tight text-[#EEEDFE] sm:text-3xl">{video.title}</h1>
-                <p className="text-sm text-[#AFA9EC]">{metaLine}</p>
-                <p className="text-xs text-[#AFA9EC]">{formatViewCountShort(video.viewCount)} views</p>
-                {video.tags.length > 0 ? (
-                  <div className="flex flex-wrap gap-1">
-                    {video.tags.map((t) => (
-                      <span
-                        key={t}
-                        className="rounded-md bg-[#534AB7]/30 px-2 py-0.5 text-[11px] font-medium text-[#E8E4FF]"
-                      >
-                        #{t}
-                      </span>
-                    ))}
-                  </div>
-                ) : null}
+            <div className="mt-4 flex items-start justify-between gap-4">
+              <div className="min-w-0 flex-1">
+                <h1 className="text-2xl font-bold text-white sm:text-3xl">{video.title}</h1>
+                <WatchVideoMetaRow
+                  genre={video.genre}
+                  subGenre={video.subGenre}
+                  runtime={video.runtime}
+                  viewCount={video.viewCount}
+                  createdAt={video.createdAt}
+                />
               </div>
-              <div className="shrink-0 pt-0.5">
+
+              <div className="flex shrink-0 items-center gap-2">
                 <VideoEngagementBar
                   videoId={video.id}
                   likeCount={video.likeCount ?? 0}
                   likedByMe={video.likedByMe ?? false}
                   savedByMe={video.savedByMe ?? false}
+                  saveCount={video.saveCount ?? 0}
                 />
+                <ShareButton title={video.title} />
+                <WatchMoreMenu />
               </div>
-            </AnimateIn>
+            </div>
 
-            <div className="border-t border-white/10" />
-
-            <AnimateIn delay={0.2} className="flex items-center justify-between gap-3 rounded-xl border border-white/10 bg-[#0F0D1E] p-4">
-              <div className="flex min-w-0 flex-1 items-center gap-3">
-                <div className="h-11 w-11 shrink-0 overflow-hidden rounded-full border border-white/10 bg-[#26215C]">
-                  {avatarUrl ? (
-                    <img src={avatarUrl} alt="" className="h-full w-full object-cover" />
-                  ) : (
-                    <div className="flex h-full w-full items-center justify-center text-sm font-semibold text-[#AFA9EC]">
-                      {displayName.slice(0, 1)}
-                    </div>
-                  )}
-                </div>
-                <div className="min-w-0 flex-1">
+            <div className="mt-4 flex items-center justify-between gap-3">
+              <div className="flex items-center gap-3">
+                {creatorHref ? (
+                  <Link href={creatorHref} className="h-10 w-10 shrink-0 overflow-hidden rounded-full border border-white/10 bg-[#26215C] transition hover:opacity-80">
+                    {avatarUrl ? (
+                      <img src={avatarUrl} alt="" className="h-full w-full object-cover" />
+                    ) : (
+                      <div className="flex h-full w-full items-center justify-center text-sm font-bold text-white/70">
+                        {displayName.slice(0, 1)}
+                      </div>
+                    )}
+                  </Link>
+                ) : (
+                  <div className="h-10 w-10 shrink-0 overflow-hidden rounded-full border border-white/10 bg-[#26215C]">
+                    {avatarUrl ? (
+                      <img src={avatarUrl} alt="" className="h-full w-full object-cover" />
+                    ) : (
+                      <div className="flex h-full w-full items-center justify-center text-sm font-bold text-white/70">
+                        {displayName.slice(0, 1)}
+                      </div>
+                    )}
+                  </div>
+                )}
+                <div>
                   {creatorHref ? (
-                    <ProfileTextLink
-                      href={creatorHref}
-                      className="block truncate text-sm font-semibold text-[#EEEDFE] hover:underline sm:text-base"
-                    >
+                    <ProfileTextLink href={creatorHref} className="text-sm font-semibold text-white hover:underline">
                       {displayName}
                     </ProfileTextLink>
                   ) : (
-                    <p className="truncate text-sm font-semibold sm:text-base">{displayName}</p>
+                    <p className="text-sm font-semibold text-white">{displayName}</p>
                   )}
-                  {bioOneLine ? (
-                    <p className="line-clamp-2 text-xs leading-snug text-[#AFA9EC] sm:text-sm">{bioOneLine}</p>
-                  ) : null}
+                  {bioOneLine ? <p className="text-xs text-white/50">{bioOneLine}</p> : null}
                 </div>
               </div>
               {showFollow ? (
-                <div className="shrink-0">
-                  <FollowButton targetUserId={video.uploadedBy!} initialFollowing={isFollowing} />
-                </div>
+                <FollowButton targetUserId={video.uploadedBy!} initialFollowing={isFollowing} />
+              ) : showFollowCreator ? (
+                <CreatorFollowButton creatorName={displayName} />
               ) : null}
-            </AnimateIn>
+            </div>
+          </>
+        }
+        descriptionInner={
+          <WatchDescriptionInner description={rawDescription} tags={displayTags} aiTools={displayAiTools} />
+        }
+        leftAfterDescription={
+          showSeries ? (
+            <SeriesEpisodesSlider
+              episodes={displaySeriesNav.episodes}
+              currentVideoId={video.id}
+              seriesTitle={displaySeriesNav.seriesTitle}
+              seasons={displaySeriesNav.seasons}
+            />
+          ) : null
+        }
+        related={related}
+        videoId={video.id}
+        commentCount={displayComments.length}
+        initialComments={displayComments}
+        currentUserId={user?.id ?? null}
+      />
 
-            <div className="border-t border-white/10" />
-
-            {video.description ? (
-              <div className="text-sm leading-relaxed text-[#D8D4F5]">
-                <p className="whitespace-pre-wrap">{video.description}</p>
-              </div>
-            ) : null}
-            {video.aiTools.length > 0 ? (
-              <section className="space-y-2">
-                <h2 className="text-sm font-semibold text-[#EEEDFE]">AI Tools Used</h2>
-                <div className="flex flex-wrap gap-1.5">
-                  {video.aiTools.map((tool) => (
-                    <span
-                      key={tool}
-                      className="rounded-full border border-[#534AB7] bg-[#1A1535] px-2.5 py-1 text-xs text-[#AFA9EC]"
-                    >
-                      {tool}
-                    </span>
-                  ))}
-                </div>
-              </section>
-            ) : null}
-
-            <AnimateIn delay={0.3}>
-              <VideoCommentsSection
-              videoId={video.id}
-              initialComments={comments}
-              currentUserId={user?.id ?? null}
-              className="rounded-lg border border-white/10 bg-[#1A1535]/70 p-4"
-              />
-            </AnimateIn>
-          </div>
-
-          <aside className="min-w-0 space-y-4 lg:sticky lg:top-4 lg:self-start">
-            {showSeries ? (
-              <section className="rounded-lg border border-white/10 bg-[#1A1535]/70 p-3">
-                <p className="text-[10px] font-semibold uppercase tracking-wider text-[#AFA9EC]">Series</p>
-                <p className="mt-1 truncate text-sm font-semibold text-[#EEEDFE]">{seriesNav.seriesTitle}</p>
-                {(seriesNav.prevId || seriesNav.nextId) && (
-                  <div className="mt-2 flex flex-wrap gap-2 text-xs">
-                    {seriesNav.prevId ? (
-                      <Link
-                        href={`/watch/${seriesNav.prevId}`}
-                        className="rounded-full border border-white/15 bg-[#0A0A18]/80 px-2.5 py-1 text-[#C5C1F1] transition hover:border-[#7F77DD]/50 hover:text-[#EEEDFE]"
-                      >
-                        ← Prev
-                      </Link>
-                    ) : null}
-                    {seriesNav.nextId ? (
-                      <Link
-                        href={`/watch/${seriesNav.nextId}`}
-                        className="rounded-full border border-white/15 bg-[#0A0A18]/80 px-2.5 py-1 text-[#C5C1F1] transition hover:border-[#7F77DD]/50 hover:text-[#EEEDFE]"
-                      >
-                        Next →
-                      </Link>
-                    ) : null}
-                  </div>
-                )}
-                <ul className="mt-3 max-h-[min(52vh,28rem)] space-y-2 overflow-y-auto pr-0.5">
-                  {seriesNav.episodes.map((ep) => (
-                    <li key={ep.id}>
-                      <Link
-                        href={`/watch/${ep.id}`}
-                        className={`flex gap-2 rounded-md border p-1.5 transition ${
-                          ep.id === video.id
-                            ? "border-[#7F77DD] bg-[#534AB7]/20 ring-1 ring-[#7F77DD]/35"
-                            : "border-white/10 bg-[#0A0A18]/50 hover:border-[#7F77DD]/40"
-                        }`}
-                      >
-                        <div className="relative h-14 w-24 shrink-0 overflow-hidden rounded bg-black/40">
-                          <img src={ep.thumbnailUrl} alt="" className="h-full w-full object-cover" />
-                        </div>
-                        <div className="min-w-0 flex-1 py-0.5">
-                          <p className="text-[11px] font-semibold text-[#7F77DD]">EP.{ep.episodeNumber}</p>
-                          <p className="line-clamp-2 text-xs leading-snug text-[#EEEDFE]">{ep.title}</p>
-                        </div>
-                      </Link>
-                    </li>
-                  ))}
-                </ul>
-              </section>
-            ) : null}
-
-            <section>
-              <h2 className="mb-2 text-xs font-semibold uppercase tracking-wider text-[#AFA9EC]">Related Films</h2>
-              <ul className="space-y-2">
-                {related.map((item) => (
-                  <li key={item.id}>
-                    <Link
-                      href={`/watch/${item.id}`}
-                      className="group flex gap-2 overflow-hidden rounded-md border border-white/10 bg-[#1A1535]/70 p-1.5 transition hover:border-[#7F77DD]/45 hover:bg-[#221B46]"
-                    >
-                      <div className="relative h-[4.5rem] w-[5.25rem] shrink-0 overflow-hidden rounded bg-[#0A0A18]">
-                        {item.thumbnailUrl ? (
-                          <img
-                            src={item.thumbnailUrl}
-                            alt=""
-                            className="h-full w-full object-cover transition duration-300 group-hover:scale-[1.04]"
-                          />
-                        ) : (
-                          <div className="flex h-full w-full items-center justify-center text-[10px] text-[#AFA9EC]">
-                            None
-                          </div>
-                        )}
-                      </div>
-                      <div className="min-w-0 flex-1 py-0.5">
-                        <p className="line-clamp-2 text-xs font-semibold leading-snug text-[#EEEDFE]">{item.title}</p>
-                        <p className="mt-0.5 truncate text-[11px] text-[#C5C1F1]">
-                          {item.creatorName ?? item.uploaderDisplayName ?? "Creator"}
-                        </p>
-                        <p className="mt-0.5 text-[10px] text-[#AFA9EC]">{item.runtime}</p>
-                      </div>
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-              {related.length === 0 ? (
-                <p className="text-xs text-[#AFA9EC]">No recommendations yet.</p>
-              ) : null}
-            </section>
-          </aside>
-        </div>
+      <WatchRecommendationsSections
+        forYouVideos={forYouVideos}
+        sameGenreVideos={sameGenreVideos}
+        trendingVideos={trendingVideos}
+        mainGenre={video.genre}
+        subGenre={video.subGenre}
+      />
     </div>
   );
 }

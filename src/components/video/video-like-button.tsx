@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useEffect, useState, useTransition } from "react";
 import { toggleLikeAction } from "@/app/actions/engagement";
+import { useI18n } from "@/components/genova/language-provider";
 
 type Props = {
   videoId: string;
@@ -16,6 +17,7 @@ type Props = {
 };
 
 export function VideoLikeButton({ videoId, initialCount, initialLiked, compact, stacked, className }: Props) {
+  const { t } = useI18n();
   const router = useRouter();
   const [count, setCount] = useState(initialCount);
   const [liked, setLiked] = useState(initialLiked);
@@ -41,23 +43,23 @@ export function VideoLikeButton({ videoId, initialCount, initialLiked, compact, 
     });
   };
 
-  const size = compact ? "h-4 w-4" : "h-6 w-6";
-  const textSize = compact ? "text-[10px]" : "text-sm";
+  const size = "h-4 w-4";
+  const textSize = compact ? "text-xs" : "text-sm";
 
   return (
     <button
       type="button"
       disabled={pending}
       onClick={onClick}
-      className={`inline-flex rounded-full bg-black/45 text-[#EEEDFE] backdrop-blur-sm transition hover:bg-black/60 disabled:opacity-50 ${
-        stacked ? "flex-col items-center gap-0.5 px-2 py-2" : "inline-flex items-center gap-1 px-1.5 py-0.5"
+      className={`inline-flex ${stacked ? "flex-col items-center gap-0.5" : "items-center gap-1.5"} rounded-lg border border-white/10 bg-white/5 px-3 py-1.5 text-sm transition hover:bg-white/10 hover:text-white disabled:opacity-50 ${
+        liked ? "border-white/20 bg-white/10 text-white" : "text-white/60"
       } ${className ?? ""}`}
-      aria-label="likes"
+      aria-label={t("video.likesAria")}
     >
       <svg className={`${size} shrink-0`} viewBox="0 0 24 24" aria-hidden>
         <path
           d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"
-          className={liked ? "fill-rose-500 stroke-rose-500" : "fill-none stroke-[#AFA9EC]"}
+          className={liked ? "fill-white stroke-white" : "fill-none stroke-white/60"}
           strokeWidth="1.5"
         />
       </svg>

@@ -11,21 +11,21 @@ export type AiToolCategory = {
   tools: readonly string[];
 };
 
-export const AI_TOOL_CATEGORIES: readonly AiToolCategory[] = [
+export const AI_TOOL_CATEGORIES = [
   {
-    key: "image",
+    key: "image" as const,
     label: "Image Generation",
-    tools: ["Midjourney", "DALL-E", "Stable Diffusion", "Firefly", "Ideogram"],
+    tools: ["Midjourney", "Stable Diffusion", "Flux", "Firefly", "Ideogram", "Leonardo", "DALL-E 3", "ComfyUI"],
   },
   {
-    key: "video",
+    key: "video" as const,
     label: "Video Generation",
-    tools: ["Runway", "Kling", "Sora", "Pika", "Luma", "ComfyUI"],
+    tools: ["Runway", "Kling", "Sora", "Pika", "Luma Dream Machine", "Hailuo", "Vidu", "Wan", "HeyGen", "D-ID"],
   },
   {
-    key: "music",
-    label: "Music Generation",
-    tools: ["ElevenLabs", "Suno", "Udio"],
+    key: "music" as const,
+    label: "Music & Voice",
+    tools: ["Suno", "Udio", "ElevenLabs", "Mubert", "Bark", "MusicGen"],
   },
 ] as const;
 

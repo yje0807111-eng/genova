@@ -7,6 +7,7 @@ import { AnimateIn } from "@/components/animate-in";
 import { toggleLikeAction } from "@/app/actions/engagement";
 import type { Video } from "@/lib/types";
 import { VideoLikeButton } from "@/components/video/video-like-button";
+import { useI18n } from "@/components/genova/language-provider";
 
 type CompetitionHeader = {
   id: string;
@@ -14,8 +15,8 @@ type CompetitionHeader = {
   prizeInfo: string;
 } | null;
 
-function creatorLabel(v: Video): string {
-  return v.creatorName ?? v.uploaderDisplayName ?? "Creator";
+function creatorLabel(v: Video, t: (key: string, fallback?: string) => string): string {
+  return v.creatorName ?? v.uploaderDisplayName ?? t("video.creatorFallback");
 }
 
 type ModalContext = "finalist" | "archive";
@@ -35,6 +36,7 @@ function CompetitionVoteButton({
   canVote: boolean;
   fullWidth?: boolean;
 }) {
+  const { t } = useI18n();
   const router = useRouter();
   const [count, setCount] = useState(initialCount);
   const [liked, setLiked] = useState(initialLiked);
@@ -46,7 +48,7 @@ function CompetitionVoteButton({
   }, [initialCount, initialLiked, videoId]);
 
   if (!canVote) {
-    return <p className="text-center text-xs text-[#AFA9EC]">Sign in to vote</p>;
+    return <p className="text-center text-xs text-[#AFA9EC]">{t("competition.page.signInToVote")}</p>;
   }
 
   return (
@@ -70,7 +72,9 @@ function CompetitionVoteButton({
       }`}
     >
       <span aria-hidden>♥</span>
-      <span>{liked ? "Voted" : "Vote"} {count}</span>
+      <span>
+        {liked ? t("competition.page.voted") : t("competition.page.vote")} {count}
+      </span>
     </button>
   );
 }
@@ -88,6 +92,7 @@ export function CompetitionPageClient({
   archiveVideos: Video[];
   canVote: boolean;
 }) {
+  const { t } = useI18n();
   const [open, setOpen] = useState<Video | null>(null);
   const [ctx, setCtx] = useState<ModalContext>("finalist");
 
@@ -120,23 +125,27 @@ export function CompetitionPageClient({
   return (
     <>
       <AnimateIn delay={0} className="rounded-xl border border-white/10 bg-[#1A1535]/80 p-5 sm:p-6">
-        <p className="text-xs text-[#AFA9EC]">Current Competition</p>
-        <h1 className="mt-1 text-2xl font-bold sm:text-3xl">{competition?.title ?? "No competition available"}</h1>
+        <p className="text-xs text-[#AFA9EC]">{t("competition.page.currentLabel")}</p>
+        <h1 className="mt-1 text-2xl font-bold sm:text-3xl">
+          {competition?.title ?? t("competition.page.noCompetitionTitle")}
+        </h1>
         {competition && (
           <>
             <p className="mt-2 text-sm text-[#AFA9EC]">{competition.prizeInfo}</p>
-            <p className="mt-2 text-sm font-semibold">{dDay > 0 ? `D-${dDay}` : "Ends today"}</p>
-            <p className="mt-2 text-xs text-[#AFA9EC]">Final rankings are based on likes.</p>
+            <p className="mt-2 text-sm font-semibold">
+              {dDay > 0 ? `D-${dDay}` : t("competition.detail.endsToday")}
+            </p>
+            <p className="mt-2 text-xs text-[#AFA9EC]">{t("competition.page.rankingHint")}</p>
           </>
         )}
       </AnimateIn>
 
       <AnimateIn delay={0.1} className="space-y-3">
-        <h2 className="text-lg font-bold">Finals Vote</h2>
+        <h2 className="text-lg font-bold">{t("competition.page.finalsVote")}</h2>
         {!competition ? (
-          <p className="text-sm text-[#AFA9EC]">No open competition to vote on.</p>
+          <p className="text-sm text-[#AFA9EC]">{t("competition.page.noOpenCompetition")}</p>
         ) : rankedFinalists.length === 0 ? (
-          <p className="text-sm text-[#AFA9EC]">No finalist films yet.</p>
+          <p className="text-sm text-[#AFA9EC]">{t("competition.page.noFinalists")}</p>
         ) : (
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
             {rankedFinalists.map(({ video, rank }, idx) => (
@@ -156,7 +165,7 @@ export function CompetitionPageClient({
                     </div>
                     <div className="p-3">
                       <p className="line-clamp-2 text-sm font-semibold text-[#EEEDFE]">{video.title}</p>
-                      <p className="mt-1 text-xs text-[#AFA9EC]">{creatorLabel(video)}</p>
+                      <p className="mt-1 text-xs text-[#AFA9EC]">{creatorLabel(video, t)}</p>
                     </div>
                   </button>
                   <div className="mt-auto border-t border-white/10 p-3">
@@ -176,9 +185,9 @@ export function CompetitionPageClient({
       </AnimateIn>
 
       <AnimateIn delay={0.2} className="space-y-3">
-        <h2 className="text-lg font-bold">Award Archive</h2>
+        <h2 className="text-lg font-bold">{t("competition.page.awardArchive")}</h2>
         {archiveVideos.length === 0 ? (
-          <p className="text-sm text-[#AFA9EC]">No winners yet.</p>
+          <p className="text-sm text-[#AFA9EC]">{t("competition.page.noWinners")}</p>
         ) : (
           <div className="grid gap-3 sm:grid-cols-2">
             {archiveVideos.map((video, idx) => (
@@ -195,7 +204,7 @@ export function CompetitionPageClient({
                     </div>
                     <div className="flex min-w-0 flex-1 flex-col justify-center py-2 pr-2">
                       <p className="line-clamp-2 text-sm font-medium text-[#EEEDFE]">{video.title}</p>
-                      <p className="mt-1 text-xs text-[#AFA9EC]">{creatorLabel(video)}</p>
+                      <p className="mt-1 text-xs text-[#AFA9EC]">{creatorLabel(video, t)}</p>
                       {video.award && (
                         <span className="mt-2 inline-block max-w-full truncate rounded bg-[#534AB7]/40 px-2 py-0.5 text-[10px] text-[#E8E4FF]">
                           {video.award}
@@ -236,7 +245,7 @@ export function CompetitionPageClient({
               type="button"
               onClick={close}
               className="absolute right-3 top-3 z-10 flex h-8 w-8 items-center justify-center rounded-full bg-black/50 text-lg text-[#EEEDFE] transition hover:bg-black/70"
-              aria-label="Close"
+              aria-label={t("common.close")}
             >
               ×
             </button>
@@ -252,7 +261,7 @@ export function CompetitionPageClient({
             <h3 id="comp-modal-title" className="mt-4 pr-10 text-lg font-bold text-[#EEEDFE]">
               {open.title}
             </h3>
-            <p className="mt-1 text-sm text-[#AFA9EC]">{creatorLabel(open)}</p>
+            <p className="mt-1 text-sm text-[#AFA9EC]">{creatorLabel(open, t)}</p>
 
             <div className="mt-4 space-y-3">
               <CompetitionVoteButton
@@ -267,7 +276,7 @@ export function CompetitionPageClient({
                   href={`/watch/${open.id}`}
                   className="inline-flex w-full justify-center rounded-full bg-[#534AB7] px-4 py-2 text-sm font-semibold text-[#EEEDFE] hover:bg-[#7F77DD]"
                 >
-                  View Film
+                  {t("competition.page.viewFilm")}
                 </Link>
               )}
             </div>

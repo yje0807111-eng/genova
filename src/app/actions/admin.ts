@@ -29,7 +29,7 @@ export async function createCompetitionAction(form: {
   sponsor: string;
 }): Promise<AdminResult> {
   const auth = await requireAdmin();
-  if ("error" in auth) return { ok: false, message: auth.error ?? "" };
+  if ("error" in auth) return { ok: false, message: auth.error ?? "Unauthorized" };
   const { supabase } = auth;
   const { error } = await supabase.from("competitions").insert({
     id: form.id.trim(),
@@ -49,7 +49,7 @@ export async function createCompetitionAction(form: {
 
 export async function updateCompetitionStatusAction(id: string, status: string): Promise<AdminResult> {
   const auth = await requireAdmin();
-  if ("error" in auth) return { ok: false, message: auth.error ?? "" };
+  if ("error" in auth) return { ok: false, message: auth.error ?? "Unauthorized" };
   const { supabase } = auth;
   const { error } = await supabase.from("competitions").update({ status }).eq("id", id);
   if (error) return { ok: false, message: error.message };
@@ -60,7 +60,7 @@ export async function updateCompetitionStatusAction(id: string, status: string):
 
 export async function setVideoFinalistAction(videoId: string, finalist: boolean): Promise<AdminResult> {
   const auth = await requireAdmin();
-  if ("error" in auth) return { ok: false, message: auth.error ?? "" };
+  if ("error" in auth) return { ok: false, message: auth.error ?? "Unauthorized" };
   const { supabase, user } = auth;
   const { data, error } = await supabase
     .from("videos")
@@ -88,7 +88,7 @@ export async function setVideoFinalistAction(videoId: string, finalist: boolean)
 
 export async function setVideoAwardAction(videoId: string, award: string): Promise<AdminResult> {
   const auth = await requireAdmin();
-  if ("error" in auth) return { ok: false, message: auth.error ?? "" };
+  if ("error" in auth) return { ok: false, message: auth.error ?? "Unauthorized" };
   const { supabase, user } = auth;
   const value = award.trim() || null;
   const { data, error } = await supabase

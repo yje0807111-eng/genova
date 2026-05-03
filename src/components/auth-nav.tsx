@@ -70,7 +70,7 @@ export function AuthNav({ compact = false }: { compact?: boolean }) {
         <div className="flex items-center gap-1.5">
           <Link
             href="/upload"
-            className="btn-primary rounded-[2px] px-[14px] py-[6px] text-[13px] font-medium leading-none"
+            className="btn-primary px-[14px] py-[6px] text-[13px] font-semibold leading-none tracking-wide"
           >
             Upload
           </Link>

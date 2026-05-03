@@ -1,23 +1,30 @@
 import type { Metadata } from "next";
-import { DM_Sans, Inter } from "next/font/google";
-import { SiteFooter, SiteHeader } from "@/components/site-shell";
+import { Plus_Jakarta_Sans, Syne } from "next/font/google";
+import { LayoutWrapper } from "@/components/genova/layout-wrapper";
 import "./globals.css";
 
-const inter = Inter({
-  variable: "--font-inter",
+const plusJakarta = Plus_Jakarta_Sans({
+  variable: "--font-plus-jakarta",
   subsets: ["latin"],
   weight: ["400", "500", "600", "700", "800"],
+  display: "swap",
 });
 
-const dmSans = DM_Sans({
-  variable: "--font-dm-sans",
+const syne = Syne({
+  variable: "--font-syne",
   subsets: ["latin"],
-  weight: ["500", "700", "800"],
+  weight: ["400", "500", "600", "700", "800"],
+  display: "swap",
 });
 
 export const metadata: Metadata = {
   title: "Genova | The Home of AI Filmmakers",
   description: "The Home of AI Filmmakers",
+  icons: {
+    icon: "/genova-logo.png",
+    shortcut: "/genova-logo.png",
+    apple: "/genova-logo.png",
+  },
 };
 
 export default function RootLayout({
@@ -26,11 +33,9 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`${inter.variable} ${dmSans.variable} h-full antialiased`}>
-      <body className="min-h-full flex flex-col">
-        <SiteHeader />
-        <main className="flex-1">{children}</main>
-        <SiteFooter />
+    <html lang="en" className={`${plusJakarta.variable} ${syne.variable} h-full antialiased`}>
+      <body className="min-h-full bg-background font-sans text-balance">
+        <LayoutWrapper>{children}</LayoutWrapper>
       </body>
     </html>
   );
