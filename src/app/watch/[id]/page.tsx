@@ -428,7 +428,7 @@ export default async function WatchDetailPage({
                   genre={video.genre}
                   subGenre={video.subGenre}
                   runtime={video.runtime}
-                  viewCount={video.viewCount}
+                  viewCount={video.viewCount ?? 0}
                   createdAt={video.createdAt}
                 />
               </div>
