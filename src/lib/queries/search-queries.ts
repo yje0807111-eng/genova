@@ -266,13 +266,12 @@ export function resolveGenreMatchFromQuery(q: string): SearchGenreMatch | null {
   const t = q.trim();
   if (!t) return null;
   for (const key of MAIN_GENRE_KEYS) {
-    if (key === "other") continue;
     if (MAIN_GENRE_LABELS[key].toLowerCase() === t.toLowerCase() || key.toLowerCase() === t.toLowerCase()) {
       return { slug: key, label: MAIN_GENRE_LABELS[key] };
     }
   }
   const legacy = LEGACY_GENRE_MAP[t];
-  if (legacy && legacy !== "other") return { slug: legacy, label: MAIN_GENRE_LABELS[legacy] };
+  if (legacy) return { slug: legacy, label: MAIN_GENRE_LABELS[legacy] };
   return null;
 }
 

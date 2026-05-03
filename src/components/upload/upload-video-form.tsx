@@ -173,7 +173,7 @@ export function UploadVideoForm({ userId, competitions }: Props) {
   const [vimeoUrl, setVimeoUrl] = useState("");
   const [thumbnailFile, setThumbnailFile] = useState<File | null>(null);
   const [thumbnailPreview, setThumbnailPreview] = useState<string | null>(null);
-  const [mainGenre, setMainGenre] = useState<MainGenreKey>("short_film");
+  const [mainGenre, setMainGenre] = useState<MainGenreKey>("film");
   const [subGenre, setSubGenre] = useState<SubGenreKey>("drama");
   const [tools, setTools] = useState<string[]>([]);
   const [otherText, setOtherText] = useState<Partial<Record<CatKey, string>>>({});

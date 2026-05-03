@@ -801,7 +801,7 @@ export function FilmsPageClient({
     if (isAllSelected) return allVideosFlat;
     return allVideosFlat.filter((v) => {
       const normalized = normalizeToMainGenre(v.genre);
-      return selectedGenres.includes(normalized);
+      return normalized !== null && selectedGenres.includes(normalized);
     });
   }, [isAllSelected, selectedGenres, allVideosFlat]);
 
