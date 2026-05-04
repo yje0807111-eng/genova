@@ -214,9 +214,14 @@ export function Navbar() {
       } = await supabase.auth.getUser();
       setUserId(user?.id ?? null);
 
-      const adminEmails = process.env.NEXT_PUBLIC_ADMIN_EMAILS?.split(",").map((e) => e.trim()) ?? [];
-      if (user?.email && adminEmails.includes(user.email)) {
-        setIsAdmin(true);
+      if (user?.email) {
+        try {
+          const res = await fetch("/api/check-admin");
+          const data = await res.json();
+          setIsAdmin(data.isAdmin === true);
+        } catch {
+          setIsAdmin(false);
+        }
       } else {
         setIsAdmin(false);
       }
@@ -239,9 +244,16 @@ export function Navbar() {
     } = supabase.auth.onAuthStateChange((_event, session) => {
       const u = session?.user ?? null;
       setUserId(u?.id ?? null);
-      const adminEmails = process.env.NEXT_PUBLIC_ADMIN_EMAILS?.split(",").map((e) => e.trim()) ?? [];
-      if (u?.email && adminEmails.includes(u.email)) {
-        setIsAdmin(true);
+      if (u?.email) {
+        void (async () => {
+          try {
+            const res = await fetch("/api/check-admin");
+            const data = await res.json();
+            setIsAdmin(data.isAdmin === true);
+          } catch {
+            setIsAdmin(false);
+          }
+        })();
       } else {
         setIsAdmin(false);
       }

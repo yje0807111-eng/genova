@@ -123,12 +123,6 @@ export function GenreSidebar({
 }) {
   const { t } = useI18n();
   const router = useRouter();
-  const handleLogout = async () => {
-    const supabase = createBrowserSupabaseClient();
-    await supabase.auth.signOut();
-    router.push("/auth");
-    router.refresh();
-  };
   const pathname = usePathname();
   const isFilmsPage = pathname === "/films" || pathname.startsWith("/films/");
   const isCompetitionPage = pathname === "/competition" || pathname.startsWith("/competition/");
@@ -139,6 +133,14 @@ export function GenreSidebar({
   const [watchFrom, setWatchFrom] = useState<string>("home");
   const [lastUpdated, setLastUpdated] = useState(() => t("genreSidebar.justNow", "just now"));
   const [userId, setUserId] = useState<string | null>(null);
+  const [showLogoutModal, setShowLogoutModal] = useState(false);
+  const handleLogout = () => setShowLogoutModal(true);
+  const confirmLogout = async () => {
+    const supabase = createBrowserSupabaseClient();
+    await supabase.auth.signOut();
+    router.push("/auth");
+    router.refresh();
+  };
   const currentGenre = selectedGenre ?? "All";
   const handleGenreChange = onGenreChange ?? (() => {});
   const showFilmsSidebar = isFilmsPage || (isWatchPage && watchFrom === "films");
@@ -547,7 +549,7 @@ export function GenreSidebar({
           (userId ? (
             <button
               type="button"
-              onClick={() => void handleLogout()}
+              onClick={handleLogout}
               className="mt-1 flex w-full items-center gap-2 rounded-lg px-3 py-2 text-xs text-white/25 transition hover:bg-white/5 hover:text-white/60"
             >
               <LogOut className="h-3.5 w-3.5 shrink-0" />
@@ -564,6 +566,40 @@ export function GenreSidebar({
           ))}
       </div>
     </aside>
+    {showLogoutModal && (
+      <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm">
+        <div
+          className="w-full max-w-sm rounded-2xl border border-white/[0.08] p-6"
+          style={{
+            background: "linear-gradient(135deg, rgba(20,17,50,0.99) 0%, rgba(10,8,28,1) 100%)",
+            boxShadow: "0 0 0 1px rgba(127,119,221,0.1), 0 40px 80px rgba(0,0,0,0.6)",
+          }}
+        >
+          <h2 className="text-lg font-black text-white">Log out?</h2>
+          <p className="mt-1 text-sm text-white/40">Are you sure you want to log out of Genova?</p>
+          <div className="mt-5 flex gap-3">
+            <button
+              type="button"
+              onClick={() => setShowLogoutModal(false)}
+              className="flex-1 rounded-xl border border-white/[0.08] py-2.5 text-sm font-semibold text-white/50 transition hover:border-white/20 hover:text-white"
+            >
+              Cancel
+            </button>
+            <button
+              type="button"
+              onClick={() => void confirmLogout()}
+              className="flex-1 rounded-xl py-2.5 text-sm font-bold text-white transition hover:opacity-90"
+              style={{
+                background: "linear-gradient(135deg, #dc2626 0%, #ef4444 100%)",
+                boxShadow: "0 4px 16px rgba(220,38,38,0.3)",
+              }}
+            >
+              Log out
+            </button>
+          </div>
+        </div>
+      </div>
+    )}
     </>
   );
 }

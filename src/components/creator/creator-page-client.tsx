@@ -14,40 +14,6 @@ import type { Creator, Video } from "@/lib/types";
 import { cn } from "@/lib/utils/cn";
 
 const VIDEOS_PER_PAGE = 32;
-const BASE_DATE = new Date("2025-01-01T00:00:00Z").getTime();
-const MOCK_TITLES = ["Neon Dreams", "Silent Echo", "Urban Pulse", "Digital Bloom", "Crystal Wave", "Shadow Dance"];
-const awardMap: Record<number, string> = {
-  0: "gold",
-  3: "bronze",
-  6: "genre_1st",
-  9: "special",
-};
-
-function createMockVideo(index: number): Video {
-  return {
-    id: `mock-creator-${index}`,
-    title: MOCK_TITLES[index % MOCK_TITLES.length],
-    thumbnailUrl: `https://picsum.photos/seed/creator-mock-${index}/400/225`,
-    vimeoId: "",
-    genre: "short_film",
-    subGenre: null,
-    purpose: "personal",
-    creatorId: null,
-    isOriginal: false,
-    isFinalist: false,
-    award: awardMap[index % 12] ?? null,
-    runtime: `${1 + (index % 4)}:${String(index % 60).padStart(2, "0")}`,
-    createdAt: new Date(BASE_DATE - index * 24 * 60 * 60 * 1000).toISOString(),
-    visibility: "public",
-    description: "",
-    aiTools: [],
-    tags: [],
-    seriesName: null,
-    episodeNumber: null,
-    uploadedBy: null,
-    viewCount: 1000 + index * 300,
-  };
-}
 
 function toHandle(name: string): string {
   return name
@@ -114,15 +80,7 @@ export function CreatorPageClient({
       }
     });
   }, []);
-  const allPaddedForCounts = useMemo(() => {
-    const allReal = [...works, ...finalistVideos];
-    const TARGET = 90;
-    const padded =
-      allReal.length < TARGET
-        ? [...allReal, ...Array.from({ length: TARGET - allReal.length }, (_, i) => createMockVideo(allReal.length + i))]
-        : allReal;
-    return padded;
-  }, [works, finalistVideos]);
+  const allPaddedForCounts = useMemo(() => [...works, ...finalistVideos], [works, finalistVideos]);
 
   useEffect(() => {
     setActiveAwardFilter(null);
@@ -131,14 +89,7 @@ export function CreatorPageClient({
 
   const sortedVideos = useMemo(() => {
     const real = [...listVideos];
-    const TARGET = 90;
-    const padded =
-      real.length < TARGET
-        ? [...real, ...Array.from({ length: TARGET - real.length }, (_, i) => createMockVideo(real.length + i))]
-        : real;
-
-    // Sort AFTER padding so all videos including mocks are sorted
-    padded.sort((a, b) => {
+    real.sort((a, b) => {
       const ta = new Date(a.createdAt).getTime();
       const tb = new Date(b.createdAt).getTime();
       if (sortBy === "Most Viewed") return (b.viewCount ?? 0) - (a.viewCount ?? 0);
@@ -146,10 +97,10 @@ export function CreatorPageClient({
     });
     const filtered =
       activeAwardFilter === "all"
-        ? padded.filter((v) => v.award !== null)
+        ? real.filter((v) => v.award !== null)
         : activeAwardFilter
-          ? padded.filter((v) => v.award === activeAwardFilter)
-          : padded;
+          ? real.filter((v) => v.award === activeAwardFilter)
+          : real;
     return filtered;
   }, [listVideos, sortBy, activeAwardFilter]);
 
@@ -167,11 +118,8 @@ export function CreatorPageClient({
     );
 
     if (tools.length > 0) return tools.slice(0, 5).join(" · ");
-
-    // Fallback mock tools based on creator id for visual testing
-    const mockTools = ["Midjourney", "Runway", "ElevenLabs", "Kling", "Suno"];
-    return mockTools.slice(0, 3 + (creator.id.charCodeAt(0) % 3)).join(" · ");
-  }, [works, finalistVideos, creator.id]);
+    return "";
+  }, [works, finalistVideos]);
 
   const hasAwardCounts = useMemo(
     () => allPaddedForCounts.some((v) => v.award !== null),

@@ -43,7 +43,6 @@ export default async function Home() {
 
   return (
     <HomePageClient
-      useMockFallback={videosWithE.length === 0}
       videosFromDb={videosWithE}
       competitionDeadlineIso={competition?.deadline ?? null}
       competition={competition}

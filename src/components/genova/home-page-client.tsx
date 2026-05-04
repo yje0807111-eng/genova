@@ -6,7 +6,6 @@ import { usePathname, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import type { Competition } from "@/lib/types";
 import type { Video } from "@/lib/types";
-import { createGenovaMockVideos } from "@/lib/genova-mock-videos";
 import { useI18n } from "@/components/genova/language-provider";
 import { useGenreFilter } from "@/components/genova/genre-filter-context";
 import { UploadCTA } from "./upload-cta";
@@ -221,16 +220,7 @@ function GenreTop10Row({ videos, genre }: { videos: Video[]; genre: string }) {
   const top10 = useMemo(() => {
     const filtered = videos.filter((v) => normalizeToMainGenre(v.genre) === genre);
     const sorted = [...filtered].sort((a, b) => (b.viewCount ?? 0) - (a.viewCount ?? 0));
-
-    // Pad with mock rows when DB returns fewer videos
-    if (sorted.length < 8) {
-      const mockVideos = createGenovaMockVideos();
-      const mockFiltered = mockVideos
-        .filter((v) => normalizeToMainGenre(v.genre) === genre)
-        .filter((v) => !sorted.find((s) => s.id === v.id));
-      return [...sorted, ...mockFiltered].slice(0, 16);
-    }
-    return sorted;
+    return sorted.slice(0, 16);
   }, [videos, genre]);
 
   useEffect(() => {
@@ -734,7 +724,6 @@ type SpotlightCreator = {
 };
 
 type HomePageClientProps = {
-  useMockFallback: boolean;
   videosFromDb: Video[];
   /** Supabase competition deadline (ISO); null uses banner fallback timer */
   competitionDeadlineIso: string | null;
@@ -748,7 +737,6 @@ type HomePageClientProps = {
 
 export function HomePageClient(props: HomePageClientProps) {
   const {
-    useMockFallback,
     videosFromDb,
     competitionDeadlineIso,
     competition,
@@ -766,10 +754,7 @@ export function HomePageClient(props: HomePageClientProps) {
   const moodBarRef = useRef<HTMLDivElement>(null);
   const isFirstMount = useRef(true);
 
-  const videos = useMemo(() => {
-    if (useMockFallback) return createGenovaMockVideos();
-    return videosFromDb;
-  }, [useMockFallback, videosFromDb]);
+  const videos = videosFromDb;
   const newestVideos = useMemo(
     () => [...videos].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()),
     [videos]
@@ -976,78 +961,66 @@ export function HomePageClient(props: HomePageClientProps) {
 
               <div className="border-t border-white/[0.04]" />
 
-              <AnimateIn delay={0.22}>
-                <section>
-                  <div className="mb-4">
-                    <h2 className="text-[20px] font-bold text-white tracking-tight">
-                      Creator Spotlight
-                      <span className="ml-2 inline-block h-[3px] w-6 rounded-full bg-[#7F77DD] align-middle" />
-                    </h2>
-                  </div>
-                  <div className="flex gap-4 overflow-x-auto hide-scrollbar pb-2">
-                    {(spotlightCreators.length > 0
-                      ? spotlightCreators
-                      : Array.from({ length: 5 }, (_, i) => ({
-                          uploadedBy: `mock-${i}`,
-                          displayName: ["Luna Kim", "Alex Chen", "Seo Yoon", "Minwoo Lee", "Ryan Ko"][i],
-                          avatarUrl: `https://i.pravatar.cc/80?img=${i + 1}`,
-                          videoCount: [8, 6, 5, 4, 3][i],
-                          totalLikes: [124, 98, 76, 54, 32][i],
-                          recentVideos: Array.from({ length: 3 }, (_, j) => ({
-                            id: `mock-${i}-${j}`,
-                            title: "Recent Film",
-                            thumbnailUrl: `https://picsum.photos/seed/${i * 10 + j}/280/158`,
-                          })),
-                        }))
-                    ).map((creator) => (
-                      <Link
-                        key={creator.uploadedBy}
-                        href={`/profile/${creator.uploadedBy}`}
-                        className="group shrink-0 w-[240px] rounded-xl border border-white/[0.06] bg-white/[0.02] p-4 transition-all duration-300 hover:border-[#7F77DD]/30 hover:bg-white/[0.04]"
-                      >
-                        {/* 아바타 + 이름 */}
-                        <div className="flex items-center gap-3 mb-4">
-                          <div className="h-12 w-12 shrink-0 overflow-hidden rounded-full border border-white/10 bg-[#26215C]">
-                            {creator.avatarUrl ? (
-                              <img src={creator.avatarUrl} alt="" className="h-full w-full object-cover" />
-                            ) : (
-                              <div className="flex h-full w-full items-center justify-center text-lg font-bold text-white/60">
-                                {creator.displayName.slice(0, 1)}
-                              </div>
-                            )}
-                          </div>
-                          <div>
-                            <p className="text-[13px] font-bold text-white group-hover:text-[#AFA9EC] transition-colors">
-                              {creator.displayName}
-                            </p>
-                            <p className="text-[11px] text-white/40">
-                              {creator.videoCount} films · {creator.totalLikes} likes
-                            </p>
-                          </div>
-                        </div>
-
-                        {/* 최근 영상 썸네일 3개 */}
-                        <div className="grid grid-cols-3 gap-1.5">
-                          {creator.recentVideos.slice(0, 3).map((v) => (
-                            <div
-                              key={v.id}
-                              className="aspect-video overflow-hidden rounded-md bg-[#1a1547]"
-                            >
-                              {v.thumbnailUrl && (
-                                <img
-                                  src={v.thumbnailUrl}
-                                  alt=""
-                                  className="h-full w-full object-cover opacity-80 transition group-hover:opacity-100"
-                                />
+              {spotlightCreators.length > 0 ? (
+                <AnimateIn delay={0.22}>
+                  <section>
+                    <div className="mb-4">
+                      <h2 className="text-[20px] font-bold text-white tracking-tight">
+                        Creator Spotlight
+                        <span className="ml-2 inline-block h-[3px] w-6 rounded-full bg-[#7F77DD] align-middle" />
+                      </h2>
+                    </div>
+                    <div className="flex gap-4 overflow-x-auto hide-scrollbar pb-2">
+                      {spotlightCreators.map((creator) => (
+                        <Link
+                          key={creator.uploadedBy}
+                          href={`/profile/${creator.uploadedBy}`}
+                          className="group shrink-0 w-[240px] rounded-xl border border-white/[0.06] bg-white/[0.02] p-4 transition-all duration-300 hover:border-[#7F77DD]/30 hover:bg-white/[0.04]"
+                        >
+                          {/* 아바타 + 이름 */}
+                          <div className="flex items-center gap-3 mb-4">
+                            <div className="h-12 w-12 shrink-0 overflow-hidden rounded-full border border-white/10 bg-[#26215C]">
+                              {creator.avatarUrl ? (
+                                <img src={creator.avatarUrl} alt="" className="h-full w-full object-cover" />
+                              ) : (
+                                <div className="flex h-full w-full items-center justify-center text-lg font-bold text-white/60">
+                                  {creator.displayName.slice(0, 1)}
+                                </div>
                               )}
                             </div>
-                          ))}
-                        </div>
-                      </Link>
-                    ))}
-                  </div>
-                </section>
-              </AnimateIn>
+                            <div>
+                              <p className="text-[13px] font-bold text-white group-hover:text-[#AFA9EC] transition-colors">
+                                {creator.displayName}
+                              </p>
+                              <p className="text-[11px] text-white/40">
+                                {creator.videoCount} films · {creator.totalLikes} likes
+                              </p>
+                            </div>
+                          </div>
+
+                          {/* 최근 영상 썸네일 3개 */}
+                          <div className="grid grid-cols-3 gap-1.5">
+                            {creator.recentVideos.slice(0, 3).map((v) => (
+                              <div
+                                key={v.id}
+                                className="aspect-video overflow-hidden rounded-md bg-[#1a1547]"
+                              >
+                                {v.thumbnailUrl && (
+                                  <img
+                                    src={v.thumbnailUrl}
+                                    alt=""
+                                    className="h-full w-full object-cover opacity-80 transition group-hover:opacity-100"
+                                  />
+                                )}
+                              </div>
+                            ))}
+                          </div>
+                        </Link>
+                      ))}
+                    </div>
+                  </section>
+                </AnimateIn>
+              ) : null}
 
               <div className="border-t border-white/[0.04]" />
 

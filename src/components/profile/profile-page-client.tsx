@@ -38,71 +38,6 @@ import { cn } from "@/lib/utils/cn";
 type TabKey = "Videos" | "Competition" | "Series" | "Saved";
 const VIDEOS_PER_PAGE = 32;
 
-function hashSeed(parts: string): number {
-  const s = parts;
-  let h = 0;
-  for (let i = 0; i < s.length; i++) {
-    h = (Math.imul(31, h) + s.charCodeAt(i)) | 0;
-  }
-  return Math.abs(h);
-}
-
-const MOCK_TITLES = [
-  "Neon Dreams",
-  "Silent Echo",
-  "Urban Pulse",
-  "Digital Bloom",
-  "Crystal Wave",
-  "Shadow Dance",
-] as const;
-const BASE_DATE = new Date("2025-01-01T00:00:00Z").getTime();
-
-function createMockVideo(tab: TabKey, profileId: string, slotIndex: number): Video {
-  const h = hashSeed(`${profileId}-${tab}-mock-${slotIndex}`);
-  const mins = 1 + (h % 5);
-  const secs = h % 60;
-  const daysAgo = h % 30;
-  const awardMap: Record<number, string> = {
-    2: "gold",
-    5: "genre_1st",
-    8: "bronze",
-    11: "special",
-  };
-  return {
-    id: `mock-${tab}-${profileId}-${slotIndex}`,
-    title: MOCK_TITLES[slotIndex % MOCK_TITLES.length],
-    thumbnailUrl: `https://picsum.photos/seed/${encodeURIComponent(`${profileId}-${tab}-m${slotIndex}`)}/400/225`,
-    vimeoId: "",
-    genre: "short_film",
-    subGenre: null,
-    purpose: "personal",
-    creatorId: null,
-    isOriginal: true,
-    isFinalist: tab === "Competition",
-    award: awardMap[slotIndex % 12] ?? null,
-    runtime: `${mins}:${String(secs).padStart(2, "0")}`,
-    createdAt: new Date(BASE_DATE - daysAgo * 24 * 60 * 60 * 1000).toISOString(),
-    visibility: "public",
-    description: "",
-    aiTools: [],
-    tags: [],
-    seriesName:
-      tab === "Series" ? (["Neon Dynasty", "The Last Signal", "Urban Pulse"] as const)[slotIndex % 3] : null,
-    episodeNumber: tab === "Series" ? (slotIndex % 5) + 1 : null,
-    uploadedBy: null,
-    viewCount: 500 + (h % 9500),
-  };
-}
-
-function padVideos(videos: Video[], tab: TabKey, profileId: string): Video[] {
-  const TARGET = 90;
-  if (videos.length >= TARGET) return videos;
-  const need = TARGET - videos.length;
-  const start = videos.length;
-  const mocks = Array.from({ length: need }, (_, i) => createMockVideo(tab, profileId, start + i));
-  return [...videos, ...mocks];
-}
-
 function getVisiblePages(currentPage: number, totalPages: number): number[] {
   const WINDOW = 9;
   let start = Math.max(1, currentPage - Math.floor(WINDOW / 2));
@@ -233,17 +168,16 @@ export function GenovaProfileClient({
           : !editMode
             ? sourceList.filter((v) => v.visibility !== "private")
             : sourceList;
-    const padded = padVideos(visibilityFiltered, activeTab, profileId);
 
-    let sourceVideos = padded;
+    let sourceVideos = visibilityFiltered;
 
     if (activeAwardFilter === "all") {
-      sourceVideos = padded.filter((video) => video.award !== null);
+      sourceVideos = visibilityFiltered.filter((video) => video.award !== null);
     } else if (activeAwardFilter) {
       if (activeTab === "Videos" && isGenreFilter) {
-        sourceVideos = padded.filter((video) => video.award === activeAwardFilter);
+        sourceVideos = visibilityFiltered.filter((video) => video.award === activeAwardFilter);
       } else if (activeTab === "Competition" && !isGenreFilter) {
-        sourceVideos = padded.filter((video) => video.award === activeAwardFilter);
+        sourceVideos = visibilityFiltered.filter((video) => video.award === activeAwardFilter);
       }
     }
 
@@ -257,7 +191,7 @@ export function GenovaProfileClient({
       return sortBy === "Newest" ? tb - ta : ta - tb;
     });
     return arr;
-  }, [activeTab, profileId, sortBy, activeAwardFilter, bulkAction, editMode, localWorks, localFinalistVideos, savedVideos]);
+  }, [activeTab, sortBy, activeAwardFilter, bulkAction, editMode, localWorks, localFinalistVideos, savedVideos]);
 
   const displayVideos = useMemo(() => {
     const totalPages = Math.ceil(sortedVideos.length / VIDEOS_PER_PAGE);
@@ -265,9 +199,7 @@ export function GenovaProfileClient({
     return { videos: paginated, totalPages };
   }, [sortedVideos, currentPage]);
 
-  const totalVideoCount = useMemo(() => {
-    return padVideos(localWorks, "Videos", profileId).length;
-  }, [localWorks, profileId]);
+  const totalVideoCount = useMemo(() => localWorks.length, [localWorks]);
 
   const visibleAwards = useMemo(
     () => awardBadges.filter((a) => visibleAwardIds.includes(a.id)),
@@ -275,24 +207,22 @@ export function GenovaProfileClient({
   );
 
   const awardCounts = useMemo(() => {
-    const paddedWorks = padVideos(localWorks, "Videos", profileId);
-    const paddedCompetition = padVideos(localFinalistVideos, "Competition", profileId);
     const counts: Record<string, number> = {};
 
-    for (const video of paddedWorks) {
+    for (const video of localWorks) {
       if (video.award && video.award.startsWith("genre_")) {
         counts[video.award] = (counts[video.award] ?? 0) + 1;
       }
     }
 
-    for (const video of paddedCompetition) {
+    for (const video of localFinalistVideos) {
       if (video.award && !video.award.startsWith("genre_")) {
         counts[video.award] = (counts[video.award] ?? 0) + 1;
       }
     }
 
     return counts;
-  }, [localWorks, localFinalistVideos, profileId]);
+  }, [localWorks, localFinalistVideos]);
 
   const onFollowToggle = () => {
     startTransition(async () => {
@@ -596,8 +526,7 @@ export function GenovaProfileClient({
             </div>
           ))}
           {(() => {
-            const allPaddedVideos = padVideos(works, "Videos", profileId);
-            const totalAwardCount = allPaddedVideos.filter((v) => v.award !== null).length;
+            const totalAwardCount = works.filter((v) => v.award !== null).length;
             return totalAwardCount > 0 ? (
               <div
                 className="group relative flex-shrink-0 ml-2 cursor-pointer transition-transform duration-200 hover:scale-110"
@@ -730,14 +659,13 @@ export function GenovaProfileClient({
                   <button
                     type="button"
                     onClick={() => {
-                      const eligibleIds = displayVideos.videos.filter((v) => !v.id.startsWith("mock-")).map((v) => v.id);
+                      const eligibleIds = displayVideos.videos.map((v) => v.id);
                       const allSelected = eligibleIds.every((id) => selectedVideoIds.includes(id));
                       setSelectedVideoIds(allSelected ? [] : eligibleIds);
                     }}
                     className="text-xs text-muted-foreground transition hover:text-white"
                   >
                     {displayVideos.videos
-                      .filter((v) => !v.id.startsWith("mock-"))
                       .every((v) => selectedVideoIds.includes(v.id))
                       ? t("profile.deselectAll", "Deselect all")
                       : t("profile.selectAll", "Select all")}
@@ -921,11 +849,9 @@ export function GenovaProfileClient({
                                 setTimeout(() => setShowBulkHint(false), 2000);
                                 return;
                               }
-                              if (!video.id.startsWith("mock-")) {
-                                setSelectedVideoIds((prev) =>
-                                  prev.includes(video.id) ? prev.filter((id) => id !== video.id) : [...prev, video.id],
-                                );
-                              }
+                              setSelectedVideoIds((prev) =>
+                                prev.includes(video.id) ? prev.filter((id) => id !== video.id) : [...prev, video.id],
+                              );
                             }
                           : undefined
                       }
@@ -1010,7 +936,7 @@ export function GenovaProfileClient({
                           </div>
 
                           {/* 편집 버튼 */}
-                          {isOwner && !video.id.startsWith("mock-") ? (
+                          {isOwner ? (
                             <button
                               type="button"
                               className="absolute top-2 right-2 z-[10] flex items-center gap-1 rounded-md border-0 bg-black/70 px-2 py-1 text-[10px] text-white/70 opacity-0 backdrop-blur-sm transition group-hover/card:opacity-100 hover:bg-black/90 hover:text-white"

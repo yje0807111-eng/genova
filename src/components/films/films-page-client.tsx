@@ -4,150 +4,13 @@ import { useRef, useState, useEffect, useMemo } from "react";
 import { ChevronLeft, ChevronRight, Play, Plus, Info } from "lucide-react";
 import { AnimateIn } from "@/components/animate-in";
 import { useI18n } from "@/components/genova/language-provider";
-import {
-  MAIN_GENRE_KEYS,
-  normalizeToMainGenre,
-  mainGenreLabel,
-  subGenreLabel,
-  type MainGenreKey,
-  type SubGenreKey,
-} from "@/lib/constants/genres";
+import { MAIN_GENRE_KEYS, normalizeToMainGenre, mainGenreLabel } from "@/lib/constants/genres";
 import { formatUploadedRelative } from "@/lib/format-uploaded-relative";
 import { addWindowCustomListener } from "@/lib/dom/window-custom-events";
 import type { Video } from "@/lib/types";
-import type { Locale } from "@/lib/i18n/translations";
 import Link from "next/link";
 import { ContinueWatching } from "@/components/films/continue-watching";
 import { cn } from "@/lib/utils/cn";
-
-const HERO_FALLBACKS = [
-  "https://images.unsplash.com/photo-1536440136628-849c177e76a1?w=1400&q=80",
-  "https://images.unsplash.com/photo-1478720568477-152d9b164e26?w=1400&q=80",
-  "https://images.unsplash.com/photo-1440404653325-ab127d49abc1?w=1400&q=80",
-];
-
-const MOCK_CARD_DATA = [
-  {
-    title: "Beyond the Horizon",
-    director: "Luna Kim",
-    description: "A new act begins at humanity's edge — an emotional journey set against the vast cosmos.",
-  },
-  {
-    title: "The Last Memory",
-    director: "John Park",
-    description: "Fragments of fading memory — a quest to recover what was almost lost forever.",
-  },
-  {
-    title: "Echoes",
-    director: "Seo Yoon",
-    description: "Stories heard through silence — moments of feeling that ripple outward like echoes.",
-  },
-  {
-    title: "The Lighthouse",
-    director: "Minwoo Lee",
-    description: "Where light touches the waves, hope remains — love and sacrifice in the eye of the storm.",
-  },
-];
-
-type MockSeriesRow =
-  | {
-      title: string;
-      thumbnail: string;
-      episodes: number;
-      genreMode: "main";
-      mainKey: MainGenreKey;
-    }
-  | {
-      title: string;
-      thumbnail: string;
-      episodes: number;
-      genreMode: "sub";
-      subKey: SubGenreKey;
-    };
-
-function mockSeriesGenreLabel(row: MockSeriesRow, loc: Locale): string {
-  return row.genreMode === "main"
-    ? mainGenreLabel(row.mainKey, loc)
-    : subGenreLabel(row.subKey, loc);
-}
-
-const MOCK_SERIES_ROWS: MockSeriesRow[] = [
-  {
-    title: "Neon Dynasty",
-    genreMode: "sub",
-    subKey: "sf",
-    episodes: 6,
-    thumbnail: "https://images.unsplash.com/photo-1534447677768-be436bb09401?w=400&q=80",
-  },
-  {
-    title: "The Last Signal",
-    genreMode: "sub",
-    subKey: "thriller",
-    episodes: 4,
-    thumbnail: "https://images.unsplash.com/photo-1478720568477-152d9b164e26?w=400&q=80",
-  },
-  {
-    title: "Echoes of Eden",
-    genreMode: "sub",
-    subKey: "drama",
-    episodes: 8,
-    thumbnail: "https://images.unsplash.com/photo-1501854140801-50d01698950b?w=400&q=80",
-  },
-  {
-    title: "Glitch World",
-    genreMode: "main",
-    mainKey: "animation",
-    episodes: 5,
-    thumbnail: "https://images.unsplash.com/photo-1579783902614-a3fb3927b6a5?w=400&q=80",
-  },
-  {
-    title: "Phantom Frequency",
-    genreMode: "sub",
-    subKey: "horror",
-    episodes: 3,
-    thumbnail: "https://images.unsplash.com/photo-1536440136628-849c177e76a1?w=400&q=80",
-  },
-];
-
-type MockAwardRow = {
-  title: string;
-  color: string;
-  thumbnail: string;
-  labelKey: string;
-};
-
-const MOCK_AWARD_ROWS: MockAwardRow[] = [
-  {
-    title: "The Silent Hour",
-    labelKey: "films.mockAwardGrand",
-    color: "#FFD700",
-    thumbnail: "https://images.unsplash.com/photo-1536440136628-849c177e76a1?w=400&q=80",
-  },
-  {
-    title: "Neon Requiem",
-    labelKey: "films.mockAwardExcellence",
-    color: "#C0C0C0",
-    thumbnail: "https://images.unsplash.com/photo-1478720568477-152d9b164e26?w=400&q=80",
-  },
-  {
-    title: "Dust & Stars",
-    labelKey: "films.mockAwardMerit",
-    color: "#CD7F32",
-    thumbnail: "https://images.unsplash.com/photo-1501854140801-50d01698950b?w=400&q=80",
-  },
-  {
-    title: "Echo Chamber",
-    labelKey: "films.mockAwardAudience",
-    color: "#8b5cf6",
-    thumbnail: "https://images.unsplash.com/photo-1534447677768-be436bb09401?w=400&q=80",
-  },
-  {
-    title: "Phantom Loop",
-    labelKey: "films.mockAwardSpecial",
-    color: "#7F77DD",
-    thumbnail: "https://images.unsplash.com/photo-1579783902614-a3fb3927b6a5?w=400&q=80",
-  },
-];
 
 function stableHash(input: string): number {
   let hash = 0;
@@ -206,9 +69,11 @@ function Particles() {
 function HeroBanner({
   awardWinners,
   allVideos,
+  heroEyebrow,
 }: {
   awardWinners: (Video & { award?: string | null })[];
   allVideos: Video[];
+  heroEyebrow: string;
 }) {
   const { t } = useI18n();
   const [hoveredCard, setHoveredCard] = useState<number | null>(null);
@@ -363,7 +228,7 @@ function HeroBanner({
             <div className="mb-5 flex items-center justify-center gap-2">
               <div className="h-1.5 w-1.5 rounded-full bg-[#7F77DD]" />
               <p className="text-sm font-semibold uppercase tracking-[0.2em] text-white/80">
-                {t("films.heroEyebrow")}
+                {heroEyebrow}
               </p>
             </div>
             <h2
@@ -461,15 +326,20 @@ function HeroBanner({
                     {video?.thumbnailUrl ? (
                       <img src={video.thumbnailUrl} alt="" className="h-full w-full rounded-lg object-cover" />
                     ) : (
-                      <div className="h-full w-full bg-gradient-to-br from-[#1a1547] to-[#0f0d24]" />
+                      <div className="flex h-full w-full flex-col items-center justify-center gap-2 bg-gradient-to-br from-[#1a1547] to-[#0f0d24]">
+                        <svg viewBox="0 0 24 24" className="h-8 w-8 text-white/20" fill="none" stroke="currentColor" strokeWidth={1.5}>
+                          <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+                          <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+                        </svg>
+                        <p className="text-[10px] font-semibold uppercase tracking-widest text-white/20">Coming Soon</p>
+                      </div>
                     )}
                   </div>
 
                   <div className="px-3 pt-2 pb-3">
                     <div className="flex items-center justify-between gap-2">
                       <h3 className="line-clamp-1 flex-1 text-sm font-bold text-white">
-                        {video?.title ??
-                          t(`films.heroMock${tier.idx + 1}Title`, MOCK_CARD_DATA[tier.idx].title)}
+                        {video ? video.title?.trim() || "—" : "Coming Soon"}
                       </h3>
                       <div className="relative flex shrink-0 items-center justify-center">
                         <img src="/genova-play1.png" alt="" className="h-[50px] w-[50px] object-contain opacity-50" aria-hidden />
@@ -479,15 +349,18 @@ function HeroBanner({
                       </div>
                     </div>
 
-                    <p className="mt-0.5 text-[10px] text-white/50">
-                      {t("films.heroDirectorLabel")}{" "}
-                      {video?.creatorName ?? video?.uploaderDisplayName ?? MOCK_CARD_DATA[tier.idx].director}
-                    </p>
+                    {(video?.creatorName ?? video?.uploaderDisplayName) ? (
+                      <p className="mt-0.5 text-[10px] text-white/50">
+                        {t("films.heroDirectorLabel")}{" "}
+                        {video?.creatorName ?? video?.uploaderDisplayName}
+                      </p>
+                    ) : null}
 
-                    <p className="mt-1 line-clamp-2 text-[10px] leading-relaxed text-white/30">
-                      {video?.description?.trim() ||
-                        t(`films.heroMock${tier.idx + 1}Desc`, MOCK_CARD_DATA[tier.idx].description)}
-                    </p>
+                    {video?.description?.trim() ? (
+                      <p className="mt-1 line-clamp-2 text-[10px] leading-relaxed text-white/30">
+                        {video.description.trim()}
+                      </p>
+                    ) : null}
                   </div>
 
                   <div
@@ -731,12 +604,14 @@ export function FilmsPageClient({
   editorsPicks,
   genreSpotlight,
   allVideos,
+  heroEyebrow,
 }: {
   originals: Video[];
   awardWinners: (Video & { award?: string | null })[];
   editorsPicks: Video[];
   genreSpotlight: { genreKey: string; label: string; picks: Video[] }[];
   allVideos: Video[];
+  heroEyebrow: string;
 }) {
   const { t, locale } = useI18n();
   const [selectedGenres, setSelectedGenres] = useState<string[]>([]);
@@ -814,7 +689,7 @@ export function FilmsPageClient({
 
       {/* Hero Banner - full width */}
       <AnimateIn delay={0.05}>
-        <HeroBanner awardWinners={awardWinners} allVideos={allVideosFlat} />
+        <HeroBanner awardWinners={awardWinners} allVideos={allVideosFlat} heroEyebrow={heroEyebrow} />
       </AnimateIn>
 
       <div className="relative mx-auto max-w-[1680px] px-12 pb-24 pt-10 text-white space-y-6">
@@ -895,65 +770,70 @@ export function FilmsPageClient({
 
         {/* Content rows */}
         <div className="space-y-10">
-
-          {/* Top 10 sections — one per selected genre, or overall if all */}
-          {isAllSelected ? (
-            <AnimateIn delay={0.15}>
-              <div id="films-top10" className="scroll-mt-20">
-                <VideoRow title={t("films.top10Today", "Top 10 Today")} videos={getTop10(filteredVideos)} />
-              </div>
-            </AnimateIn>
+          {filteredVideos.length === 0 ? (
+            <p className="py-16 text-center text-sm text-white/45">아직 영상이 없습니다</p>
           ) : (
-            selectedGenres.map((genreKey, idx) => {
-              const tabLabel = mainGenreLabel(genreKey, locale);
-              const top10 = getTop10(filteredVideos, genreKey);
-              if (top10.length === 0) return null;
-              return (
-                <AnimateIn key={genreKey} delay={0.15 + idx * 0.05}>
-                  <div id={idx === 0 ? "films-top10" : undefined} className={idx === 0 ? "scroll-mt-20" : undefined}>
-                    <VideoRow
-                      title={t("films.top10InGenre").replace("{genre}", tabLabel)}
-                      videos={top10}
-                    />
+            <>
+              {/* Top 10 sections — one per selected genre, or overall if all */}
+              {isAllSelected ? (
+                <AnimateIn delay={0.15}>
+                  <div id="films-top10" className="scroll-mt-20">
+                    <VideoRow title={t("films.top10Today", "Top 10 Today")} videos={getTop10(filteredVideos)} />
                   </div>
                 </AnimateIn>
-              );
-            })
+              ) : (
+                selectedGenres.map((genreKey, idx) => {
+                  const tabLabel = mainGenreLabel(genreKey, locale);
+                  const top10 = getTop10(filteredVideos, genreKey);
+                  if (top10.length === 0) return null;
+                  return (
+                    <AnimateIn key={genreKey} delay={0.15 + idx * 0.05}>
+                      <div id={idx === 0 ? "films-top10" : undefined} className={idx === 0 ? "scroll-mt-20" : undefined}>
+                        <VideoRow
+                          title={t("films.top10InGenre").replace("{genre}", tabLabel)}
+                          videos={top10}
+                        />
+                      </div>
+                    </AnimateIn>
+                  );
+                })
+              )}
+
+              {/* New Content */}
+              <AnimateIn delay={0.2}>
+                <VideoRow
+                  title={
+                    isAllSelected
+                      ? t("films.newArrivals", "New Arrivals")
+                      : t("films.newGenreArrivals").replace(
+                          "{genre}",
+                          mainGenreLabel(selectedGenres[0], locale),
+                        )
+                  }
+                  videos={[...filteredVideos].sort((a, b) =>
+                    new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+                  ).slice(0, 15)}
+                />
+              </AnimateIn>
+
+              {/* Today's Picks */}
+              <AnimateIn delay={0.25}>
+                <VideoRow
+                  title={
+                    isAllSelected
+                      ? t("films.todaysRecommendations", "Today's Recommendations")
+                      : t("films.topGenrePicks").replace(
+                          "{genre}",
+                          mainGenreLabel(selectedGenres[0], locale),
+                        )
+                  }
+                  videos={[...filteredVideos]
+                    .sort((a, b) => stableHash(a.id) - stableHash(b.id))
+                    .slice(0, 15)}
+                />
+              </AnimateIn>
+            </>
           )}
-
-          {/* New Content */}
-          <AnimateIn delay={0.2}>
-            <VideoRow
-              title={
-                isAllSelected
-                  ? t("films.newArrivals", "New Arrivals")
-                  : t("films.newGenreArrivals").replace(
-                      "{genre}",
-                      mainGenreLabel(selectedGenres[0], locale),
-                    )
-              }
-              videos={[...filteredVideos].sort((a, b) =>
-                new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-              ).slice(0, 15)}
-            />
-          </AnimateIn>
-
-          {/* Today's Picks */}
-          <AnimateIn delay={0.25}>
-            <VideoRow
-              title={
-                isAllSelected
-                  ? t("films.todaysRecommendations", "Today's Recommendations")
-                  : t("films.topGenrePicks").replace(
-                      "{genre}",
-                      mainGenreLabel(selectedGenres[0], locale),
-                    )
-              }
-              videos={[...filteredVideos]
-                .sort((a, b) => stableHash(a.id) - stableHash(b.id))
-                .slice(0, 15)}
-            />
-          </AnimateIn>
 
           {/* Genre rows — filtered by selection */}
           {genreSpotlight
@@ -1024,43 +904,7 @@ export function FilmsPageClient({
                 ))}
               </div>
 
-              {/* Locked placeholder cards */}
-              <div className="flex gap-4">
-                {MOCK_SERIES_ROWS.map((series, i) => (
-                  <div
-                    key={i}
-                    className="relative shrink-0 rounded-xl overflow-hidden cursor-not-allowed"
-                    style={{ width: "calc((100% - 60px) / 5.2)" }}
-                  >
-                    {/* Thumbnail - blurred */}
-                    <div className="relative aspect-video w-full overflow-hidden">
-                      <img
-                        src={series.thumbnail}
-                        alt=""
-                        className="h-full w-full object-cover"
-                        style={{ filter: "blur(2px) brightness(0.4)" }}
-                      />
-                      {/* Lock icon center */}
-                      <div className="absolute inset-0 flex items-center justify-center">
-                        <div className="flex h-9 w-9 items-center justify-center rounded-full border border-[#7F77DD]/40 bg-[#0f0d24]/80">
-                          <svg viewBox="0 0 24 24" className="h-4 w-4 text-[#7F77DD]" fill="currentColor">
-                            <path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1 1.71 0 3.1 1.39 3.1 3.1v2z"/>
-                          </svg>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Info - faded */}
-                    <div className="p-2 bg-[#0f0d24]" style={{ opacity: 0.4 }}>
-                      <h3 className="line-clamp-1 text-[12px] font-medium text-white">{series.title}</h3>
-                      <p className="mt-0.5 text-[11px] text-white/40">
-                        {mockSeriesGenreLabel(series, locale)} ·{" "}
-                        {t("films.episodesCount").replace("{n}", String(series.episodes))}
-                      </p>
-                    </div>
-                  </div>
-                ))}
-              </div>
+              <p className="py-6 text-sm text-white/45">아직 영상이 없습니다</p>
             </div>
           </div>
         </div>
@@ -1101,40 +945,7 @@ export function FilmsPageClient({
               opacity: awardsExpanded ? 1 : 0
             }}
           >
-            <div className="flex gap-4 pt-1">
-              {MOCK_AWARD_ROWS.map((award, i) => (
-                <div
-                  key={i}
-                  className="relative shrink-0 rounded-xl overflow-hidden cursor-not-allowed"
-                  style={{ width: "calc((100% - 60px) / 5.2)" }}
-                >
-                  <div className="relative aspect-video w-full overflow-hidden">
-                    <img
-                      src={award.thumbnail}
-                      alt=""
-                      className="h-full w-full object-cover"
-                      style={{ filter: "blur(2px) brightness(0.4)" }}
-                    />
-                    <div className="absolute inset-0 flex items-center justify-center">
-                      <div
-                        className="flex h-9 w-9 items-center justify-center rounded-full border bg-[#0f0d24]/80"
-                        style={{ borderColor: award.color + "60" }}
-                      >
-                        <svg viewBox="0 0 24 24" className="h-4 w-4" fill={award.color}>
-                          <path d="M19 5h-2V3H7v2H5C3.9 5 3 5.9 3 7v1c0 2.55 1.92 4.63 4.39 4.94.63 1.5 1.98 2.63 3.61 2.96V18H8v2h8v-2h-3v-2.1c1.63-.33 2.98-1.46 3.61-2.96C19.08 12.63 21 10.55 21 8V7c0-1.1-.9-2-2-2zM5 8V7h2v3.82C5.84 10.4 5 9.3 5 8zm14 0c0 1.3-.84 2.4-2 2.82V7h2v1z"/>
-                        </svg>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="p-2 bg-[#0f0d24]" style={{ opacity: 0.4 }}>
-                    <h3 className="line-clamp-1 text-[12px] font-medium text-white">{award.title}</h3>
-                    <p className="mt-0.5 text-[11px]" style={{ color: award.color + "99" }}>
-                      {t(award.labelKey)}
-                    </p>
-                  </div>
-                </div>
-              ))}
-            </div>
+            <p className="py-6 text-sm text-white/45">아직 영상이 없습니다</p>
           </div>
         </div>
       </div>

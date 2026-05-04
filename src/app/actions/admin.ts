@@ -58,6 +58,19 @@ export async function updateCompetitionStatusAction(id: string, status: string):
   return { ok: true };
 }
 
+export async function deleteCompetitionAction(id: string): Promise<{ ok: boolean; message?: string }> {
+  const supabase = await createServerSupabaseClient();
+  if (!supabase) return { ok: false, message: "Configuration error." };
+  const auth = await requireAdmin();
+  if ("error" in auth) return { ok: false, message: auth.error ?? "Unauthorized" };
+
+  const { error } = await supabase.from("competitions").delete().eq("id", id);
+  if (error) return { ok: false, message: error.message };
+  revalidatePath("/admin");
+  revalidatePath("/competition");
+  return { ok: true };
+}
+
 export async function setVideoFinalistAction(videoId: string, finalist: boolean): Promise<AdminResult> {
   const auth = await requireAdmin();
   if ("error" in auth) return { ok: false, message: auth.error ?? "Unauthorized" };
@@ -83,6 +96,19 @@ export async function setVideoFinalistAction(videoId: string, finalist: boolean)
   }
   revalidatePath("/admin");
   revalidatePath("/competition");
+  return { ok: true };
+}
+
+export async function setVideoOriginalAction(videoId: string, isOriginal: boolean): Promise<{ ok: boolean; message?: string }> {
+  const supabase = await createServerSupabaseClient();
+  if (!supabase) return { ok: false, message: "Configuration error." };
+  const auth = await requireAdmin();
+  if ("error" in auth) return { ok: false, message: auth.error ?? "Unauthorized" };
+
+  const { error } = await supabase.from("videos").update({ is_original: isOriginal }).eq("id", videoId);
+  if (error) return { ok: false, message: error.message };
+  revalidatePath("/");
+  revalidatePath("/films");
   return { ok: true };
 }
 
