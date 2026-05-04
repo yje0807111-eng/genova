@@ -29,9 +29,8 @@ export default async function AdminPage() {
   }));
 
   return (
-    <div className="mx-auto max-w-6xl px-4 py-6 text-[#EEEDFE] sm:px-6">
-        <h1 className="mb-4 text-xl font-bold">Admin</h1>
-        <AdminDashboard competitions={competitions} videos={videos} />
+    <div className="px-4 py-6 text-[#EEEDFE] sm:px-6">
+      <AdminDashboard competitions={competitions} videos={videos} />
     </div>
   );
 }

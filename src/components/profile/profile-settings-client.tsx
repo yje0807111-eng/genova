@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { Globe, Instagram, X as XIcon, Youtube } from "lucide-react";
+import { Globe, Instagram, LogOut, X as XIcon, Youtube } from "lucide-react";
 import { updateProfileAction } from "@/app/actions/profile";
 import { useI18n } from "@/components/genova/language-provider";
 import type { Profile } from "@/lib/queries/profile-queries";
@@ -156,6 +156,13 @@ export function ProfileSettingsClient({ profile }: { profile: Profile }) {
     if (res.ok) {
       router.push(`/profile/${profile.id}`);
     }
+  };
+
+  const handleLogout = async () => {
+    const supabase = createBrowserSupabaseClient();
+    await supabase.auth.signOut();
+    router.push("/auth");
+    router.refresh();
   };
 
   return (
@@ -561,6 +568,15 @@ export function ProfileSettingsClient({ profile }: { profile: Profile }) {
                 }}
               >
                 {saving ? t("settings.saving", "Saving…") : t("settings.saveChanges", "Save changes")}
+              </button>
+
+              <button
+                type="button"
+                onClick={() => void handleLogout()}
+                className="flex w-full items-center justify-center gap-2 rounded-xl border border-white/[0.08] py-3 text-sm font-medium text-white/40 transition hover:border-red-500/30 hover:text-red-400"
+              >
+                <LogOut className="h-4 w-4" />
+                Log out
               </button>
             </div>
           </div>

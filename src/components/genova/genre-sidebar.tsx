@@ -9,6 +9,7 @@ import {
   Film,
   Home,
   LayoutGrid,
+  LogOut,
   Music,
   Sparkles,
   Sun,
@@ -21,6 +22,7 @@ import { addWindowCustomListener } from "@/lib/dom/window-custom-events";
 import { useI18n } from "@/components/genova/language-provider";
 import type { GenreFilter } from "@/lib/genova-genre";
 import { cn } from "@/lib/utils/cn";
+import { createBrowserSupabaseClient } from "@/lib/supabase/browser";
 
 export { genreFilterLabel, type GenreFilter } from "@/lib/genova-genre";
 
@@ -121,6 +123,12 @@ export function GenreSidebar({
 }) {
   const { t } = useI18n();
   const router = useRouter();
+  const handleLogout = async () => {
+    const supabase = createBrowserSupabaseClient();
+    await supabase.auth.signOut();
+    router.push("/auth");
+    router.refresh();
+  };
   const pathname = usePathname();
   const isFilmsPage = pathname === "/films" || pathname.startsWith("/films/");
   const isCompetitionPage = pathname === "/competition" || pathname.startsWith("/competition/");
@@ -130,6 +138,7 @@ export function GenreSidebar({
   const [activeSection, setActiveSection] = useState<string | null>(null);
   const [watchFrom, setWatchFrom] = useState<string>("home");
   const [lastUpdated, setLastUpdated] = useState(() => t("genreSidebar.justNow", "just now"));
+  const [userId, setUserId] = useState<string | null>(null);
   const currentGenre = selectedGenre ?? "All";
   const handleGenreChange = onGenreChange ?? (() => {});
   const showFilmsSidebar = isFilmsPage || (isWatchPage && watchFrom === "films");
@@ -153,6 +162,23 @@ export function GenreSidebar({
   useEffect(() => {
     setActiveSection(null);
   }, [pathname]);
+
+  useEffect(() => {
+    const supabase = createBrowserSupabaseClient();
+    const syncUser = async () => {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      setUserId(user?.id ?? null);
+    };
+    void syncUser();
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUserId(session?.user?.id ?? null);
+    });
+    return () => subscription.unsubscribe();
+  }, []);
 
   useEffect(() => {
     return addWindowCustomListener<boolean>("profile-owner-status", (detail) => {
@@ -225,7 +251,7 @@ export function GenreSidebar({
       onWheel={(e) => e.stopPropagation()}
       style={{ overscrollBehavior: "contain" }}
       className={cn(
-        "sidebar-scroll fixed left-0 top-16 z-40 hidden h-[calc(100dvh-4rem)] overflow-y-auto overflow-x-hidden border-r border-border bg-sidebar p-4 transition-all duration-300 md:block",
+        "sidebar-scroll fixed left-0 top-16 z-40 hidden h-[calc(100dvh-4rem)] flex flex-col overflow-y-auto overflow-x-hidden border-r border-border bg-sidebar p-4 transition-all duration-300 md:flex",
         sidebarOpen ? "w-60" : "w-16",
         "[scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden",
       )}
@@ -498,25 +524,13 @@ export function GenreSidebar({
           {trendingTagsSection}
         </>
       ) : null}
-      <div
-        className="fixed bottom-6 flex items-center justify-center"
-        style={{
-          left: sidebarOpen ? "calc(240px - 28px - 8px)" : "calc(64px / 2 - 14px)",
-          transition: "left 0.3s",
-          zIndex: 50,
-        }}
-      >
+
+      <div className="mt-auto border-t border-white/[0.06] pt-4">
         <button
           type="button"
           onClick={onToggle}
           className={cn(
-            "flex items-center justify-center rounded-md",
-            "transition-all duration-200",
-            "text-white/70 hover:text-white",
-            "border border-white/20 hover:border-white/40",
-            "bg-[#0f0d24]/80 hover:bg-white/10",
-            "backdrop-blur-sm",
-            "h-7 w-7"
+            "flex w-full items-center justify-center rounded-md border border-white/20 bg-[#0f0d24]/80 py-1.5 text-white/70 backdrop-blur-sm transition hover:border-white/40 hover:bg-white/10 hover:text-white",
           )}
           aria-label="Toggle sidebar"
         >
@@ -524,10 +538,30 @@ export function GenreSidebar({
             size={16}
             className={cn(
               "transition-transform duration-300",
-              sidebarOpen ? "" : "rotate-180"
+              sidebarOpen ? "" : "rotate-180",
             )}
           />
         </button>
+
+        {sidebarOpen &&
+          (userId ? (
+            <button
+              type="button"
+              onClick={() => void handleLogout()}
+              className="mt-1 flex w-full items-center gap-2 rounded-lg px-3 py-2 text-xs text-white/25 transition hover:bg-white/5 hover:text-white/60"
+            >
+              <LogOut className="h-3.5 w-3.5 shrink-0" />
+              <span>Log out</span>
+            </button>
+          ) : (
+            <Link
+              href="/auth"
+              className="mt-1 flex w-full items-center gap-2 rounded-lg px-3 py-2 text-xs text-white/25 transition hover:bg-white/5 hover:text-white/60"
+            >
+              <LogOut className="h-3.5 w-3.5 shrink-0 rotate-180" />
+              <span>Log in</span>
+            </Link>
+          ))}
       </div>
     </aside>
     </>

@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { createNotification } from "@/lib/notifications";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 
 export type ToggleEngagementResult =
@@ -29,6 +30,25 @@ export async function toggleLikeAction(videoId: string): Promise<ToggleEngagemen
   } else {
     const { error } = await supabase.from("likes").insert({ user_id: user.id, video_id: videoId });
     if (error) return { ok: false, message: error.message };
+
+    const { data: video } = await supabase
+      .from("videos")
+      .select("uploaded_by, title")
+      .eq("id", videoId)
+      .maybeSingle();
+
+    if (video?.uploaded_by && video.uploaded_by !== user.id) {
+      await createNotification(supabase, {
+        userId: video.uploaded_by,
+        actorId: user.id,
+        type: "comment",
+        title: "Someone liked your film",
+        body: `"${video.title}" received a new like.`,
+        href: `/watch/${videoId}`,
+        entityType: "video",
+        entityId: videoId,
+      });
+    }
   }
 
   const liked = !existing;

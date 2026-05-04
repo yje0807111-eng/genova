@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
+import { useI18n } from "@/components/genova/language-provider";
 import { getBrowserSupabaseClient } from "@/lib/supabase/browser";
 
 type Mode = "login" | "signup";
@@ -14,6 +15,7 @@ const emptyDigits = () => ["", "", "", "", "", ""];
  */
 export function AuthForm() {
   const router = useRouter();
+  const { t } = useI18n();
   const [mode, setMode] = useState<Mode>("login");
   const [signupStep, setSignupStep] = useState<SignupStep>("credentials");
 
@@ -110,10 +112,6 @@ export function AuthForm() {
       setError("Please enter the 6-digit verification code.");
       return;
     }
-    if (signupPassword.length < 6) {
-      setError("Please check your password and try again.");
-      return;
-    }
 
     const supabase = getBrowserSupabaseClient();
     if (!supabase) {
@@ -123,6 +121,7 @@ export function AuthForm() {
 
     setLoading(true);
     try {
+      // OTP 확인 후 유저 생성
       const { error: verifyError } = await supabase.auth.verifyOtp({
         email: email.trim(),
         token: code,
@@ -132,15 +131,14 @@ export function AuthForm() {
         setError(verifyError.message);
         return;
       }
-
+      // OTP 확인 후 비밀번호 설정
       const { error: passwordError } = await supabase.auth.updateUser({
         password: signupPassword,
       });
-      if (passwordError) {
+      if (passwordError && !passwordError.message.includes("different from the old password")) {
         setError(passwordError.message);
         return;
       }
-
       router.refresh();
       router.push("/");
     } finally {
@@ -214,7 +212,7 @@ export function AuthForm() {
             mode === "login" ? "bg-[#534AB7] text-[#EEEDFE]" : "text-[#AFA9EC] hover:text-[#EEEDFE]"
           }`}
         >
-          Sign In
+          {t("auth.signIn", "Sign In")}
         </button>
         <button
           type="button"
@@ -223,7 +221,7 @@ export function AuthForm() {
             mode === "signup" ? "bg-[#534AB7] text-[#EEEDFE]" : "text-[#AFA9EC] hover:text-[#EEEDFE]"
           }`}
         >
-          Sign Up
+          {t("auth.signUp", "Sign Up")}
         </button>
       </div>
 
@@ -231,7 +229,7 @@ export function AuthForm() {
         <form onSubmit={(e) => void handleLogin(e)} className="space-y-3">
           <div>
             <label htmlFor="auth-email" className="mb-1 block text-xs text-[#AFA9EC]">
-              Email
+              {t("auth.email", "Email")}
             </label>
             <input
               id="auth-email"
@@ -246,7 +244,7 @@ export function AuthForm() {
           </div>
           <div>
             <label htmlFor="auth-password" className="mb-1 block text-xs text-[#AFA9EC]">
-              Password
+              {t("auth.password", "Password")}
             </label>
             <input
               id="auth-password"
@@ -257,7 +255,7 @@ export function AuthForm() {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               className="w-full rounded-lg bg-[#26215C] p-3 text-[#EEEDFE] outline-none ring-1 ring-white/10 focus:ring-[#7F77DD]"
-              placeholder="6+ characters"
+              placeholder={t("auth.passwordPlaceholder", "6+ characters")}
             />
           </div>
           {error && <p className="text-sm text-red-300">{error}</p>}
@@ -267,7 +265,7 @@ export function AuthForm() {
             disabled={loading}
             className="w-full rounded-lg bg-[#534AB7] p-3 font-semibold text-[#EEEDFE] transition hover:bg-[#7F77DD] disabled:opacity-60"
           >
-            {loading ? "Processing..." : "Sign In"}
+            {loading ? t("auth.processing", "Processing...") : t("auth.signIn", "Sign In")}
           </button>
         </form>
       )}
@@ -276,7 +274,7 @@ export function AuthForm() {
         <div className="space-y-3">
           <div>
             <label htmlFor="signup-email" className="mb-1 block text-xs text-[#AFA9EC]">
-              Email
+              {t("auth.email", "Email")}
             </label>
             <input
               id="signup-email"
@@ -291,7 +289,7 @@ export function AuthForm() {
           </div>
           <div>
             <label htmlFor="signup-password" className="mb-1 block text-xs text-[#AFA9EC]">
-              Password (used for sign in)
+              {t("auth.passwordForSignIn", "Password (used for sign in)")}
             </label>
             <input
               id="signup-password"
@@ -302,11 +300,11 @@ export function AuthForm() {
               value={signupPassword}
               onChange={(e) => setSignupPassword(e.target.value)}
               className="w-full rounded-lg bg-[#26215C] p-3 text-[#EEEDFE] outline-none ring-1 ring-white/10 focus:ring-[#7F77DD]"
-              placeholder="6+ characters"
+              placeholder={t("auth.passwordPlaceholder", "6+ characters")}
             />
           </div>
           <p className="text-xs text-[#AFA9EC]">
-            A 6-digit code will be sent to your email.
+            {t("auth.otpHint", "A 6-digit code will be sent to your email.")}
           </p>
           {error && <p className="text-sm text-red-300">{error}</p>}
           {message && <p className="text-sm text-emerald-300">{message}</p>}
@@ -316,7 +314,7 @@ export function AuthForm() {
             onClick={() => void sendOtp()}
             className="w-full rounded-lg bg-[#534AB7] p-3 font-semibold text-[#EEEDFE] transition hover:bg-[#7F77DD] disabled:opacity-60"
           >
-            {loading ? "Sending..." : "Send Verification Code"}
+            {loading ? t("auth.sending", "Sending...") : t("auth.sendCode", "Send Verification Code")}
           </button>
         </div>
       )}
@@ -324,10 +322,13 @@ export function AuthForm() {
       {mode === "signup" && signupStep === "otp" && (
         <form onSubmit={(e) => void verifyOtpAndCompleteSignup(e)} className="space-y-4">
           <p className="text-sm text-[#AFA9EC]">
-            Verification code sent to <span className="font-medium text-[#EEEDFE]">{email}</span>.
+            {t("auth.codeSentTo", "Verification code sent to")}{" "}
+            <span className="font-medium text-[#EEEDFE]">{email}</span>.
           </p>
           <div>
-            <label className="mb-2 block text-xs text-[#AFA9EC]">6-digit verification code</label>
+            <label className="mb-2 block text-xs text-[#AFA9EC]">
+              {t("auth.sixDigitCode", "6-digit verification code")}
+            </label>
             <div className="flex justify-center gap-2" onPaste={handleOtpPaste}>
               {digits.map((ch, i) => (
                 <input
@@ -354,7 +355,7 @@ export function AuthForm() {
             disabled={loading || otpCode.length !== 6}
             className="w-full rounded-lg bg-[#534AB7] p-3 font-semibold text-[#EEEDFE] transition hover:bg-[#7F77DD] disabled:opacity-60"
           >
-            {loading ? "Verifying..." : "Verify & Complete"}
+            {loading ? t("auth.verifying", "Verifying...") : t("auth.verifyComplete", "Verify & Complete")}
           </button>
           <div className="flex flex-wrap items-center justify-between gap-2">
             <button
@@ -364,7 +365,7 @@ export function AuthForm() {
               }}
               className="text-sm text-[#AFA9EC] underline hover:text-[#EEEDFE]"
             >
-              Edit email/password
+              {t("auth.editEmailPassword", "Edit email/password")}
             </button>
             <button
               type="button"
@@ -372,7 +373,7 @@ export function AuthForm() {
               onClick={() => void sendOtp()}
               className="text-sm font-medium text-[#7F77DD] underline decoration-[#7F77DD]/50 hover:decoration-[#7F77DD] disabled:cursor-not-allowed disabled:opacity-50"
             >
-              {resendCooldown > 0 ? `Resend (${resendCooldown}s)` : "Resend Code"}
+              {resendCooldown > 0 ? `Resend (${resendCooldown}s)` : t("auth.resendCode", "Resend Code")}
             </button>
           </div>
         </form>

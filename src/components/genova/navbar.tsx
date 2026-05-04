@@ -4,7 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
-import { Search, Upload, User } from "lucide-react";
+import { Bell, Search, Upload, User } from "lucide-react";
 import { useI18n } from "@/components/genova/language-provider";
 import { getBrowserSupabaseClient } from "@/lib/supabase/browser";
 
@@ -197,11 +197,14 @@ function SearchBar() {
 export function Navbar() {
   const { t } = useI18n();
   const [userId, setUserId] = useState<string | null | undefined>(undefined);
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [unreadCount, setUnreadCount] = useState(0);
 
   useEffect(() => {
     const supabase = getBrowserSupabaseClient();
     if (!supabase) {
       setUserId(null);
+      setIsAdmin(false);
       return;
     }
 
@@ -210,13 +213,38 @@ export function Navbar() {
         data: { user },
       } = await supabase.auth.getUser();
       setUserId(user?.id ?? null);
+
+      const adminEmails = process.env.NEXT_PUBLIC_ADMIN_EMAILS?.split(",").map((e) => e.trim()) ?? [];
+      if (user?.email && adminEmails.includes(user.email)) {
+        setIsAdmin(true);
+      } else {
+        setIsAdmin(false);
+      }
+
+      if (user) {
+        try {
+          const { count } = await supabase
+            .from("notifications")
+            .select("*", { count: "exact", head: true })
+            .eq("user_id", user.id)
+            .eq("is_read", false);
+          setUnreadCount(count ?? 0);
+        } catch {}
+      }
     };
     void syncUser();
 
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((_event, session) => {
-      setUserId(session?.user?.id ?? null);
+      const u = session?.user ?? null;
+      setUserId(u?.id ?? null);
+      const adminEmails = process.env.NEXT_PUBLIC_ADMIN_EMAILS?.split(",").map((e) => e.trim()) ?? [];
+      if (u?.email && adminEmails.includes(u.email)) {
+        setIsAdmin(true);
+      } else {
+        setIsAdmin(false);
+      }
     });
 
     return () => subscription.unsubscribe();
@@ -249,6 +277,23 @@ export function Navbar() {
               <Upload className="h-3.5 w-3.5" />
               <span className="hidden sm:inline">{t("nav.upload", "Upload")}</span>
             </Link>
+            {userId && (
+              <Link
+                href="/notifications"
+                className="relative flex h-9 w-9 items-center justify-center rounded-full border border-white/10 bg-white/[0.06] transition-all duration-200 hover:border-[#7F77DD]/40 hover:bg-white/[0.1]"
+                aria-label="Notifications"
+              >
+                <Bell className="h-4 w-4 text-white/60" />
+                {unreadCount > 0 && (
+                  <span
+                    className="absolute -right-0.5 -top-0.5 flex h-4 w-4 items-center justify-center rounded-full text-[9px] font-bold text-white"
+                    style={{ background: "#534AB7" }}
+                  >
+                    {unreadCount > 9 ? "9+" : unreadCount}
+                  </span>
+                )}
+              </Link>
+            )}
             {userId === undefined ? (
               <span
                 className="flex h-9 w-9 items-center justify-center rounded-full bg-secondary"
@@ -256,13 +301,26 @@ export function Navbar() {
                 aria-label={t("common.loadingAccount", "Loading account")}
               />
             ) : (
-              <Link
-                href={profileHref}
-                className="flex h-9 w-9 items-center justify-center rounded-full border border-white/10 bg-white/[0.06] transition-all duration-200 hover:border-[#7F77DD]/40 hover:bg-white/[0.1]"
-                aria-label={userId ? t("common.myProfile", "My profile") : t("common.signIn", "Sign in")}
-              >
-                <User className="h-4 w-4 text-white/60" />
-              </Link>
+              <>
+                <Link
+                  href={profileHref}
+                  className="flex h-9 w-9 items-center justify-center rounded-full border border-white/10 bg-white/[0.06] transition-all duration-200 hover:border-[#7F77DD]/40 hover:bg-white/[0.1]"
+                  aria-label={userId ? t("common.myProfile", "My profile") : t("common.signIn", "Sign in")}
+                >
+                  <User className="h-4 w-4 text-white/60" />
+                </Link>
+                {isAdmin && (
+                  <Link
+                    href="/admin"
+                    className="flex h-9 w-9 items-center justify-center rounded-full border border-white/10 bg-white/[0.06] transition-all duration-200 hover:border-[#7F77DD]/40 hover:bg-white/[0.1]"
+                    aria-label="Admin"
+                  >
+                    <svg viewBox="0 0 24 24" className="h-4 w-4 text-white/60" fill="none" stroke="currentColor" strokeWidth={2}>
+                      <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" strokeLinecap="round" strokeLinejoin="round" />
+                    </svg>
+                  </Link>
+                )}
+              </>
             )}
           </div>
       </div>

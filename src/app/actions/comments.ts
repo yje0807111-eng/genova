@@ -32,30 +32,24 @@ export async function createCommentAction(videoId: string, content: string, pare
   });
   if (error) return { ok: false, message: error.message };
 
-  const recipients = new Set<string>();
-  const { data: videoRow } = await supabase.from("videos").select("id, title, uploaded_by").eq("id", videoId).maybeSingle();
-  const videoOwner = (videoRow?.uploaded_by as string | null) ?? null;
-  if (videoOwner && videoOwner !== user.id) recipients.add(videoOwner);
-  if (parentId) {
-    const { data: parent } = await supabase.from("comments").select("user_id").eq("id", parentId).maybeSingle();
-    const parentOwner = (parent?.user_id as string | null) ?? null;
-    if (parentOwner && parentOwner !== user.id) recipients.add(parentOwner);
+  const { data: video } = await supabase
+    .from("videos")
+    .select("uploaded_by, title")
+    .eq("id", videoId)
+    .maybeSingle();
+
+  if (video?.uploaded_by && video.uploaded_by !== user.id) {
+    await createNotification(supabase, {
+      userId: video.uploaded_by,
+      actorId: user.id,
+      type: "comment",
+      title: "New comment on your film",
+      body: `Someone commented on "${video.title}".`,
+      href: `/watch/${videoId}`,
+      entityType: "video",
+      entityId: videoId,
+    });
   }
-  const videoTitle = (videoRow?.title as string | null) ?? "Film";
-  await Promise.all(
-    [...recipients].map((rid) =>
-      createNotification(supabase, {
-        userId: rid,
-        actorId: user.id,
-        type: "comment",
-        title: parentId ? "New reply to your comment" : "New comment on your film",
-        body: `${videoTitle} · ${trimmed.slice(0, 80)}`,
-        href: `/watch/${videoId}`,
-        entityType: "video",
-        entityId: videoId,
-      }),
-    ),
-  );
 
   revalidatePath(`/watch/${videoId}`);
   return { ok: true };

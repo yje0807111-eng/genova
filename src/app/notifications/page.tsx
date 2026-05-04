@@ -15,13 +15,12 @@ export default async function NotificationsPage() {
   const items = await fetchMyNotifications();
 
   return (
-    <div className="page-cinematic mx-auto max-w-4xl space-y-4 px-4 py-7 text-[#F8F7FF] sm:px-6">
-        <AnimateIn delay={0} className="space-y-2">
-          <p className="eyebrow">Notifications</p>
-          <h1 className="page-title text-3xl sm:text-4xl">Activity Inbox</h1>
-          <p className="page-subtitle">Track likes, comments, follows, and platform updates in one feed.</p>
+    <div className="min-h-screen px-4 py-6 text-white sm:px-6">
+      <div className="mx-auto max-w-2xl">
+        <AnimateIn delay={0}>
+          <NotificationsList items={items} />
         </AnimateIn>
-        <NotificationsList items={items} />
+      </div>
     </div>
   );
 }
