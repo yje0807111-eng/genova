@@ -376,13 +376,15 @@ export async function fetchCurrentUserVoteVideoIds(competitionId: string): Promi
 }
 
 /** 같은 업로더·같은 시리즈명·`genre=series`인 에피소드 목록 및 이전/다음 ID */
-export async function fetchSeriesEpisodesForVideo(video: Video): Promise<{
+export type SeriesEpisodesNav = {
   seriesTitle: string;
   episodes: Video[];
   prevId: string | null;
   nextId: string | null;
   seasons: { season: number; episodes: Video[] }[];
-}> {
+};
+
+export async function fetchSeriesEpisodesForVideo(video: Video): Promise<SeriesEpisodesNav> {
   const name = video.seriesName?.trim();
   if (video.genre !== "series" || !name || !video.uploadedBy) {
     return { seriesTitle: "", episodes: [], prevId: null, nextId: null, seasons: [] };

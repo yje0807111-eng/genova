@@ -7,7 +7,7 @@ import { WatchMoreMenu } from "@/components/video/watch-more-menu";
 import { ShareButton } from "@/components/video/share-modal";
 import { VideoEngagementBar } from "@/components/video/video-engagement-bar";
 import { CreatorFollowButton } from "@/components/video/creator-follow-button";
-import { SeriesEpisodesSlider, type Season } from "@/components/video/series-episodes-slider";
+import { SeriesEpisodesSlider } from "@/components/video/series-episodes-slider";
 import {
   WatchDescriptionInner,
   WatchRecommendationsSections,
@@ -24,6 +24,7 @@ import {
   fetchRelatedVideos,
   fetchSeriesEpisodesForVideo,
   fetchVideoById,
+  type SeriesEpisodesNav,
 } from "@/lib/queries";
 import { fetchIsFollowing, fetchProfileById } from "@/lib/queries/profile-queries";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
@@ -49,7 +50,7 @@ export default async function WatchDetailPage({
   const [vWithE] = await attachEngagementToVideos([video]);
   video = vWithE;
 
-  const [creator, related, forYouVideos, seriesNav, comments, uploaderProfile, isFollowing] = await Promise.all([
+  const [creator, related, forYouVideos, seriesNavRaw, comments, uploaderProfile, isFollowing] = await Promise.all([
     video.creatorId ? fetchCreatorById(video.creatorId) : Promise.resolve(null),
     fetchRelatedVideos(video.id, 8),
     fetchForYouSameGenreVideos(video.id, video.genre, 8),
@@ -58,6 +59,7 @@ export default async function WatchDetailPage({
     video.uploadedBy ? fetchProfileById(video.uploadedBy) : Promise.resolve(null),
     video.uploadedBy ? fetchIsFollowing(user?.id, video.uploadedBy) : Promise.resolve(false),
   ]);
+  const seriesNav: SeriesEpisodesNav = seriesNavRaw;
 
   const { data: sameGenreRaw } = supabase
     ? await supabase
@@ -82,7 +84,6 @@ export default async function WatchDetailPage({
   const trendingVideos = (trendingRaw ?? []).map((v) => mapVideo(v));
 
   const displaySeriesNav = seriesNav;
-  const seriesSeasons: Season[] = (displaySeriesNav as { seasons?: Season[] }).seasons ?? [];
 
   const showSeries = seriesNav.episodes.length > 0;
   const creatorHref = hrefForVideoCreator(video);
@@ -207,7 +208,7 @@ export default async function WatchDetailPage({
               episodes={displaySeriesNav.episodes}
               currentVideoId={video.id}
               seriesTitle={displaySeriesNav.seriesTitle}
-              seasons={seriesSeasons}
+              seasons={displaySeriesNav.seasons}
             />
           ) : null
         }
