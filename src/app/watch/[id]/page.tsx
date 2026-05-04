@@ -7,7 +7,7 @@ import { WatchMoreMenu } from "@/components/video/watch-more-menu";
 import { ShareButton } from "@/components/video/share-modal";
 import { VideoEngagementBar } from "@/components/video/video-engagement-bar";
 import { CreatorFollowButton } from "@/components/video/creator-follow-button";
-import { SeriesEpisodesSlider } from "@/components/video/series-episodes-slider";
+import { SeriesEpisodesSlider, type Season } from "@/components/video/series-episodes-slider";
 import {
   WatchDescriptionInner,
   WatchRecommendationsSections,
@@ -82,6 +82,7 @@ export default async function WatchDetailPage({
   const trendingVideos = (trendingRaw ?? []).map((v) => mapVideo(v));
 
   const displaySeriesNav = seriesNav;
+  const seriesSeasons: Season[] = (displaySeriesNav as { seasons?: Season[] }).seasons ?? [];
 
   const showSeries = seriesNav.episodes.length > 0;
   const creatorHref = hrefForVideoCreator(video);
@@ -206,7 +207,7 @@ export default async function WatchDetailPage({
               episodes={displaySeriesNav.episodes}
               currentVideoId={video.id}
               seriesTitle={displaySeriesNav.seriesTitle}
-              seasons={displaySeriesNav.seasons}
+              seasons={seriesSeasons}
             />
           ) : null
         }

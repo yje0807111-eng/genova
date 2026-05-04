@@ -381,14 +381,15 @@ export async function fetchSeriesEpisodesForVideo(video: Video): Promise<{
   episodes: Video[];
   prevId: string | null;
   nextId: string | null;
+  seasons: { season: number; episodes: Video[] }[];
 }> {
   const name = video.seriesName?.trim();
   if (video.genre !== "series" || !name || !video.uploadedBy) {
-    return { seriesTitle: "", episodes: [], prevId: null, nextId: null };
+    return { seriesTitle: "", episodes: [], prevId: null, nextId: null, seasons: [] };
   }
 
   const supabase = await createServerSupabaseClient();
-  if (!supabase) return { seriesTitle: name, episodes: [], prevId: null, nextId: null };
+  if (!supabase) return { seriesTitle: name, episodes: [], prevId: null, nextId: null, seasons: [] };
 
   const { data, error } = await supabase
     .from("videos")
@@ -401,7 +402,7 @@ export async function fetchSeriesEpisodesForVideo(video: Video): Promise<{
     .order("episode_number", { ascending: true });
 
   if (error || !data?.length) {
-    return { seriesTitle: name, episodes: [], prevId: null, nextId: null };
+    return { seriesTitle: name, episodes: [], prevId: null, nextId: null, seasons: [] };
   }
 
   const episodes = data.map((row) => mapVideo(row));
@@ -409,7 +410,7 @@ export async function fetchSeriesEpisodesForVideo(video: Video): Promise<{
   const prevId = idx > 0 ? episodes[idx - 1].id : null;
   const nextId = idx >= 0 && idx < episodes.length - 1 ? episodes[idx + 1].id : null;
 
-  return { seriesTitle: name, episodes, prevId, nextId };
+  return { seriesTitle: name, episodes, prevId, nextId, seasons: [] };
 }
 
 type VideoRow = Parameters<typeof mapVideo>[0];
