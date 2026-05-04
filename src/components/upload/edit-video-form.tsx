@@ -345,7 +345,7 @@ export function EditVideoForm({ userId, video, competitions }: Props) {
   };
 
   return (
-    <div className="w-full">
+    <div className="min-h-screen px-2 py-6">
       <input
         ref={thumbInputRef}
         id="uv-thumb-input"
@@ -357,59 +357,79 @@ export function EditVideoForm({ userId, video, competitions }: Props) {
 
       <form onSubmit={(e) => void submit(e)}>
         <div
-          className="rounded-2xl border border-white/[0.08] p-3"
+          className="rounded-2xl border border-white/[0.08] p-4"
           style={{
             background: "linear-gradient(135deg, rgba(20,17,50,0.98) 0%, rgba(10,8,28,0.99) 100%)",
             boxShadow: "0 0 0 1px rgba(127,119,221,0.08), inset 0 1px 0 rgba(127,119,221,0.05)",
           }}
         >
           {/* 헤더 */}
-          <div className="mb-3 flex items-end justify-between border-b border-white/[0.06] pb-2">
+          <div className="mb-4 flex items-end justify-between border-b border-white/[0.06] pb-3">
             <div>
               <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-[#7F77DD]/60">{t("upload.editEyebrow")}</p>
-              <h1 className="mt-0.5 text-xl font-black tracking-tight text-white">{t("upload.editTitle")}</h1>
+              <h1 className="mt-1 text-3xl font-black tracking-tight text-white">{t("upload.editTitle")}</h1>
             </div>
             <p className="text-sm text-white/25">{t("upload.editSubtitle")}</p>
           </div>
 
-          <div className="space-y-3">
-            {/* 상단 — 썸네일 + Film Details */}
-            <div className="grid grid-cols-1 gap-3 lg:grid-cols-[1fr_2fr]">
-              {/* 썸네일 */}
+          <div className="grid grid-cols-1 gap-3 lg:grid-cols-[1.1fr_1.8fr_1.3fr]">
+            {/* 왼쪽: 영상 소스 */}
+            <div className="space-y-3">
               <div
-                className="rounded-xl border border-white/[0.08] p-2.5"
-                style={{ background: "rgba(255,255,255,0.025)" }}
+                className="rounded-2xl border border-white/[0.08] p-3"
+                style={{ background: "rgba(83,74,183,0.08)", borderColor: "rgba(127,119,221,0.12)" }}
               >
-                <h2 className="mb-2 border-b border-[#7F77DD]/20 pb-1.5 text-[11px] font-bold uppercase tracking-[0.2em] text-[#AFA9EC]">
-                  {t("upload.sectionPosterThumb")}
+                <h2 className="mb-3 border-b border-[#7F77DD]/20 pb-2 text-[11px] font-bold uppercase tracking-[0.2em] text-[#AFA9EC]">
+                  {t("upload.sectionVideoSource")}
                 </h2>
-                <div className="relative overflow-hidden rounded-xl border border-white/[0.08]">
-                  <div className="aspect-video w-full bg-black">
-                    <img
-                      src={thumbnailPreview ?? "/placeholder-user.jpg"}
-                      alt=""
-                      className="h-full w-full object-cover"
+                <div className="space-y-3">
+                  <div>
+                    <label className={lbl}>{t("upload.vimeoUrlOptional")}</label>
+                    <input
+                      value={vimeoUrl}
+                      onChange={(e) => setVimeoUrl(e.target.value)}
+                      className={inp}
+                      placeholder="https://vimeo.com/..."
                     />
                   </div>
-                  <button
-                    type="button"
-                    onClick={openThumbPicker}
-                    className="absolute right-2 top-2 rounded-lg bg-black/70 px-3 py-1.5 text-xs font-semibold text-white backdrop-blur-sm transition hover:bg-black/90"
+                  <div
+                    className="rounded-2xl border border-white/[0.08] p-3"
+                    style={{ background: "rgba(255,255,255,0.025)" }}
                   >
-                    {t("upload.change")}
-                  </button>
+                    <h2 className="mb-3 border-b border-[#7F77DD]/15 pb-2 text-[11px] font-bold uppercase tracking-[0.2em] text-[#7F77DD]">
+                      {t("upload.sectionPosterThumb")}
+                    </h2>
+                    <div className="relative overflow-hidden rounded-xl border border-white/[0.08]">
+                      <div className="aspect-video w-full bg-black">
+                        <img
+                          src={thumbnailPreview ?? "/placeholder-user.jpg"}
+                          alt=""
+                          className="h-full w-full object-cover"
+                        />
+                      </div>
+                      <button
+                        type="button"
+                        onClick={openThumbPicker}
+                        className="absolute right-2 top-2 rounded-lg bg-black/70 px-3 py-1.5 text-xs font-semibold text-white backdrop-blur-sm transition hover:bg-black/90"
+                      >
+                        {t("upload.change")}
+                      </button>
+                    </div>
+                  </div>
                 </div>
               </div>
+            </div>
 
-              {/* Film Details */}
+            {/* 가운데: Film Details + AI Tools */}
+            <div className="space-y-4">
               <div
-                className="rounded-xl border border-white/[0.08] p-2.5"
-                style={{ background: "rgba(255,255,255,0.025)" }}
+                className="rounded-2xl border border-white/[0.08] p-3"
+                style={{ background: "rgba(255,255,255,0.025)", borderColor: "rgba(255,255,255,0.07)" }}
               >
-                <h2 className="mb-2 border-b border-[#7F77DD]/20 pb-1.5 text-[11px] font-bold uppercase tracking-[0.2em] text-[#AFA9EC]">
+                <h2 className="mb-3 border-b border-[#7F77DD]/20 pb-2 text-[11px] font-bold uppercase tracking-[0.2em] text-[#AFA9EC]">
                   {t("upload.sectionFilmDetails")}
                 </h2>
-                <div className="space-y-2">
+                <div className="space-y-3">
                   <div>
                     <label className={lbl}>{t("upload.labelTitle")}</label>
                     <input
@@ -421,22 +441,13 @@ export function EditVideoForm({ userId, video, competitions }: Props) {
                     />
                   </div>
                   <div>
-                    <label className={lbl}>{t("upload.vimeoUrlOptional")}</label>
-                    <input
-                      value={vimeoUrl}
-                      onChange={(e) => setVimeoUrl(e.target.value)}
-                      className={inp}
-                      placeholder="https://vimeo.com/..."
-                    />
-                  </div>
-                  <div>
                     <label className={lbl}>{t("upload.labelDescription")}</label>
                     <textarea
                       value={description}
                       onChange={(e) => setDescription(e.target.value)}
-                      rows={3}
+                      rows={5}
                       className={`${inp} resize-none`}
-                      placeholder={t("upload.placeholderDescriptionOptional")}
+                      placeholder={t("upload.placeholderFilmDescription")}
                     />
                   </div>
                   <div>
@@ -462,19 +473,16 @@ export function EditVideoForm({ userId, video, competitions }: Props) {
                   </div>
                 </div>
               </div>
-            </div>
 
-            {/* 하단 — AI Tools + Settings */}
-            <div className="grid grid-cols-1 gap-3 lg:grid-cols-[2fr_0.7fr]">
-              {/* AI Tools */}
+              {/* AI 툴 */}
               <div
-                className="rounded-xl border border-white/[0.08] p-2.5"
+                className="rounded-2xl border border-white/[0.08] p-3"
                 style={{ background: "rgba(83,74,183,0.06)", borderColor: "rgba(127,119,221,0.1)" }}
               >
-                <h2 className="mb-2 border-b border-[#7F77DD]/20 pb-1.5 text-[11px] font-bold uppercase tracking-[0.2em] text-[#AFA9EC]">
+                <h2 className="mb-3 border-b border-[#7F77DD]/20 pb-2 text-[11px] font-bold uppercase tracking-[0.2em] text-[#AFA9EC]">
                   {t("upload.sectionAiToolsUsed")}
                 </h2>
-                <div className="space-y-2">
+                <div className="space-y-3">
                   {AI_TOOL_CATEGORIES.map((cat) => {
                     const otherActive = otherOpen[cat.key] || Boolean(otherText[cat.key]?.trim());
                     return (
@@ -529,218 +537,212 @@ export function EditVideoForm({ userId, video, competitions }: Props) {
                   })}
                 </div>
               </div>
+            </div>
 
-              {/* Settings */}
-              <div className="space-y-1.5">
-                <div
-                  className="rounded-xl border border-white/[0.08] p-2.5"
-                  style={{ background: "rgba(83,74,183,0.08)", borderColor: "rgba(127,119,221,0.12)" }}
-                >
-                  <h2 className="mb-2 border-b border-[#7F77DD]/20 pb-1.5 text-[11px] font-bold uppercase tracking-[0.2em] text-[#AFA9EC]">
-                    {t("upload.sectionSettingsPanel")}
-                  </h2>
-                  <div className="space-y-1.5">
-                    <div className="grid grid-cols-2 gap-2">
+            {/* 오른쪽: Settings */}
+            <div className="space-y-3">
+              <div
+                className="rounded-2xl border border-white/[0.08] p-3"
+                style={{ background: "rgba(83,74,183,0.08)", borderColor: "rgba(127,119,221,0.12)" }}
+              >
+                <h2 className="mb-3 border-b border-[#7F77DD]/20 pb-2 text-[11px] font-bold uppercase tracking-[0.2em] text-[#AFA9EC]">
+                  {t("upload.sectionSettingsPanel")}
+                </h2>
+                <div className="space-y-3">
+                  <div className="grid grid-cols-2 gap-2">
+                    <div>
+                      <label className={lbl}>{t("upload.labelGenre")}</label>
+                      <CustomSelect
+                        value={mainGenre}
+                        onChange={(v) => setMainGenre(v as MainGenreKey)}
+                        options={FEED_GENRE_KEYS.map((k) => ({ value: k, label: mainGenreLabel(k, locale) }))}
+                      />
+                    </div>
+                    {showSubGenre ? (
                       <div>
-                        <label className={lbl}>{t("upload.labelGenre")}</label>
+                        <label className={lbl}>{t("upload.labelSubGenreShort")}</label>
                         <CustomSelect
-                          value={mainGenre}
-                          onChange={(v) => setMainGenre(v as MainGenreKey)}
-                          options={FEED_GENRE_KEYS.map((k) => ({ value: k, label: mainGenreLabel(k, locale) }))}
+                          value={subGenre}
+                          onChange={(v) => setSubGenre(v as SubGenreKey)}
+                          options={SUB_GENRE_KEYS.map((k) => ({ value: k, label: subGenreLabel(k, locale) }))}
                         />
                       </div>
-                      {showSubGenre ? (
-                        <div>
-                          <label className={lbl}>{t("upload.labelSubGenreShort")}</label>
-                          <CustomSelect
-                            value={subGenre}
-                            onChange={(v) => setSubGenre(v as SubGenreKey)}
-                            options={SUB_GENRE_KEYS.map((k) => ({ value: k, label: subGenreLabel(k, locale) }))}
-                          />
-                        </div>
-                      ) : (
-                        <div />
-                      )}
-                    </div>
+                    ) : (
+                      <div />
+                    )}
+                  </div>
 
-                    <div>
-                      <label className={lbl}>{t("upload.runtimeMinutes")}</label>
-                      <NumberInput value={runtimeMinutes} onChange={setRuntimeMinutes} min={1} />
-                    </div>
+                  <div>
+                    <label className={lbl}>{t("upload.runtimeMinutes")}</label>
+                    <NumberInput value={runtimeMinutes} onChange={setRuntimeMinutes} min={1} />
+                  </div>
 
-                    <div>
-                      <p className={lbl}>{t("upload.seriesToggleLabel")}</p>
-                      <button
-                        type="button"
-                        onClick={() => setIsSeriesMode(!isSeriesMode)}
-                        className="relative flex w-full items-center justify-between rounded-xl border px-4 py-2.5 text-sm font-medium transition"
-                        style={{
-                          borderColor: isSeriesMode ? "rgba(127,119,221,0.5)" : "rgba(255,255,255,0.06)",
-                          background: isSeriesMode ? "rgba(83,74,183,0.35)" : "rgba(255,255,255,0.02)",
-                          color: isSeriesMode ? "#AFA9EC" : "rgba(255,255,255,0.55)",
-                        }}
+                  <div>
+                    <p className={lbl}>{t("upload.seriesToggleLabel")}</p>
+                    <button
+                      type="button"
+                      onClick={() => setIsSeriesMode(!isSeriesMode)}
+                      className="relative flex w-full items-center justify-between rounded-xl border px-4 py-2.5 text-sm font-medium transition"
+                      style={{
+                        borderColor: isSeriesMode ? "rgba(127,119,221,0.5)" : "rgba(255,255,255,0.06)",
+                        background: isSeriesMode ? "rgba(83,74,183,0.35)" : "rgba(255,255,255,0.02)",
+                        color: isSeriesMode ? "#AFA9EC" : "rgba(255,255,255,0.55)",
+                      }}
+                    >
+                      <span>{t("upload.partOfSeries")}</span>
+                      <span
+                        className="relative h-4 w-8 rounded-full transition-colors"
+                        style={{ background: isSeriesMode ? "#534AB7" : "rgba(255,255,255,0.1)" }}
                       >
-                        <span>{t("upload.partOfSeries")}</span>
                         <span
-                          className="relative h-4 w-8 rounded-full transition-colors"
-                          style={{ background: isSeriesMode ? "#534AB7" : "rgba(255,255,255,0.1)" }}
-                        >
-                          <span
-                            className="absolute top-0.5 h-3 w-3 rounded-full bg-white shadow transition-[left]"
-                            style={{ left: isSeriesMode ? "18px" : "2px" }}
-                          />
-                        </span>
-                      </button>
-                    </div>
+                          className="absolute top-0.5 h-3 w-3 rounded-full bg-white shadow transition-[left]"
+                          style={{ left: isSeriesMode ? "18px" : "2px" }}
+                        />
+                      </span>
+                    </button>
+                  </div>
 
-                    {isSeriesMode && (
-                      <div className="space-y-2">
-                        {existingSeries.length > 0 && !isNewSeries ? (
-                          <>
-                            <div>
-                              <label className={lbl}>{t("upload.selectSeries")}</label>
-                              <CustomSelect
-                                value={seriesName}
-                                onChange={(v) => {
-                                  const selected = existingSeries.find((s) => s.name === v);
-                                  if (selected) {
-                                    setSeriesName(selected.name);
-                                    setEpisodeNumber(selected.nextEpisode);
-                                  }
-                                }}
-                                options={existingSeries.map((s) => ({
-                                  value: s.name,
-                                  label: t("upload.seriesNextEp")
-                                    .replace("{name}", s.name)
-                                    .replace("{n}", String(s.nextEpisode)),
-                                }))}
-                                placeholder={t("upload.selectSeriesPlaceholder")}
-                              />
-                            </div>
+                  {isSeriesMode && (
+                    <div className="space-y-2">
+                      {existingSeries.length > 0 && !isNewSeries ? (
+                        <>
+                          <div>
+                            <label className={lbl}>{t("upload.selectSeries")}</label>
+                            <CustomSelect
+                              value={seriesName}
+                              onChange={(v) => {
+                                const sel = existingSeries.find((s) => s.name === v);
+                                if (sel) {
+                                  setSeriesName(sel.name);
+                                  setEpisodeNumber(sel.nextEpisode);
+                                }
+                              }}
+                              options={existingSeries.map((s) => ({
+                                value: s.name,
+                                label: t("upload.seriesNextEp").replace("{name}", s.name).replace("{n}", String(s.nextEpisode)),
+                              }))}
+                              placeholder={t("upload.selectSeriesPlaceholder")}
+                            />
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setIsNewSeries(true);
+                              setSeriesName("");
+                              setEpisodeNumber(1);
+                            }}
+                            className="text-[11px] text-[#7F77DD] transition hover:text-[#AFA9EC]"
+                          >
+                            {t("upload.createNewSeries")}
+                          </button>
+                        </>
+                      ) : (
+                        <>
+                          <div>
+                            <label className={lbl}>{t("upload.seriesNameLabel")}</label>
+                            <input
+                              value={seriesName}
+                              onChange={(e) => setSeriesName(e.target.value)}
+                              className={inp}
+                              placeholder={t("upload.seriesNamePlaceholder")}
+                            />
+                          </div>
+                          {existingSeries.length > 0 && (
                             <button
                               type="button"
                               onClick={() => {
-                                setIsNewSeries(true);
+                                setIsNewSeries(false);
                                 setSeriesName("");
-                                setEpisodeNumber(1);
                               }}
                               className="text-[11px] text-[#7F77DD] transition hover:text-[#AFA9EC]"
                             >
-                              {t("upload.createNewSeries")}
+                              {t("upload.selectExistingSeries")}
                             </button>
-                          </>
-                        ) : (
-                          <>
-                            <div>
-                              <label className={lbl}>{t("upload.seriesNameLabel")}</label>
-                              <input
-                                value={seriesName}
-                                onChange={(e) => setSeriesName(e.target.value)}
-                                className={inp}
-                                placeholder={t("upload.seriesNamePlaceholder")}
-                              />
-                            </div>
-                            {existingSeries.length > 0 && (
-                              <button
-                                type="button"
-                                onClick={() => {
-                                  setIsNewSeries(false);
-                                  setSeriesName("");
-                                }}
-                                className="text-[11px] text-[#7F77DD] transition hover:text-[#AFA9EC]"
-                              >
-                                {t("upload.selectExistingSeries")}
-                              </button>
-                            )}
-                          </>
-                        )}
-                        <div>
-                          <label className={lbl}>{t("upload.episodeNumberLabel")}</label>
-                          <NumberInput value={episodeNumber} onChange={setEpisodeNumber} min={1} />
-                        </div>
-                      </div>
-                    )}
-
-                    <div>
-                      <p className={lbl}>{t("upload.visibilityLabel")}</p>
-                      <div className="grid grid-cols-2 gap-2">
-                        {(["public", "private"] as const).map((v) => (
-                          <button
-                            key={v}
-                            type="button"
-                            onClick={() => setVisibility(v)}
-                            className="relative flex items-center justify-center gap-1.5 rounded-xl border py-1.5 text-sm font-medium transition"
-                            style={{
-                              borderColor: visibility === v ? "rgba(127,119,221,0.5)" : "rgba(255,255,255,0.06)",
-                              background: visibility === v ? "rgba(83,74,183,0.35)" : "rgba(255,255,255,0.02)",
-                              color: visibility === v ? "#AFA9EC" : "rgba(255,255,255,0.55)",
-                            }}
-                          >
-                            <span>{v === "public" ? "🌐" : "🔒"}</span>
-                            <span>{v === "public" ? t("upload.public") : t("upload.private")}</span>
-                            {visibility === v && (
-                              <span className="absolute right-2.5 h-1.5 w-1.5 rounded-full bg-[#7F77DD]" />
-                            )}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-
-                    <div>
-                      <p className={lbl}>{t("upload.uploadPurposeLabel")}</p>
-                      <div className="grid grid-cols-2 gap-2">
-                        {(["personal", "competition"] as const).map((v) => (
-                          <button
-                            key={v}
-                            type="button"
-                            onClick={() => setPurpose(v)}
-                            className="relative flex items-center justify-center gap-1.5 rounded-xl border py-2.5 text-sm font-medium transition"
-                            style={{
-                              borderColor: purpose === v ? "rgba(127,119,221,0.5)" : "rgba(255,255,255,0.06)",
-                              background: purpose === v ? "rgba(83,74,183,0.35)" : "rgba(255,255,255,0.02)",
-                              color: purpose === v ? "#AFA9EC" : "rgba(255,255,255,0.55)",
-                            }}
-                          >
-                            <span>{v === "personal" ? "✦" : "🏆"}</span>
-                            <span>{v === "personal" ? t("upload.personal") : t("upload.competition")}</span>
-                            {purpose === v && (
-                              <span className="absolute right-2.5 h-1.5 w-1.5 rounded-full bg-[#7F77DD]" />
-                            )}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-
-                    {purpose === "competition" && competitions.length > 0 && (
+                          )}
+                        </>
+                      )}
                       <div>
-                        <label className={lbl}>{t("upload.selectCompetition")}</label>
-                        <CustomSelect
-                          value={competitionId}
-                          onChange={setCompetitionId}
-                          options={competitions.map((c) => ({ value: c.id, label: c.title }))}
-                          placeholder={t("upload.selectCompetitionPlaceholder")}
-                        />
+                        <label className={lbl}>{t("upload.episodeNumberLabel")}</label>
+                        <NumberInput value={episodeNumber} onChange={setEpisodeNumber} min={1} />
                       </div>
-                    )}
+                    </div>
+                  )}
+
+                  <div>
+                    <p className={lbl}>{t("upload.visibilityLabel")}</p>
+                    <div className="grid grid-cols-2 gap-2">
+                      {(["public", "private"] as const).map((v) => (
+                        <button
+                          key={v}
+                          type="button"
+                          onClick={() => setVisibility(v)}
+                          className="relative flex items-center justify-center gap-1.5 rounded-xl border py-2.5 text-sm font-medium transition"
+                          style={{
+                            borderColor: visibility === v ? "rgba(127,119,221,0.5)" : "rgba(255,255,255,0.06)",
+                            background: visibility === v ? "rgba(83,74,183,0.35)" : "rgba(255,255,255,0.02)",
+                            color: visibility === v ? "#AFA9EC" : "rgba(255,255,255,0.55)",
+                          }}
+                        >
+                          <span>{v === "public" ? "🌐" : "🔒"}</span>
+                          <span>{v === "public" ? t("upload.visPublic") : t("upload.visPrivate")}</span>
+                          {visibility === v && <span className="absolute right-2.5 h-1.5 w-1.5 rounded-full bg-[#7F77DD]" />}
+                        </button>
+                      ))}
+                    </div>
                   </div>
+
+                  <div>
+                    <p className={lbl}>{t("upload.labelPurpose")}</p>
+                    <div className="grid grid-cols-2 gap-2">
+                      {(["personal", "competition"] as const).map((v) => (
+                        <button
+                          key={v}
+                          type="button"
+                          onClick={() => setPurpose(v)}
+                          className="relative flex items-center justify-center gap-1.5 rounded-xl border py-2.5 text-sm font-medium transition"
+                          style={{
+                            borderColor: purpose === v ? "rgba(127,119,221,0.5)" : "rgba(255,255,255,0.06)",
+                            background: purpose === v ? "rgba(83,74,183,0.35)" : "rgba(255,255,255,0.02)",
+                            color: purpose === v ? "#AFA9EC" : "rgba(255,255,255,0.3)",
+                          }}
+                        >
+                          <span>{v === "personal" ? "✦" : "🏆"}</span>
+                          <span>{v === "personal" ? t("upload.personal") : t("upload.competition")}</span>
+                          {purpose === v && <span className="absolute right-2.5 h-1.5 w-1.5 rounded-full bg-[#7F77DD]" />}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {purpose === "competition" && competitions.length > 0 && (
+                    <div>
+                      <label className={lbl}>{t("upload.selectCompetition")}</label>
+                      <CustomSelect
+                        value={competitionId}
+                        onChange={setCompetitionId}
+                        options={competitions.map((c) => ({ value: c.id, label: c.title }))}
+                        placeholder={t("upload.selectCompetitionPlaceholder")}
+                      />
+                    </div>
+                  )}
                 </div>
-
-                {error && (
-                  <div className="rounded-xl border border-red-500/20 bg-red-950/30 px-4 py-3 text-sm text-red-300">{error}</div>
-                )}
-
-                <button
-                  type="submit"
-                  disabled={loading}
-                  className="w-full rounded-xl py-3 text-sm font-bold text-white transition hover:opacity-90 disabled:opacity-50"
-                  style={{
-                    background: "linear-gradient(135deg, #534AB7 0%, #7B6FE8 100%)",
-                    boxShadow: "0 4px 20px rgba(83,74,183,0.4)",
-                  }}
-                >
-                  {loading ? t("settings.saving") : t("upload.editSaveCta")}
-                </button>
               </div>
+
+              {error && (
+                <div className="rounded-xl border border-red-500/20 bg-red-950/30 px-4 py-3 text-sm text-red-300">{error}</div>
+              )}
+
+              <button
+                type="submit"
+                disabled={loading}
+                className="w-full rounded-xl py-3.5 text-base font-bold text-white transition hover:opacity-90 disabled:opacity-50"
+                style={{
+                  background: "linear-gradient(135deg, #534AB7 0%, #7B6FE8 100%)",
+                  boxShadow: "0 4px 24px rgba(83,74,183,0.6), inset 0 1px 0 rgba(255,255,255,0.15)",
+                }}
+              >
+                {loading ? t("settings.saving") : t("upload.editSaveCta")}
+              </button>
             </div>
           </div>
         </div>

@@ -44,19 +44,6 @@ const GENRE_ICONS = {
   art: Wand2,
 } as const satisfies Record<GenreFilter, LucideIcon>;
 
-const MOCK_TRENDING_TAGS = [
-  { tag: "AIFilm", count: "1.2K", trend: "up", isNew: false },
-  { tag: "Runway", count: "890", trend: "up", isNew: false },
-  { tag: "Cyberpunk", count: "654", trend: "up", isNew: true },
-  { tag: "ShortFilm", count: "521", trend: "down", isNew: false },
-  { tag: "Midjourney", count: "489", trend: "up", isNew: false },
-  { tag: "Dreamlike", count: "412", trend: "up", isNew: true },
-  { tag: "Kling", count: "387", trend: "up", isNew: false },
-  { tag: "SciFi", count: "312", trend: "down", isNew: false },
-  { tag: "Animation", count: "276", trend: "up", isNew: false },
-  { tag: "ElevenLabs", count: "198", trend: "down", isNew: true },
-] as const;
-
 const SIDEBAR_NAV = [
   { labelKey: "nav.home", labelFb: "Home", href: "/", icon: Home, match: (p: string) => p === "/" },
   { labelKey: "nav.films", labelFb: "Films", href: "/films", icon: Film, match: (p: string) => p === "/films" || p.startsWith("/films/") },
@@ -131,7 +118,6 @@ export function GenreSidebar({
   const [isProfileOwner, setIsProfileOwner] = useState(false);
   const [activeSection, setActiveSection] = useState<string | null>(null);
   const [watchFrom, setWatchFrom] = useState<string>("home");
-  const [lastUpdated, setLastUpdated] = useState(() => t("genreSidebar.justNow", "just now"));
   const [userId, setUserId] = useState<string | null>(null);
   const [showLogoutModal, setShowLogoutModal] = useState(false);
   const handleLogout = () => setShowLogoutModal(true);
@@ -194,58 +180,6 @@ export function GenreSidebar({
       setWatchFrom(from);
     }
   }, [isWatchPage]);
-
-  useEffect(() => {
-    const update = () => setLastUpdated(t("genreSidebar.justNow", "just now"));
-    update();
-    const interval = setInterval(() => {
-      setLastUpdated(t("genreSidebar.oneMinAgo", "1 min ago"));
-      setTimeout(() => {
-        update();
-      }, 100);
-    }, 60000);
-    return () => clearInterval(interval);
-  }, [t]);
-
-  const trendingTagsSection = sidebarOpen ? (
-    <section>
-      <div className="mb-3 flex items-center justify-between">
-        <h2 className="typo-sidebar-heading text-white/38">{t("sidebar.trendingTags", "# TRENDING TAGS")}</h2>
-        <span className="typo-sidebar-micro text-white/30">{lastUpdated}</span>
-      </div>
-      <ul className="space-y-1">
-        {MOCK_TRENDING_TAGS.map((item, idx) => (
-          <li key={item.tag}>
-            <button
-              type="button"
-              onClick={() => router.push(`/search?q=%23${item.tag}`)}
-              className="flex w-full items-center gap-2 rounded-lg px-2 py-1.5 text-left transition-colors hover:bg-white/5"
-            >
-              <span className="typo-stat-xs w-4 font-mono text-white/25">
-                {String(idx + 1).padStart(2, "0")}
-              </span>
-              <span className="typo-sidebar-tag min-w-0 flex-1 truncate text-white/72 hover:text-white">
-                #{item.tag}
-              </span>
-              <div className="flex shrink-0 items-center gap-1">
-                {item.isNew ? (
-                  <span className="typo-stat-xs font-bold tracking-normal text-[#8b5cf6]">NEW</span>
-                ) : (
-                  <span className={cn(
-                    "typo-sidebar-micro tracking-normal",
-                    item.trend === "up" ? "text-emerald-400" : "text-red-400"
-                  )}>
-                    {item.trend === "up" ? "↑" : "↓"}
-                  </span>
-                )}
-                <span className="typo-sidebar-tag text-white/38">{item.count}</span>
-              </div>
-            </button>
-          </li>
-        ))}
-      </ul>
-    </section>
-  ) : null;
 
   return (
     <>
@@ -405,7 +339,6 @@ export function GenreSidebar({
           </nav>
 
           <div className="my-4 border-t border-white/[0.06]" aria-hidden />
-          {trendingTagsSection}
         </>
 
       ) : sidebarOpen && isProfilePage ? (
@@ -460,7 +393,6 @@ export function GenreSidebar({
           </nav>
 
           <div className="my-4 border-t border-white/[0.06]" aria-hidden />
-          {trendingTagsSection}
         </>
 
       ) : sidebarOpen && isCompetitionPage ? (
@@ -503,8 +435,6 @@ export function GenreSidebar({
             ))}
           </nav>
 
-          <div className="my-4 border-t border-white/[0.06]" aria-hidden />
-          {trendingTagsSection}
         </>
 
       ) : sidebarOpen ? (
@@ -523,7 +453,6 @@ export function GenreSidebar({
           </nav>
 
           <div className="my-4 border-t border-white/[0.06]" aria-hidden />
-          {trendingTagsSection}
         </>
       ) : null}
 

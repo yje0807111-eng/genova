@@ -10,21 +10,33 @@ import { intlDateLocale } from "@/lib/i18n/browser-locale";
 type Competition = {
   id: string;
   title: string;
+  title_ko?: string | null;
+  title_en?: string | null;
+  title_ja?: string | null;
   genre: string;
   status: string;
   deadline: string;
   vote_end: string;
   prize_info: string;
+  prize_info_ko?: string | null;
+  prize_info_en?: string | null;
+  prize_info_ja?: string | null;
   sponsor: string | null;
   description?: string | null;
+  thumbnail_url?: string | null;
 };
 
-const MOCK_THUMBNAILS: Record<string, string> = {
-  cp1: "https://picsum.photos/seed/comp1/600/340",
-  cp2: "https://picsum.photos/seed/comp2/600/340",
-  cp3: "https://picsum.photos/seed/comp3/600/340",
-  cp4: "https://picsum.photos/seed/comp4/600/340",
-};
+function getLangText(
+  locale: string,
+  ko: string | null | undefined,
+  en: string | null | undefined,
+  ja: string | null | undefined,
+  fallback: string,
+): string {
+  if (locale === "ko") return ko || en || ja || fallback;
+  if (locale === "ja") return ja || en || ko || fallback;
+  return en || ko || ja || fallback;
+}
 
 function dDay(deadline: string): number {
   return Math.max(
@@ -51,6 +63,62 @@ function formatPrize(prizeInfo: string, _t: (key: string, fallback?: string) => 
 
   if (cleaned.includes("$")) return cleaned;
   return cleaned;
+}
+
+function formatPrizeWithConversion(
+  prizeKo: string | null | undefined,
+  prizeEn: string | null | undefined,
+  prizeJa: string | null | undefined,
+  prizeFallback: string,
+  locale: string,
+  baseCurrency: string | null | undefined,
+  usdToKrw: number,
+  usdToJpy: number,
+): string {
+  const usdToKrwRate = usdToKrw || 1350;
+  const usdToJpyRate = usdToJpy || 148;
+  const krwToUsd = 1 / usdToKrwRate;
+  const krwToJpy = usdToJpyRate / usdToKrwRate;
+  const jpyToUsd = 1 / usdToJpyRate;
+  const jpyToKrw = usdToKrwRate / usdToJpyRate;
+  const base = baseCurrency ?? "USD";
+
+  // 숫자 추출 — USD 100,000 / $100,000 / 100000 모두 처리
+  const extractAmount = (text: string): number | null => {
+    const cleaned = text.replace(/[^\d.]/g, "");
+    const n = parseFloat(cleaned);
+    return isNaN(n) ? null : n;
+  };
+
+  const formatKRW = (n: number) => `₩${Math.round(n).toLocaleString()}`;
+  const formatUSD = (n: number) => `$${Math.round(n).toLocaleString()}`;
+  const formatJPY = (n: number) => `¥${Math.round(n).toLocaleString()}`;
+
+  if (locale === "ko") {
+    const text = prizeKo || prizeEn || prizeFallback;
+    const amount = extractAmount(text);
+    if (!amount) return text;
+    if (base === "USD") return `${formatUSD(amount)} (약 ${formatKRW(amount * usdToKrwRate)})`;
+    if (base === "JPY") return `${formatJPY(amount)} (약 ${formatKRW(amount * jpyToKrw)})`;
+    return `${formatKRW(amount)}`;
+  }
+
+  if (locale === "ja") {
+    const text = prizeJa || prizeEn || prizeFallback;
+    const amount = extractAmount(text);
+    if (!amount) return text;
+    if (base === "USD") return `${formatUSD(amount)} (約 ${formatJPY(amount * usdToJpyRate)})`;
+    if (base === "KRW") return `${formatKRW(amount)} (約 ${formatJPY(amount * krwToJpy)})`;
+    return `${formatJPY(amount)}`;
+  }
+
+  // en
+  const text = prizeEn || prizeKo || prizeFallback;
+  const amount = extractAmount(text);
+  if (!amount) return text;
+  if (base === "KRW") return `${formatKRW(amount)} (≈ ${formatUSD(amount * krwToUsd)})`;
+  if (base === "JPY") return `${formatJPY(amount)} (≈ ${formatUSD(amount * jpyToUsd)})`;
+  return `${formatUSD(amount)}`;
 }
 
 function genreUiLabel(genre: string | undefined | null, locale: Locale): string {
@@ -82,13 +150,10 @@ function FeaturedCard({ c }: { c: Competition }) {
   const { t, locale } = useI18n();
   const dateLocale = intlDateLocale(locale);
   const d = dDay(c.deadline);
-  const thumb = MOCK_THUMBNAILS[c.id] || `https://picsum.photos/seed/${c.id}/600/340`;
-  const participantCount = (c.id.charCodeAt(c.id.length - 1) * 37) % 900 + 300;
+  const thumb = c.thumbnail_url || null;
   const featuredReason = c.sponsor
     ? t("competition.featuredSponsored").replace("{name}", c.sponsor)
-    : participantCount > 500
-      ? t("competition.featuredPopular")
-      : t("competition.featuredStar");
+    : t("competition.featuredStar");
 
   return (
     <Link
@@ -103,7 +168,11 @@ function FeaturedCard({ c }: { c: Competition }) {
       }}
     >
       <div className="gradient-border-card-inner relative h-full w-full overflow-hidden rounded-xl">
-        <img src={thumb} alt="" className="absolute inset-0 h-full w-full object-cover transition-transform duration-500 group-hover:scale-105" />
+        {thumb ? (
+          <img src={thumb} alt="" className="absolute inset-0 h-full w-full object-cover transition-transform duration-500 group-hover:scale-105" />
+        ) : (
+          <div className="absolute inset-0 bg-gradient-to-br from-[#1a1547] to-[#0f0d24]" />
+        )}
         <div className="absolute inset-0" style={{ background: "linear-gradient(to top, rgba(8,6,24,1) 0%, rgba(8,6,24,1) 15%, rgba(8,6,24,0.85) 35%, rgba(8,6,24,0.3) 55%, rgba(8,6,24,0) 75%)" }} />
         <div
           className="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-300 group-hover:opacity-100"
@@ -140,10 +209,10 @@ function FeaturedCard({ c }: { c: Competition }) {
 
         <div className="absolute bottom-0 left-0 right-0 px-4 pb-4 pt-0">
         <h3 className="mb-0.5 line-clamp-1 text-[17px] font-extrabold text-white" style={{ textShadow: "0 2px 8px rgba(0,0,0,0.8)" }}>
-          {c.title}
+          {getLangText(locale, c.title_ko, c.title_en, c.title_ja, c.title)}
         </h3>
         <p className="mb-3 text-[13px] font-extrabold text-[#FFB347]" style={{ textShadow: "0 0 12px rgba(200,150,62,0.5)" }}>
-          {formatPrize(c.prize_info, t)}
+          {formatPrize(getLangText(locale, c.prize_info_ko, c.prize_info_en, c.prize_info_ja, c.prize_info), t)}
         </p>
         <div className="flex items-center gap-4">
           <div
@@ -157,13 +226,6 @@ function FeaturedCard({ c }: { c: Competition }) {
             {t("competition.viewDetails")}
           </div>
           <div className="flex items-center gap-2 text-[11px] text-white/60">
-            <span className="flex items-center gap-1">
-              <svg className="h-3 w-3 opacity-60" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z" />
-              </svg>
-              {participantCount}
-            </span>
-            <span className="text-white/20">·</span>
             <span className="flex items-center gap-1">
               <svg className="h-3 w-3 opacity-60" viewBox="0 0 24 24" fill="currentColor">
                 <path d="M19 3h-1V1h-2v2H8V1H6v2H5c-1.11 0-1.99.9-1.99 2L3 19c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V8h14v11zM7 10h5v5H7z" />
@@ -186,8 +248,7 @@ function CompetitionCard({ c }: { c: Competition }) {
   const { t, locale } = useI18n();
   const dateLocale = intlDateLocale(locale);
   const d = dDay(c.deadline);
-  const thumb = MOCK_THUMBNAILS[c.id] || `https://picsum.photos/seed/${c.id}/600/340`;
-  const participantCount = (c.id.charCodeAt(c.id.length - 1) * 37) % 900 + 300;
+  const thumb = c.thumbnail_url || null;
   const deadlineLabel = new Date(c.deadline).toLocaleDateString(dateLocale, {
     year: "numeric",
     month: "2-digit",
@@ -201,7 +262,11 @@ function CompetitionCard({ c }: { c: Competition }) {
       <div className="gradient-border-card-inner">
       <Link href={`/competition/${c.id}`} className="block p-3 pb-0">
         <div className="relative w-full overflow-hidden rounded-lg" style={{ aspectRatio: "16/9" }}>
-          <img src={thumb} alt="" className="h-full w-full object-cover transition duration-500 group-hover:scale-105" />
+          {thumb ? (
+            <img src={thumb} alt="" className="h-full w-full object-cover transition duration-500 group-hover:scale-105" />
+          ) : (
+            <div className="h-full w-full bg-gradient-to-br from-[#1a1547] to-[#0f0d24]" />
+          )}
           <div className="absolute left-[10px] top-[10px]">
             <span className="rounded-md border border-white/10 bg-black/55 px-2.5 py-1 text-[11px] font-semibold text-white backdrop-blur-sm">
               {c.genre && c.genre !== "전체" ? genreUiLabel(c.genre, locale) : t("competition.allGenres")}
@@ -214,11 +279,14 @@ function CompetitionCard({ c }: { c: Competition }) {
       </Link>
       <div className="flex flex-1 flex-col gap-[10px] p-[16px_18px]">
         <Link href={`/competition/${c.id}`}>
-          <h3 className="line-clamp-1 text-[17px] font-bold text-white">{c.title}</h3>
+          <h3 className="line-clamp-1 text-[17px] font-bold text-white">
+            {getLangText(locale, c.title_ko, c.title_en, c.title_ja, c.title)}
+          </h3>
         </Link>
-        <p className="text-[15px] font-semibold text-[#C8963E]">{formatPrize(c.prize_info, t)}</p>
+        <p className="text-[15px] font-semibold text-[#C8963E]">
+          {formatPrize(getLangText(locale, c.prize_info_ko, c.prize_info_en, c.prize_info_ja, c.prize_info), t)}
+        </p>
         <div className="flex items-center justify-between text-[12px] text-white/40">
-          <span>{t("competition.enteringCount").replace("{n}", String(participantCount))}</span>
           <span>{deadlineLabel}</span>
         </div>
         <span className={`inline-flex w-fit rounded-full px-2 py-1 text-[11px] font-bold ${
@@ -236,11 +304,10 @@ function CompetitionTableRow({ c, idx }: { c: Competition; idx: number }) {
   const { t, locale } = useI18n();
   const dateLocale = intlDateLocale(locale);
   const d = dDay(c.deadline);
-  const thumb = MOCK_THUMBNAILS[c.id] || `https://picsum.photos/seed/${c.id}/600/340`;
+  const thumb = c.thumbnail_url || null;
   const isOpen = ["Open", "접수중", "In Review", "Voting"].includes(c.status);
   const isUpcoming = ["Upcoming", "예정"].includes(c.status);
   const isClosed = !isOpen && !isUpcoming;
-  const participantCount = (c.id.charCodeAt(c.id.length - 1) * 37) % 900 + 300;
   const deadlineLabel = new Date(c.deadline).toLocaleDateString(dateLocale, {
     year: "numeric",
     month: "2-digit",
@@ -265,12 +332,18 @@ function CompetitionTableRow({ c, idx }: { c: Competition; idx: number }) {
         style={{ background: "linear-gradient(to bottom, rgba(83,74,183,0.06) 0%, rgba(83,74,183,0.03) 100%)" }}
       />
       <div className="relative z-10 h-[85px] w-44 shrink-0 overflow-hidden rounded-md">
-        <img src={thumb} alt="" className="h-full w-full object-cover transition group-hover:scale-105" />
+        {thumb ? (
+          <img src={thumb} alt="" className="h-full w-full object-cover transition group-hover:scale-105" />
+        ) : (
+          <div className="h-full w-full bg-gradient-to-br from-[#1a1547] to-[#0f0d24]" />
+        )}
       </div>
       <div className="relative z-10 flex min-w-0 flex-1 min-w-[300px] flex-col gap-1">
         {/* Title + status */}
         <div className="flex items-center gap-2">
-          <h3 className="line-clamp-1 text-[14px] font-bold text-white">{c.title}</h3>
+          <h3 className="line-clamp-1 text-[14px] font-bold text-white">
+            {getLangText(locale, c.title_ko, c.title_en, c.title_ja, c.title)}
+          </h3>
           {isOpen && (
             <span className="shrink-0 rounded-full border border-green-500/30 bg-green-500/20 px-2 py-0.5 text-[10px] font-bold text-green-300">
               {t("competition.statusOpenShort")}
@@ -303,10 +376,9 @@ function CompetitionTableRow({ c, idx }: { c: Competition; idx: number }) {
         </div>
       </div>
       <div className="relative z-10 w-32 shrink-0 text-center">
-        <span className="text-[13px] font-bold text-[#FFB347]">{formatPrize(c.prize_info, t)}</span>
-      </div>
-      <div className="relative z-10 w-32 shrink-0 text-center">
-        <span className="text-[13px] font-medium text-white/70">{participantCount}</span>
+        <span className="text-[13px] font-bold text-[#FFB347]">
+          {formatPrize(getLangText(locale, c.prize_info_ko, c.prize_info_en, c.prize_info_ja, c.prize_info), t)}
+        </span>
       </div>
       <div className="relative z-10 w-36 shrink-0 text-center">
         <p className="text-[13px] font-medium text-white/70">{deadlineLabel}</p>
@@ -343,7 +415,7 @@ export function CompetitionListClient({
   const [activeTab, setActiveTab] = useState<"all" | "featured" | "premium" | "new">("all");
   const [genreFilter, setGenreFilter] = useState<string>("all");
   const [statusFilter, setStatusFilter] = useState<string>("all");
-  const [sortMode, setSortMode] = useState<"deadline" | "prize" | "participants">("deadline");
+  const [sortMode, setSortMode] = useState<"deadline" | "prize">("deadline");
   const [gridMode, setGridMode] = useState<"grid" | "list">("list");
   const [genreOpen, setGenreOpen] = useState(false);
   const [statusOpen, setStatusOpen] = useState(false);
@@ -400,7 +472,6 @@ export function CompetitionListClient({
     () => [
       { key: "deadline", label: t("competition.sortByDeadlineFull") },
       { key: "prize", label: t("competition.sortByPrizeFull") },
-      { key: "participants", label: t("competition.sortByParticipantsFull") },
     ],
     [t],
   );
@@ -430,10 +501,7 @@ export function CompetitionListClient({
         if (statusDiff !== 0) return statusDiff;
 
         if (sortMode === "deadline") return new Date(a.deadline).getTime() - new Date(b.deadline).getTime();
-        if (sortMode === "prize") return (parseInt(b.prize_info.replace(/[^0-9]/g, "")) || 0) - (parseInt(a.prize_info.replace(/[^0-9]/g, "")) || 0);
-        const pA = (a.id.charCodeAt(a.id.length - 1) * 37) % 900 + 300;
-        const pB = (b.id.charCodeAt(b.id.length - 1) * 37) % 900 + 300;
-        return pB - pA;
+        return (parseInt(b.prize_info.replace(/[^0-9]/g, "")) || 0) - (parseInt(a.prize_info.replace(/[^0-9]/g, "")) || 0);
       });
   }, [allCompetitions, activeTab, genreFilter, statusFilter, sortMode, active, upcoming, locale]);
 
@@ -689,7 +757,7 @@ export function CompetitionListClient({
                   <button
                     key={s.key}
                     type="button"
-                    onClick={() => { setSortMode(s.key as "deadline" | "prize" | "participants"); setSortOpen(false); setPage(1); }}
+                    onClick={() => { setSortMode(s.key as "deadline" | "prize"); setSortOpen(false); setPage(1); }}
                     className="flex w-full items-center justify-between rounded-lg px-3 py-2 text-left text-[12px] transition-all duration-150"
                     style={{
                       color: sortMode === s.key ? "white" : "rgba(255,255,255,0.45)",
@@ -730,7 +798,6 @@ export function CompetitionListClient({
             <div className="w-44 shrink-0" />
             <div className="flex-1 min-w-[300px] text-left">{t("competition.colCompetition")}</div>
             <div className="w-32 shrink-0 text-center">{t("competition.colPrize")}</div>
-            <div className="w-32 shrink-0 text-center">{t("competition.colParticipants")}</div>
             <div className="w-36 shrink-0 text-center">{t("competition.colDeadline")}</div>
             <div className="w-28 shrink-0 text-center">{t("competition.colStatus")}</div>
             <div className="w-32 shrink-0 text-center">{t("competition.colActions")}</div>

@@ -70,19 +70,51 @@ function HeroBanner({
   awardWinners,
   allVideos,
   heroEyebrow,
+  heroEyebrowKo,
+  heroEyebrowEn,
+  heroEyebrowJa,
+  heroAwardVideos,
 }: {
   awardWinners: (Video & { award?: string | null })[];
   allVideos: Video[];
   heroEyebrow: string;
+  heroEyebrowKo: string;
+  heroEyebrowEn: string;
+  heroEyebrowJa: string;
+  heroAwardVideos: {
+    grandPrize: Video | null;
+    excellence: Video | null;
+    merit: Video | null;
+    audience: Video | null;
+  };
 }) {
-  const { t } = useI18n();
+  void awardWinners;
+  void allVideos;
+  const { t, locale } = useI18n();
+  const eyebrowText =
+    locale === "ko"
+      ? heroEyebrowKo || heroEyebrowEn || heroEyebrow
+      : locale === "ja"
+        ? heroEyebrowJa || heroEyebrowEn || heroEyebrow
+        : heroEyebrowEn || heroEyebrow;
+  const heroDescLine1 =
+    locale === "ko"
+      ? "상상력이 빚어낸 새로운 영화의 세계."
+      : locale === "ja"
+        ? "大胆な想像力が形にした、新しいシネマの世界。"
+        : "A new world of cinema shaped by bold imagination.";
+  const heroDescLine2 =
+    locale === "ko"
+      ? "지금 수상작을 만나보세요."
+      : locale === "ja"
+        ? "受賞作を今すぐご覧ください。"
+        : "Explore the winning films now.";
   const [hoveredCard, setHoveredCard] = useState<number | null>(null);
-  const allForDisplay = awardWinners.length > 0 ? awardWinners : [];
   const displayVideos = [
-    allForDisplay[0] ?? allVideos[0] ?? null,
-    allForDisplay[1] ?? allVideos[1] ?? null,
-    allForDisplay[2] ?? allVideos[2] ?? null,
-    allForDisplay[3] ?? allVideos[3] ?? null,
+    heroAwardVideos.grandPrize,
+    heroAwardVideos.excellence,
+    heroAwardVideos.merit,
+    heroAwardVideos.audience,
   ];
 
   const glowColors = [
@@ -190,7 +222,75 @@ function HeroBanner({
 
       <div className="relative z-30 w-full flex items-center px-[3%] gap-6">
         <div className="flex w-[36%] min-w-[280px] shrink-0 flex-col items-center text-center pt-[12%] pb-[4%]">
-          <div className="relative mb-20 flex flex-col items-center">
+          <div className="relative mb-8 flex flex-col items-center">
+            {/* Left laurel — 고정 위치 */}
+            <img
+              src="/laurel-left.png"
+              alt=""
+              aria-hidden
+              className="pointer-events-none absolute w-auto"
+              style={{
+                ...(locale === "ko"
+                  ? {
+                      left: "-170px",
+                      top: "50%",
+                      height: "240px",
+                      transform: "translateY(-50%)",
+                      opacity: 0.9,
+                    }
+                  : locale === "ja"
+                    ? {
+                        left: "-160px",
+                        top: "50%",
+                        height: "200px",
+                        transform: "translateY(-50%)",
+                        opacity: 0.9,
+                      }
+                    : {
+                        // en
+                        left: "-105px",
+                        top: "50%",
+                        height: "240px",
+                        transform: "translateY(-50%)",
+                        opacity: 0.9,
+                      }),
+              }}
+            />
+            {/* Right laurel — 고정 위치 */}
+            <img
+              src="/laurel-left.png"
+              alt=""
+              aria-hidden
+              className="pointer-events-none absolute w-auto"
+              style={{
+                ...(locale === "ko"
+                  ? {
+                      right: "-170px",
+                      top: "50%",
+                      height: "240px",
+                      transform: "translateY(-50%) scaleX(-1)",
+                      opacity: 0.9,
+                    }
+                  : locale === "ja"
+                    ? {
+                        right: "-160px",
+                        top: "50%",
+                        height: "200px",
+                        transform: "translateY(-50%) scaleX(-1)",
+                        opacity: 0.9,
+                      }
+                    : {
+                        // en
+                        right: "-105px",
+                        top: "50%",
+                        height: "240px",
+                        transform: "translateY(-50%) scaleX(-1)",
+                        opacity: 0.9,
+                      }),
+              }}
+            />
+
+            {/* 글로우 */}
             <div
               className="absolute inset-0 pointer-events-none"
               style={{
@@ -199,36 +299,12 @@ function HeroBanner({
                 transform: "scale(2)",
               }}
             />
-            {/* Left laurel */}
-            <img
-              src="/laurel-left.png"
-              alt=""
-              aria-hidden
-              className="absolute -left-[50%] h-[95%] w-auto"
-              style={{
-                top: "50%",
-                transform: "translateY(-50%)",
-                opacity: 0.9,
-              }}
-            />
-            {/* Right laurel */}
-            <img
-              src="/laurel-left.png"
-              alt=""
-              aria-hidden
-              className="absolute -right-[50%] h-[95%] w-auto"
-              style={{
-                top: "50%",
-                transform: "translateY(-50%) scaleX(-1)",
-                opacity: 0.9,
-              }}
-            />
 
-            {/* Heading copy */}
+            {/* 텍스트 */}
             <div className="mb-5 flex items-center justify-center gap-2">
               <div className="h-1.5 w-1.5 rounded-full bg-[#7F77DD]" />
               <p className="text-sm font-semibold uppercase tracking-[0.2em] text-white/80">
-                {heroEyebrow}
+                {eyebrowText}
               </p>
             </div>
             <h2
@@ -241,14 +317,12 @@ function HeroBanner({
                 backgroundClip: "text",
               }}
             >
-              Award Winners
-              <br />
-              Gallery
+              {locale === "ko" ? "수상작 갤러리" : locale === "ja" ? "受賞作ギャラリー" : "Award Winners Gallery"}
             </h2>
             <p className="text-sm leading-relaxed text-white/70">
-              {t("films.heroDescLine1")}
+              {heroDescLine1}
               <br />
-              {t("films.heroDescLine2")}
+              {heroDescLine2}
             </p>
           </div>
 
@@ -605,6 +679,10 @@ export function FilmsPageClient({
   genreSpotlight,
   allVideos,
   heroEyebrow,
+  heroEyebrowKo,
+  heroEyebrowEn,
+  heroEyebrowJa,
+  heroAwardVideos,
 }: {
   originals: Video[];
   awardWinners: (Video & { award?: string | null })[];
@@ -612,6 +690,15 @@ export function FilmsPageClient({
   genreSpotlight: { genreKey: string; label: string; picks: Video[] }[];
   allVideos: Video[];
   heroEyebrow: string;
+  heroEyebrowKo?: string;
+  heroEyebrowEn?: string;
+  heroEyebrowJa?: string;
+  heroAwardVideos: {
+    grandPrize: Video | null;
+    excellence: Video | null;
+    merit: Video | null;
+    audience: Video | null;
+  };
 }) {
   const { t, locale } = useI18n();
   const [selectedGenres, setSelectedGenres] = useState<string[]>([]);
@@ -689,7 +776,15 @@ export function FilmsPageClient({
 
       {/* Hero Banner - full width */}
       <AnimateIn delay={0.05}>
-        <HeroBanner awardWinners={awardWinners} allVideos={allVideosFlat} heroEyebrow={heroEyebrow} />
+        <HeroBanner
+          awardWinners={awardWinners}
+          allVideos={allVideosFlat}
+          heroEyebrow={heroEyebrow}
+          heroEyebrowKo={heroEyebrowKo ?? ""}
+          heroEyebrowEn={heroEyebrowEn ?? ""}
+          heroEyebrowJa={heroEyebrowJa ?? ""}
+          heroAwardVideos={heroAwardVideos}
+        />
       </AnimateIn>
 
       <div className="relative mx-auto max-w-[1680px] px-12 pb-24 pt-10 text-white space-y-6">

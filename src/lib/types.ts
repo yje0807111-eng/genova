@@ -89,4 +89,13 @@ export type Competition = {
   prizeInfoKo?: string | null;
   prizeInfoJa?: string | null;
   sponsor: string;
+  thumbnailUrl?: string | null;
+  rules?: string | null;
+  judgingCriteria?: string | null;
+  eligibility?: string | null;
+  submissionGuidelines?: string | null;
+  announcement?: string | null;
+  templateUrl?: string | null;
+  sponsorLogoUrl?: string | null;
+  currency?: string | null;
 };

@@ -29,7 +29,29 @@ function UnifiedGrid({ videos }: { videos: Video[] }) {
   );
 }
 
-function HeroBanner({ videos }: { videos: Video[] }) {
+function calcRating(likeCount: number): number {
+  if (likeCount < 10) return 8.0;
+  if (likeCount < 100) return 8.0 + (likeCount / 100) * 0.5;
+  if (likeCount < 1000) return 8.5 + (likeCount / 1000) * 0.3;
+  return Math.min(9.0, 8.8 + (likeCount / 10000) * 0.2);
+}
+
+function calcTrend(video: Video, allVideos: Video[]): "New" | "Hot" | "Trending" | null {
+  const daysSinceUpload = (Date.now() - new Date(video.createdAt).getTime()) / (1000 * 60 * 60 * 24);
+  if (daysSinceUpload <= 7) return "New";
+
+  const sortedByViews = [...allVideos].sort((a, b) => (b.viewCount ?? 0) - (a.viewCount ?? 0));
+  const top10Percent = Math.ceil(sortedByViews.length * 0.1);
+  const topVideos = sortedByViews.slice(0, top10Percent);
+  if (topVideos.some((v) => v.id === video.id)) return "Hot";
+
+  const likeRate = (video.likeCount ?? 0) / Math.max(1, video.viewCount ?? 1);
+  if (likeRate >= 0.05) return "Trending";
+
+  return null;
+}
+
+function HeroBanner({ videos, allVideos }: { videos: Video[]; allVideos: Video[] }) {
   const { t, locale } = useI18n();
   const [current, setCurrent] = useState(0);
   const [fadeVisible, setFadeVisible] = useState(true);
@@ -49,6 +71,9 @@ function HeroBanner({ videos }: { videos: Video[] }) {
   }, [heroVideos.length]);
 
   if (!video) return null;
+
+  const rating = calcRating(video.likeCount ?? 0);
+  const trend = calcTrend(video, allVideos);
 
   const HERO_FALLBACKS = [
     "https://images.unsplash.com/photo-1536440136628-849c177e76a1?w=1400&q=80",
@@ -114,51 +139,49 @@ function HeroBanner({ videos }: { videos: Video[] }) {
               <Plus size={20} />
             </button>
           </div>
-          <div
-            className="mt-6 flex w-fit items-stretch gap-0"
-            style={{ background: "transparent", backdropFilter: "none" }}
-          >
-            {video.award && (
+          {false && ( // TODO: 데이터 충분히 쌓이면 false 제거
+            <div
+              className="mt-6 flex w-fit items-stretch gap-0"
+              style={{ background: "transparent", backdropFilter: "none" }}
+            >
+              {video.award && (
+                <div className="flex items-center gap-3 border-r border-white/10 px-5 py-3">
+                  <svg className="h-6 w-6 shrink-0 text-white/60" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                    <path d="M8 21h8M12 17v4M17 3H7l-2 7c0 2.8 2.24 5 5 5s5-2.2 5-5l-2-7z"/>
+                    <path d="M5 10H3a2 2 0 000 4h2M19 10h2a2 2 0 010 4h-2"/>
+                  </svg>
+                  <div>
+                    <p className="mb-0.5 text-[13px] leading-none text-white/40">{t("home.heroAwardLabel", "Award")}</p>
+                    <p className="text-[15px] font-semibold leading-none text-white">{video.award}</p>
+                  </div>
+                </div>
+              )}
               <div className="flex items-center gap-3 border-r border-white/10 px-5 py-3">
-                <svg className="h-6 w-6 shrink-0 text-white/60" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-                  <path d="M8 21h8M12 17v4M17 3H7l-2 7c0 2.8 2.24 5 5 5s5-2.2 5-5l-2-7z"/>
-                  <path d="M5 10H3a2 2 0 000 4h2M19 10h2a2 2 0 010 4h-2"/>
+                <svg className="h-6 w-6 shrink-0 text-yellow-400" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
                 </svg>
                 <div>
-                  <p className="mb-0.5 text-[13px] leading-none text-white/40">{t("home.heroAwardLabel", "Award")}</p>
-                  <p className="text-[15px] font-semibold leading-none text-white">{video.award}</p>
+                  <p className="mb-0.5 text-[13px] leading-none text-white/40">{t("home.heroRating", "Rating")}</p>
+                  <p className="text-[15px] font-semibold leading-none text-white">{rating.toFixed(1)}</p>
                 </div>
               </div>
-            )}
-
-            <div className="flex items-center gap-3 border-r border-white/10 px-5 py-3">
-              <svg className="h-6 w-6 shrink-0 text-yellow-400" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
-              </svg>
-              <div>
-                <p className="mb-0.5 text-[13px] leading-none text-white/40">{t("home.heroRating", "Rating")}</p>
-                <p className="text-[15px] font-semibold leading-none text-white">
-                  {video.viewCount && video.viewCount > 10000 ? "9.2" : "8.7"} {t("home.heroTopRating", "Top Rating")}
-                </p>
-              </div>
+              {trend && (
+                <div className="flex items-center gap-3 px-5 py-3">
+                  <svg className="h-6 w-6 shrink-0 text-orange-400" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M12 2c0 6-8 10-8 14a8 8 0 0016 0c0-4-8-8-8-14z"/>
+                  </svg>
+                  <div>
+                    <p className="mb-0.5 text-[13px] leading-none text-white/40">{t("home.heroTrending", "Trending")}</p>
+                    <p className="text-[15px] font-semibold leading-none text-white">
+                      {trend === "New" && t("home.heroTrendNew", "New")}
+                      {trend === "Hot" && t("home.heroTrendHot", "Hot")}
+                      {trend === "Trending" && t("home.heroTrendTrendingValue", "Trending")}
+                    </p>
+                  </div>
+                </div>
+              )}
             </div>
-
-            <div className="flex items-center gap-3 px-5 py-3">
-              <svg className="h-6 w-6 shrink-0 text-orange-400" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M12 2c0 6-8 10-8 14a8 8 0 0016 0c0-4-8-8-8-14z"/>
-              </svg>
-              <div>
-                <p className="mb-0.5 text-[13px] leading-none text-white/40">{t("home.heroTrending", "Trending")}</p>
-                <p className="text-[15px] font-semibold leading-none text-white">
-                  {video.viewCount && video.viewCount > 50000
-                    ? t("home.heroHashOneWeek", "#1 This Week")
-                    : video.viewCount && video.viewCount > 10000
-                      ? t("home.heroTopWeek", "Top This Week")
-                      : t("home.heroRising", "Rising")}
-                </p>
-              </div>
-            </div>
-          </div>
+          )}
         </div>
       </div>
       {heroVideos.length > 1 && (
@@ -808,7 +831,7 @@ export function HomePageClient(props: HomePageClientProps) {
     <div className="min-h-screen bg-background">
       {/* Hero — full width */}
       <AnimateIn delay={0.05}>
-        <HeroBanner videos={videos} />
+        <HeroBanner videos={videos} allVideos={videos} />
       </AnimateIn>
 
       <div className="pt-1">

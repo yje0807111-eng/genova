@@ -17,10 +17,14 @@ export default async function Home() {
   let followingVideos: Awaited<ReturnType<typeof fetchVideosWithCreators>> = [];
 
   if (supabase) {
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-    isLoggedIn = Boolean(user);
+    try {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      isLoggedIn = Boolean(user);
+    } catch {
+      isLoggedIn = false;
+    }
   }
 
   const [rawVideos, rawOriginals, competition] = await Promise.all([
@@ -34,6 +38,8 @@ export default async function Home() {
     attachEngagementToVideos(rawOriginals),
   ]);
 
+  const uploadedFirst = [...videosWithE].sort((a, b) => (b.viewCount ?? 0) - (a.viewCount ?? 0));
+
   let spotlightCreators: Awaited<ReturnType<typeof fetchSpotlightCreators>> = [];
   try {
     spotlightCreators = (await fetchSpotlightCreators()).slice(0, 5);
@@ -43,7 +49,7 @@ export default async function Home() {
 
   return (
     <HomePageClient
-      videosFromDb={videosWithE}
+      videosFromDb={uploadedFirst}
       competitionDeadlineIso={competition?.deadline ?? null}
       competition={competition}
       originals={originalsWithE}

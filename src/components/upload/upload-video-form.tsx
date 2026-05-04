@@ -1,6 +1,5 @@
 "use client";
 
-import MuxUploader from "@mux/mux-uploader-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { createVideoAction } from "@/app/actions/video";
@@ -163,10 +162,108 @@ function CustomSelect({
   );
 }
 
+function SelectedVideoUploader({
+  file,
+  uploadUrl,
+  onUploadStart,
+  onProgress,
+  onSuccess,
+  onReset,
+  status,
+  duration,
+}: {
+  file: File;
+  uploadUrl: string;
+  onUploadStart: () => void;
+  onProgress: (pct: number) => void;
+  onSuccess: () => void;
+  onReset: () => void;
+  status: "idle" | "uploading" | "processing" | "ready";
+  duration: number | null;
+}) {
+  const [progress, setProgress] = useState(0);
+  const [started, setStarted] = useState(false);
+
+  useEffect(() => {
+    if (started) return;
+    setStarted(true);
+    onUploadStart();
+
+    const xhr = new XMLHttpRequest();
+    xhr.open("PUT", uploadUrl);
+    xhr.upload.onprogress = (event) => {
+      if (event.lengthComputable) {
+        const pct = Math.round((event.loaded / event.total) * 100);
+        setProgress(pct);
+        onProgress(pct);
+      }
+    };
+    xhr.onload = () => {
+      if (xhr.status >= 200 && xhr.status < 300) onSuccess();
+    };
+    xhr.send(file);
+  }, []);
+
+  return (
+    <div className="space-y-3 rounded-xl border border-white/[0.08] p-3">
+      <div className="flex items-center gap-2">
+        <svg className="h-4 w-4 shrink-0 text-[#7F77DD]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
+          <path
+            d="M15 10l4.553-2.277A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M3 8a2 2 0 012-2h8a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2V8z"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        </svg>
+        <p className="min-w-0 flex-1 truncate text-xs text-white/60">{file.name}</p>
+        {status === "idle" && (
+          <button type="button" onClick={onReset} className="text-white/30 hover:text-white/60">
+            <svg viewBox="0 0 24 24" className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth={2}>
+              <path d="M18 6L6 18M6 6l12 12" strokeLinecap="round" />
+            </svg>
+          </button>
+        )}
+      </div>
+
+      {status === "uploading" && (
+        <div className="space-y-1.5">
+          <div className="h-1.5 w-full overflow-hidden rounded-full bg-white/[0.06]">
+            <div
+              className="h-full rounded-full transition-all duration-300"
+              style={{ width: `${progress}%`, background: "linear-gradient(90deg, #534AB7, #7B6FE8)" }}
+            />
+          </div>
+          <p className="text-[11px] text-[#AFA9EC]">Uploading... {progress}%</p>
+        </div>
+      )}
+
+      {status === "processing" && (
+        <div className="space-y-1.5">
+          <div className="h-1.5 w-full overflow-hidden rounded-full bg-white/[0.06]">
+            <div className="h-full w-full animate-pulse rounded-full" style={{ background: "linear-gradient(90deg, #534AB7, #7B6FE8)" }} />
+          </div>
+          <p className="text-[11px] text-amber-400">Processing...</p>
+        </div>
+      )}
+
+      {status === "ready" && (
+        <div className="flex items-center gap-2">
+          <div className="h-2 w-2 rounded-full bg-emerald-400" />
+          <p className="text-[11px] text-emerald-400">
+            Ready to publish
+            {duration &&
+              ` · ${String(Math.floor(duration / 60)).padStart(2, "0")}:${String(Math.round(duration % 60)).padStart(2, "0")}`}
+          </p>
+        </div>
+      )}
+    </div>
+  );
+}
+
 export function UploadVideoForm({ userId, competitions }: Props) {
   const { t, locale } = useI18n();
   const router = useRouter();
   const thumbInputRef = useRef<HTMLInputElement>(null);
+  const videoInputRef = useRef<HTMLInputElement>(null);
   const muxUploadIdRef = useRef<string | null>(null);
 
   const [title, setTitle] = useState("");
@@ -192,6 +289,7 @@ export function UploadVideoForm({ userId, competitions }: Props) {
 
   const [description, setDescription] = useState("");
   const [runtimeMinutes, setRuntimeMinutes] = useState(5);
+  const [runtimeSeconds, setRuntimeSeconds] = useState(0);
   const [visibility, setVisibility] = useState<"public" | "private">("public");
   const [purpose, setPurpose] = useState<"personal" | "competition">("personal");
   const [competitionId, setCompetitionId] = useState(competitions[0]?.id ?? "");
@@ -208,6 +306,8 @@ export function UploadVideoForm({ userId, competitions }: Props) {
   const [uploadMode, setUploadMode] = useState<"mux" | "vimeo">("mux");
   const [muxUploadStatus, setMuxUploadStatus] = useState<"idle" | "uploading" | "processing" | "ready">("idle");
   const [muxDuration, setMuxDuration] = useState<number | null>(null);
+  const [selectedVideoFile, setSelectedVideoFile] = useState<File | null>(null);
+  const [isDraggingOver, setIsDraggingOver] = useState(false);
 
   const vimeoPreview = extractVimeoId(vimeoUrl);
   const showSubGenre = needsSubGenre(mainGenre);
@@ -227,6 +327,59 @@ export function UploadVideoForm({ userId, competitions }: Props) {
       .then((data) => setExistingSeries(data))
       .catch(() => {});
   }, [isSeriesMode]);
+
+  useEffect(() => {
+    const handleDragOver = (e: DragEvent) => {
+      e.preventDefault();
+      setIsDraggingOver(true);
+    };
+    const handleDragLeave = (e: DragEvent) => {
+      if (e.relatedTarget === null) setIsDraggingOver(false);
+    };
+    const handleDrop = async (e: DragEvent) => {
+      e.preventDefault();
+      setIsDraggingOver(false);
+      const files = Array.from(e.dataTransfer?.files ?? []);
+
+      for (const file of files) {
+        if (file.type.startsWith("video/")) {
+          setUploadMode("mux");
+          try {
+            const res = await fetch("/api/mux/upload", { method: "POST" });
+            const data = await res.json();
+            setMuxUploadUrl(data.uploadUrl);
+            setMuxUploadId(data.uploadId);
+            muxUploadIdRef.current = data.uploadId ?? null;
+            setError(null);
+          } catch {
+            setError(t("upload.errInitUpload"));
+          }
+        } else if (file.type.startsWith("image/")) {
+          // 이미지 → 썸네일
+          if (file.size > 6 * 1024 * 1024) {
+            setError(t("upload.errImageSize"));
+            continue;
+          }
+          setThumbnailPreview((prev) => {
+            if (prev?.startsWith("blob:")) URL.revokeObjectURL(prev);
+            return URL.createObjectURL(file);
+          });
+          setThumbnailFile(file);
+          setThumbnailFromUrl(null);
+          setError(null);
+        }
+      }
+    };
+
+    window.addEventListener("dragover", handleDragOver);
+    window.addEventListener("dragleave", handleDragLeave);
+    window.addEventListener("drop", handleDrop);
+    return () => {
+      window.removeEventListener("dragover", handleDragOver);
+      window.removeEventListener("dragleave", handleDragLeave);
+      window.removeEventListener("drop", handleDrop);
+    };
+  }, [t]);
 
   useEffect(() => {
     if (!vimeoPreview) return;
@@ -281,7 +434,8 @@ export function UploadVideoForm({ userId, competitions }: Props) {
           setMuxUploadStatus("ready");
           if (data.duration) {
             setMuxDuration(data.duration);
-            setRuntimeMinutes(Math.ceil(data.duration / 60));
+            setRuntimeMinutes(Math.floor(data.duration / 60));
+            setRuntimeSeconds(Math.round(data.duration % 60));
           }
           clearInterval(interval);
         } else if (data.status === "waiting" || data.status === "preparing") {
@@ -324,6 +478,24 @@ export function UploadVideoForm({ userId, competitions }: Props) {
     setError(null);
   };
 
+  const onVideoChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const f = e.target.files?.[0];
+    if (!f) return;
+    setSelectedVideoFile(f);
+    setError(null);
+    try {
+      const res = await fetch("/api/mux/upload", { method: "POST" });
+      if (!res.ok) throw new Error(await res.text());
+      const data = await res.json();
+      setMuxUploadUrl(data.uploadUrl);
+      setMuxUploadId(data.uploadId);
+      muxUploadIdRef.current = data.uploadId ?? null;
+    } catch (err) {
+      setError(err instanceof Error ? err.message : t("upload.errInitUpload"));
+      setSelectedVideoFile(null);
+    }
+  };
+
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
@@ -339,7 +511,7 @@ export function UploadVideoForm({ userId, competitions }: Props) {
       setError(t("upload.errThumbnail"));
       return;
     }
-    if (runtimeMinutes < 1) {
+    if (runtimeMinutes * 60 + runtimeSeconds < 1) {
       setError(t("upload.errRuntime"));
       return;
     }
@@ -405,7 +577,7 @@ export function UploadVideoForm({ userId, competitions }: Props) {
         seriesName: isSeriesMode ? seriesName.trim() : null,
         episodeNumber: isSeriesMode ? episodeNumber : null,
         description,
-        runtimeMinutes: Math.round(runtimeMinutes),
+        runtimeMinutes: runtimeMinutes + runtimeSeconds / 60,
         visibility,
         submittedCompetitionId: purpose === "competition" ? competitionId : null,
         muxPlaybackId: uploadMode === "mux" ? muxPlaybackId : null,
@@ -435,8 +607,38 @@ export function UploadVideoForm({ userId, competitions }: Props) {
         className="sr-only"
         onChange={onThumbChange}
       />
+      <input
+        ref={videoInputRef}
+        type="file"
+        accept="video/mp4,video/quicktime,video/webm,video/*"
+        className="sr-only"
+        onChange={(e) => void onVideoChange(e)}
+      />
 
       <form onSubmit={(e) => void submit(e)}>
+        {isDraggingOver && (
+          <div
+            className="fixed inset-0 z-[200] flex flex-col items-center justify-center gap-4 pointer-events-none"
+            style={{ background: "rgba(8,6,24,0.85)", backdropFilter: "blur(8px)" }}
+          >
+            <div
+              className="rounded-2xl border-2 border-dashed border-[#7F77DD]/60 p-16 text-center"
+              style={{ background: "rgba(83,74,183,0.15)" }}
+            >
+              <svg
+                className="mx-auto mb-4 h-16 w-16 text-[#7F77DD]/60"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.5"
+              >
+                <path d="M12 16v-8m0 0-3 3m3-3 3 3M4 17h16" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+              <p className="text-xl font-bold text-white">Drop here</p>
+              <p className="mt-2 text-sm text-white/40">Video → Video Source · Image → Thumbnail</p>
+            </div>
+          </div>
+        )}
         {/* 큰 외부 박스 */}
         <div
           className="rounded-2xl border border-white/[0.08] p-4"
@@ -495,7 +697,7 @@ export function UploadVideoForm({ userId, competitions }: Props) {
                     {!muxUploadUrl ? (
                       <button
                         type="button"
-                        onClick={() => void initMuxUpload()}
+                        onClick={() => videoInputRef.current?.click()}
                         className="flex h-[140px] w-full flex-col items-center justify-center gap-3 rounded-xl border border-dashed border-[#7F77DD]/25 bg-white/[0.02] transition hover:border-[#7F77DD]/50 hover:bg-white/[0.04]"
                       >
                         <svg className="h-8 w-8 text-[#7F77DD]/40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
@@ -506,33 +708,27 @@ export function UploadVideoForm({ userId, competitions }: Props) {
                           <p className="text-[11px] text-white/20">{t("upload.videoFormatsHint")}</p>
                         </div>
                       </button>
-                    ) : (
-                      <div className="space-y-2">
-                        <MuxUploader
-                          endpoint={muxUploadUrl}
-                          onUploadStart={() => setMuxUploadStatus("uploading")}
-                          onSuccess={() => {
-                            setMuxUploadStatus("processing");
-                            const id = muxUploadIdRef.current;
-                            if (id) void pollMuxAsset(id);
-                          }}
-                          style={{ width: "100%" }}
-                        />
-                        {muxUploadStatus === "uploading" && (
-                          <p className="text-[11px] text-[#AFA9EC]">{t("upload.statusUploading")}</p>
-                        )}
-                        {muxUploadStatus === "processing" && (
-                          <p className="text-[11px] text-amber-400">{t("upload.statusProcessing")}</p>
-                        )}
-                        {muxUploadStatus === "ready" && (
-                          <p className="text-[11px] text-emerald-400">
-                            {t("upload.readyPublish")}
-                            {muxDuration &&
-                              ` · ${t("upload.readyMinutes").replace("{n}", String(Math.ceil(muxDuration / 60)))}`}
-                          </p>
-                        )}
-                      </div>
-                    )}
+                    ) : selectedVideoFile ? (
+                      <SelectedVideoUploader
+                        file={selectedVideoFile}
+                        uploadUrl={muxUploadUrl}
+                        onUploadStart={() => setMuxUploadStatus("uploading")}
+                        onProgress={() => {}}
+                        onSuccess={() => {
+                          setMuxUploadStatus("processing");
+                          const id = muxUploadIdRef.current;
+                          if (id) void pollMuxAsset(id);
+                        }}
+                        onReset={() => {
+                          setSelectedVideoFile(null);
+                          setMuxUploadUrl(null);
+                          setMuxUploadId(null);
+                          setMuxUploadStatus("idle");
+                        }}
+                        status={muxUploadStatus}
+                        duration={muxDuration}
+                      />
+                    ) : null}
                   </div>
                 ) : (
                   <div className="space-y-3">
@@ -821,10 +1017,27 @@ export function UploadVideoForm({ userId, competitions }: Props) {
                 </div>
 
                 {/* 런타임 */}
-                <div>
-                  <label className={lbl}>{t("upload.runtimeMinutes")}</label>
-                  <NumberInput value={runtimeMinutes} onChange={setRuntimeMinutes} min={1} />
-                </div>
+                {uploadMode === "vimeo" && (
+                  <div>
+                    <label className={lbl}>{t("upload.runtimeMinutes")}</label>
+                    <NumberInput value={runtimeMinutes} onChange={setRuntimeMinutes} min={1} />
+                  </div>
+                )}
+                {uploadMode === "mux" && muxUploadStatus === "ready" && muxDuration && (
+                  <div className="rounded-lg border border-emerald-500/20 bg-emerald-950/20 px-3 py-2">
+                    <p className="text-[11px] text-emerald-400/70">Runtime (auto-detected)</p>
+                    <p className="text-sm font-bold text-emerald-400">
+                      {String(Math.floor(muxDuration / 60)).padStart(2, "0")}:{String(Math.round(muxDuration % 60)).padStart(2, "0")}
+                    </p>
+                  </div>
+                )}
+                {uploadMode === "mux" && muxUploadStatus !== "ready" && (
+                  <div>
+                    <label className={lbl}>{t("upload.runtimeMinutes")}</label>
+                    <NumberInput value={runtimeMinutes} onChange={setRuntimeMinutes} min={1} />
+                    <p className="mt-1 text-[10px] text-white/25">Upload video to auto-detect</p>
+                  </div>
+                )}
 
                 <div>
                   <p className={lbl}>{t("upload.seriesToggleLabel")}</p>

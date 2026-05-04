@@ -4,7 +4,8 @@ import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
-import { Bell, Search, Upload, User } from "lucide-react";
+import { Bell, Search, Upload, User, X } from "lucide-react";
+import { markAllNotificationsReadAction } from "@/app/actions/notifications";
 import { useI18n } from "@/components/genova/language-provider";
 import { getBrowserSupabaseClient } from "@/lib/supabase/browser";
 
@@ -196,9 +197,33 @@ function SearchBar() {
 
 export function Navbar() {
   const { t } = useI18n();
+  const router = useRouter();
   const [userId, setUserId] = useState<string | null | undefined>(undefined);
   const [isAdmin, setIsAdmin] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
+  const [showNotifications, setShowNotifications] = useState(false);
+  const [notifications, setNotifications] = useState<
+    {
+      id: string;
+      title: string;
+      body: string | null;
+      type: string | null;
+      isRead: boolean;
+      href: string | null;
+      createdAt: string | null;
+    }[]
+  >([]);
+  const notificationRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (notificationRef.current && !notificationRef.current.contains(e.target as Node)) {
+        setShowNotifications(false);
+      }
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, []);
 
   useEffect(() => {
     const supabase = getBrowserSupabaseClient();
@@ -228,13 +253,29 @@ export function Navbar() {
 
       if (user) {
         try {
-          const { count } = await supabase
+          const { data: notifs } = await supabase
             .from("notifications")
-            .select("*", { count: "exact", head: true })
+            .select("*")
             .eq("user_id", user.id)
-            .eq("is_read", false);
-          setUnreadCount(count ?? 0);
+            .order("created_at", { ascending: false })
+            .limit(10);
+          setNotifications(
+            (notifs ?? []).map((n) => ({
+              id: n.id as string,
+              title: n.title as string,
+              body: (n.body as string | null) ?? null,
+              type: (n.type as string | null) ?? null,
+              isRead: Boolean(n.is_read),
+              href: (n.href as string | null) ?? null,
+              createdAt: (n.created_at as string | null) ?? null,
+            })),
+          );
+          const unread = (notifs ?? []).filter((n) => !n.is_read).length;
+          setUnreadCount(unread);
         } catch {}
+      } else {
+        setNotifications([]);
+        setUnreadCount(0);
       }
     };
     void syncUser();
@@ -280,6 +321,12 @@ export function Navbar() {
           <div className="flex shrink-0 items-center gap-3 pr-4">
             <Link
               href="/upload"
+              onClick={(e) => {
+                if (userId === null) {
+                  e.preventDefault();
+                  router.push("/auth");
+                }
+              }}
               className="flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-bold text-white transition-all duration-300 hover:scale-[1.03]"
               style={{
                 background: "linear-gradient(135deg, #534AB7 0%, #7B6FE8 100%)",
@@ -290,21 +337,185 @@ export function Navbar() {
               <span className="hidden sm:inline">{t("nav.upload", "Upload")}</span>
             </Link>
             {userId && (
-              <Link
-                href="/notifications"
-                className="relative flex h-9 w-9 items-center justify-center rounded-full border border-white/10 bg-white/[0.06] transition-all duration-200 hover:border-[#7F77DD]/40 hover:bg-white/[0.1]"
-                aria-label="Notifications"
-              >
-                <Bell className="h-4 w-4 text-white/60" />
-                {unreadCount > 0 && (
-                  <span
-                    className="absolute -right-0.5 -top-0.5 flex h-4 w-4 items-center justify-center rounded-full text-[9px] font-bold text-white"
-                    style={{ background: "#534AB7" }}
+              <div ref={notificationRef} className="relative">
+                <button
+                  type="button"
+                  onClick={() => {
+                    const next = !showNotifications;
+                    setShowNotifications(next);
+                    if (next && unreadCount > 0) {
+                      setUnreadCount(0);
+                    }
+                  }}
+                  className="relative flex h-9 w-9 items-center justify-center rounded-full border border-white/10 bg-white/[0.06] transition-all duration-200 hover:border-[#7F77DD]/40 hover:bg-white/[0.1]"
+                  aria-label="Notifications"
+                >
+                  <Bell className="h-4 w-4 text-white/60" />
+                  {unreadCount > 0 && (
+                    <span
+                      className="absolute -right-0.5 -top-0.5 flex h-4 w-4 items-center justify-center rounded-full text-[9px] font-bold text-white"
+                      style={{ background: "#534AB7" }}
+                    >
+                      {unreadCount > 9 ? "9+" : unreadCount}
+                    </span>
+                  )}
+                </button>
+
+                {showNotifications && (
+                  <div
+                    className="absolute right-0 top-full z-[100] mt-2 w-80 overflow-hidden rounded-2xl border border-white/[0.08]"
+                    style={{
+                      background: "linear-gradient(135deg, rgba(20,17,50,0.99) 0%, rgba(10,8,28,1) 100%)",
+                      boxShadow: "0 8px 32px rgba(0,0,0,0.6), 0 0 0 1px rgba(127,119,221,0.08)",
+                    }}
                   >
-                    {unreadCount > 9 ? "9+" : unreadCount}
-                  </span>
+                    <div className="flex items-center justify-between border-b border-white/[0.06] px-4 py-3">
+                      <div className="flex items-center gap-2">
+                        <p className="text-sm font-bold text-white">알림</p>
+                        {unreadCount > 0 && (
+                          <span
+                            className="inline-flex h-5 min-w-5 items-center justify-center rounded-full px-1.5 text-[10px] font-bold text-white"
+                            style={{ background: "#534AB7" }}
+                          >
+                            {unreadCount}
+                          </span>
+                        )}
+                      </div>
+                      <div className="flex items-center gap-2">
+                        {unreadCount > 0 && (
+                          <button
+                            type="button"
+                            onClick={async () => {
+                              await markAllNotificationsReadAction();
+                              setNotifications((prev) => prev.map((n) => ({ ...n, isRead: true })));
+                              setUnreadCount(0);
+                            }}
+                            className="text-[10px] text-white/40 transition hover:text-white/70"
+                          >
+                            모두 읽음
+                          </button>
+                        )}
+                        {notifications.length > 0 && (
+                          <button
+                            type="button"
+                            onClick={async () => {
+                              const supabase = getBrowserSupabaseClient();
+                              const ids = notifications.map((n) => n.id);
+                              if (ids.length === 0 || !supabase) return;
+                              await supabase.from("notifications").delete().in("id", ids);
+                              setNotifications([]);
+                              setUnreadCount(0);
+                            }}
+                            className="text-[10px] text-white/40 transition hover:text-red-400"
+                          >
+                            전체 삭제
+                          </button>
+                        )}
+                        <button
+                          type="button"
+                          onClick={() => setShowNotifications(false)}
+                          className="flex h-6 w-6 items-center justify-center rounded-full text-white/30 transition hover:bg-white/[0.05] hover:text-white/60"
+                        >
+                          <X className="h-3.5 w-3.5" />
+                        </button>
+                      </div>
+                    </div>
+
+                    <div className="max-h-[400px] overflow-y-auto">
+                      {notifications.length === 0 ? (
+                        <div className="flex flex-col items-center justify-center py-10 text-center">
+                          <Bell className="mb-3 h-8 w-8 text-white/15" />
+                          <p className="text-sm text-white/30">알림이 없습니다</p>
+                        </div>
+                      ) : (
+                        notifications.map((n) => {
+                          const content = (
+                            <div
+                              className={`flex cursor-pointer items-start gap-3 px-4 py-3 transition hover:bg-white/[0.03] ${!n.isRead ? "bg-[#534AB7]/10" : ""}`}
+                              onClick={async () => {
+                                if (!n.isRead) {
+                                  const supabase = getBrowserSupabaseClient();
+                                  if (supabase) {
+                                    await supabase.from("notifications").update({ is_read: true }).eq("id", n.id);
+                                  }
+                                  setNotifications((prev) =>
+                                    prev.map((item) => (item.id === n.id ? { ...item, isRead: true } : item)),
+                                  );
+                                  setUnreadCount((prev) => Math.max(0, prev - 1));
+                                }
+                                if (n.href) {
+                                  setShowNotifications(false);
+                                  router.push(n.href);
+                                }
+                              }}
+                            >
+                              <div
+                                className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full"
+                                style={{ background: n.isRead ? "rgba(255,255,255,0.04)" : "rgba(83,74,183,0.2)" }}
+                              >
+                                {n.type === "comment" ? (
+                                  <svg viewBox="0 0 24 24" className="h-3.5 w-3.5 text-blue-400" fill="none" stroke="currentColor" strokeWidth={2}>
+                                    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+                                  </svg>
+                                ) : n.type === "follow" ? (
+                                  <svg viewBox="0 0 24 24" className="h-3.5 w-3.5 text-emerald-400" fill="none" stroke="currentColor" strokeWidth={2}>
+                                    <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+                                    <circle cx="9" cy="7" r="4" />
+                                    <line x1="19" y1="8" x2="19" y2="14" />
+                                    <line x1="22" y1="11" x2="16" y2="11" />
+                                  </svg>
+                                ) : (
+                                  <svg viewBox="0 0 24 24" className="h-3.5 w-3.5 text-yellow-400" fill="none" stroke="currentColor" strokeWidth={2}>
+                                    <path d="M8 21h8M12 17v4M17 3H7l-2 7c0 2.8 2.24 5 5 5s5-2.2 5-5l-2-7z" />
+                                  </svg>
+                                )}
+                              </div>
+
+                              <div className="min-w-0 flex-1">
+                                <p className={`text-xs font-semibold ${n.isRead ? "text-white/50" : "text-white"}`}>{n.title}</p>
+                                {n.body && <p className="mt-0.5 text-[10px] text-white/30">{n.body}</p>}
+                              </div>
+
+                              <div className="flex shrink-0 items-center gap-1 self-start pt-0.5">
+                                {!n.isRead && <div className="mt-1.5 h-2 w-2 shrink-0 rounded-full bg-[#7F77DD]" />}
+                                <button
+                                  type="button"
+                                  onClick={async (e) => {
+                                    e.stopPropagation();
+                                    const supabase = getBrowserSupabaseClient();
+                                    if (!supabase) return;
+                                    await supabase.from("notifications").delete().eq("id", n.id);
+                                    setNotifications((prev) => prev.filter((item) => item.id !== n.id));
+                                    if (!n.isRead) setUnreadCount((prev) => Math.max(0, prev - 1));
+                                  }}
+                                  className="ml-1 flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-white/20 opacity-0 transition hover:bg-white/[0.05] hover:text-red-400 group-hover:opacity-100"
+                                >
+                                  <X className="h-3 w-3" />
+                                </button>
+                              </div>
+                            </div>
+                          );
+                          return (
+                            <div key={n.id} className="group">
+                              {content}
+                            </div>
+                          );
+                        })
+                      )}
+                    </div>
+
+                    <div className="border-t border-white/[0.06] px-4 py-2.5">
+                      <Link
+                        href="/notifications"
+                        onClick={() => setShowNotifications(false)}
+                        className="block text-center text-[11px] text-white/40 transition hover:text-white/70"
+                      >
+                        전체 알림 보기 →
+                      </Link>
+                    </div>
+                  </div>
                 )}
-              </Link>
+              </div>
             )}
             {userId === undefined ? (
               <span

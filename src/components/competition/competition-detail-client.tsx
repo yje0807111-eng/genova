@@ -12,18 +12,45 @@ import {
 type Competition = {
   id: string;
   title: string;
+  title_ko?: string | null;
+  title_en?: string | null;
+  title_ja?: string | null;
   genre: string;
   status: string;
   deadline: string;
   vote_end: string;
   prize_info: string;
+  prize_info_ko?: string | null;
+  prize_info_en?: string | null;
+  prize_info_ja?: string | null;
   sponsor: string | null;
   description: string | null;
   rules: string | null;
+  rules_ko?: string | null;
+  rules_en?: string | null;
+  rules_ja?: string | null;
+  eligibility: string | null;
+  eligibility_ko?: string | null;
+  eligibility_en?: string | null;
+  eligibility_ja?: string | null;
+  judging_criteria?: string | null;
+  judging_criteria_ko?: string | null;
+  judging_criteria_en?: string | null;
+  judging_criteria_ja?: string | null;
+  submission_guidelines?: string | null;
+  submission_guidelines_ko?: string | null;
+  submission_guidelines_en?: string | null;
+  submission_guidelines_ja?: string | null;
+  announcement?: string | null;
+  announcement_ko?: string | null;
+  announcement_en?: string | null;
+  announcement_ja?: string | null;
   thumbnail_url: string | null;
   banner_url: string | null;
   concept: string | null;
-  eligibility: string | null;
+  exchange_rate_usd_krw?: number | null;
+  exchange_rate_usd_jpy?: number | null;
+  base_currency?: string | null;
 };
 
 type Video = {
@@ -52,6 +79,74 @@ function formatPrize(prizeInfo: string) {
   return prizeInfo;
 }
 
+function formatPrizeWithConversion(
+  prizeKo: string | null | undefined,
+  prizeEn: string | null | undefined,
+  prizeJa: string | null | undefined,
+  prizeFallback: string,
+  locale: string,
+  baseCurrency: string | null | undefined,
+  usdToKrw: number,
+  usdToJpy: number,
+): string {
+  const usdToKrwRate = usdToKrw || 1350;
+  const usdToJpyRate = usdToJpy || 148;
+  const krwToUsd = 1 / usdToKrwRate;
+  const krwToJpy = usdToJpyRate / usdToKrwRate;
+  const jpyToUsd = 1 / usdToJpyRate;
+  const jpyToKrw = usdToKrwRate / usdToJpyRate;
+
+  const base = baseCurrency ?? "USD";
+
+  // 숫자 추출 함수
+  const extractAmount = (text: string): number | null => {
+    const match = text.replace(/,/g, "").match(/[\d.]+/);
+    return match ? parseFloat(match[0]) : null;
+  };
+
+  const formatKRW = (n: number) => `₩${Math.round(n).toLocaleString()}`;
+  const formatUSD = (n: number) => `$${Math.round(n).toLocaleString()}`;
+  const formatJPY = (n: number) => `¥${Math.round(n).toLocaleString()}`;
+
+  if (locale === "ko") {
+    const text = prizeKo || prizeEn || prizeFallback;
+    const amount = extractAmount(text);
+    if (!amount) return text;
+    if (base === "USD") {
+      return `${formatUSD(amount)} (약 ${formatKRW(amount * usdToKrwRate)})`;
+    }
+    if (base === "JPY") {
+      return `${formatJPY(amount)} (약 ${formatKRW(amount * jpyToKrw)})`;
+    }
+    return formatKRW(amount);
+  }
+
+  if (locale === "ja") {
+    const text = prizeJa || prizeEn || prizeFallback;
+    const amount = extractAmount(text);
+    if (!amount) return text;
+    if (base === "USD") {
+      return `${formatUSD(amount)} (約 ${formatJPY(amount * usdToJpyRate)})`;
+    }
+    if (base === "KRW") {
+      return `${formatKRW(amount)} (約 ${formatJPY(amount * krwToJpy)})`;
+    }
+    return formatJPY(amount);
+  }
+
+  // en
+  const text = prizeEn || prizeKo || prizeFallback;
+  const amount = extractAmount(text);
+  if (!amount) return text;
+  if (base === "KRW") {
+    return `${formatKRW(amount)} (≈ ${formatUSD(amount * krwToUsd)})`;
+  }
+  if (base === "JPY") {
+    return `${formatJPY(amount)} (≈ ${formatUSD(amount * jpyToUsd)})`;
+  }
+  return formatUSD(amount);
+}
+
 const RULE_FALLBACK_EN = [
   "All submitted videos must be AI-generated. Human-captured footage is not permitted.",
   "Maximum runtime: 90 seconds for short films, 4 minutes for music videos.",
@@ -77,6 +172,40 @@ export function CompetitionDetailClient({
   const [sortBy, setSortBy] = useState<"views" | "newest" | "award">("views");
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
 
+  const getText = (
+    ko: string | null | undefined,
+    en: string | null | undefined,
+    ja: string | null | undefined,
+    fallback: string,
+  ) => {
+    if (locale === "ko") return ko || en || ja || fallback;
+    if (locale === "ja") return ja || en || ko || fallback;
+    return en || ko || ja || fallback;
+  };
+
+  const prizeText = getText(
+    competition.prize_info_ko,
+    competition.prize_info_en,
+    competition.prize_info_ja,
+    competition.prize_info,
+  );
+
+  const prizeDisplay = formatPrizeWithConversion(
+    competition.prize_info_ko,
+    competition.prize_info_en,
+    competition.prize_info_ja,
+    competition.prize_info,
+    locale,
+    competition.base_currency,
+    competition.exchange_rate_usd_krw ?? 1350,
+    competition.exchange_rate_usd_jpy ?? 148,
+  );
+
+  const rulesText = getText(competition.rules_ko, competition.rules_en, competition.rules_ja, competition.rules ?? "");
+  const rules = rulesText
+    ? rulesText.split("\n").filter(Boolean)
+    : RULE_FALLBACK_EN.map((fb, i) => t(`competition.detail.rule${i + 1}`, fb));
+
   const d = dDay(competition.deadline);
   const isOpen = ["Open", "접수중", "In Review", "Voting"].includes(competition.status);
   const isUpcoming = ["Upcoming", "예정"].includes(competition.status);
@@ -86,9 +215,6 @@ export function CompetitionDetailClient({
     "https://images.unsplash.com/photo-1536440136628-849c177e76a1?w=1400&q=80";
 
   const concept = competition.concept || t("competition.detail.mockConcept", MOCK_CONCEPT_EN);
-  const rules = competition.rules
-    ? competition.rules.split("\n").filter(Boolean)
-    : RULE_FALLBACK_EN.map((fb, i) => t(`competition.detail.rule${i + 1}`, fb));
 
   const sortedVideos = [...videos].sort((a, b) => {
     if (sortBy === "views") return (b.view_count ?? 0) - (a.view_count ?? 0);
@@ -141,14 +267,14 @@ export function CompetitionDetailClient({
           </div>
 
           <h1 className="text-4xl font-extrabold leading-tight text-white sm:text-5xl">
-            {competition.title}
+            {getText(competition.title_ko, competition.title_en, competition.title_ja, competition.title)}
           </h1>
 
           {/* Stats row */}
           <div className="mt-4 flex flex-wrap items-center gap-6 text-[13px] text-white/60">
             <div className="flex items-center gap-1.5">
               <Trophy size={14} className="text-[#C8963E]" />
-              <span className="font-bold text-[#C8963E] text-[15px]">{formatPrize(competition.prize_info)}</span>
+              <span className="font-bold text-[#C8963E] text-[15px]">{prizeDisplay}</span>
             </div>
             <div className="flex items-center gap-1.5">
               <Calendar size={13} />
@@ -227,6 +353,44 @@ export function CompetitionDetailClient({
                 ))}
               </ol>
             </div>
+
+            {(competition.judging_criteria_ko ||
+              competition.judging_criteria_en ||
+              competition.judging_criteria_ja ||
+              competition.judging_criteria) && (
+              <div className="rounded-2xl border border-white/[0.08] bg-white/[0.03] p-8">
+                <h2 className="mb-4 text-[11px] font-bold uppercase tracking-[0.2em] text-[#7F77DD]/70">
+                  {locale === "ko" ? "심사 방법" : locale === "ja" ? "審査方法" : "Judging Criteria"}
+                </h2>
+                <p className="text-[14px] leading-relaxed text-white/60 whitespace-pre-wrap">
+                  {getText(
+                    competition.judging_criteria_ko,
+                    competition.judging_criteria_en,
+                    competition.judging_criteria_ja,
+                    competition.judging_criteria ?? "",
+                  )}
+                </p>
+              </div>
+            )}
+
+            {(competition.submission_guidelines_ko ||
+              competition.submission_guidelines_en ||
+              competition.submission_guidelines_ja ||
+              competition.submission_guidelines) && (
+              <div className="rounded-2xl border border-white/[0.08] bg-white/[0.03] p-8">
+                <h2 className="mb-4 text-[11px] font-bold uppercase tracking-[0.2em] text-[#7F77DD]/70">
+                  {locale === "ko" ? "출품 가이드라인" : locale === "ja" ? "応募ガイドライン" : "Submission Guidelines"}
+                </h2>
+                <p className="text-[14px] leading-relaxed text-white/60 whitespace-pre-wrap">
+                  {getText(
+                    competition.submission_guidelines_ko,
+                    competition.submission_guidelines_en,
+                    competition.submission_guidelines_ja,
+                    competition.submission_guidelines ?? "",
+                  )}
+                </p>
+              </div>
+            )}
           </div>
 
           {/* Side info */}
@@ -236,8 +400,8 @@ export function CompetitionDetailClient({
               <h2 className="mb-4 text-[11px] font-bold uppercase tracking-[0.2em] text-[#7F77DD]/70">
                 {t("competition.detail.prizePool")}
               </h2>
-              <div className="text-3xl font-extrabold text-[#C8963E]">{formatPrize(competition.prize_info)}</div>
-              <p className="mt-1 text-[12px] text-white/30">{competition.prize_info}</p>
+              <div className="text-3xl font-extrabold text-[#C8963E]">{prizeDisplay}</div>
+              <p className="mt-1 text-[12px] text-white/30">{prizeText}</p>
               {[
                 { labelKey: "competition.detail.grandPrizeShare", value: "50%", icon: "🥇" },
                 { labelKey: "competition.detail.runnerUpShare", value: "30%", icon: "🥈" },
@@ -288,14 +452,54 @@ export function CompetitionDetailClient({
             )}
 
             {/* Eligibility */}
-            {competition.eligibility && (
+            {(competition.eligibility_ko ||
+              competition.eligibility_en ||
+              competition.eligibility_ja ||
+              competition.eligibility) && (
               <div className="rounded-2xl border border-white/[0.08] bg-white/[0.03] p-6">
                 <h2 className="mb-3 text-[11px] font-bold uppercase tracking-[0.2em] text-[#7F77DD]/70">
                   {t("competition.detail.eligibilityTitle")}
                 </h2>
-                <p className="text-[13px] leading-relaxed text-white/50">{competition.eligibility}</p>
+                <p className="text-[13px] leading-relaxed text-white/50">
+                  {getText(
+                    competition.eligibility_ko,
+                    competition.eligibility_en,
+                    competition.eligibility_ja,
+                    competition.eligibility ?? "",
+                  )}
+                </p>
               </div>
             )}
+
+            {(competition.announcement_ko ||
+              competition.announcement_en ||
+              competition.announcement_ja ||
+              competition.announcement) && (
+              <div className="rounded-2xl border border-[#7F77DD]/20 bg-[#534AB7]/10 p-6">
+                <h2 className="mb-3 text-[11px] font-bold uppercase tracking-[0.2em] text-[#7F77DD]/70">공지사항</h2>
+                <p className="text-[13px] leading-relaxed text-white/60 whitespace-pre-wrap">
+                  {getText(
+                    competition.announcement_ko,
+                    competition.announcement_en,
+                    competition.announcement_ja,
+                    competition.announcement ?? "",
+                  )}
+                </p>
+              </div>
+            )}
+
+            <div className="rounded-2xl border border-white/[0.06] bg-white/[0.02] p-6">
+              <h2 className="mb-3 text-[11px] font-bold uppercase tracking-[0.2em] text-[#7F77DD]/70">
+                {locale === "ko" ? "환율 안내" : locale === "ja" ? "為替レートについて" : "Exchange Rate Notice"}
+              </h2>
+              <p className="text-[13px] leading-relaxed text-white/40">
+                {locale === "ko"
+                  ? `표시된 금액은 공모전 시작 시점의 고정 환율(1 USD = ₩${(competition.exchange_rate_usd_krw ?? 1350).toLocaleString()}, ¥${competition.exchange_rate_usd_jpy ?? 148})을 기준으로 합니다. 실제 지급 시 당일 환율이 적용될 수 있습니다.`
+                  : locale === "ja"
+                    ? `表示金額は、コンペ開始時点の固定為替レート（1 USD = ₩${(competition.exchange_rate_usd_krw ?? 1350).toLocaleString()}、¥${competition.exchange_rate_usd_jpy ?? 148}）に基づいています。実際の支払い時には当日の為替レートが適用される場合があります。`
+                    : `Amounts shown are based on the fixed exchange rate at the start of the competition (1 USD = ₩${(competition.exchange_rate_usd_krw ?? 1350).toLocaleString()}, ¥${competition.exchange_rate_usd_jpy ?? 148}). Actual payment may be subject to the exchange rate at the time of disbursement.`}
+              </p>
+            </div>
           </div>
         </div>
 

@@ -23,7 +23,11 @@ export async function middleware(request: NextRequest) {
     },
   });
 
-  await supabase.auth.getUser();
+  try {
+    await supabase.auth.getUser();
+  } catch {
+    /* Stale/invalid refresh token in cookies — continue; client will re-auth or use anon */
+  }
 
   return supabaseResponse;
 }

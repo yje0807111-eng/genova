@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useI18n } from "@/components/genova/language-provider";
 import { deleteCompetitionAction, setVideoOriginalAction } from "@/app/actions/admin";
 import { updateVideoVisibilityAction } from "@/app/actions/video";
@@ -15,6 +15,7 @@ import {
 } from "@/app/actions/admin";
 import { grantCompetitionTrophyAction, runWeeklyGenreTrophiesAction } from "@/app/actions/trophies-admin";
 import type { Competition, Video } from "@/lib/types";
+import { getBrowserSupabaseClient } from "@/lib/supabase/browser";
 
 function AwardDropdown({
   videoId,
@@ -109,6 +110,7 @@ function AwardDropdown({
 export function AdminDashboard({ competitions, videos }: { competitions: Competition[]; videos: Video[] }) {
   const router = useRouter();
   const { t } = useI18n();
+  const competitionThumbInputRef = useRef<HTMLInputElement>(null);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [form, setForm] = useState({
@@ -120,6 +122,11 @@ export function AdminDashboard({ competitions, videos }: { competitions: Competi
     voteEnd: "",
     prizeInfo: "",
     sponsor: "",
+    thumbnailUrl: "",
+    rules: "",
+    judgingCriteria: "",
+    eligibility: "",
+    submissionGuidelines: "",
   });
   const [trophyUserId, setTrophyUserId] = useState("");
   const [trophyCompetitionId, setTrophyCompetitionId] = useState("");
@@ -129,6 +136,7 @@ export function AdminDashboard({ competitions, videos }: { competitions: Competi
   const [videoFilter, setVideoFilter] = useState<"all" | "competition" | string>("all");
   const [currency, setCurrency] = useState<"KRW" | "USD" | "JPY">("KRW");
   const [prizeAmount, setPrizeAmount] = useState("");
+  const currencySymbol = currency === "KRW" ? "₩" : currency === "USD" ? "$" : "¥";
   const [videoSort, setVideoSort] = useState<"latest" | "likes" | "views" | "reports">("latest");
   const [videoTimeFilter, setVideoTimeFilter] = useState<"all" | "week" | "month">("all");
   const [selectedCompetitionFilter, setSelectedCompetitionFilter] = useState<string>("all");
@@ -149,29 +157,67 @@ export function AdminDashboard({ competitions, videos }: { competitions: Competi
   const [showAwardSelect, setShowAwardSelect] = useState<string | null>(null);
   const [selectedAward, setSelectedAward] = useState("");
   const [localCompetitions, setLocalCompetitions] = useState(competitions);
-  const [heroEyebrow, setHeroEyebrow] = useState("2ND GENOVA AI FILM COMPETITION");
+  const [heroEyebrowKo, setHeroEyebrowKo] = useState("");
+  const [heroEyebrowEn, setHeroEyebrowEn] = useState("");
+  const [heroEyebrowJa, setHeroEyebrowJa] = useState("");
+  const [eyebrowLangTab, setEyebrowLangTab] = useState<"ko" | "en" | "ja">("ko");
   const [heroEyebrowLoading, setHeroEyebrowLoading] = useState(false);
+  const [featuredCompetitionId, setFeaturedCompetitionId] = useState("");
+  const [featuredLoading, setFeaturedLoading] = useState(false);
+  const [competitionThumbPreview, setCompetitionThumbPreview] = useState<string | null>(null);
+  const [competitionThumbDragging, setCompetitionThumbDragging] = useState(false);
 
   useEffect(() => {
     setLocalCompetitions(competitions);
   }, [competitions]);
 
   useEffect(() => {
-    fetch("/api/site-settings?key=films_hero_eyebrow")
-      .then((r) => r.json())
-      .then((d) => {
-        if (d.value) setHeroEyebrow(d.value);
+    Promise.all([
+      fetch("/api/site-settings?key=films_hero_eyebrow_ko").then((r) => r.json()),
+      fetch("/api/site-settings?key=films_hero_eyebrow_en").then((r) => r.json()),
+      fetch("/api/site-settings?key=films_hero_eyebrow_ja").then((r) => r.json()),
+    ])
+      .then(([ko, en, ja]) => {
+        if (ko.value) setHeroEyebrowKo(ko.value);
+        if (en.value) setHeroEyebrowEn(en.value);
+        if (ja.value) setHeroEyebrowJa(ja.value);
       })
       .catch(() => {});
   }, []);
+
+  useEffect(() => {
+    fetch("/api/site-settings?key=films_featured_competition_id")
+      .then((r) => r.json())
+      .then((d) => {
+        if (d.value) setFeaturedCompetitionId(d.value);
+      })
+      .catch(() => {});
+  }, []);
+
+  const onCompetitionThumbChange = async (file: File) => {
+    if (!file.type.startsWith("image/")) return;
+    setCompetitionThumbPreview(URL.createObjectURL(file));
+    const supabase = getBrowserSupabaseClient();
+    if (!supabase) return;
+    const safe = file.name.replace(/[^\w.-]/g, "_");
+    const path = `competitions/${Date.now()}-${safe}`;
+    const { error } = await supabase.storage.from("thumbnails").upload(path, file, { upsert: true });
+    if (error) return;
+    const {
+      data: { publicUrl },
+    } = supabase.storage.from("thumbnails").getPublicUrl(path);
+    setForm((p) => ({ ...p, thumbnailUrl: publicUrl }));
+  };
 
   const call = async (fn: () => Promise<{ ok: boolean; message?: string }>) => {
     setLoading(true);
     setMessage(null);
     try {
       const res = await fn();
-      setMessage(res.ok ? "Saved successfully." : res.message ?? "Failed");
+      setMessage(res.ok ? "저장되었습니다." : res.message ?? "실패했습니다.");
       if (res.ok) router.refresh();
+    } catch (err) {
+      setMessage(err instanceof Error ? err.message : "오류가 발생했습니다.");
     } finally {
       setLoading(false);
     }
@@ -292,7 +338,11 @@ export function AdminDashboard({ competitions, videos }: { competitions: Competi
             </div>
           </div>
           {message && (
-            <p className={`text-xs font-medium ${message === "Saved successfully." ? "text-emerald-400" : "text-red-400"}`}>
+            <p
+              className={`text-xs font-medium ${
+                message === "Saved successfully." || message === "저장되었습니다." ? "text-emerald-400" : "text-red-400"
+              }`}
+            >
               {message}
             </p>
           )}
@@ -304,11 +354,37 @@ export function AdminDashboard({ competitions, videos }: { competitions: Competi
         <div className="flex gap-2">
           <div className="flex-1">
             <label className="mb-1 block text-[10px] text-white/30">Films 히어로 배너 텍스트</label>
+            <div className="mb-2 flex gap-1 rounded-lg p-0.5" style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.06)" }}>
+              {(["ko", "en", "ja"] as const).map((lang) => (
+                <button
+                  key={lang}
+                  type="button"
+                  onClick={() => setEyebrowLangTab(lang)}
+                  className="flex-1 rounded-md py-1 text-[10px] font-semibold transition"
+                  style={{
+                    background: eyebrowLangTab === lang ? "rgba(83,74,183,0.5)" : "transparent",
+                    color: eyebrowLangTab === lang ? "#AFA9EC" : "rgba(255,255,255,0.35)",
+                  }}
+                >
+                  {lang === "ko" ? "🇰🇷 KO" : lang === "en" ? "🇺🇸 EN" : "🇯🇵 JA"}
+                </button>
+              ))}
+            </div>
             <input
-              value={heroEyebrow}
-              onChange={(e) => setHeroEyebrow(e.target.value)}
+              value={eyebrowLangTab === "ko" ? heroEyebrowKo : eyebrowLangTab === "en" ? heroEyebrowEn : heroEyebrowJa}
+              onChange={(e) => {
+                if (eyebrowLangTab === "ko") setHeroEyebrowKo(e.target.value);
+                else if (eyebrowLangTab === "en") setHeroEyebrowEn(e.target.value);
+                else setHeroEyebrowJa(e.target.value);
+              }}
               className="w-full rounded-lg border border-white/[0.12] bg-[#0d0b20] px-3 py-2 text-xs text-white outline-none"
-              placeholder="예: 2ND GENOVA AI FILM COMPETITION"
+              placeholder={
+                eyebrowLangTab === "ko"
+                  ? "예: 제1회 Genova AI 단편영화 공모전"
+                  : eyebrowLangTab === "en"
+                    ? "e.g. 1ST GENOVA AI FILM COMPETITION"
+                    : "例: 第1回 Genova AI 映画コンペ"
+              }
             />
           </div>
           <button
@@ -317,11 +393,23 @@ export function AdminDashboard({ competitions, videos }: { competitions: Competi
             onClick={async () => {
               setHeroEyebrowLoading(true);
               try {
-                await fetch("/api/site-settings", {
-                  method: "POST",
-                  headers: { "Content-Type": "application/json" },
-                  body: JSON.stringify({ key: "films_hero_eyebrow", value: heroEyebrow }),
-                });
+                await Promise.all([
+                  fetch("/api/site-settings", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ key: "films_hero_eyebrow_ko", value: heroEyebrowKo }),
+                  }),
+                  fetch("/api/site-settings", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ key: "films_hero_eyebrow_en", value: heroEyebrowEn }),
+                  }),
+                  fetch("/api/site-settings", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ key: "films_hero_eyebrow_ja", value: heroEyebrowJa }),
+                  }),
+                ]);
                 setMessage("저장되었습니다.");
               } finally {
                 setHeroEyebrowLoading(false);
@@ -330,6 +418,43 @@ export function AdminDashboard({ competitions, videos }: { competitions: Competi
             className="self-end rounded-lg border border-[#7F77DD]/30 px-3 py-2 text-[10px] text-[#AFA9EC] transition hover:bg-[#534AB7]/20"
           >
             {heroEyebrowLoading ? "저장 중..." : "저장"}
+          </button>
+        </div>
+        <div className="mt-3 flex gap-2">
+          <div className="flex-1">
+            <label className="mb-1 block text-[10px] text-white/30">Films 히어로 배너 공모전</label>
+            <select
+              value={featuredCompetitionId}
+              onChange={(e) => setFeaturedCompetitionId(e.target.value)}
+              className="w-full rounded-lg border border-white/[0.12] bg-[#0d0b20] px-3 py-2 text-xs text-white outline-none"
+            >
+              <option value="">공모전 선택 안함</option>
+              {localCompetitions.map((c) => (
+                <option key={c.id} value={c.id}>
+                  {c.title}
+                </option>
+              ))}
+            </select>
+          </div>
+          <button
+            type="button"
+            disabled={featuredLoading}
+            onClick={async () => {
+              setFeaturedLoading(true);
+              try {
+                await fetch("/api/site-settings", {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({ key: "films_featured_competition_id", value: featuredCompetitionId }),
+                });
+                setMessage("저장되었습니다.");
+              } finally {
+                setFeaturedLoading(false);
+              }
+            }}
+            className="self-end rounded-lg border border-[#7F77DD]/30 px-3 py-2 text-[10px] text-[#AFA9EC] transition hover:bg-[#534AB7]/20"
+          >
+            {featuredLoading ? "저장 중..." : "저장"}
           </button>
         </div>
       </div>
@@ -422,10 +547,11 @@ export function AdminDashboard({ competitions, videos }: { competitions: Competi
                       key={c}
                       type="button"
                       onClick={() => {
+                        const sym = c === "KRW" ? "₩" : c === "USD" ? "$" : "¥";
                         setCurrency(c);
                         setForm((p) => ({
                           ...p,
-                          prizeInfo: prizeAmount ? `${c} ${Number(prizeAmount).toLocaleString()}` : "",
+                          prizeInfo: prizeAmount ? `${sym}${Number(prizeAmount).toLocaleString()}` : "",
                         }));
                       }}
                       className="rounded-lg border px-2 py-1.5 text-[10px] font-bold transition"
@@ -435,7 +561,7 @@ export function AdminDashboard({ competitions, videos }: { competitions: Competi
                         color: currency === c ? "#AFA9EC" : "rgba(255,255,255,0.35)",
                       }}
                     >
-                      {c === "KRW" ? "₩" : c === "USD" ? "$" : "¥"}
+                      {c === "KRW" ? "₩ 원" : c === "USD" ? "$ 달러" : "¥ 엔"}
                     </button>
                   ))}
                 </div>
@@ -446,7 +572,7 @@ export function AdminDashboard({ competitions, videos }: { competitions: Competi
                     setPrizeAmount(e.target.value);
                     setForm((p) => ({
                       ...p,
-                      prizeInfo: e.target.value ? `${currency} ${Number(e.target.value).toLocaleString()}` : "",
+                      prizeInfo: e.target.value ? `${currencySymbol}${Number(e.target.value).toLocaleString()}` : "",
                     }));
                   }}
                   className="flex-1 rounded-lg border border-white/[0.12] bg-[#0d0b20] px-3 py-1.5 text-xs text-white outline-none placeholder:text-white/20"
@@ -459,8 +585,9 @@ export function AdminDashboard({ competitions, videos }: { competitions: Competi
                     key={amount}
                     type="button"
                     onClick={() => {
+                      const sym = currency === "KRW" ? "₩" : currency === "USD" ? "$" : "¥";
                       setPrizeAmount(amount);
-                      setForm((p) => ({ ...p, prizeInfo: `${currency} ${Number(amount).toLocaleString()}` }));
+                      setForm((p) => ({ ...p, prizeInfo: `${sym}${Number(amount).toLocaleString()}` }));
                     }}
                     className="rounded-md border border-white/[0.06] px-2 py-0.5 text-[10px] text-white/35 transition hover:border-[#7F77DD]/30 hover:text-white/60"
                   >
@@ -468,7 +595,9 @@ export function AdminDashboard({ competitions, videos }: { competitions: Competi
                   </button>
                 ))}
               </div>
-              {form.prizeInfo ? <p className="mt-1 text-[10px] text-[#AFA9EC]">총 상금: {form.prizeInfo}</p> : null}
+              {form.prizeInfo && (
+                <p className="mt-1 text-[10px] text-[#AFA9EC]">총 상금: {form.prizeInfo}</p>
+              )}
             </div>
             <div>
               <label className="mb-1 block text-[10px] text-white/40">스폰서</label>
@@ -479,6 +608,125 @@ export function AdminDashboard({ competitions, videos }: { competitions: Competi
                 placeholder="예: Runway, Kling AI"
               />
             </div>
+
+            <input
+              ref={competitionThumbInputRef}
+              type="file"
+              accept="image/*"
+              className="sr-only"
+              onChange={(e) => {
+                const f = e.target.files?.[0];
+                if (f) void onCompetitionThumbChange(f);
+              }}
+            />
+            <div>
+              <label className="mb-1 block text-[10px] text-white/40">공모전 썸네일</label>
+              {competitionThumbPreview ? (
+                <div className="relative overflow-hidden rounded-xl border border-white/[0.08]">
+                  <img src={competitionThumbPreview} alt="" className="aspect-video w-full object-cover" />
+                  <button
+                    type="button"
+                    onClick={() => competitionThumbInputRef.current?.click()}
+                    className="absolute right-12 top-2 rounded-lg bg-black/70 px-3 py-1.5 text-xs font-semibold text-white backdrop-blur-sm transition hover:bg-black/90"
+                  >
+                    변경
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setCompetitionThumbPreview(null);
+                      setForm((p) => ({ ...p, thumbnailUrl: "" }));
+                      if (competitionThumbInputRef.current) competitionThumbInputRef.current.value = "";
+                    }}
+                    className="absolute right-2 top-2 flex h-7 w-7 items-center justify-center rounded-lg bg-black/70 text-white/70 backdrop-blur-sm transition hover:bg-red-500/70 hover:text-white"
+                  >
+                    <svg viewBox="0 0 24 24" className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth={2}>
+                      <path d="M18 6L6 18M6 6l12 12" strokeLinecap="round" />
+                    </svg>
+                  </button>
+                </div>
+              ) : (
+                <div
+                  onDragOver={(e) => {
+                    e.preventDefault();
+                    setCompetitionThumbDragging(true);
+                  }}
+                  onDragLeave={() => setCompetitionThumbDragging(false)}
+                  onDrop={(e) => {
+                    e.preventDefault();
+                    setCompetitionThumbDragging(false);
+                    const f = e.dataTransfer.files?.[0];
+                    if (f) void onCompetitionThumbChange(f);
+                  }}
+                  onClick={() => competitionThumbInputRef.current?.click()}
+                  className="flex h-32 w-full cursor-pointer flex-col items-center justify-center gap-2 rounded-xl border border-dashed transition"
+                  style={{
+                    borderColor: competitionThumbDragging ? "rgba(127,119,221,0.6)" : "rgba(127,119,221,0.25)",
+                    background: competitionThumbDragging ? "rgba(83,74,183,0.15)" : "rgba(255,255,255,0.02)",
+                  }}
+                >
+                  <svg className="h-6 w-6 text-[#7F77DD]/40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5}>
+                    <path d="M12 16v-8m0 0-3 3m3-3 3 3M4 17h16" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                  <p className="text-xs text-white/30">클릭하거나 이미지를 드래그하세요</p>
+                  <p className="text-[10px] text-white/20">JPG, PNG, WebP</p>
+                </div>
+              )}
+            </div>
+
+            <div>
+              <label className="mb-1 block text-[10px] text-white/40">참가 자격</label>
+              <textarea
+                value={form.eligibility}
+                onChange={(e) => setForm((p) => ({ ...p, eligibility: e.target.value }))}
+                rows={2}
+                className="w-full resize-none rounded-lg border border-white/[0.12] bg-[#0d0b20] px-3 py-2 text-xs text-white outline-none placeholder:text-white/20"
+                placeholder="예: 전 세계 AI 크리에이터 누구나 참가 가능"
+              />
+            </div>
+
+            <div>
+              <label className="mb-1 block text-[10px] text-white/40">출품 가이드라인</label>
+              <textarea
+                value={form.submissionGuidelines}
+                onChange={(e) => setForm((p) => ({ ...p, submissionGuidelines: e.target.value }))}
+                rows={2}
+                className="w-full resize-none rounded-lg border border-white/[0.12] bg-[#0d0b20] px-3 py-2 text-xs text-white outline-none placeholder:text-white/20"
+                placeholder="예: 90초 이내 AI 생성 영상, MP4 형식"
+              />
+            </div>
+
+            <div>
+              <label className="mb-1 block text-[10px] text-white/40">심사 방법</label>
+              <textarea
+                value={form.judgingCriteria}
+                onChange={(e) => setForm((p) => ({ ...p, judgingCriteria: e.target.value }))}
+                rows={2}
+                className="w-full resize-none rounded-lg border border-white/[0.12] bg-[#0d0b20] px-3 py-2 text-xs text-white outline-none placeholder:text-white/20"
+                placeholder="예: 심사위원 50% + 시청자 투표 50%"
+              />
+            </div>
+
+            <div>
+              <label className="mb-1 block text-[10px] text-white/40">규칙</label>
+              <textarea
+                value={form.rules}
+                onChange={(e) => setForm((p) => ({ ...p, rules: e.target.value }))}
+                rows={3}
+                className="w-full resize-none rounded-lg border border-white/[0.12] bg-[#0d0b20] px-3 py-2 text-xs text-white outline-none placeholder:text-white/20"
+                placeholder="예: AI로 제작한 영상만 출품 가능, 1인 1작품..."
+              />
+            </div>
+
+            {message && (
+              <p
+                className={`text-xs font-medium ${
+                  message === "Saved successfully." || message === "저장되었습니다." ? "text-emerald-400" : "text-red-400"
+                }`}
+              >
+                {message}
+              </p>
+            )}
             <button
               type="button"
               disabled={loading}
@@ -687,6 +935,13 @@ export function AdminDashboard({ competitions, videos }: { competitions: Competi
                         {s === "Open" ? "모집중" : s === "In Review" ? "심사중" : s === "Voting" ? "투표중" : "종료"}
                       </button>
                     ))}
+                    <Link
+                      href={`/admin/competition/${c.id}`}
+                      onClick={(e) => e.stopPropagation()}
+                      className="rounded-md border border-white/[0.08] px-2 py-0.5 text-[10px] text-white/40 transition hover:border-[#7F77DD]/30 hover:text-white/70"
+                    >
+                      수정
+                    </Link>
                     <button
                       type="button"
                       disabled={loading}

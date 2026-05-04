@@ -49,7 +49,7 @@ export async function createVideoAction(form: {
 
   if (!form.title.trim()) return { ok: false, message: "Please enter a title." };
   if (!form.thumbnailUrl) return { ok: false, message: "Please upload a thumbnail." };
-  if (form.runtimeMinutes < 1) return { ok: false, message: "Please enter runtime in minutes." };
+  if (Math.round(form.runtimeMinutes * 60) < 1) return { ok: false, message: "Please enter runtime in minutes." };
   if (!MAIN_GENRE_KEYS.includes(form.genre as (typeof MAIN_GENRE_KEYS)[number])) {
     return { ok: false, message: "Please select a genre." };
   }
@@ -76,7 +76,10 @@ export async function createVideoAction(form: {
   }
 
   const id = crypto.randomUUID();
-  const runtime = `${form.runtimeMinutes} min`;
+  const totalSec = Math.round(form.runtimeMinutes * 60);
+  const mins = Math.floor(totalSec / 60);
+  const secs = totalSec % 60;
+  const runtime = `${String(mins).padStart(2, "0")}:${String(secs).padStart(2, "0")}`;
 
   const purpose = form.purpose;
   const competitionId = purpose === "competition" ? form.submittedCompetitionId : null;

@@ -33,91 +33,6 @@ type DiscoverUser = {
   latestVideoTitle?: string;
 };
 
-const AVATAR_COLOR_MAP: Record<string, string> = {
-  SK: "#7c3aed",
-  AC: "#0891b2",
-  ML: "#059669",
-  RK: "#ea580c",
-  JP: "#2563eb",
-  TW: "#db2777",
-  DK: "#65a30d",
-  LZ: "#dc2626",
-};
-
-type DemoContactDef = {
-  userId: string;
-  displayName: string;
-  status: "online" | "away" | "offline";
-  previewKey: string;
-  lastTime: string;
-  lastTimeIsYesterday?: boolean;
-};
-
-const PINNED_DEFS: DemoContactDef[] = [
-  {
-    userId: "sarah-kim",
-    displayName: "Sarah Kim",
-    status: "online",
-    previewKey: "chat.contactPreview.sarahKim",
-    lastTime: "9:42 AM",
-  },
-  {
-    userId: "alex-chen",
-    displayName: "Alex Chen",
-    status: "online",
-    previewKey: "chat.contactPreview.alexChen",
-    lastTime: "9:25 AM",
-  },
-  {
-    userId: "maya-lee",
-    displayName: "Maya Lee",
-    status: "away",
-    previewKey: "chat.contactPreview.mayaLee",
-    lastTime: "",
-    lastTimeIsYesterday: true,
-  },
-];
-
-const OTHER_CONTACT_DEFS: DemoContactDef[] = [
-  {
-    userId: "ryan-ko",
-    displayName: "Ryan Ko",
-    status: "online",
-    previewKey: "chat.contactPreview.ryanKo",
-    lastTime: "8:58 AM",
-  },
-  {
-    userId: "james-park",
-    displayName: "James Park",
-    status: "offline",
-    previewKey: "chat.contactPreview.jamesPark",
-    lastTime: "2h",
-  },
-  {
-    userId: "tina-wu",
-    displayName: "Tina Wu",
-    status: "offline",
-    previewKey: "chat.contactPreview.tinaWu",
-    lastTime: "5h",
-  },
-  {
-    userId: "david-kim",
-    displayName: "David Kim",
-    status: "offline",
-    previewKey: "chat.contactPreview.davidKim",
-    lastTime: "",
-    lastTimeIsYesterday: true,
-  },
-  {
-    userId: "lisa-zhang",
-    displayName: "Lisa Zhang",
-    status: "offline",
-    previewKey: "chat.contactPreview.lisaZhang",
-    lastTime: "",
-    lastTimeIsYesterday: true,
-  },
-];
-
 function getInitials(name: string): string {
   const parts = name.trim().split(/\s+/);
   return `${parts[0]?.[0] ?? ""}${parts[1]?.[0] ?? ""}`.toUpperCase();
@@ -125,9 +40,11 @@ function getInitials(name: string): string {
 
 function Avatar({ name }: { name: string }) {
   const initials = getInitials(name);
-  const color = AVATAR_COLOR_MAP[initials] ?? "#6b7280";
   return (
-    <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-xs font-semibold text-white" style={{ backgroundColor: color }}>
+    <div
+      className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-xs font-semibold text-white"
+      style={{ backgroundColor: "#534AB7" }}
+    >
       {initials}
     </div>
   );
@@ -168,38 +85,6 @@ export function ChatDrawer({
       setCurrentUserId(data.user?.id ?? null);
     });
   }, []);
-
-  const demoPinned = useMemo(
-    () =>
-      PINNED_DEFS.map((row) => ({
-        userId: row.userId,
-        displayName: row.displayName,
-        status: row.status,
-        lastMessage: t(row.previewKey),
-        lastTime: row.lastTimeIsYesterday ? t("chat.yesterday") : row.lastTime,
-      })),
-    [t],
-  );
-  const demoOthers = useMemo(
-    () =>
-      OTHER_CONTACT_DEFS.map((row) => ({
-        userId: row.userId,
-        displayName: row.displayName,
-        status: row.status,
-        lastMessage: t(row.previewKey),
-        lastTime: row.lastTimeIsYesterday ? t("chat.yesterday") : row.lastTime,
-      })),
-    [t],
-  );
-
-  const searchableMessages = useMemo(() => [...demoPinned, ...demoOthers], [demoPinned, demoOthers]);
-  const filteredMessages = useMemo(() => {
-    const q = searchQuery.trim().toLowerCase();
-    if (!q) return searchableMessages;
-    return searchableMessages.filter((item) => item.displayName.toLowerCase().includes(q));
-  }, [searchQuery, searchableMessages]);
-  const filteredPinnedMessages = filteredMessages.filter((item) => demoPinned.some((p) => p.userId === item.userId));
-  const filteredAllMessages = filteredMessages.filter((item) => demoOthers.some((c) => c.userId === item.userId));
 
   const statusLabel = useMemo(() => {
     if (!activeTarget?.status) return "";
@@ -353,19 +238,9 @@ export function ChatDrawer({
             </div>
           </div>
 
-          <div className="sidebar-scroll flex-1 overflow-y-auto px-4 py-3">
-            <p className="my-2 text-center text-xs text-[var(--muted-foreground)]">Today</p>
-            <div className="mb-2 max-w-[75%] rounded-2xl rounded-bl-sm bg-[var(--secondary)] px-3 py-2 text-sm text-white">
-              Hey! Did you see the latest cut?
-              <p className="mt-1 text-[10px] text-[var(--muted-foreground)]">10:04 AM</p>
-            </div>
-            <div className="mb-2 ml-auto max-w-[75%] rounded-2xl rounded-br-sm bg-[#534AB7] px-3 py-2 text-sm text-white">
-              Yes, looks great. I can polish the color pass.
-              <p className="mt-1 text-[10px] text-[var(--muted-foreground)]">10:06 AM</p>
-            </div>
-            <div className="mb-2 max-w-[75%] rounded-2xl rounded-bl-sm bg-[var(--secondary)] px-3 py-2 text-sm text-white">
-              Perfect, let's lock it today.
-              <p className="mt-1 text-[10px] text-[var(--muted-foreground)]">10:09 AM</p>
+          <div className="sidebar-scroll min-h-0 flex-1 overflow-y-auto px-4 py-3">
+            <div className="flex h-full flex-col items-center justify-center px-4 text-center">
+              <p className="text-sm text-white/30">No messages yet</p>
             </div>
           </div>
 
@@ -435,59 +310,21 @@ export function ChatDrawer({
 
           {activeTab === "messages" ? (
             <div className="sidebar-scroll flex-1 overflow-y-auto px-4 pb-4">
-              <div className="mb-2 flex items-center justify-between">
-                <p className="text-xs font-medium text-[var(--muted-foreground)]">Pinned</p>
-                <button type="button" className="text-xs text-[#8b5cf6] transition hover:text-[#a78bfa]">See all</button>
-              </div>
-              <div className="space-y-1.5">
-                {filteredPinnedMessages.map((user) => (
-                  <div key={user.userId} onClick={() => setActiveTarget(user)} className="flex cursor-pointer items-center gap-3 rounded-lg px-3 py-2.5 hover:bg-white/5">
-                    <div className="relative">
-                      <Avatar name={user.displayName} />
-                      {(user.status === "online" || user.status === "away") && (
-                        <span
-                          className={cn(
-                            "absolute -bottom-0.5 -right-0.5 h-2.5 w-2.5 rounded-full border border-[var(--sidebar)]",
-                            user.status === "online" ? "bg-green-400" : "bg-yellow-400",
-                          )}
-                        />
-                      )}
-                    </div>
-                    <div className="min-w-0 flex-1">
-                      <div className="flex items-center justify-between gap-2">
-                        <p className="truncate text-sm text-white">{user.displayName}</p>
-                        <span className="text-[10px] text-[var(--muted-foreground)]">{user.lastTime}</span>
-                      </div>
-                      <p className="truncate text-xs text-[var(--muted-foreground)]">{user.lastMessage}</p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-
-              <p className="mb-2 mt-4 text-xs font-medium text-[var(--muted-foreground)]">{t("chat.allMessages")}</p>
-              <div className="space-y-1.5">
-                {filteredAllMessages.map((user) => (
-                  <div key={user.userId} onClick={() => setActiveTarget(user)} className="flex cursor-pointer items-center gap-3 rounded-lg px-3 py-2.5 hover:bg-white/5">
-                    <div className="relative">
-                      <Avatar name={user.displayName} />
-                      {(user.status === "online" || user.status === "away") && (
-                        <span
-                          className={cn(
-                            "absolute -bottom-0.5 -right-0.5 h-2.5 w-2.5 rounded-full border border-[var(--sidebar)]",
-                            user.status === "online" ? "bg-green-400" : "bg-yellow-400",
-                          )}
-                        />
-                      )}
-                    </div>
-                    <div className="min-w-0 flex-1">
-                      <div className="flex items-center justify-between gap-2">
-                        <p className="truncate text-sm text-white">{user.displayName}</p>
-                        <span className="text-[10px] text-[var(--muted-foreground)]">{user.lastTime}</span>
-                      </div>
-                      <p className="truncate text-xs text-[var(--muted-foreground)]">{user.lastMessage}</p>
-                    </div>
-                  </div>
-                ))}
+              <div className="flex flex-col items-center justify-center py-16 text-center">
+                <div
+                  className="mb-4 flex h-14 w-14 items-center justify-center rounded-full"
+                  style={{ background: "rgba(83,74,183,0.15)", border: "1px solid rgba(127,119,221,0.2)" }}
+                >
+                  <svg viewBox="0 0 24 24" className="h-6 w-6 text-[#7F77DD]/50" fill="none" stroke="currentColor" strokeWidth={1.5}>
+                    <path
+                      d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </svg>
+                </div>
+                <p className="text-sm font-bold text-white/50">No messages yet</p>
+                <p className="mt-1 text-xs text-white/25">Messages from creators will appear here.</p>
               </div>
             </div>
           ) : activeTab === "following" ? (

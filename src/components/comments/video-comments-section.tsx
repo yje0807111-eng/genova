@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect, useMemo, useState, useTransition } from "react";
+import { useEffect, useMemo, useRef, useState, useTransition } from "react";
 import { createCommentAction, deleteCommentAction, toggleCommentLikeAction } from "@/app/actions/comments";
 import type { VideoComment } from "@/lib/types";
 import { useI18n } from "@/components/genova/language-provider";
@@ -49,10 +49,13 @@ function CommentBlock({
   const [pending, startTransition] = useTransition();
   const [likeCount, setLikeCount] = useState(c.likeCount);
   const [liked, setLiked] = useState(c.likedByMe);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
   const isOwner = currentUserId && c.userId === currentUserId;
 
-  const onDelete = () => {
-    if (!confirm(t("comments.deleteConfirm"))) return;
+  const onDelete = () => setShowDeleteModal(true);
+
+  const confirmDelete = () => {
+    setShowDeleteModal(false);
     startTransition(async () => {
       const res = await deleteCommentAction(c.id, videoId);
       if (!res.ok) {
@@ -124,7 +127,7 @@ function CommentBlock({
                 <span className="text-xs text-white/40">·</span>
                 <button
                   type="button"
-                  onClick={() => void onDelete()}
+                  onClick={onDelete}
                   disabled={pending}
                   className="text-xs text-red-400/70 hover:text-red-300 transition"
                 >
@@ -196,6 +199,41 @@ function CommentBlock({
           ))}
         </div>
       ) : null}
+
+      {showDeleteModal && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm">
+          <div
+            className="w-full max-w-sm rounded-2xl border border-white/[0.08] p-6"
+            style={{
+              background: "linear-gradient(135deg, rgba(20,17,50,0.99) 0%, rgba(10,8,28,1) 100%)",
+              boxShadow: "0 0 0 1px rgba(127,119,221,0.1), 0 40px 80px rgba(0,0,0,0.6)",
+            }}
+          >
+            <h2 className="text-lg font-black text-white">댓글 삭제</h2>
+            <p className="mt-1 text-sm text-white/40">이 댓글을 삭제하시겠습니까? 되돌릴 수 없습니다.</p>
+            <div className="mt-5 flex gap-3">
+              <button
+                type="button"
+                onClick={() => setShowDeleteModal(false)}
+                className="flex-1 rounded-xl border border-white/[0.08] py-2.5 text-sm font-semibold text-white/50 transition hover:border-white/20 hover:text-white"
+              >
+                취소
+              </button>
+              <button
+                type="button"
+                onClick={confirmDelete}
+                className="flex-1 rounded-xl py-2.5 text-sm font-bold text-white transition hover:opacity-90"
+                style={{
+                  background: "linear-gradient(135deg, #dc2626 0%, #ef4444 100%)",
+                  boxShadow: "0 4px 16px rgba(220,38,38,0.3)",
+                }}
+              >
+                삭제
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -298,6 +336,12 @@ export function VideoCommentsSection({
   );
 }
 
+const EMOJIS = [
+  "😊","😂","🔥","❤️","👏","🎬","✨","🎥","🤩","😍",
+  "💯","🙌","👍","🎉","🌟","💫","😭","🥺","😎","🤔",
+  "💪","🎨","🎵","🚀","💡","👀","🤯","😮","🥳","🎞️",
+];
+
 export function CommentInput({
   videoId,
   currentUserId,
@@ -308,7 +352,19 @@ export function CommentInput({
   const { t } = useI18n();
   const router = useRouter();
   const [text, setText] = useState("");
+  const [showEmoji, setShowEmoji] = useState(false);
+  const emojiRef = useRef<HTMLDivElement>(null);
   const [pending, startTransition] = useTransition();
+
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (emojiRef.current && !emojiRef.current.contains(e.target as Node)) {
+        setShowEmoji(false);
+      }
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, []);
 
   const submit = () => {
     const body = text.trim();
@@ -337,6 +393,40 @@ export function CommentInput({
 
   return (
     <div className="flex items-center gap-2">
+      <div ref={emojiRef} className="relative">
+        <button
+          type="button"
+          onClick={() => setShowEmoji((v) => !v)}
+          className="flex h-8 w-8 items-center justify-center rounded-full text-white/40 transition hover:bg-white/[0.05] hover:text-white/70"
+        >
+          😊
+        </button>
+        {showEmoji && (
+          <div
+            className="absolute bottom-10 left-0 z-50 w-[220px] rounded-2xl border border-white/[0.08] p-3"
+            style={{
+              background: "linear-gradient(135deg, rgba(20,17,50,0.99) 0%, rgba(10,8,28,1) 100%)",
+              boxShadow: "0 8px 32px rgba(0,0,0,0.6)",
+            }}
+          >
+            <div className="grid grid-cols-8 gap-1">
+              {EMOJIS.map((emoji) => (
+                <button
+                  key={emoji}
+                  type="button"
+                  onClick={() => {
+                    setText((prev) => prev + emoji);
+                    setShowEmoji(false);
+                  }}
+                  className="flex h-7 w-7 items-center justify-center rounded-lg text-base transition hover:bg-white/[0.08]"
+                >
+                  {emoji}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
       <input
         value={text}
         onChange={(e) => setText(e.target.value)}
