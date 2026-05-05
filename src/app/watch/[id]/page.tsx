@@ -125,7 +125,6 @@ export default async function WatchDetailPage({
                   playbackId={video.muxPlaybackId}
                   title={video.title}
                   nextVideoId={related[0]?.id ?? null}
-                  autoplayOn={true}
                 />
               )}
             </div>

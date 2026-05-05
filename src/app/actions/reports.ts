@@ -77,16 +77,17 @@ export async function createVideoReportAction({
 }
 
 type AdminResult = { ok: true } | { ok: false; message: string };
+type RequireAdminResult = { supabase: NonNullable<Awaited<ReturnType<typeof createServerSupabaseClient>>> } | { error: string };
 
-async function requireAdmin() {
+async function requireAdmin(): Promise<RequireAdminResult> {
   const supabase = await createServerSupabaseClient();
-  if (!supabase) return { error: "Please check your Supabase configuration." } as const;
+  if (!supabase) return { error: "Please check your Supabase configuration." };
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  if (!user) return { error: "Please sign in." } as const;
-  if (!isAdminEmail(user.email)) return { error: "Access denied." } as const;
-  return { supabase } as const;
+  if (!user) return { error: "Please sign in." };
+  if (!isAdminEmail(user.email)) return { error: "Access denied." };
+  return { supabase };
 }
 
 export async function updateVideoReportStatusAction(reportId: string, status: VideoReportStatus): Promise<AdminResult> {

@@ -190,6 +190,7 @@ export function EditVideoForm({ userId, video, competitions }: Props) {
     image: false,
     video: false,
     music: false,
+    platform: false,
   });
   const [tagInput, setTagInput] = useState(video.tags?.map((t) => `#${t}`).join(", ") ?? "");
   const [seriesName, setSeriesName] = useState(video.series_name ?? "");

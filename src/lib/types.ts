@@ -99,4 +99,6 @@ export type Competition = {
   templateUrl?: string | null;
   sponsorLogoUrl?: string | null;
   currency?: string | null;
+  exchangeRateUsdKrw?: number | null;
+  exchangeRateUsdJpy?: number | null;
 };

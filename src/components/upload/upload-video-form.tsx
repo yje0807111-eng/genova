@@ -461,7 +461,8 @@ export function UploadVideoForm({
 
   const restoreHiddenTools = async (key: CatKey) => {
     const catTools = AI_TOOL_CATEGORIES.find((c) => c.key === key)?.tools ?? [];
-    const next = hiddenTools.filter((h) => !catTools.includes(h));
+    const catToolSet = new Set<string>(catTools as readonly string[]);
+    const next = hiddenTools.filter((h) => !catToolSet.has(h));
     setHiddenTools(next);
     await updateAiToolPrefsAction({ hiddenTools: next });
   };

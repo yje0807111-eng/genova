@@ -528,7 +528,7 @@ function CompetitionBanner({ competition }: { competition: Competition | null })
         competition.prizeInfoJa ?? null,
         competition.prizeInfo ?? "",
         locale,
-        competition.baseCurrency ?? null,
+        competition.currency ?? null,
         competition.exchangeRateUsdKrw ?? 1350,
         competition.exchangeRateUsdJpy ?? 148,
       )
@@ -812,7 +812,7 @@ type SpotlightCreator = {
   avatarUrl: string | null;
   videoCount: number;
   totalLikes: number;
-  recentVideos: { id: string; title: string; thumbnailUrl: string | null }[];
+  recentVideos: { id: string; title: string; thumbnailUrl: string | null; genre?: string | null }[];
 };
 
 type HomePageClientProps = {
