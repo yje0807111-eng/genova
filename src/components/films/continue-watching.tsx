@@ -116,7 +116,6 @@ export function ContinueWatching({ allVideos }: { allVideos: Video[] }) {
         >
           {history.map(({ video, progress, duration }) => {
             const percent = duration > 0 ? Math.min(100, Math.round((progress / duration) * 100)) : 0;
-            const creator = video.creatorName ?? video.uploaderDisplayName ?? "Creator";
             return (
               <Link
                 key={video.id}
@@ -141,24 +140,16 @@ export function ContinueWatching({ allVideos }: { allVideos: Video[] }) {
                     {/* Always visible bottom info */}
                     <div className="absolute bottom-0 left-0 right-0 z-[2]"
                       style={{ background: "linear-gradient(to top, rgba(8,6,24,0.95) 0%, rgba(8,6,24,0.5) 50%, transparent 100%)" }}>
-                      <div className="p-3">
-                        <h3 className="typo-filmstrip-title line-clamp-1 text-white">{video.title}</h3>
-                        <p className="typo-card-meta mt-0.5 text-white/40">
-                          {creator}</p>
-                        {/* Progress bar */}
+                      <div className="px-3 pb-2 pt-1">
                         {percent > 0 && (
-                          <div className="mt-2 h-[2px] w-full rounded-full bg-white/20">
+                          <div className="mb-1.5 h-[2px] w-full rounded-full bg-white/20">
                             <div
                               className="h-full rounded-full bg-[#7F77DD]"
                               style={{ width: percent + "%" }}
                             />
                           </div>
                         )}
-                        {percent > 0 && (
-                          <p className="typo-filmstrip-progress mt-1 text-white/40">
-                            {percent}% watched
-                          </p>
-                        )}
+                        <h3 className="typo-filmstrip-title line-clamp-1 text-white">{video.title}</h3>
                       </div>
                     </div>
                     <div className="absolute top-2 right-2 z-[10] flex items-center justify-center opacity-0 group-hover/card:opacity-100 transition-opacity duration-150">
@@ -184,10 +175,10 @@ export function ContinueWatching({ allVideos }: { allVideos: Video[] }) {
                         e.stopPropagation();
                         void removeFromHistory(video.id);
                       }}
-                      className="absolute left-2 top-2 flex h-7 w-7 items-center justify-center rounded-full border border-red-500/50 bg-red-600/80 text-white opacity-0 backdrop-blur-sm transition group-hover:opacity-100 hover:bg-red-600"
+                      className="absolute bottom-2 right-2 z-[10] flex h-6 w-6 items-center justify-center rounded-full bg-black/60 text-white/50 opacity-0 backdrop-blur-sm transition group-hover/card:opacity-100 hover:bg-red-500/80 hover:text-white"
                       title={t("films.removeFromHistory", "Remove from history")}
                     >
-                      <Trash2 size={12} />
+                      <Trash2 size={10} />
                     </button>
                 </div>
               </Link>

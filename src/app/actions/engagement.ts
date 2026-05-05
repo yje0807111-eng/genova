@@ -41,7 +41,7 @@ export async function toggleLikeAction(videoId: string): Promise<ToggleEngagemen
       await createNotification(supabase, {
         userId: video.uploaded_by,
         actorId: user.id,
-        type: "comment",
+        type: "like",
         title: "Someone liked your film",
         body: `"${video.title}" received a new like.`,
         href: `/watch/${videoId}`,
@@ -81,6 +81,25 @@ export async function toggleSaveAction(videoId: string): Promise<ToggleSaveResul
   } else {
     const { error } = await supabase.from("saved_videos").insert({ user_id: user.id, video_id: videoId });
     if (error) return { ok: false, message: error.message };
+
+    const { data: video } = await supabase
+      .from("videos")
+      .select("uploaded_by, title")
+      .eq("id", videoId)
+      .maybeSingle();
+
+    if (video?.uploaded_by && video.uploaded_by !== user.id) {
+      await createNotification(supabase, {
+        userId: video.uploaded_by,
+        actorId: user.id,
+        type: "like",
+        title: "Someone saved your film",
+        body: `"${video.title}" was saved by a viewer.`,
+        href: `/watch/${videoId}`,
+        entityType: "video",
+        entityId: videoId,
+      });
+    }
   }
 
   const saved = !existing;

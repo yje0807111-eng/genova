@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useRef, useState, type ReactNode } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import { CommentInput, VideoCommentsSection } from "@/components/comments/video-comments-section";
 import { useI18n } from "@/components/genova/language-provider";
 import { formatGenreDisplay } from "@/lib/constants/genres";
@@ -19,6 +19,8 @@ export function WatchDesktopFlexRow({
   commentCount,
   initialComments,
   currentUserId,
+  onAutoplayChange,
+  isVideoOwner,
 }: {
   leftBeforeDescription: ReactNode;
   descriptionInner: ReactNode;
@@ -28,10 +30,24 @@ export function WatchDesktopFlexRow({
   commentCount: number;
   initialComments: VideoComment[];
   currentUserId: string | null;
+  onAutoplayChange?: (on: boolean) => void;
+  isVideoOwner?: boolean;
 }) {
   const { locale, t } = useI18n();
   const commentsRef = useRef<HTMLDivElement>(null);
-  const [autoplayOn, setAutoplayOn] = useState(true);
+  const [autoplayOn, setAutoplayOn] = useState(() => {
+    if (typeof window === "undefined") return true;
+    const stored = localStorage.getItem("genova_autoplay");
+    return stored === null ? true : stored === "true";
+  });
+
+  useEffect(() => {
+    void fetch("/api/watch-cookie", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ videoId }),
+    });
+  }, [videoId]);
 
   return (
     <div className="flex items-start gap-6">
@@ -56,7 +72,13 @@ export function WatchDesktopFlexRow({
                 type="button"
                 role="switch"
                 aria-checked={autoplayOn}
-                onClick={() => setAutoplayOn((v) => !v)}
+                onClick={() => {
+                  setAutoplayOn((v) => {
+                    const next = !v;
+                    localStorage.setItem("genova_autoplay", String(next));
+                    return next;
+                  });
+                }}
                 className="relative h-4 w-8 shrink-0 rounded-full bg-[#534AB7]"
               >
                 <span
@@ -138,6 +160,7 @@ export function WatchDesktopFlexRow({
                 initialComments={initialComments}
                 currentUserId={currentUserId}
                 hideInput={true}
+                isVideoOwner={isVideoOwner}
               />
             </div>
           </div>

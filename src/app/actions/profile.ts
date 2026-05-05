@@ -136,3 +136,34 @@ export async function changeEmailAction(newEmail: string): Promise<ActionResult>
   revalidatePath("/profile");
   return { ok: true };
 }
+
+export async function updateAiToolPrefsAction(input: {
+  customTools?: string[];
+  hiddenTools?: string[];
+}): Promise<ActionResult> {
+  const supabase = await createServerSupabaseClient();
+  if (!supabase) return { ok: false, message: "Configuration error." };
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { ok: false, message: "Please sign in." };
+
+  const payload: Record<string, unknown> = {};
+  if (input.customTools !== undefined) payload.custom_ai_tools = input.customTools;
+  if (input.hiddenTools !== undefined) payload.hidden_ai_tools = input.hiddenTools;
+
+  const { error } = await supabase.from("profiles").update(payload).eq("id", user.id);
+  if (error) return { ok: false, message: error.message };
+  return { ok: true };
+}
+
+export async function updateSavedHashtagsAction(hashtags: string[]): Promise<ActionResult> {
+  const supabase = await createServerSupabaseClient();
+  if (!supabase) return { ok: false, message: "Configuration error." };
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { ok: false, message: "Please sign in." };
+  const { error } = await supabase
+    .from("profiles")
+    .update({ saved_hashtags: hashtags })
+    .eq("id", user.id);
+  if (error) return { ok: false, message: error.message };
+  return { ok: true };
+}

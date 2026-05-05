@@ -13,6 +13,7 @@ import { AnimateIn } from "@/components/animate-in";
 import { VideoCardFromVideo } from "@/components/genova/video-card";
 import { cn } from "@/lib/utils/cn";
 import { mainGenreLabel, normalizeToMainGenre } from "@/lib/constants/genres";
+import { formatPrizeWithConversion } from "@/lib/utils/format-prize";
 import type { GenreFilter } from "@/lib/genova-genre";
 
 function UnifiedGrid({ videos }: { videos: Video[] }) {
@@ -57,18 +58,19 @@ function HeroBanner({ videos, allVideos }: { videos: Video[]; allVideos: Video[]
   const [fadeVisible, setFadeVisible] = useState(true);
   const heroVideos = videos.slice(0, 5);
   const video = heroVideos[current];
+  const autoAdvanceKey = heroVideos.length * 100 + current;
 
   useEffect(() => {
     if (heroVideos.length <= 1) return;
-    const timer = setInterval(() => {
+    const timer = setTimeout(() => {
       setFadeVisible(false);
       setTimeout(() => {
         setCurrent((c) => (c + 1) % heroVideos.length);
         setFadeVisible(true);
       }, 400);
     }, 6000);
-    return () => clearInterval(timer);
-  }, [heroVideos.length]);
+    return () => clearTimeout(timer);
+  }, [autoAdvanceKey]);
 
   if (!video) return null;
 
@@ -503,7 +505,7 @@ function PaginatedGrid({
 type CompetitionWithThumb = Competition & { thumbnailUrl?: string | null };
 
 function CompetitionBanner({ competition }: { competition: Competition | null }) {
-  const { locale } = useI18n();
+  const { locale, t } = useI18n();
   const [daysLeft, setDaysLeft] = useState<number | null>(null);
 
   useEffect(() => {
@@ -519,11 +521,70 @@ function CompetitionBanner({ competition }: { competition: Competition | null })
     return competition.titleEn ?? competition.title ?? "Genova AI Film Competition";
   })();
 
-  const prize = (() => {
+  const prizeDisplay = competition
+    ? formatPrizeWithConversion(
+        competition.prizeInfoKo ?? null,
+        competition.prizeInfoEn ?? null,
+        competition.prizeInfoJa ?? null,
+        competition.prizeInfo ?? "",
+        locale,
+        competition.baseCurrency ?? null,
+        competition.exchangeRateUsdKrw ?? 1350,
+        competition.exchangeRateUsdJpy ?? 148,
+      )
+    : "$3,000 in prizes";
+
+  const prizeDisplayFinal = (() => {
     if (!competition) return "$3,000 in prizes";
-    if (locale === "ko") return competition.prizeInfoKo ?? competition.prizeInfo ?? "$3,000 in prizes";
-    if (locale === "ja") return competition.prizeInfoJa ?? competition.prizeInfo ?? "$3,000 in prizes";
-    return competition.prizeInfoEn ?? competition.prizeInfo ?? "$3,000 in prizes";
+
+    const prizeRaw = competition.prizeInfo ?? "";
+    const krwRate = competition.exchangeRateUsdKrw ?? 1350;
+    const jpyRate = competition.exchangeRateUsdJpy ?? 148;
+
+    const usdMatch = prizeRaw.match(/\$([0-9,]+)/);
+    const krwMatch = prizeRaw.match(/₩([0-9,]+)|([0-9,]+)만원|([0-9,]+)원/);
+    const jpyMatch = prizeRaw.match(/¥([0-9,]+)/);
+
+    const usdAmount = usdMatch ? parseInt(usdMatch[1].replace(/,/g, "")) : null;
+    const krwAmount = krwMatch
+      ? krwMatch[1]
+        ? parseInt(krwMatch[1].replace(/,/g, ""))
+        : krwMatch[2]
+          ? parseInt(krwMatch[2].replace(/,/g, "")) * 10000
+          : krwMatch[3]
+            ? parseInt(krwMatch[3].replace(/,/g, ""))
+            : null
+      : null;
+    const jpyAmount = jpyMatch ? parseInt(jpyMatch[1].replace(/,/g, "")) : null;
+
+    const formatKrw = (krw: number) => {
+      if (krw >= 10000000) return `약 ₩${(krw / 10000000).toFixed(0)}천만`;
+      if (krw >= 1000000) return `약 ₩${(krw / 10000).toFixed(0)}만`;
+      return `약 ₩${krw.toLocaleString()}`;
+    };
+
+    const formatUsd = (usd: number) => `~$${usd.toLocaleString()}`;
+    const formatJpy = (jpy: number) => `약 ¥${jpy.toLocaleString()}`;
+    void formatJpy;
+
+    if (locale === "ko") {
+      if (krwAmount) return `₩${krwAmount.toLocaleString()}`;
+      if (usdAmount) return `$${usdAmount.toLocaleString()} (${formatKrw(usdAmount * krwRate)})`;
+      if (jpyAmount) return `¥${jpyAmount.toLocaleString()} (${formatKrw(jpyAmount / jpyRate * krwRate)})`;
+      return prizeRaw;
+    }
+
+    if (locale === "ja") {
+      if (jpyAmount) return `¥${jpyAmount.toLocaleString()}`;
+      if (usdAmount) return `$${usdAmount.toLocaleString()} (約¥${(usdAmount * jpyRate).toLocaleString()})`;
+      if (krwAmount) return `₩${krwAmount.toLocaleString()} (約¥${Math.round(krwAmount / krwRate * jpyRate).toLocaleString()})`;
+      return prizeRaw;
+    }
+
+    if (usdAmount) return `$${usdAmount.toLocaleString()}`;
+    if (krwAmount) return `₩${krwAmount.toLocaleString()} (${formatUsd(Math.round(krwAmount / krwRate))})`;
+    if (jpyAmount) return `¥${jpyAmount.toLocaleString()} (${formatUsd(Math.round(jpyAmount / jpyRate))})`;
+    return prizeRaw;
   })();
 
   const genreMap: Record<string, string> = {
@@ -685,7 +746,11 @@ function CompetitionBanner({ competition }: { competition: Competition | null })
                 className="h-2 w-2 rounded-full bg-[#AFA9EC]"
                 style={{ animation: "pulseGlow 1.5s ease-in-out infinite", boxShadow: "0 0 6px #7F77DD" }}
               />
-              {status}
+              {["Open", "접수중", "In Review", "Voting"].includes(competition?.status ?? "")
+                ? t("competition.banner.nowOpen", "● Now Open")
+                : ["Upcoming", "예정"].includes(competition?.status ?? "")
+                  ? t("competition.statusUpcoming", "Upcoming")
+                  : t("competition.statusClosed", "Closed")}
             </span>
           </div>
 
@@ -700,12 +765,16 @@ function CompetitionBanner({ competition }: { competition: Competition | null })
         {/* 가운데 — 상금 + 마감 */}
         <div className="flex items-center gap-8">
           <div className="text-center">
-            <p className="text-[11px] text-white/40 uppercase tracking-widest">Prize</p>
-            <p className="text-xl font-black text-white">{prize}</p>
+            <p className="text-[11px] text-white/40 uppercase tracking-widest">
+              {t("competition.banner.prize", "Prize")}
+            </p>
+            <p className="text-xl font-black text-white">{prizeDisplayFinal}</p>
           </div>
           {daysLeft !== null && (
             <div className="text-center">
-              <p className="text-[11px] text-white/40 uppercase tracking-widest">Deadline</p>
+              <p className="text-[11px] text-white/40 uppercase tracking-widest">
+                {t("competition.banner.deadline", "Deadline")}
+              </p>
               <p className="text-xl font-black text-white">
                 D-{daysLeft}
               </p>
@@ -719,7 +788,7 @@ function CompetitionBanner({ competition }: { competition: Competition | null })
             href="/competition"
             className="rounded-lg border border-white/15 px-5 py-2.5 text-sm font-semibold text-white/70 transition hover:border-white/30 hover:text-white"
           >
-            Learn More
+            {t("competition.banner.learnMore", "Learn More")}
           </Link>
           <Link
             href={competition?.id ? `/competition/${competition.id}` : "/competition"}
@@ -729,7 +798,7 @@ function CompetitionBanner({ competition }: { competition: Competition | null })
               boxShadow: "0 4px 16px rgba(83,74,183,0.5)",
             }}
           >
-            Submit Now →
+            {t("competition.banner.submitNow", "Submit Now →")}
           </Link>
         </div>
       </div>
@@ -998,43 +1067,61 @@ export function HomePageClient(props: HomePageClientProps) {
                         <Link
                           key={creator.uploadedBy}
                           href={`/profile/${creator.uploadedBy}`}
-                          className="group shrink-0 w-[240px] rounded-xl border border-white/[0.06] bg-white/[0.02] p-4 transition-all duration-300 hover:border-[#7F77DD]/30 hover:bg-white/[0.04]"
+                          className="group shrink-0 w-[248px] overflow-hidden rounded-2xl border border-white/[0.08] bg-[#121027] p-4 transition-all duration-300 hover:-translate-y-0.5 hover:border-[#7F77DD]/45"
                         >
-                          {/* 아바타 + 이름 */}
-                          <div className="flex items-center gap-3 mb-4">
-                            <div className="h-12 w-12 shrink-0 overflow-hidden rounded-full border border-white/10 bg-[#26215C]">
+                          <div className="mb-3 flex items-center gap-3">
+                            <div className="h-14 w-14 shrink-0 overflow-hidden rounded-full border border-white/15 bg-[#26215C]">
                               {creator.avatarUrl ? (
                                 <img src={creator.avatarUrl} alt="" className="h-full w-full object-cover" />
                               ) : (
-                                <div className="flex h-full w-full items-center justify-center text-lg font-bold text-white/60">
+                                <div className="flex h-full w-full items-center justify-center text-base font-bold text-white/60">
                                   {creator.displayName.slice(0, 1)}
                                 </div>
                               )}
                             </div>
-                            <div>
-                              <p className="text-[13px] font-bold text-white group-hover:text-[#AFA9EC] transition-colors">
+                            <div className="min-w-0">
+                              <p className="truncate text-[15px] font-semibold text-white transition-colors group-hover:text-[#D9D5FF]">
                                 {creator.displayName}
                               </p>
-                              <p className="text-[11px] text-white/40">
-                                {creator.videoCount} films · {creator.totalLikes} likes
-                              </p>
+                              <p className="text-[11px] text-white/45">Creator Spotlight</p>
                             </div>
                           </div>
 
-                          {/* 최근 영상 썸네일 3개 */}
+                          <div className="mb-3 grid grid-cols-2 gap-2">
+                            <div className="rounded-xl border border-white/[0.08] bg-white/[0.03] px-3 py-2">
+                              <p className="text-[10px] uppercase tracking-wide text-white/35">Films</p>
+                              <p className="mt-0.5 text-sm font-semibold text-white">{creator.videoCount}</p>
+                            </div>
+                            <div className="rounded-xl border border-white/[0.08] bg-white/[0.03] px-3 py-2">
+                              <p className="text-[10px] uppercase tracking-wide text-white/35">Likes</p>
+                              <p className="mt-0.5 text-sm font-semibold text-white">{creator.totalLikes}</p>
+                            </div>
+                          </div>
+
+                          <div className="mb-3 flex items-center gap-2">
+                            <span className="inline-flex rounded-full border border-[#7F77DD]/35 bg-[#7F77DD]/15 px-2 py-0.5 text-[10px] font-medium text-[#D5D1FF]">
+                              Featured
+                            </span>
+                            {creator.recentVideos[0]?.genre ? (
+                              <span className="inline-flex rounded-full border border-white/[0.1] bg-white/[0.03] px-2 py-0.5 text-[10px] text-white/70">
+                                #{creator.recentVideos[0].genre}
+                              </span>
+                            ) : null}
+                          </div>
+
                           <div className="grid grid-cols-3 gap-1.5">
                             {creator.recentVideos.slice(0, 3).map((v) => (
                               <div
                                 key={v.id}
-                                className="aspect-video overflow-hidden rounded-md bg-[#1a1547]"
+                                className="aspect-video overflow-hidden rounded-md border border-white/[0.08] bg-[#1a1547]"
                               >
-                                {v.thumbnailUrl && (
+                                {v.thumbnailUrl ? (
                                   <img
                                     src={v.thumbnailUrl}
                                     alt=""
-                                    className="h-full w-full object-cover opacity-80 transition group-hover:opacity-100"
+                                    className="h-full w-full object-cover opacity-85 transition duration-300 group-hover:opacity-100"
                                   />
-                                )}
+                                ) : null}
                               </div>
                             ))}
                           </div>

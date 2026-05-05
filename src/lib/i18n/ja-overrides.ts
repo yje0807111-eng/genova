@@ -654,4 +654,9 @@ export const jaOverrides: Record<string, string> = {
 
   "genreSidebar.justNow": "たった今",
   "genreSidebar.oneMinAgo": "1分前",
+  "competition.banner.nowOpen": "募集中",
+  "competition.banner.prize": "賞金",
+  "competition.banner.deadline": "締切",
+  "competition.banner.learnMore": "詳細を見る",
+  "competition.banner.submitNow": "今すぐ応募 →",
 };

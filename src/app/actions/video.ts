@@ -11,6 +11,20 @@ export type VideoActionResult =
   | { ok: true; videoId: string }
   | { ok: false; message: string };
 
+function normalizeHashtags(tags: string[]): string[] {
+  const seen = new Set<string>();
+  const out: string[] = [];
+  for (const raw of tags) {
+    const cleaned = raw.trim().replace(/^#+/, "").toLowerCase();
+    if (!cleaned) continue;
+    if (seen.has(cleaned)) continue;
+    seen.add(cleaned);
+    out.push(cleaned);
+    if (out.length >= MAX_VIDEO_TAGS) break;
+  }
+  return out;
+}
+
 export async function createVideoAction(form: {
   title: string;
   vimeoUrl: string | null;
@@ -38,6 +52,8 @@ export async function createVideoAction(form: {
   } = await supabase.auth.getUser();
   if (!user) return { ok: false, message: "Please sign in." };
 
+  const normalizedTags = normalizeHashtags(form.tags);
+
   const muxPlaybackId = form.muxPlaybackId?.trim() || null;
   const muxAssetId = form.muxAssetId?.trim() || null;
   const muxUploadId = form.muxUploadId?.trim() || null;
@@ -62,7 +78,7 @@ export async function createVideoAction(form: {
   if (form.purpose === "competition" && !form.submittedCompetitionId) {
     return { ok: false, message: "Please select a competition." };
   }
-  if (form.tags.length > MAX_VIDEO_TAGS) {
+  if (normalizedTags.length > MAX_VIDEO_TAGS) {
     return { ok: false, message: `You can add up to ${MAX_VIDEO_TAGS} tags.` };
   }
   if (form.genre === "series") {
@@ -102,7 +118,7 @@ export async function createVideoAction(form: {
     visibility: form.visibility,
     description: form.description.trim(),
     ai_tools: form.aiTools,
-    tags: form.tags,
+    tags: normalizedTags,
     series_name: seriesName,
     episode_number: episodeNumber,
     runtime,
@@ -181,6 +197,8 @@ export async function updateVideoAction(
   } = await supabase.auth.getUser();
   if (!user) return { ok: false, message: "Please sign in." };
 
+  const normalizedTags = normalizeHashtags(form.tags);
+
   if (!form.title.trim()) return { ok: false, message: "Please enter a title." };
   if (!form.thumbnailUrl) return { ok: false, message: "Thumbnail is required." };
   if (form.runtimeMinutes < 1) return { ok: false, message: "Please enter runtime in minutes." };
@@ -193,7 +211,7 @@ export async function updateVideoAction(
   if (!needsSubGenre(form.genre) && form.subGenre) {
     return { ok: false, message: "This genre does not support sub genre." };
   }
-  if (form.tags.length > MAX_VIDEO_TAGS) {
+  if (normalizedTags.length > MAX_VIDEO_TAGS) {
     return { ok: false, message: `You can add up to ${MAX_VIDEO_TAGS} tags.` };
   }
   if (form.genre === "series") {
@@ -218,7 +236,7 @@ export async function updateVideoAction(
       sub_genre: needsSubGenre(form.genre) ? form.subGenre : null,
       description: form.description.trim(),
       ai_tools: form.aiTools,
-      tags: form.tags,
+      tags: normalizedTags,
       runtime,
       visibility: form.visibility,
       series_name: seriesName,

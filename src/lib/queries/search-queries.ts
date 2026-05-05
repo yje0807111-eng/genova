@@ -37,6 +37,10 @@ export type FullSearchResult = {
 
 export type SearchSortMode = "relevance" | "latest" | "likes";
 
+function normalizeSearchTerm(input: string): string {
+  return input.trim().replace(/^#+/, "").trim();
+}
+
 function toLike(term: string): string {
   return `%${term.trim().replaceAll(",", " ")}%`;
 }
@@ -332,7 +336,7 @@ export async function searchVideosFull(
   limit = 48,
   sort: SearchSortMode = "relevance",
 ): Promise<Video[]> {
-  const term = q.trim();
+  const term = normalizeSearchTerm(q);
   if (!term) return [];
   let videos = await collectVideoCandidates(term, 280);
   videos = applyMockLikeFallback(await attachEngagementToVideos(videos));
@@ -358,7 +362,7 @@ export async function searchVideosFull(
 }
 
 export async function searchProfilesFull(q: string, limit = 24): Promise<SearchProfile[]> {
-  const term = q.trim();
+  const term = normalizeSearchTerm(q);
   if (!term) return [];
   const supabase = await createServerSupabaseClient();
   if (!supabase) {
@@ -397,7 +401,7 @@ export async function runFullSearch(
   profileLimit = 24,
   sort: SearchSortMode = "relevance",
 ): Promise<FullSearchResult> {
-  const term = q.trim();
+  const term = normalizeSearchTerm(q);
   if (!term) {
     return { videos: [], profiles: [], matchingTags: [], genreMatch: null };
   }
@@ -426,7 +430,7 @@ export async function getFallbackRecommendations(): Promise<{ videos: Video[]; g
 
 /** 자동완성 전용(제한 개수) */
 export async function suggestSearchAutocomplete(q: string) {
-  const term = q.trim();
+  const term = normalizeSearchTerm(q);
   if (!term) {
     return {
       videos: [] as Video[],

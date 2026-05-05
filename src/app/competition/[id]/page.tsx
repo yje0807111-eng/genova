@@ -14,8 +14,9 @@ async function fetchCompetitionVideos(competitionId: string) {
   if (!supabase) return [];
   const { data } = await supabase
     .from("videos")
-    .select("*")
+    .select("*, profiles(display_name, avatar_url)")
     .eq("purpose", "competition")
+    .eq("submitted_competition_id", competitionId)
     .eq("visibility", "public")
     .order("view_count", { ascending: false });
   return data ?? [];

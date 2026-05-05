@@ -93,25 +93,39 @@ export async function fetchCreators(): Promise<Creator[]> {
   return data.map((row) => mapCreator(row));
 }
 
-/** Prefer active statuses first, then nearest deadline. */
 export async function fetchCurrentCompetition(): Promise<Competition | null> {
   const supabase = await createServerSupabaseClient();
   if (!supabase) return null;
-  const { data: active } = await supabase
+
+  // site_settings에서 선택된 공모전 ID 가져오기
+  const { data: settings } = await supabase
+    .from("site_settings")
+    .select("value")
+    .eq("key", "home_featured_competition_id")
+    .maybeSingle();
+
+  const featuredId = settings?.value as string | null;
+
+  if (featuredId) {
+    // 선택된 공모전 반환
+    const { data } = await supabase
+      .from("competitions")
+      .select("*")
+      .eq("id", featuredId)
+      .maybeSingle();
+    if (data) return mapCompetition(data);
+  }
+
+  // 선택된 공모전 없으면 현재 진행중인 공모전 중 첫 번째 반환
+  const { data } = await supabase
     .from("competitions")
     .select("*")
-    .in("status", ["Open", "In Review", "Voting", "접수중", "결선 진행중"])
+    .in("status", ["Open", "접수중", "In Review", "Voting"])
     .order("deadline", { ascending: true })
     .limit(1)
     .maybeSingle();
-  if (active) return mapCompetition(active);
-  const { data: fallback } = await supabase
-    .from("competitions")
-    .select("*")
-    .order("deadline", { ascending: true })
-    .limit(1)
-    .maybeSingle();
-  return fallback ? mapCompetition(fallback) : null;
+
+  return data ? mapCompetition(data) : null;
 }
 
 export async function fetchVideoById(id: string): Promise<Video | null> {
@@ -178,21 +192,45 @@ export async function fetchCompetitionById(id: string) {
   };
 }
 
-export async function fetchRelatedVideos(excludeId: string, limit = 3): Promise<Video[]> {
+export async function fetchRelatedVideos(excludeId: string, limit = 8): Promise<Video[]> {
   const supabase = await createServerSupabaseClient();
   if (!supabase) return [];
+
+  // 현재 유저의 시청 기록 가져오기 (최근 50개)
+  const { data: { user } } = await supabase.auth.getUser();
+  let watchedIds: string[] = [];
+
+  if (user) {
+    const { data: history } = await supabase
+      .from("watch_history")
+      .select("video_id")
+      .eq("user_id", user.id)
+      .order("watched_at", { ascending: false })
+      .limit(50);
+    watchedIds = (history ?? []).map((h) => h.video_id as string);
+  }
+
+  // 전체 공개 영상 가져오기
   const { data, error } = await supabase
     .from("videos")
     .select("*")
-    .neq("id", excludeId)
     .eq("visibility", "public")
     .order("created_at", { ascending: false })
-    .limit(limit);
-  if (error || !data) {
-    console.error("[fetchRelatedVideos] videos fetch failed", { message: error?.message, code: error?.code });
-    return [];
-  }
-  const merged = await mergeVideoRows(data as Parameters<typeof mapVideo>[0][]);
+    .limit(limit + watchedIds.length + 10);
+
+  if (error || !data) return [];
+
+  // JS에서 필터링 (현재 영상 + 시청 기록 제외)
+  const excludeSet = new Set([excludeId, ...watchedIds]);
+  const filtered = data.filter((v) => !excludeSet.has(v.id as string));
+  const result = filtered.slice(0, limit);
+
+  // 부족하면 시청 기록 무시하고 현재 영상만 제외
+  const final = result.length >= limit
+    ? result
+    : data.filter((v) => v.id !== excludeId).slice(0, limit);
+
+  const merged = await mergeVideoRows(final as Parameters<typeof mapVideo>[0][]);
   return merged.map((row) => mapVideo(row));
 }
 

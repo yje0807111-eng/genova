@@ -5,6 +5,13 @@ import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useI18n } from "@/components/genova/language-provider";
 import { deleteCompetitionAction, setVideoOriginalAction } from "@/app/actions/admin";
+import {
+  deleteAllVideoReportsAction,
+  deleteVideoReportAction,
+  updateVideoReportStatusAction,
+  type VideoReportItem,
+  type VideoReportStatus,
+} from "@/app/actions/reports";
 import { updateVideoVisibilityAction } from "@/app/actions/video";
 import { deleteVideoAction } from "@/app/actions/video";
 import {
@@ -107,7 +114,15 @@ function AwardDropdown({
   );
 }
 
-export function AdminDashboard({ competitions, videos }: { competitions: Competition[]; videos: Video[] }) {
+export function AdminDashboard({
+  competitions,
+  videos,
+  reports,
+}: {
+  competitions: Competition[];
+  videos: Video[];
+  reports: VideoReportItem[];
+}) {
   const router = useRouter();
   const { t } = useI18n();
   const competitionThumbInputRef = useRef<HTMLInputElement>(null);
@@ -164,12 +179,20 @@ export function AdminDashboard({ competitions, videos }: { competitions: Competi
   const [heroEyebrowLoading, setHeroEyebrowLoading] = useState(false);
   const [featuredCompetitionId, setFeaturedCompetitionId] = useState("");
   const [featuredLoading, setFeaturedLoading] = useState(false);
+  const [homeFeaturedCompId, setHomeFeaturedCompId] = useState("");
+  const [homeFeaturedLoading, setHomeFeaturedLoading] = useState(false);
   const [competitionThumbPreview, setCompetitionThumbPreview] = useState<string | null>(null);
   const [competitionThumbDragging, setCompetitionThumbDragging] = useState(false);
+  const [localReports, setLocalReports] = useState<VideoReportItem[]>(reports);
+  const [reportStatusFilter, setReportStatusFilter] = useState<"all" | VideoReportStatus>("all");
+  const [reportReasonFilter, setReportReasonFilter] = useState<"all" | VideoReportItem["reason"]>("all");
 
   useEffect(() => {
     setLocalCompetitions(competitions);
   }, [competitions]);
+  useEffect(() => {
+    setLocalReports(reports);
+  }, [reports]);
 
   useEffect(() => {
     Promise.all([
@@ -190,6 +213,15 @@ export function AdminDashboard({ competitions, videos }: { competitions: Competi
       .then((r) => r.json())
       .then((d) => {
         if (d.value) setFeaturedCompetitionId(d.value);
+      })
+      .catch(() => {});
+  }, []);
+
+  useEffect(() => {
+    fetch("/api/site-settings?key=home_featured_competition_id")
+      .then((r) => r.json())
+      .then((d) => {
+        if (d.value) setHomeFeaturedCompId(d.value);
       })
       .catch(() => {});
   }, []);
@@ -265,6 +297,29 @@ export function AdminDashboard({ competitions, videos }: { competitions: Competi
     if (status === "Closed") return "종료";
     return status;
   };
+  const reportStatusLabel = (status: VideoReportStatus) => {
+    if (status === "open") return "Open";
+    if (status === "reviewing") return "Reviewing";
+    if (status === "resolved") return "Resolved";
+    return "Rejected";
+  };
+  const reportScopeLabel = (scope: VideoReportItem["scope"]) => {
+    if (scope === "video") return "Video";
+    if (scope === "audio") return "Audio";
+    if (scope === "thumbnail") return "Thumbnail";
+    if (scope === "caption") return "Caption";
+    return "Comment";
+  };
+  const reportReasonLabel = (reason: VideoReportItem["reason"]) => {
+    if (reason === "spam") return "Spam";
+    if (reason === "copyright") return "Copyright";
+    if (reason === "harassment") return "Harassment";
+    if (reason === "sexual") return "Sexual";
+    if (reason === "violence") return "Violence";
+    if (reason === "hate") return "Hate";
+    if (reason === "misinfo") return "Misinformation";
+    return "Other";
+  };
 
   const filteredVideos = useMemo(() => {
     const now = Date.now();
@@ -299,6 +354,26 @@ export function AdminDashboard({ competitions, videos }: { competitions: Competi
 
     return result;
   }, [videos, videoFilter, videoTimeFilter, videoSort]);
+
+  const filteredReports = useMemo(() => {
+    let result = [...localReports];
+    if (reportStatusFilter !== "all") {
+      result = result.filter((r) => r.status === reportStatusFilter);
+    }
+    if (reportReasonFilter !== "all") {
+      result = result.filter((r) => r.reason === reportReasonFilter);
+    }
+    result.sort((a, b) => {
+      if (a.status === "open" && b.status !== "open") return -1;
+      if (a.status !== "open" && b.status === "open") return 1;
+      return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+    });
+    return result;
+  }, [localReports, reportStatusFilter, reportReasonFilter]);
+  const openReportCount = useMemo(
+    () => localReports.filter((r) => r.status === "open").length,
+    [localReports],
+  );
 
   const competitionVideos = selectedCompetition
     ? videos.filter((v) => v.purpose === "competition" || v.isFinalist)
@@ -456,6 +531,188 @@ export function AdminDashboard({ competitions, videos }: { competitions: Competi
           >
             {featuredLoading ? "저장 중..." : "저장"}
           </button>
+        </div>
+
+        <div className="mt-3 flex gap-2">
+          <div className="flex-1">
+            <label className="mb-1 block text-[10px] text-white/30">홈 배너 공모전</label>
+            <select
+              value={homeFeaturedCompId}
+              onChange={(e) => setHomeFeaturedCompId(e.target.value)}
+              className="w-full rounded-lg border border-white/[0.12] bg-[#0d0b20] px-3 py-2 text-xs text-white outline-none"
+            >
+              <option value="">자동 선택 (진행 중인 공모전)</option>
+              {localCompetitions.map((c) => (
+                <option key={c.id} value={c.id}>
+                  {c.title}
+                </option>
+              ))}
+            </select>
+          </div>
+          <button
+            type="button"
+            disabled={homeFeaturedLoading}
+            onClick={async () => {
+              setHomeFeaturedLoading(true);
+              try {
+                await fetch("/api/site-settings", {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({ key: "home_featured_competition_id", value: homeFeaturedCompId }),
+                });
+                setMessage("저장되었습니다.");
+              } finally {
+                setHomeFeaturedLoading(false);
+              }
+            }}
+            className="self-end rounded-lg border border-[#7F77DD]/30 px-3 py-2 text-[10px] text-[#AFA9EC] transition hover:bg-[#534AB7]/20"
+          >
+            {homeFeaturedLoading ? "저장 중..." : "저장"}
+          </button>
+        </div>
+      </div>
+
+      <div className="mt-4 rounded-xl border border-white/[0.06] p-3" style={{ background: "rgba(255,255,255,0.02)" }}>
+        <div className="mb-2 flex items-center justify-between">
+          <p className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest text-white/40">
+            신고 관리
+            {openReportCount > 0 ? (
+              <span className="inline-flex items-center gap-1 rounded-full border border-red-500/30 bg-red-500/15 px-1.5 py-0.5 text-[9px] font-bold text-red-300">
+                <span className="h-1.5 w-1.5 rounded-full bg-red-400" />
+                {openReportCount}
+              </span>
+            ) : null}
+          </p>
+          <div className="flex items-center gap-2">
+            <p className="text-[10px] text-white/30">총 {filteredReports.length}건 / 전체 {localReports.length}건</p>
+            <button
+              type="button"
+              disabled={loading || localReports.length === 0}
+              onClick={() => {
+                if (!confirm("신고 내역 전체를 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다.")) return;
+                void callWithOptimistic(
+                  () => deleteAllVideoReportsAction(),
+                  () => setLocalReports([]),
+                );
+              }}
+              className="rounded-md border border-red-500/20 px-2 py-0.5 text-[10px] text-red-400/60 transition hover:border-red-500/40 hover:text-red-400 disabled:opacity-40"
+            >
+              전체 삭제
+            </button>
+          </div>
+        </div>
+        <div className="mb-2 flex flex-wrap gap-1.5">
+          <select
+            value={reportStatusFilter}
+            onChange={(e) => setReportStatusFilter(e.target.value as "all" | VideoReportStatus)}
+            className="rounded-md border border-white/[0.12] bg-[#0d0b20] px-2 py-1 text-[10px] text-white outline-none"
+          >
+            <option value="all">상태: 전체</option>
+            <option value="open">Open</option>
+            <option value="reviewing">Reviewing</option>
+            <option value="resolved">Resolved</option>
+            <option value="rejected">Rejected</option>
+          </select>
+          <select
+            value={reportReasonFilter}
+            onChange={(e) => setReportReasonFilter(e.target.value as "all" | VideoReportItem["reason"])}
+            className="rounded-md border border-white/[0.12] bg-[#0d0b20] px-2 py-1 text-[10px] text-white outline-none"
+          >
+            <option value="all">사유: 전체</option>
+            <option value="spam">Spam</option>
+            <option value="copyright">Copyright</option>
+            <option value="harassment">Harassment</option>
+            <option value="sexual">Sexual</option>
+            <option value="violence">Violence</option>
+            <option value="hate">Hate</option>
+            <option value="misinfo">Misinformation</option>
+            <option value="other">Other</option>
+          </select>
+          <span className="rounded-md border border-[#7F77DD]/25 bg-[#7F77DD]/10 px-2 py-1 text-[10px] text-[#AFA9EC]">
+            정렬: Open 우선
+          </span>
+        </div>
+        <div className="max-h-[260px] space-y-1.5 overflow-y-auto">
+          {filteredReports.length === 0 ? (
+            <p className="text-xs text-white/30">신고 내역이 없습니다.</p>
+          ) : (
+            filteredReports.map((r) => (
+              <div
+                key={r.id}
+                className="rounded-lg border border-white/[0.06] p-2"
+                style={{ background: "rgba(255,255,255,0.02)" }}
+              >
+                <div className="mb-1 flex items-center justify-between gap-2">
+                  <p className="min-w-0 flex-1 truncate text-xs font-semibold text-white">{r.videoTitle}</p>
+                  <span className="text-[10px] text-white/35">
+                    {new Date(r.createdAt).toISOString().replace("T", " ").slice(0, 16)} UTC
+                  </span>
+                </div>
+                <p className="mb-1 text-[10px] text-white/35">
+                  {r.reporterName} · {reportScopeLabel(r.scope)} · {reportReasonLabel(r.reason)}
+                  {typeof r.timestampSec === "number" ? ` · ${r.timestampSec}s` : ""}
+                </p>
+                {r.detail ? <p className="mb-1 line-clamp-2 text-[10px] text-white/45">{r.detail}</p> : null}
+                <div className="mb-1 flex flex-wrap items-center gap-1.5">
+                  <Link
+                    href={`/watch/${r.videoId}`}
+                    target="_blank"
+                    className="rounded-md border border-white/[0.1] px-2 py-0.5 text-[10px] text-white/50 transition hover:border-white/25 hover:text-white/80"
+                  >
+                    영상 바로가기 →
+                  </Link>
+                  <Link
+                    href={`/profile/${r.reporterUserId}`}
+                    target="_blank"
+                    className="rounded-md border border-white/[0.1] px-2 py-0.5 text-[10px] text-white/50 transition hover:border-white/25 hover:text-white/80"
+                  >
+                    신고자 프로필 →
+                  </Link>
+                </div>
+                <div className="flex flex-wrap gap-1">
+                  {(["open", "reviewing", "resolved", "rejected"] as VideoReportStatus[]).map((s) => (
+                    <button
+                      key={s}
+                      type="button"
+                      disabled={loading}
+                      onClick={() =>
+                        void callWithOptimistic(
+                          () => updateVideoReportStatusAction(r.id, s),
+                          () =>
+                            setLocalReports((prev) =>
+                              prev.map((item) => (item.id === r.id ? { ...item, status: s } : item)),
+                            ),
+                        )
+                      }
+                      className="rounded-md border px-2 py-0.5 text-[10px] transition"
+                      style={{
+                        borderColor:
+                          r.status === s ? "rgba(127,119,221,0.45)" : "rgba(255,255,255,0.08)",
+                        background: r.status === s ? "rgba(83,74,183,0.25)" : "transparent",
+                        color: r.status === s ? "#AFA9EC" : "rgba(255,255,255,0.4)",
+                      }}
+                    >
+                      {reportStatusLabel(s)}
+                    </button>
+                  ))}
+                  <button
+                    type="button"
+                    disabled={loading}
+                    onClick={() => {
+                      if (!confirm("이 신고를 삭제하시겠습니까?")) return;
+                      void callWithOptimistic(
+                        () => deleteVideoReportAction(r.id),
+                        () => setLocalReports((prev) => prev.filter((item) => item.id !== r.id)),
+                      );
+                    }}
+                    className="rounded-md border border-red-500/20 px-2 py-0.5 text-[10px] text-red-400/60 transition hover:border-red-500/40 hover:text-red-400"
+                  >
+                    삭제
+                  </button>
+                </div>
+              </div>
+            ))
+          )}
         </div>
       </div>
 

@@ -66,6 +66,7 @@ export type VideoComment = {
   videoId: string;
   parentId: string | null;
   content: string;
+  isPinned?: boolean;
   createdAt: string;
   displayName: string | null;
   avatarUrl: string | null;

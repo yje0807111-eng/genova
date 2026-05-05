@@ -19,6 +19,7 @@ function LayoutChrome({ children }: { children: ReactNode }) {
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [chatOpen, setChatOpen] = useState(false);
   const [chatTarget, setChatTarget] = useState<{ userId: string; displayName: string; avatarUrl?: string } | null>(null);
+  const [unreadMessageCount, setUnreadMessageCount] = useState(0);
   const genresDisabled = pathname === "/profile" || Boolean(pathname?.startsWith("/profile/"));
 
   useEffect(() => {
@@ -48,6 +49,7 @@ function LayoutChrome({ children }: { children: ReactNode }) {
           setChatTarget(null);
         }}
         initialTarget={chatTarget}
+        onUnreadChange={setUnreadMessageCount}
       />
       <Navbar />
       <GenreSidebar
@@ -77,6 +79,11 @@ function LayoutChrome({ children }: { children: ReactNode }) {
         aria-label={t("layout.messages", "Messages")}
       >
         <MessageCircle className="h-5 w-5 text-white" />
+        {unreadMessageCount > 0 && !chatOpen && (
+          <span className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white">
+            {unreadMessageCount > 9 ? "9+" : unreadMessageCount}
+          </span>
+        )}
       </button>
       <button
         type="button"

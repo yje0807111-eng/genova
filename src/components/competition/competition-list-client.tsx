@@ -6,6 +6,7 @@ import { ChevronLeft, ChevronRight, LayoutGrid, List } from "lucide-react";
 import { useI18n } from "@/components/genova/language-provider";
 import type { Locale } from "@/lib/i18n/translations";
 import { intlDateLocale } from "@/lib/i18n/browser-locale";
+import { formatPrizeWithConversion } from "@/lib/utils/format-prize";
 
 type Competition = {
   id: string;
@@ -24,6 +25,9 @@ type Competition = {
   sponsor: string | null;
   description?: string | null;
   thumbnail_url?: string | null;
+  exchange_rate_usd_krw?: number | null;
+  exchange_rate_usd_jpy?: number | null;
+  base_currency?: string | null;
 };
 
 function getLangText(
@@ -63,62 +67,6 @@ function formatPrize(prizeInfo: string, _t: (key: string, fallback?: string) => 
 
   if (cleaned.includes("$")) return cleaned;
   return cleaned;
-}
-
-function formatPrizeWithConversion(
-  prizeKo: string | null | undefined,
-  prizeEn: string | null | undefined,
-  prizeJa: string | null | undefined,
-  prizeFallback: string,
-  locale: string,
-  baseCurrency: string | null | undefined,
-  usdToKrw: number,
-  usdToJpy: number,
-): string {
-  const usdToKrwRate = usdToKrw || 1350;
-  const usdToJpyRate = usdToJpy || 148;
-  const krwToUsd = 1 / usdToKrwRate;
-  const krwToJpy = usdToJpyRate / usdToKrwRate;
-  const jpyToUsd = 1 / usdToJpyRate;
-  const jpyToKrw = usdToKrwRate / usdToJpyRate;
-  const base = baseCurrency ?? "USD";
-
-  // 숫자 추출 — USD 100,000 / $100,000 / 100000 모두 처리
-  const extractAmount = (text: string): number | null => {
-    const cleaned = text.replace(/[^\d.]/g, "");
-    const n = parseFloat(cleaned);
-    return isNaN(n) ? null : n;
-  };
-
-  const formatKRW = (n: number) => `₩${Math.round(n).toLocaleString()}`;
-  const formatUSD = (n: number) => `$${Math.round(n).toLocaleString()}`;
-  const formatJPY = (n: number) => `¥${Math.round(n).toLocaleString()}`;
-
-  if (locale === "ko") {
-    const text = prizeKo || prizeEn || prizeFallback;
-    const amount = extractAmount(text);
-    if (!amount) return text;
-    if (base === "USD") return `${formatUSD(amount)} (약 ${formatKRW(amount * usdToKrwRate)})`;
-    if (base === "JPY") return `${formatJPY(amount)} (약 ${formatKRW(amount * jpyToKrw)})`;
-    return `${formatKRW(amount)}`;
-  }
-
-  if (locale === "ja") {
-    const text = prizeJa || prizeEn || prizeFallback;
-    const amount = extractAmount(text);
-    if (!amount) return text;
-    if (base === "USD") return `${formatUSD(amount)} (約 ${formatJPY(amount * usdToJpyRate)})`;
-    if (base === "KRW") return `${formatKRW(amount)} (約 ${formatJPY(amount * krwToJpy)})`;
-    return `${formatJPY(amount)}`;
-  }
-
-  // en
-  const text = prizeEn || prizeKo || prizeFallback;
-  const amount = extractAmount(text);
-  if (!amount) return text;
-  if (base === "KRW") return `${formatKRW(amount)} (≈ ${formatUSD(amount * krwToUsd)})`;
-  if (base === "JPY") return `${formatJPY(amount)} (≈ ${formatUSD(amount * jpyToUsd)})`;
-  return `${formatUSD(amount)}`;
 }
 
 function genreUiLabel(genre: string | undefined | null, locale: Locale): string {
@@ -171,7 +119,9 @@ function FeaturedCard({ c }: { c: Competition }) {
         {thumb ? (
           <img src={thumb} alt="" className="absolute inset-0 h-full w-full object-cover transition-transform duration-500 group-hover:scale-105" />
         ) : (
-          <div className="absolute inset-0 bg-gradient-to-br from-[#1a1547] to-[#0f0d24]" />
+          <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-[#1a1547] to-[#0f0d24]">
+            <img src="/genova-logo.png" alt="Genova" className="h-40 w-40 object-contain opacity-15" />
+          </div>
         )}
         <div className="absolute inset-0" style={{ background: "linear-gradient(to top, rgba(8,6,24,1) 0%, rgba(8,6,24,1) 15%, rgba(8,6,24,0.85) 35%, rgba(8,6,24,0.3) 55%, rgba(8,6,24,0) 75%)" }} />
         <div
@@ -212,7 +162,7 @@ function FeaturedCard({ c }: { c: Competition }) {
           {getLangText(locale, c.title_ko, c.title_en, c.title_ja, c.title)}
         </h3>
         <p className="mb-3 text-[13px] font-extrabold text-[#FFB347]" style={{ textShadow: "0 0 12px rgba(200,150,62,0.5)" }}>
-          {formatPrize(getLangText(locale, c.prize_info_ko, c.prize_info_en, c.prize_info_ja, c.prize_info), t)}
+          {formatPrizeWithConversion(c.prize_info_ko, c.prize_info_en, c.prize_info_ja, c.prize_info, locale, c.base_currency, c.exchange_rate_usd_krw ?? 1350, c.exchange_rate_usd_jpy ?? 148)}
         </p>
         <div className="flex items-center gap-4">
           <div
@@ -265,7 +215,9 @@ function CompetitionCard({ c }: { c: Competition }) {
           {thumb ? (
             <img src={thumb} alt="" className="h-full w-full object-cover transition duration-500 group-hover:scale-105" />
           ) : (
-            <div className="h-full w-full bg-gradient-to-br from-[#1a1547] to-[#0f0d24]" />
+            <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-[#1a1547] to-[#0f0d24]">
+              <img src="/genova-logo.png" alt="Genova" className="h-28 w-28 object-contain opacity-15" />
+            </div>
           )}
           <div className="absolute left-[10px] top-[10px]">
             <span className="rounded-md border border-white/10 bg-black/55 px-2.5 py-1 text-[11px] font-semibold text-white backdrop-blur-sm">
@@ -284,7 +236,7 @@ function CompetitionCard({ c }: { c: Competition }) {
           </h3>
         </Link>
         <p className="text-[15px] font-semibold text-[#C8963E]">
-          {formatPrize(getLangText(locale, c.prize_info_ko, c.prize_info_en, c.prize_info_ja, c.prize_info), t)}
+          {formatPrizeWithConversion(c.prize_info_ko, c.prize_info_en, c.prize_info_ja, c.prize_info, locale, c.base_currency, c.exchange_rate_usd_krw ?? 1350, c.exchange_rate_usd_jpy ?? 148)}
         </p>
         <div className="flex items-center justify-between text-[12px] text-white/40">
           <span>{deadlineLabel}</span>
@@ -335,7 +287,9 @@ function CompetitionTableRow({ c, idx }: { c: Competition; idx: number }) {
         {thumb ? (
           <img src={thumb} alt="" className="h-full w-full object-cover transition group-hover:scale-105" />
         ) : (
-          <div className="h-full w-full bg-gradient-to-br from-[#1a1547] to-[#0f0d24]" />
+          <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-[#1a1547] to-[#0f0d24]">
+            <img src="/genova-logo.png" alt="Genova" className="h-20 w-20 object-contain opacity-15" />
+          </div>
         )}
       </div>
       <div className="relative z-10 flex min-w-0 flex-1 min-w-[300px] flex-col gap-1">
@@ -377,7 +331,7 @@ function CompetitionTableRow({ c, idx }: { c: Competition; idx: number }) {
       </div>
       <div className="relative z-10 w-32 shrink-0 text-center">
         <span className="text-[13px] font-bold text-[#FFB347]">
-          {formatPrize(getLangText(locale, c.prize_info_ko, c.prize_info_en, c.prize_info_ja, c.prize_info), t)}
+          {formatPrizeWithConversion(c.prize_info_ko, c.prize_info_en, c.prize_info_ja, c.prize_info, locale, c.base_currency, c.exchange_rate_usd_krw ?? 1350, c.exchange_rate_usd_jpy ?? 148)}
         </span>
       </div>
       <div className="relative z-10 w-36 shrink-0 text-center">

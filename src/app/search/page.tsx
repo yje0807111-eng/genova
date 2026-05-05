@@ -15,13 +15,15 @@ export default async function SearchPage({
   searchParams: Promise<{ q?: string; tab?: string; sort?: string }>;
 }) {
   const sp = await searchParams;
-  const q = (sp.q ?? "").trim();
+  const qRaw = (sp.q ?? "").trim();
+  const q = qRaw.replace(/^#+/, "").trim();
   const tabRaw = (sp.tab ?? "all").toLowerCase();
   const sortRaw = (sp.sort ?? "relevance").toLowerCase();
 
   const tab: ResultTab =
     tabRaw === "videos" || tabRaw === "creators" || tabRaw === "tags" || tabRaw === "all" ? (tabRaw as ResultTab) : "all";
   const sort: SearchSortMode = sortRaw === "latest" ? "latest" : sortRaw === "likes" ? "likes" : "relevance";
+  const hashtagQuery = (qRaw.startsWith("#") || tab === "tags") && q ? q : null;
 
   const empty = !q;
   const result = empty ? null : await runFullSearch(q, 60, 32, sort);
@@ -47,6 +49,7 @@ export default async function SearchPage({
       videos={videos}
       profiles={profiles}
       tags={tags}
+      hashtagQuery={hashtagQuery}
       genreMatch={genreMatch ?? null}
       fallback={fallback}
       globalEmpty={globalEmpty}

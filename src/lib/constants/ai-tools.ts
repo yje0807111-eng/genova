@@ -6,7 +6,7 @@ export function normalizeToolName(name: string): string {
 }
 
 export type AiToolCategory = {
-  key: "image" | "video" | "music";
+  key: "image" | "video" | "music" | "platform";
   label: string;
   tools: readonly string[];
 };
@@ -15,17 +15,52 @@ export const AI_TOOL_CATEGORIES = [
   {
     key: "image" as const,
     label: "Image Generation",
-    tools: ["Midjourney", "Stable Diffusion", "Flux", "Firefly", "Ideogram", "Leonardo", "DALL-E 3", "ComfyUI"],
+    tools: [
+      "Nano Banana 2",
+      "Nano Banana Pro",
+      "Midjourney V7",
+      "FLUX 2 Pro",
+      "ChatGPT Image 1",
+      "ChatGPT Image 2",
+      "Ideogram",
+      "Firefly",
+    ],
   },
   {
     key: "video" as const,
     label: "Video Generation",
-    tools: ["Runway", "Kling", "Sora", "Pika", "Luma Dream Machine", "Hailuo", "Vidu", "Wan", "HeyGen", "D-ID"],
+    tools: [
+      "Seedance 2.0",
+      "Veo 3.1",
+      "Kling 3.0",
+      "Runway Gen-4",
+      "Runway Gen-4.5",
+      "Sora 2",
+      "Pika",
+      "Wan 2.6",
+    ],
   },
   {
     key: "music" as const,
     label: "Music & Voice",
-    tools: ["Suno", "Udio", "ElevenLabs", "Mubert", "Bark", "MusicGen"],
+    tools: [
+      "ElevenLabs",
+      "Suno v5",
+      "Udio",
+      "Google Lyria 3",
+      "Stable Audio",
+    ],
+  },
+  {
+    key: "platform" as const,
+    label: "AI Platform",
+    tools: [
+      "Higgsfield",
+      "LTX Studio",
+      "getimg.ai",
+      "ImagineArt",
+      "Krea.ai",
+    ],
   },
 ] as const;
 
@@ -76,6 +111,7 @@ export function parseAiToolsFromVideo(aiTools: string[]): {
     image: false,
     video: false,
     music: false,
+    platform: false,
   };
 
   for (const entry of aiTools) {

@@ -1,10 +1,11 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { createPortal } from "react-dom";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { MAIN_GENRE_LABELS } from "@/lib/constants/genres";
+import { trackHashtagEvent } from "@/lib/hashtags/client-track";
 import { EXPLORE_GENRE_KEYS } from "@/lib/search-ui";
 import type { SearchGenreMatch, SearchProfile } from "@/lib/queries/search-queries";
 import type { Video } from "@/lib/types";
@@ -34,6 +35,8 @@ function SearchSkeleton() {
 
 export function SearchNav() {
   const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
   const overlayRef = useRef<HTMLDivElement>(null);
   const panelRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -67,6 +70,18 @@ export function SearchNav() {
     if (!open) return;
     window.setTimeout(() => inputRef.current?.focus(), 50);
   }, [open]);
+
+  useEffect(() => {
+    if (pathname !== "/search") return;
+    const qFromUrl = (searchParams.get("q") ?? "").replace(/^#+/, "").trim();
+    setQuery(qFromUrl);
+  }, [pathname, searchParams]);
+
+  useEffect(() => {
+    if (!open || pathname !== "/search") return;
+    const id = window.setTimeout(() => inputRef.current?.select(), 80);
+    return () => window.clearTimeout(id);
+  }, [open, pathname]);
 
   useEffect(() => {
     if (!open || debounced) return;
@@ -124,11 +139,16 @@ export function SearchNav() {
     if (e.target === overlayRef.current) closeSearch();
   };
 
-  const goSearch = (qRaw?: string) => {
+  const goSearch = (qRaw?: string, tab?: "all" | "videos" | "creators" | "tags", hash?: string) => {
     const q = (qRaw ?? query).trim();
     if (!q) return;
+    if (tab === "tags") trackHashtagEvent(q, "click");
     closeSearch();
-    router.push(`/search?q=${encodeURIComponent(q)}`);
+    const p = new URLSearchParams();
+    p.set("q", q.replace(/^#+/, ""));
+    if (tab && tab !== "all") p.set("tab", tab);
+    const qs = p.toString();
+    router.push(`/search?${qs}${hash ?? ""}`);
   };
 
   const hasSuggest =
@@ -339,7 +359,7 @@ export function SearchNav() {
                                 <button
                                   key={t}
                                   type="button"
-                                  onClick={() => goSearch(t)}
+                                  onClick={() => goSearch(t, "tags", "#search-tags-section")}
                                   className="rounded-full bg-white/10 px-3 py-1.5 text-xs text-[#EEEDFE] hover:bg-[#534AB7]/50"
                                 >
                                   #{t}

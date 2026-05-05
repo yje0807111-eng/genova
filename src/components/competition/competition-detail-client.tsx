@@ -4,6 +4,8 @@ import Link from "next/link";
 import { useState } from "react";
 import { useI18n } from "@/components/genova/language-provider";
 import { intlDateLocale } from "@/lib/i18n/browser-locale";
+import { formatPrizeWithConversion } from "@/lib/utils/format-prize";
+import { mainGenreLabel } from "@/lib/constants/genres";
 import {
   Trophy, Calendar, Users, Clock, ChevronLeft,
   Upload, Star, Play, Grid, List
@@ -56,11 +58,17 @@ type Competition = {
 type Video = {
   id: string;
   title: string;
+  description?: string | null;
+  genre?: string | null;
   thumbnail_url: string | null;
   view_count: number | null;
   uploaded_by: string | null;
   created_at: string;
   award: string | null;
+  profiles?: {
+    display_name: string | null;
+    avatar_url: string | null;
+  } | null;
 };
 
 function dDay(deadline: string) {
@@ -78,87 +86,6 @@ function formatPrize(prizeInfo: string) {
   if (prizeInfo.includes("$")) return prizeInfo.split("+")[0].trim();
   return prizeInfo;
 }
-
-function formatPrizeWithConversion(
-  prizeKo: string | null | undefined,
-  prizeEn: string | null | undefined,
-  prizeJa: string | null | undefined,
-  prizeFallback: string,
-  locale: string,
-  baseCurrency: string | null | undefined,
-  usdToKrw: number,
-  usdToJpy: number,
-): string {
-  const usdToKrwRate = usdToKrw || 1350;
-  const usdToJpyRate = usdToJpy || 148;
-  const krwToUsd = 1 / usdToKrwRate;
-  const krwToJpy = usdToJpyRate / usdToKrwRate;
-  const jpyToUsd = 1 / usdToJpyRate;
-  const jpyToKrw = usdToKrwRate / usdToJpyRate;
-
-  const base = baseCurrency ?? "USD";
-
-  // 숫자 추출 함수
-  const extractAmount = (text: string): number | null => {
-    const match = text.replace(/,/g, "").match(/[\d.]+/);
-    return match ? parseFloat(match[0]) : null;
-  };
-
-  const formatKRW = (n: number) => `₩${Math.round(n).toLocaleString()}`;
-  const formatUSD = (n: number) => `$${Math.round(n).toLocaleString()}`;
-  const formatJPY = (n: number) => `¥${Math.round(n).toLocaleString()}`;
-
-  if (locale === "ko") {
-    const text = prizeKo || prizeEn || prizeFallback;
-    const amount = extractAmount(text);
-    if (!amount) return text;
-    if (base === "USD") {
-      return `${formatUSD(amount)} (약 ${formatKRW(amount * usdToKrwRate)})`;
-    }
-    if (base === "JPY") {
-      return `${formatJPY(amount)} (약 ${formatKRW(amount * jpyToKrw)})`;
-    }
-    return formatKRW(amount);
-  }
-
-  if (locale === "ja") {
-    const text = prizeJa || prizeEn || prizeFallback;
-    const amount = extractAmount(text);
-    if (!amount) return text;
-    if (base === "USD") {
-      return `${formatUSD(amount)} (約 ${formatJPY(amount * usdToJpyRate)})`;
-    }
-    if (base === "KRW") {
-      return `${formatKRW(amount)} (約 ${formatJPY(amount * krwToJpy)})`;
-    }
-    return formatJPY(amount);
-  }
-
-  // en
-  const text = prizeEn || prizeKo || prizeFallback;
-  const amount = extractAmount(text);
-  if (!amount) return text;
-  if (base === "KRW") {
-    return `${formatKRW(amount)} (≈ ${formatUSD(amount * krwToUsd)})`;
-  }
-  if (base === "JPY") {
-    return `${formatJPY(amount)} (≈ ${formatUSD(amount * jpyToUsd)})`;
-  }
-  return formatUSD(amount);
-}
-
-const RULE_FALLBACK_EN = [
-  "All submitted videos must be AI-generated. Human-captured footage is not permitted.",
-  "Maximum runtime: 90 seconds for short films, 4 minutes for music videos.",
-  "You must tag all AI tools used during production at the time of upload.",
-  "Each participant may submit up to 3 entries per competition.",
-  "Submitted works must be original and must not infringe on third-party IP.",
-  "Voting is open to all registered Genova members during the voting period.",
-  "Final winners will be selected: 50% audience votes + 50% jury score.",
-] as const;
-
-const MOCK_CONCEPT_EN =
-  "Push the boundaries of AI filmmaking. We're looking for bold, original works that showcase the unique creative possibilities of artificial intelligence — from surreal visuals to emotionally resonant narratives. Show us what only AI can imagine.";
 
 export function CompetitionDetailClient({
   competition,
@@ -202,19 +129,16 @@ export function CompetitionDetailClient({
   );
 
   const rulesText = getText(competition.rules_ko, competition.rules_en, competition.rules_ja, competition.rules ?? "");
-  const rules = rulesText
-    ? rulesText.split("\n").filter(Boolean)
-    : RULE_FALLBACK_EN.map((fb, i) => t(`competition.detail.rule${i + 1}`, fb));
+  const rules = rulesText ? rulesText.split("\n").filter(Boolean) : [];
 
   const d = dDay(competition.deadline);
   const isOpen = ["Open", "접수중", "In Review", "Voting"].includes(competition.status);
   const isUpcoming = ["Upcoming", "예정"].includes(competition.status);
   const isClosed = !isOpen && !isUpcoming;
 
-  const bannerImage = competition.banner_url || competition.thumbnail_url ||
-    "https://images.unsplash.com/photo-1536440136628-849c177e76a1?w=1400&q=80";
+  const bannerImage = competition.banner_url || competition.thumbnail_url || null;
 
-  const concept = competition.concept || t("competition.detail.mockConcept", MOCK_CONCEPT_EN);
+  const concept = competition.concept ?? null;
 
   const sortedVideos = [...videos].sort((a, b) => {
     if (sortBy === "views") return (b.view_count ?? 0) - (a.view_count ?? 0);
@@ -235,7 +159,20 @@ export function CompetitionDetailClient({
 
       {/* Hero Banner */}
       <div className="relative w-full overflow-hidden" style={{ aspectRatio: "21/7" }}>
-        <img src={bannerImage} alt="" className="h-full w-full object-cover" />
+        {bannerImage ? (
+          <img src={bannerImage} alt="" className="h-full w-full object-cover" />
+        ) : (
+          <div
+            className="flex h-full w-full items-center justify-center"
+            style={{ background: "linear-gradient(135deg, #1a1547 0%, #0f0d24 100%)" }}
+          >
+            <img
+              src="/genova-logo.png"
+              alt="Genova"
+              className="h-24 w-24 object-contain opacity-20"
+            />
+          </div>
+        )}
         <div className="absolute inset-0" style={{ background: "linear-gradient(to right, rgba(8,6,24,0.97) 0%, rgba(8,6,24,0.6) 50%, rgba(8,6,24,0.1) 100%)" }} />
         <div className="absolute inset-0" style={{ background: "linear-gradient(to top, rgba(8,6,24,1) 0%, transparent 40%)" }} />
 
@@ -300,7 +237,7 @@ export function CompetitionDetailClient({
           {isOpen && (
             <div className="mt-6 flex items-center gap-3">
               <Link
-                href="/upload"
+                href={`/upload?competition=${competition.id}&purpose=competition`}
                 className="flex items-center gap-2 rounded-lg px-6 py-3 text-[14px] font-bold text-white transition hover:opacity-90"
                 style={{
                   background: "linear-gradient(135deg, #7B6FE4 0%, #4A3FA8 100%)",
@@ -328,7 +265,9 @@ export function CompetitionDetailClient({
           <div className="lg:col-span-2 space-y-8">
             <div className="rounded-2xl border border-white/[0.08] bg-white/[0.03] p-8">
               <h2 className="mb-4 text-[11px] font-bold uppercase tracking-[0.2em] text-[#7F77DD]/70">Competition Concept</h2>
-              <p className="text-[15px] leading-relaxed text-white/70">{concept}</p>
+              {concept && (
+                <p className="text-[15px] leading-relaxed text-white/70">{concept}</p>
+              )}
 
               {competition.description && (
                 <div className="mt-6 border-t border-white/[0.06] pt-6">
@@ -342,16 +281,20 @@ export function CompetitionDetailClient({
               <h2 className="mb-6 text-[11px] font-bold uppercase tracking-[0.2em] text-[#7F77DD]/70">
                 {t("competition.detail.rulesTitle")}
               </h2>
-              <ol className="space-y-4">
-                {rules.map((rule, i) => (
-                  <li key={i} className="flex gap-4">
-                    <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full border border-[#534AB7]/50 bg-[#534AB7]/10 text-[11px] font-bold text-[#7F77DD]">
-                      {i + 1}
-                    </span>
-                    <p className="text-[14px] leading-relaxed text-white/60">{rule}</p>
-                  </li>
-                ))}
-              </ol>
+              {rules.length > 0 ? (
+                <ol className="space-y-4">
+                  {rules.map((rule, i) => (
+                    <li key={i} className="flex gap-4">
+                      <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full border border-[#534AB7]/50 bg-[#534AB7]/10 text-[11px] font-bold text-[#7F77DD]">
+                        {i + 1}
+                      </span>
+                      <p className="text-[14px] leading-relaxed text-white/60">{rule}</p>
+                    </li>
+                  ))}
+                </ol>
+              ) : (
+                <p className="text-[13px] text-white/30">등록된 규칙이 없습니다.</p>
+              )}
             </div>
 
             {(competition.judging_criteria_ko ||
@@ -579,50 +522,98 @@ export function CompetitionDetailClient({
               )}
             </div>
           ) : viewMode === "grid" ? (
-            <div className="grid grid-cols-2 gap-5 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
-              {sortedVideos.map((video, idx) => {
-                const thumb = video.thumbnail_url || `https://picsum.photos/seed/${video.id}/400/225`;
+            <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
+              {sortedVideos.map((video) => {
+                const thumb = video.thumbnail_url || null;
                 return (
                   <Link
                     key={video.id}
                     href={`/watch/${video.id}`}
-                    className="group relative flex flex-col overflow-hidden rounded-xl border border-white/[0.07] bg-[#0f0d24] transition-all duration-200 hover:-translate-y-1 hover:border-[rgba(127,119,221,0.3)] hover:shadow-[0_8px_24px_rgba(83,74,183,0.25)]"
+                    className="group/card relative block shrink-0 overflow-hidden rounded-xl border border-white/[0.08] transition-all duration-300 hover:border-[rgba(127,119,221,0.5)] hover:shadow-[0_0_0_1px_rgba(127,119,221,0.4),0_0_20px_rgba(127,119,221,0.2)] hover:scale-[1.02]"
+                    style={{ background: "rgba(15,13,36,0.9)" }}
                   >
-                    <div className="relative aspect-video overflow-hidden">
-                      <img src={thumb} alt="" className="h-full w-full object-cover transition duration-300 group-hover:scale-105 group-hover:brightness-90" />
-                      {/* Rank badge */}
-                      {idx < 3 && (
-                        <div className={`absolute left-2 top-2 flex h-6 w-6 items-center justify-center rounded-full text-[11px] font-black ${
-                          idx === 0 ? "bg-[#FFD700] text-black" :
-                          idx === 1 ? "bg-[#C0C0C0] text-black" :
-                          "bg-[#CD7F32] text-black"
-                        }`}>
-                          {idx + 1}
+                    <div className="relative w-full" style={{ aspectRatio: "3/4" }}>
+                      {thumb ? (
+                        <img
+                          src={thumb}
+                          alt=""
+                          className="h-full w-full object-cover transition-transform duration-500 group-hover/card:scale-105"
+                        />
+                      ) : (
+                        <div className="h-full w-full bg-gradient-to-br from-[#1a1547] to-[#0f0d24]" />
+                      )}
+
+                      {/* 하단 그라데이션 */}
+                      <div
+                        className="absolute inset-x-0 bottom-0 z-[1]"
+                        style={{
+                          height: "70%",
+                          background:
+                            "linear-gradient(to top, rgba(8,6,24,1) 0%, rgba(8,6,24,0.92) 25%, rgba(8,6,24,0.5) 55%, transparent 100%)",
+                          transformOrigin: "bottom center",
+                        }}
+                      />
+
+                      {video.genre && (
+                        <div className="absolute left-2 top-2 z-[2]">
+                          <span
+                            className="text-[10px] font-semibold text-white/90 px-2 py-0.5 rounded"
+                            style={{
+                              background: "linear-gradient(135deg, rgba(83,74,183,0.7) 0%, rgba(39,33,92,0.5) 100%)",
+                              backdropFilter: "blur(4px)",
+                              border: "1px solid rgba(127,119,221,0.25)",
+                            }}
+                          >
+                            {mainGenreLabel(video.genre, locale)}
+                          </span>
                         </div>
                       )}
+
+                      {/* 수상 배지 */}
                       {video.award && (
-                        <div className="absolute right-2 top-2 flex items-center gap-1 rounded-full bg-black/60 px-2 py-0.5 backdrop-blur-sm">
-                          <Trophy size={10} className="text-yellow-400" />
-                          <span className="text-[9px] font-bold text-white">{video.award}</span>
+                        <div className="absolute right-2 top-2 z-[2] flex items-center gap-1 rounded-full bg-black/60 px-2 py-0.5 backdrop-blur-sm border border-yellow-500/20">
+                          <Trophy size={9} className="text-yellow-400" />
+                          <span className="text-[9px] font-bold text-yellow-400">{video.award}</span>
                         </div>
                       )}
-                      <div className="absolute inset-0 flex items-center justify-center opacity-0 transition group-hover:opacity-100">
-                        <div className="flex h-10 w-10 items-center justify-center rounded-full bg-white/20 backdrop-blur-sm">
-                          <Play size={16} fill="white" className="ml-0.5 text-white" />
+
+                      {/* 하단 텍스트 */}
+                      <div className="absolute bottom-0 left-0 right-0 z-[2] px-3 pb-3">
+                        <h3 className="line-clamp-1 text-[13px] font-bold text-white">{video.title}</h3>
+                        {video.profiles?.display_name && (
+                          <p className="mt-0.5 text-[11px] text-white/60">{video.profiles.display_name}</p>
+                        )}
+                        {video.description && (
+                          <p className="mt-0.5 line-clamp-2 text-[10px] leading-relaxed text-white/50">{video.description}</p>
+                        )}
+                        <div className="mt-1.5 flex items-center justify-between">
+                          <span className="text-[11px] text-white/40">
+                            {video.view_count
+                              ? video.view_count >= 1000
+                                ? `${(video.view_count / 1000).toFixed(1)}K ${t("feed.views")}`
+                                : `${video.view_count} ${t("feed.views")}`
+                              : ""}
+                          </span>
+                          {/* 플레이 버튼 */}
+                          <div className="opacity-0 group-hover/card:opacity-100 transition-all duration-300 flex items-center justify-center shrink-0">
+                            <div className="relative flex items-center justify-center">
+                              <img
+                                src="/genova-play1.png"
+                                alt="play"
+                                className="h-[34px] w-[34px] object-contain opacity-50"
+                              />
+                              <svg
+                                className="absolute h-[12px] w-[12px]"
+                                viewBox="0 0 24 24"
+                                fill="white"
+                                style={{ marginLeft: "1px" }}
+                              >
+                                <polygon points="6,3 20,12 6,21" />
+                              </svg>
+                            </div>
+                          </div>
                         </div>
                       </div>
-                    </div>
-                    <div className="p-3">
-                      <h3 className="line-clamp-1 text-[13px] font-semibold text-white">{video.title}</h3>
-                      <p className="mt-0.5 text-[11px] text-white/40">
-                        {(() => {
-                          const vc = video.view_count ?? 0;
-                          if (!vc) return "";
-                          const num =
-                            vc >= 1000 ? `${(vc / 1000).toFixed(1)}K` : String(vc);
-                          return `${num} ${t("feed.views")}`;
-                        })()}
-                      </p>
                     </div>
                   </Link>
                 );

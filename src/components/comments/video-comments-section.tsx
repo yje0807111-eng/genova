@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useRef, useState, useTransition } from "react";
-import { createCommentAction, deleteCommentAction, toggleCommentLikeAction } from "@/app/actions/comments";
+import { createCommentAction, deleteCommentAction, pinCommentAction, toggleCommentLikeAction } from "@/app/actions/comments";
 import type { VideoComment } from "@/lib/types";
 import { useI18n } from "@/components/genova/language-provider";
 import { formatUploadedRelative } from "@/lib/format-uploaded-relative";
@@ -36,11 +36,13 @@ function CommentBlock({
   videoId,
   currentUserId,
   depth,
+  isVideoOwner,
 }: {
   c: VideoComment;
   videoId: string;
   currentUserId: string | null;
   depth: number;
+  isVideoOwner: boolean;
 }) {
   const { t } = useI18n();
   const router = useRouter();
@@ -49,6 +51,7 @@ function CommentBlock({
   const [pending, startTransition] = useTransition();
   const [likeCount, setLikeCount] = useState(c.likeCount);
   const [liked, setLiked] = useState(c.likedByMe);
+  const [pinned, setPinned] = useState(c.isPinned ?? false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const isOwner = currentUserId && c.userId === currentUserId;
 
@@ -75,6 +78,16 @@ function CommentBlock({
       }
       setLiked(res.liked);
       setLikeCount(res.count);
+    });
+  };
+
+  const onPin = () => {
+    startTransition(async () => {
+      const res = await pinCommentAction(c.id, videoId, !pinned);
+      if (res.ok) {
+        setPinned((v) => !v);
+        router.refresh();
+      }
     });
   };
 
@@ -113,6 +126,11 @@ function CommentBlock({
         </div>
 
         <div className="min-w-0 flex-1">
+          {depth === 0 && pinned && (
+            <div className="mb-1 flex items-center gap-1 text-[10px] font-semibold text-[#7F77DD]">
+              📌 고정된 댓글
+            </div>
+          )}
           {/* Name + time + delete */}
           <div className="flex flex-wrap items-center gap-x-1.5 gap-y-0.5">
             <Link href={`/profile/${c.userId}`} className="text-sm font-semibold text-white hover:underline">
@@ -122,6 +140,22 @@ function CommentBlock({
             <span className="text-xs text-white/40">
               <TimeLabel iso={c.createdAt} />
             </span>
+            {isVideoOwner && depth === 0 && (
+              <>
+                <span className="text-xs text-white/40">·</span>
+                <button
+                  type="button"
+                  onClick={onPin}
+                  disabled={pending}
+                  className={cn(
+                    "text-xs transition",
+                    pinned ? "text-[#7F77DD]" : "text-white/40 hover:text-[#7F77DD]",
+                  )}
+                >
+                  {pinned ? "📌 핀 해제" : "📌 핀"}
+                </button>
+              </>
+            )}
             {isOwner ? (
               <>
                 <span className="text-xs text-white/40">·</span>
@@ -195,7 +229,14 @@ function CommentBlock({
       {c.replies?.length ? (
         <div className="mt-1 space-y-0">
           {c.replies.map((r) => (
-            <CommentBlock key={r.id} c={r} videoId={videoId} currentUserId={currentUserId} depth={depth + 1} />
+            <CommentBlock
+              key={r.id}
+              c={r}
+              videoId={videoId}
+              currentUserId={currentUserId}
+              depth={depth + 1}
+              isVideoOwner={isVideoOwner}
+            />
           ))}
         </div>
       ) : null}
@@ -244,6 +285,7 @@ export function VideoCommentsSection({
   currentUserId,
   className,
   hideInput,
+  isVideoOwner,
 }: {
   videoId: string;
   initialComments: VideoComment[];
@@ -251,6 +293,7 @@ export function VideoCommentsSection({
   /** Override default container class */
   className?: string;
   hideInput?: boolean;
+  isVideoOwner?: boolean;
 }) {
   const { t } = useI18n();
   const router = useRouter();
@@ -273,7 +316,10 @@ export function VideoCommentsSection({
 
   const sortedComments = useMemo(() => {
     return [...initialComments].sort((a, b) => {
-      // Liked comments (likeCount > 0) go to top
+      // 핀된 댓글 최상단
+      if (a.isPinned && !b.isPinned) return -1;
+      if (!a.isPinned && b.isPinned) return 1;
+      // 기존 정렬 로직 유지
       const aHasLikes = a.likeCount > 0;
       const bHasLikes = b.likeCount > 0;
 
@@ -299,7 +345,16 @@ export function VideoCommentsSection({
         {initialComments.length === 0 ? (
           <p className="text-sm text-white/60">{t("comments.empty")}</p>
         ) : (
-          sortedComments.map((c) => <CommentBlock key={c.id} c={c} videoId={videoId} currentUserId={currentUserId} depth={0} />)
+          sortedComments.map((c) => (
+            <CommentBlock
+              key={c.id}
+              c={c}
+              videoId={videoId}
+              currentUserId={currentUserId}
+              depth={0}
+              isVideoOwner={isVideoOwner ?? false}
+            />
+          ))
         )}
       </div>
 

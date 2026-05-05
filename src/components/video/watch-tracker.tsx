@@ -11,6 +11,23 @@ export function WatchTracker({ videoId }: { videoId: string }) {
   useEffect(() => {
     startTime.current = Date.now();
 
+    // 즉시 저장 — 페이지 진입 기록
+    const saveImmediate = async () => {
+      const supabase = getBrowserSupabaseClient();
+      if (!supabase) return;
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (!user) return;
+      await upsertWatchHistory({
+        userId: user.id,
+        videoId,
+        progressSeconds: 1,
+        durationSeconds: 60,
+      });
+    };
+    void saveImmediate();
+
     const save = async () => {
       const supabase = getBrowserSupabaseClient();
       if (!supabase) return;

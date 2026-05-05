@@ -7,6 +7,7 @@ import type { LucideIcon } from "lucide-react";
 import {
   ChevronLeft,
   Film,
+  Hash,
   Home,
   LayoutGrid,
   LogOut,
@@ -19,6 +20,7 @@ import {
 } from "lucide-react";
 import { FEED_GENRE_LABELS } from "@/lib/constants/genres";
 import { addWindowCustomListener } from "@/lib/dom/window-custom-events";
+import { trackHashtagEvent } from "@/lib/hashtags/client-track";
 import { useI18n } from "@/components/genova/language-provider";
 import type { GenreFilter } from "@/lib/genova-genre";
 import { cn } from "@/lib/utils/cn";
@@ -120,8 +122,10 @@ export function GenreSidebar({
   const [watchFrom, setWatchFrom] = useState<string>("home");
   const [userId, setUserId] = useState<string | null>(null);
   const [showLogoutModal, setShowLogoutModal] = useState(false);
+  const [hashtagRanks, setHashtagRanks] = useState<Array<{ tag: string; score: number }>>([]);
   const handleLogout = () => setShowLogoutModal(true);
   const confirmLogout = async () => {
+    setShowLogoutModal(false);
     const supabase = createBrowserSupabaseClient();
     await supabase.auth.signOut();
     router.push("/auth");
@@ -180,6 +184,23 @@ export function GenreSidebar({
       setWatchFrom(from);
     }
   }, [isWatchPage]);
+
+  useEffect(() => {
+    let alive = true;
+    void fetch("/api/hashtags/ranking")
+      .then((r) => r.json())
+      .then((d: { tags?: Array<{ tag: string; score: number }> }) => {
+        if (!alive) return;
+        setHashtagRanks((d.tags ?? []).slice(0, 8));
+      })
+      .catch(() => {
+        if (!alive) return;
+        setHashtagRanks([]);
+      });
+    return () => {
+      alive = false;
+    };
+  }, [pathname]);
 
   return (
     <>
@@ -453,6 +474,26 @@ export function GenreSidebar({
           </nav>
 
           <div className="my-4 border-t border-white/[0.06]" aria-hidden />
+          {hashtagRanks.length > 0 ? (
+            <>
+              <h2 className="mb-2 typo-sidebar-heading text-white/38">{t("sidebar.trendingTags", "# TRENDING TAGS")}</h2>
+              <nav className="flex flex-col gap-0.5" aria-label="Trending hashtags">
+                {hashtagRanks.map((item, idx) => (
+                  <Link
+                    key={item.tag}
+                    href={`/search?q=${encodeURIComponent(item.tag)}&tab=tags#search-tags-section`}
+                    onClick={() => trackHashtagEvent(item.tag, "click")}
+                    className="typo-sidebar-link flex items-center gap-3 rounded-lg px-3 py-2 text-white/72 transition-colors duration-200 hover:bg-white/5 hover:text-white"
+                  >
+                    <span className="w-4 text-[11px] font-semibold text-white/40">{idx + 1}</span>
+                    <Hash className="h-3.5 w-3.5 shrink-0 text-[#7F77DD]/70" />
+                    <span className="min-w-0 flex-1 truncate">#{item.tag}</span>
+                  </Link>
+                ))}
+              </nav>
+              <div className="my-4 border-t border-white/[0.06]" aria-hidden />
+            </>
+          ) : null}
         </>
       ) : null}
 

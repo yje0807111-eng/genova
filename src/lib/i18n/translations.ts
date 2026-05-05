@@ -725,6 +725,11 @@ const en: Messages = {
   "upload.submitCta": "Upload Film →",
   "upload.vimeoUrlOptional": "Vimeo URL (optional)",
   "upload.editSaveCta": "Save changes →",
+  "competition.banner.nowOpen": "Now Open",
+  "competition.banner.prize": "Prize",
+  "competition.banner.deadline": "Deadline",
+  "competition.banner.learnMore": "Learn More",
+  "competition.banner.submitNow": "Submit Now →",
 };
 
 const ko = { ...en, ...koOverridesImported } as Messages;

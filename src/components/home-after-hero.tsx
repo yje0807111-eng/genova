@@ -184,30 +184,41 @@ export function HomeAfterHero({
               {creators.map((creator, idx) => (
                 <div
                   key={creator.id}
-                  className="rounded-xl border border-white/10 bg-[#0F0D1E] p-5 transition hover:border-[#534AB7]"
+                  className="group relative overflow-hidden rounded-2xl border border-white/10 bg-gradient-to-br from-white/[0.08] via-white/[0.03] to-transparent p-5 backdrop-blur-sm transition-all duration-300 hover:-translate-y-0.5 hover:border-[#7F77DD]/60 hover:shadow-[0_20px_40px_-24px_rgba(127,119,221,0.9)]"
                 >
+                  <div className="pointer-events-none absolute -right-16 -top-16 h-36 w-36 rounded-full bg-[#7F77DD]/20 blur-2xl transition-opacity duration-300 group-hover:opacity-100 opacity-70" />
+                  <div className="pointer-events-none absolute -bottom-20 -left-14 h-36 w-36 rounded-full bg-[#534AB7]/20 blur-2xl transition-opacity duration-300 group-hover:opacity-100 opacity-60" />
                   <div className="flex items-start gap-4">
-                    <img
-                      src={creator.avatarUrl}
-                      alt={creator.name}
-                      className="h-18 w-18 shrink-0 rounded-full object-cover transition duration-300 hover:scale-105"
-                    />
+                    <div className="relative shrink-0">
+                      <div className="absolute -inset-1 rounded-full bg-gradient-to-br from-[#8E87E8] to-[#534AB7] opacity-70 blur-[1px]" />
+                      <img
+                        src={creator.avatarUrl}
+                        alt={creator.name}
+                        className="relative h-18 w-18 rounded-full border border-white/20 object-cover transition duration-300 group-hover:scale-105"
+                      />
+                    </div>
                     <div className="min-w-0 flex-1">
                       <ProfileTextLink
                         href={hrefForSpotlightCreator(creator.id)}
-                        className="block truncate text-lg font-semibold text-[#EEEDFE] hover:underline"
+                        className="block truncate text-lg font-semibold text-[#F3F1FF] transition group-hover:text-white hover:underline"
                       >
                         {translateCreatorName(creator.name)}
                       </ProfileTextLink>
-                      <p className="mt-1 line-clamp-2 text-sm text-[#AFA9EC]">{translateCreatorBio(creator.bio)}</p>
+                      <p className="mt-1 line-clamp-2 text-sm text-[#BFB9F3]">{translateCreatorBio(creator.bio)}</p>
                       <div className="mt-2 flex items-center gap-3 text-[11px] text-[#B8B3EE]">
-                        <span>{((creator as unknown as { followerCount?: number }).followerCount ?? creator.awardCount * 320 + 800 + idx * 140).toLocaleString()} followers</span>
-                        <span className="text-white/20">•</span>
-                        <span>{((creator as unknown as { filmCount?: number }).filmCount ?? creator.awardCount + 6 + (idx % 3))} films</span>
+                        <span className="rounded-full border border-white/10 bg-white/[0.04] px-2 py-0.5">
+                          {((creator as unknown as { followerCount?: number }).followerCount ?? creator.awardCount * 320 + 800 + idx * 140).toLocaleString()} followers
+                        </span>
+                        <span className="rounded-full border border-white/10 bg-white/[0.04] px-2 py-0.5">
+                          {((creator as unknown as { filmCount?: number }).filmCount ?? creator.awardCount + 6 + (idx % 3))} films
+                        </span>
                       </div>
                       <div className="mt-2 flex flex-wrap gap-1.5">
                         {["Runway", "Midjourney", idx % 2 ? "Suno" : "ElevenLabs"].map((tool) => (
-                          <span key={tool} className="rounded-full bg-[#26215C] px-2 py-0.5 text-[11px] text-[#AFA9EC]">
+                          <span
+                            key={tool}
+                            className="rounded-full border border-[#7F77DD]/35 bg-[#2C2668]/50 px-2 py-0.5 text-[11px] text-[#CDC8F8]"
+                          >
                             {tool}
                           </span>
                         ))}
@@ -216,7 +227,7 @@ export function HomeAfterHero({
                   </div>
                   <Link
                     href={hrefForSpotlightCreator(creator.id)}
-                    className="mt-4 inline-flex rounded-full border border-[#534AB7]/60 px-4 py-2 text-sm font-semibold text-[#EEEDFE] hover:bg-[#534AB7]/30"
+                    className="mt-4 inline-flex rounded-full border border-[#8C83EE]/60 bg-[#4E46A8]/35 px-4 py-2 text-sm font-semibold text-[#F5F3FF] transition hover:border-[#A59CFF] hover:bg-[#5F56C0]/55"
                   >
                     Follow
                   </Link>

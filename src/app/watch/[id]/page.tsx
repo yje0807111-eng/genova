@@ -1,5 +1,5 @@
-import MuxPlayer from "@mux/mux-player-react";
 import Link from "next/link";
+import { cookies } from "next/headers";
 import { notFound } from "next/navigation";
 import { FollowButton } from "@/components/profile/follow-button";
 import { ProfileTextLink } from "@/components/links/profile-text-link";
@@ -30,6 +30,7 @@ import { fetchIsFollowing, fetchProfileById } from "@/lib/queries/profile-querie
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { WatchTracker } from "@/components/video/watch-tracker";
 import { WatchDesktopFlexRow } from "@/components/video/watch-comments-panel";
+import { MuxPlayerClient } from "@/components/video/mux-player-client";
 
 export default async function WatchDetailPage({
   params,
@@ -50,9 +51,16 @@ export default async function WatchDetailPage({
   const [vWithE] = await attachEngagementToVideos([video]);
   video = vWithE;
 
-  const [creator, related, forYouVideos, seriesNavRaw, comments, uploaderProfile, isFollowing] = await Promise.all([
+  const cookieStore = await cookies();
+  const watchedCookie = cookieStore.get("genova_watched")?.value;
+  const cookieWatched: string[] = watchedCookie ? JSON.parse(watchedCookie) : [];
+
+  const rawRelated = await fetchRelatedVideos(video.id, 20);
+  const watchedSet = new Set([...cookieWatched, video.id]);
+  const related = rawRelated.filter((v) => !watchedSet.has(v.id)).slice(0, 8);
+
+  const [creator, forYouVideos, seriesNavRaw, comments, uploaderProfile, isFollowing] = await Promise.all([
     video.creatorId ? fetchCreatorById(video.creatorId) : Promise.resolve(null),
-    fetchRelatedVideos(video.id, 8),
     fetchForYouSameGenreVideos(video.id, video.genre, 8),
     fetchSeriesEpisodesForVideo(video),
     fetchCommentsForVideo(video.id),
@@ -88,6 +96,7 @@ export default async function WatchDetailPage({
   const showSeries = seriesNav.episodes.length > 0;
   const creatorHref = hrefForVideoCreator(video);
 
+  const isVideoOwner = Boolean(user?.id && video.uploadedBy && user.id === video.uploadedBy);
   const showFollow = Boolean(video.uploadedBy && user?.id && user.id !== video.uploadedBy);
   const showFollowCreator = Boolean(video.creatorId && creator && user?.id);
 
@@ -111,23 +120,12 @@ export default async function WatchDetailPage({
           <>
             <div className="aspect-video overflow-hidden rounded-2xl border border-white/10 bg-black">
               <WatchTracker videoId={video.id} />
-              {video.muxPlaybackId ? (
-                <MuxPlayer
+              {video.muxPlaybackId && (
+                <MuxPlayerClient
                   playbackId={video.muxPlaybackId}
-                  envKey={process.env.NEXT_PUBLIC_MUX_ENV_KEY}
-                  streamType="on-demand"
-                  className="h-full w-full"
-                  style={{ aspectRatio: "16/9" }}
-                  accentColor="#534AB7"
                   title={video.title}
-                />
-              ) : (
-                <iframe
-                  src={`https://player.vimeo.com/video/${video.vimeoId}?title=0&byline=0&portrait=0&badge=0&like=0&watchlater=0&share=0`}
-                  className="h-full w-full"
-                  allow="autoplay; fullscreen; picture-in-picture"
-                  allowFullScreen
-                  title={video.title}
+                  nextVideoId={related[0]?.id ?? null}
+                  autoplayOn={true}
                 />
               )}
             </div>
@@ -153,7 +151,7 @@ export default async function WatchDetailPage({
                   saveCount={video.saveCount ?? 0}
                 />
                 <ShareButton title={video.title} />
-                <WatchMoreMenu />
+                <WatchMoreMenu videoId={video.id} />
               </div>
             </div>
 
@@ -217,6 +215,7 @@ export default async function WatchDetailPage({
         commentCount={displayComments.length}
         initialComments={displayComments}
         currentUserId={user?.id ?? null}
+        isVideoOwner={isVideoOwner}
       />
 
       <WatchRecommendationsSections

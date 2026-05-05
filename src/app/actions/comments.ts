@@ -97,3 +97,41 @@ export async function toggleCommentLikeAction(commentId: string, videoId: string
   revalidatePath(`/watch/${videoId}`);
   return { ok: true, liked, count: count ?? 0 };
 }
+
+export async function pinCommentAction(commentId: string, videoId: string, pin: boolean): Promise<CommentActionResult> {
+  const supabase = await createServerSupabaseClient();
+  if (!supabase) return { ok: false, message: "Configuration error." };
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { ok: false, needAuth: true, message: "Please sign in." };
+
+  // 영상 업로더만 핀 가능
+  const { data: video } = await supabase
+    .from("videos")
+    .select("uploaded_by")
+    .eq("id", videoId)
+    .maybeSingle();
+
+  if (!video || video.uploaded_by !== user.id) {
+    return { ok: false, message: "Only the video owner can pin comments." };
+  }
+
+  // 기존 핀 해제
+  if (pin) {
+    await supabase
+      .from("comments")
+      .update({ is_pinned: false })
+      .eq("video_id", videoId);
+  }
+
+  // 새 핀 설정
+  const { error } = await supabase
+    .from("comments")
+    .update({ is_pinned: pin })
+    .eq("id", commentId);
+
+  if (error) return { ok: false, message: error.message };
+  revalidatePath(`/watch/${videoId}`);
+  return { ok: true };
+}

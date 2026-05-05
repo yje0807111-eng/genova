@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation";
+import type { VideoReportItem } from "@/app/actions/reports";
 import { AdminDashboard } from "@/components/admin/admin-dashboard";
 import { isAdminEmail } from "@/lib/auth/admin";
 import { fetchVideosWithCreators } from "@/lib/queries";
@@ -13,9 +14,10 @@ export default async function AdminPage() {
   if (!user) redirect("/auth");
   if (!isAdminEmail(user.email)) redirect("/");
 
-  const [videos, competitionsRes] = await Promise.all([
+  const [videos, competitionsRes, reportsRes] = await Promise.all([
     fetchVideosWithCreators(),
     supabase.from("competitions").select("*").order("deadline", { ascending: false }),
+    supabase.from("video_reports").select("*").order("created_at", { ascending: false }).limit(200),
   ]);
   const competitions = (competitionsRes.data ?? []).map((r) => ({
     id: r.id as string,
@@ -28,9 +30,50 @@ export default async function AdminPage() {
     sponsor: r.sponsor as string,
   }));
 
+  const reportRows = (reportsRes.data ?? []) as {
+    id: string;
+    created_at: string;
+    video_id: string;
+    reporter_user_id: string;
+    scope: VideoReportItem["scope"];
+    reason: VideoReportItem["reason"];
+    detail: string | null;
+    timestamp_sec: number | null;
+    status: VideoReportItem["status"];
+  }[];
+
+  const reportVideoIds = [...new Set(reportRows.map((r) => r.video_id))];
+  const reporterIds = [...new Set(reportRows.map((r) => r.reporter_user_id))];
+
+  const [reportVideosRes, reportersRes] = await Promise.all([
+    reportVideoIds.length > 0
+      ? supabase.from("videos").select("id, title").in("id", reportVideoIds)
+      : Promise.resolve({ data: [] as { id: string; title: string }[], error: null }),
+    reporterIds.length > 0
+      ? supabase.from("profiles").select("id, display_name").in("id", reporterIds)
+      : Promise.resolve({ data: [] as { id: string; display_name: string | null }[], error: null }),
+  ]);
+
+  const videoTitleMap = new Map((reportVideosRes.data ?? []).map((v) => [v.id as string, (v.title as string) ?? "Untitled"]));
+  const reporterNameMap = new Map((reportersRes.data ?? []).map((p) => [p.id as string, (p.display_name as string | null) ?? "User"]));
+
+  const reports: VideoReportItem[] = reportRows.map((r) => ({
+    id: r.id,
+    createdAt: r.created_at,
+    videoId: r.video_id,
+    videoTitle: videoTitleMap.get(r.video_id) ?? "Unknown video",
+    reporterUserId: r.reporter_user_id,
+    reporterName: reporterNameMap.get(r.reporter_user_id) ?? "User",
+    scope: r.scope,
+    reason: r.reason,
+    detail: r.detail,
+    timestampSec: r.timestamp_sec,
+    status: r.status,
+  }));
+
   return (
     <div className="px-4 py-6 text-[#EEEDFE] sm:px-6">
-      <AdminDashboard competitions={competitions} videos={videos} />
+      <AdminDashboard competitions={competitions} videos={videos} reports={reports} />
     </div>
   );
 }

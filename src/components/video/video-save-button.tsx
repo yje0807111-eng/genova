@@ -46,13 +46,13 @@ export function VideoSaveButton({ videoId, initialSaved, initialCount, compact, 
       disabled={pending}
       onClick={onClick}
       className={`inline-flex items-center gap-1.5 rounded-lg border border-white/10 bg-white/5 px-3 py-1.5 text-sm transition hover:bg-white/10 hover:text-white disabled:opacity-50 ${
-        saved ? "border-white/20 bg-white/10 text-white" : "text-white/60"
+        saved ? "border-amber-400/45 bg-amber-400/15 text-amber-300" : "text-white/60"
       } ${className ?? ""}`}
       aria-label={saved ? t("video.saved") : t("video.save")}
       title={saved ? t("video.saved") : t("video.save")}
     >
       <svg
-        className={`h-4 w-4 shrink-0 ${saved ? "fill-white stroke-white" : "fill-none stroke-white/60"} stroke-[1.6]`}
+        className={`h-4 w-4 shrink-0 ${saved ? "fill-amber-300 stroke-amber-200" : "fill-none stroke-white/60"} stroke-[1.6]`}
         viewBox="0 0 24 24"
       >
         <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z" strokeLinejoin="round" />

@@ -180,7 +180,6 @@ export function EditVideoForm({ userId, video, competitions }: Props) {
   const thumbInputRef = useRef<HTMLInputElement>(null);
 
   const [title, setTitle] = useState(video.title);
-  const [vimeoUrl, setVimeoUrl] = useState(`https://vimeo.com/${video.vimeo_id}`);
   const [thumbnailFile, setThumbnailFile] = useState<File | null>(null);
   const [thumbnailPreview, setThumbnailPreview] = useState<string | null>(video.thumbnail_url);
   const [mainGenre, setMainGenre] = useState<MainGenreKey>(video.genre as MainGenreKey);
@@ -317,7 +316,7 @@ export function EditVideoForm({ userId, video, competitions }: Props) {
         video.id,
         {
           title: title.trim(),
-          vimeoUrl,
+          vimeoUrl: null,
           thumbnailUrl: thumbnailFile ? publicUrl : video.thumbnail_url,
           genre: mainGenre,
           subGenre: showSubGenre ? subGenre : null,
@@ -383,15 +382,6 @@ export function EditVideoForm({ userId, video, competitions }: Props) {
                   {t("upload.sectionVideoSource")}
                 </h2>
                 <div className="space-y-3">
-                  <div>
-                    <label className={lbl}>{t("upload.vimeoUrlOptional")}</label>
-                    <input
-                      value={vimeoUrl}
-                      onChange={(e) => setVimeoUrl(e.target.value)}
-                      className={inp}
-                      placeholder="https://vimeo.com/..."
-                    />
-                  </div>
                   <div
                     className="rounded-2xl border border-white/[0.08] p-3"
                     style={{ background: "rgba(255,255,255,0.025)" }}

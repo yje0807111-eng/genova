@@ -42,6 +42,7 @@ export async function fetchCommentsForVideo(videoId: string): Promise<VideoComme
         videoId: row.video_id,
         parentId: row.parent_id,
         content: row.content,
+        isPinned: (row as any).is_pinned ?? false,
         createdAt: row.created_at,
         displayName: pr?.display_name ?? null,
         avatarUrl: pr?.avatar_url ?? null,

@@ -423,6 +423,17 @@ export function GenovaProfileClient({
                   <div className="flex items-center gap-2">
                     <button
                       type="button"
+                      onClick={() => {
+                        window.dispatchEvent(
+                          new CustomEvent("open-message", {
+                            detail: {
+                              userId: profileId,
+                              displayName: displayName,
+                              avatarUrl: avatarUrl,
+                            },
+                          }),
+                        );
+                      }}
                       className="flex items-center gap-2 rounded-lg border border-white/15 bg-white/5 px-4 py-2 text-sm transition hover:bg-white/10"
                     >
                       <MessageCircle className="h-4 w-4" />

@@ -1,6 +1,6 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 
-export type NotificationType = "comment" | "follow" | "competition_result" | "trophy";
+export type NotificationType = "comment" | "follow" | "competition_result" | "trophy" | "like";
 
 export async function createNotification(
   supabase: SupabaseClient,

@@ -1,9 +1,11 @@
 "use client";
 
 import Link from "next/link";
+import { useEffect } from "react";
 import { AnimateIn } from "@/components/animate-in";
 import { useI18n } from "@/components/genova/language-provider";
 import { HighlightText } from "@/components/ui/highlight-text";
+import { trackHashtagEvent } from "@/lib/hashtags/client-track";
 import { formatGenreDisplay } from "@/lib/constants/genres";
 import type { SearchProfile, SearchSortMode, SearchGenreMatch } from "@/lib/queries/search-queries";
 import type { Video } from "@/lib/types";
@@ -21,6 +23,7 @@ function buildSearchHref(q: string, tab: ResultTab, sort: SearchSortMode): strin
 
 export type SearchPageBodyProps = {
   q: string;
+  hashtagQuery?: string | null;
   tab: ResultTab;
   sort: SearchSortMode;
   empty: boolean;
@@ -34,6 +37,7 @@ export type SearchPageBodyProps = {
 
 export function SearchPageBody({
   q,
+  hashtagQuery,
   tab,
   sort,
   empty,
@@ -45,6 +49,10 @@ export function SearchPageBody({
   globalEmpty,
 }: SearchPageBodyProps) {
   const { t } = useI18n();
+  useEffect(() => {
+    if (!hashtagQuery) return;
+    trackHashtagEvent(hashtagQuery, "search");
+  }, [hashtagQuery]);
 
   return (
     <div className="min-h-screen px-4 py-6 sm:px-6 text-white">
@@ -68,11 +76,27 @@ export function SearchPageBody({
         )}
 
         {!empty && (
-          <div className="flex items-center justify-between gap-4">
-            <div
-              className="flex gap-1 rounded-xl p-1"
-              style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.06)" }}
-            >
+          <div className="space-y-3">
+            {hashtagQuery && (
+              <div className="inline-flex items-center gap-2 rounded-full border border-[#7F77DD]/30 bg-[#534AB7]/20 px-4 py-1.5 text-xs font-semibold text-[#C8C3F7]">
+                <span className="text-[#EEEDFE]">현재 해시태그 검색 중:</span>
+                <span className="rounded-full bg-[#7F77DD]/25 px-2.5 py-0.5 text-[#EEEDFE]">#{hashtagQuery}</span>
+                <Link
+                  href={buildSearchHref(q, "all", sort)}
+                  aria-label="해시태그 검색 해제"
+                  className="ml-1 inline-flex h-5 w-5 items-center justify-center rounded-full border border-[#AFA9EC]/30 text-[#EEEDFE] transition hover:border-[#EEEDFE]/60 hover:bg-white/10"
+                >
+                  <svg viewBox="0 0 20 20" aria-hidden className="h-3 w-3" fill="none" stroke="currentColor" strokeWidth="1.75">
+                    <path d="M5 5l10 10M15 5L5 15" strokeLinecap="round" />
+                  </svg>
+                </Link>
+              </div>
+            )}
+            <div className="flex items-center justify-between gap-4">
+              <div
+                className="flex gap-1 rounded-xl p-1"
+                style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.06)" }}
+              >
               {(
                 [
                   ["all", "search.tabAll"],
@@ -97,9 +121,9 @@ export function SearchPageBody({
                   {t(labelKey)}
                 </Link>
               ))}
-            </div>
+              </div>
 
-            <div className="flex gap-1">
+              <div className="flex gap-1">
               {(
                 [
                   ["relevance", "search.sortRelevance"],
@@ -120,6 +144,7 @@ export function SearchPageBody({
                   {t(labelKey)}
                 </Link>
               ))}
+              </div>
             </div>
           </div>
         )}
@@ -227,7 +252,7 @@ export function SearchPageBody({
         )}
 
         {!empty && !fallback && (tab === "all" || tab === "tags") && tags.length > 0 && (
-          <section className="space-y-4">
+          <section id="search-tags-section" className="scroll-mt-24 space-y-4">
             <h2 className="text-[20px] font-bold text-white tracking-tight">
               {t("search.sectionTags")}
               <span className="ml-2 inline-block h-[3px] w-6 rounded-full bg-[#7F77DD] align-middle" />
@@ -236,7 +261,8 @@ export function SearchPageBody({
               {tags.map((tag) => (
                 <Link
                   key={tag}
-                  href={buildSearchHref(tag, "all", "relevance")}
+                  href={`/search?q=${encodeURIComponent(tag)}&tab=tags#search-tags-section`}
+                  onClick={() => trackHashtagEvent(tag, "click")}
                   className="rounded-full border border-[#7F77DD]/25 bg-[#534AB7]/20 px-4 py-2 text-sm font-medium text-[#AFA9EC] transition hover:border-[#7F77DD]/50 hover:bg-[#534AB7]/30"
                 >
                   <HighlightText text={`#${tag}`} query={q} />

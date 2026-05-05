@@ -303,6 +303,53 @@ export function Navbar() {
     return () => subscription.unsubscribe();
   }, []);
 
+  useEffect(() => {
+    if (!userId) return;
+    const supabase = getBrowserSupabaseClient();
+    if (!supabase) return;
+
+    const channel = supabase
+      .channel("notifications-realtime")
+      .on(
+        "postgres_changes",
+        {
+          event: "INSERT",
+          schema: "public",
+          table: "notifications",
+          filter: `user_id=eq.${userId}`,
+        },
+        (payload) => {
+          const n = payload.new as {
+            id: string;
+            title: string;
+            body: string | null;
+            type: string | null;
+            is_read: boolean;
+            href: string | null;
+            created_at: string | null;
+          };
+          setNotifications((prev) => [
+            {
+              id: n.id,
+              title: n.title,
+              body: n.body,
+              type: n.type,
+              isRead: n.is_read,
+              href: n.href,
+              createdAt: n.created_at,
+            },
+            ...prev,
+          ]);
+          setUnreadCount((prev) => prev + 1);
+        },
+      )
+      .subscribe();
+
+    return () => {
+      void supabase.removeChannel(channel);
+    };
+  }, [userId]);
+
   const profileHref = userId ? `/profile/${userId}` : "/auth";
 
   return (
@@ -310,7 +357,7 @@ export function Navbar() {
       <div className="flex h-16 min-w-0 items-center justify-between gap-3 px-2">
           <Link href="/" className="flex w-60 shrink-0 items-center gap-1 pl-2">
             <Image src="/genova-logo.png" alt="Genova" width={48} height={48} className="ml-1 h-[38px] w-[38px] shrink-0" />
-            <span className="font-display text-2xl font-bold tracking-[-0.06em] text-foreground">Genova</span>
+            <span className="text-[27px] font-semibold tracking-[-0.02em] text-foreground">Genova</span>
             <span className="rounded-full bg-primary/12 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.14em] text-primary/90">
               Beta
             </span>

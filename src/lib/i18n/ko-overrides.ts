@@ -786,4 +786,9 @@ export const koOverrides: Record<string, string> = {
   "upload.submitCta": "작품 올리기 →",
   "upload.vimeoUrlOptional": "Vimeo URL (선택)",
   "upload.editSaveCta": "변경사항 저장 →",
+  "competition.banner.nowOpen": "모집 중",
+  "competition.banner.prize": "상금",
+  "competition.banner.deadline": "마감",
+  "competition.banner.learnMore": "자세히 보기",
+  "competition.banner.submitNow": "지금 출품하기 →",
 };

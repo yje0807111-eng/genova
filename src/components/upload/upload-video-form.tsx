@@ -1,9 +1,10 @@
 "use client";
 
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
+import { updateAiToolPrefsAction, updateSavedHashtagsAction } from "@/app/actions/profile";
 import { createVideoAction } from "@/app/actions/video";
-import { AI_TOOL_CATEGORIES, buildAiToolsPayload, normalizeToolName } from "@/lib/constants/ai-tools";
+import { AI_TOOL_CATEGORIES, normalizeToolName } from "@/lib/constants/ai-tools";
 import {
   FEED_GENRE_KEYS,
   needsSubGenre,
@@ -14,13 +15,16 @@ import {
   type SubGenreKey,
 } from "@/lib/constants/genres";
 import { useI18n } from "@/components/genova/language-provider";
-import { MAX_VIDEO_TAGS, parseHashtagTagInput } from "@/lib/tags";
-import { extractVimeoId } from "@/lib/vimeo";
+import { MAX_VIDEO_TAGS } from "@/lib/tags";
 import { getBrowserSupabaseClient } from "@/lib/supabase/browser";
 
 type Props = {
   userId: string;
   competitions: { id: string; title: string }[];
+  userCustomTools?: string[];
+  userHiddenTools?: string[];
+  savedHashtags?: string[];
+  recentTags?: string[];
 };
 
 const inp =
@@ -259,28 +263,38 @@ function SelectedVideoUploader({
   );
 }
 
-export function UploadVideoForm({ userId, competitions }: Props) {
+export function UploadVideoForm({
+  userId,
+  competitions,
+  userCustomTools = [],
+  userHiddenTools = [],
+  savedHashtags = [],
+  recentTags = [],
+}: Props) {
   const { t, locale } = useI18n();
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const competitionIdFromUrl = searchParams.get("competition");
+  const purposeFromUrl = searchParams.get("purpose");
   const thumbInputRef = useRef<HTMLInputElement>(null);
   const videoInputRef = useRef<HTMLInputElement>(null);
   const muxUploadIdRef = useRef<string | null>(null);
 
   const [title, setTitle] = useState("");
-  const [vimeoUrl, setVimeoUrl] = useState("");
   const [thumbnailFile, setThumbnailFile] = useState<File | null>(null);
   const [thumbnailPreview, setThumbnailPreview] = useState<string | null>(null);
   const [mainGenre, setMainGenre] = useState<MainGenreKey>("film");
   const [subGenre, setSubGenre] = useState<SubGenreKey>("drama");
   const [tools, setTools] = useState<string[]>([]);
-  const [otherText, setOtherText] = useState<Partial<Record<CatKey, string>>>({});
-  const [otherOpen, setOtherOpen] = useState<Record<CatKey, boolean>>({
-    image: false,
-    video: false,
-    music: false,
+  const [customTools, setCustomTools] = useState<Partial<Record<CatKey, string[]>>>(() => {
+    return { image: userCustomTools, video: [], music: [], platform: [] };
   });
+  const [hiddenTools, setHiddenTools] = useState<string[]>(userHiddenTools);
+  const [customInput, setCustomInput] = useState<Partial<Record<CatKey, string>>>({});
 
+  const [tags, setTags] = useState<string[]>([]);
   const [tagInput, setTagInput] = useState("");
+  const [mySavedHashtags, setMySavedHashtags] = useState<string[]>(savedHashtags);
   const [seriesName, setSeriesName] = useState("");
   const [episodeNumber, setEpisodeNumber] = useState(1);
   const [isSeriesMode, setIsSeriesMode] = useState(Boolean(seriesName));
@@ -291,27 +305,24 @@ export function UploadVideoForm({ userId, competitions }: Props) {
   const [runtimeMinutes, setRuntimeMinutes] = useState(5);
   const [runtimeSeconds, setRuntimeSeconds] = useState(0);
   const [visibility, setVisibility] = useState<"public" | "private">("public");
-  const [purpose, setPurpose] = useState<"personal" | "competition">("personal");
-  const [competitionId, setCompetitionId] = useState(competitions[0]?.id ?? "");
+  const [purpose, setPurpose] = useState<"personal" | "competition">(
+    purposeFromUrl === "competition" ? "competition" : "personal",
+  );
+  const [competitionId, setCompetitionId] = useState<string>(competitionIdFromUrl ?? "");
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-
-  const [thumbnailFromUrl, setThumbnailFromUrl] = useState<string | null>(null);
 
   const [muxUploadUrl, setMuxUploadUrl] = useState<string | null>(null);
   const [muxUploadId, setMuxUploadId] = useState<string | null>(null);
   const [muxPlaybackId, setMuxPlaybackId] = useState<string | null>(null);
   const [muxAssetId, setMuxAssetId] = useState<string | null>(null);
-  const [uploadMode, setUploadMode] = useState<"mux" | "vimeo">("mux");
   const [muxUploadStatus, setMuxUploadStatus] = useState<"idle" | "uploading" | "processing" | "ready">("idle");
   const [muxDuration, setMuxDuration] = useState<number | null>(null);
   const [selectedVideoFile, setSelectedVideoFile] = useState<File | null>(null);
   const [isDraggingOver, setIsDraggingOver] = useState(false);
 
-  const vimeoPreview = extractVimeoId(vimeoUrl);
   const showSubGenre = needsSubGenre(mainGenre);
-  const tagPreview = parseHashtagTagInput(tagInput);
 
   useEffect(() => {
     if (!isSeriesMode) {
@@ -343,7 +354,6 @@ export function UploadVideoForm({ userId, competitions }: Props) {
 
       for (const file of files) {
         if (file.type.startsWith("video/")) {
-          setUploadMode("mux");
           try {
             const res = await fetch("/api/mux/upload", { method: "POST" });
             const data = await res.json();
@@ -365,7 +375,6 @@ export function UploadVideoForm({ userId, competitions }: Props) {
             return URL.createObjectURL(file);
           });
           setThumbnailFile(file);
-          setThumbnailFromUrl(null);
           setError(null);
         }
       }
@@ -380,35 +389,6 @@ export function UploadVideoForm({ userId, competitions }: Props) {
       window.removeEventListener("drop", handleDrop);
     };
   }, [t]);
-
-  useEffect(() => {
-    if (!vimeoPreview) return;
-
-    const fetchVimeoData = async () => {
-      try {
-        const res = await fetch(`https://vimeo.com/api/oembed.json?url=https://vimeo.com/${vimeoPreview}`);
-        if (!res.ok) return;
-        const data = await res.json();
-
-        if (data.title) {
-          setTitle((prev) => (prev.trim() ? prev : data.title));
-        }
-
-        if (data.thumbnail_url) {
-          setThumbnailFile((f) => {
-            if (f) return f;
-            setThumbnailPreview(data.thumbnail_url);
-            setThumbnailFromUrl(data.thumbnail_url);
-            return f;
-          });
-        }
-      } catch {
-        // oEmbed 실패 시 무시
-      }
-    };
-
-    void fetchVimeoData();
-  }, [vimeoPreview]);
 
   const initMuxUpload = async () => {
     try {
@@ -452,8 +432,73 @@ export function UploadVideoForm({ userId, competitions }: Props) {
     setTools((prev) => (prev.includes(c) ? prev.filter((x) => x !== c) : [...prev, c]));
   };
 
-  const toggleOtherOpen = (key: CatKey) => {
-    setOtherOpen((o) => ({ ...o, [key]: !o[key] }));
+  const addCustomTool = async (key: CatKey) => {
+    const val = customInput[key]?.trim();
+    if (!val) return;
+    const existing = customTools[key] ?? [];
+    if (existing.includes(val)) return;
+    const next = { ...customTools, [key]: [...existing, val] };
+    setCustomTools(next);
+    setCustomInput((prev) => ({ ...prev, [key]: "" }));
+    const allCustom = Object.values(next).flat();
+    await updateAiToolPrefsAction({ customTools: allCustom });
+  };
+
+  const removeCustomTool = async (key: CatKey, tool: string) => {
+    const next = { ...customTools, [key]: (customTools[key] ?? []).filter((t) => t !== tool) };
+    setCustomTools(next);
+    setTools((prev) => prev.filter((t) => t !== tool));
+    const allCustom = Object.values(next).flat();
+    await updateAiToolPrefsAction({ customTools: allCustom });
+  };
+
+  const hideDefaultTool = async (tool: string) => {
+    const next = [...hiddenTools, tool];
+    setHiddenTools(next);
+    setTools((prev) => prev.filter((t) => t !== tool));
+    await updateAiToolPrefsAction({ hiddenTools: next });
+  };
+
+  const restoreHiddenTools = async (key: CatKey) => {
+    const catTools = AI_TOOL_CATEGORIES.find((c) => c.key === key)?.tools ?? [];
+    const next = hiddenTools.filter((h) => !catTools.includes(h));
+    setHiddenTools(next);
+    await updateAiToolPrefsAction({ hiddenTools: next });
+  };
+
+  const addTag = (tag: string) => {
+    const cleaned = tag.trim().replace(/^#+/, "");
+    if (!cleaned || tags.includes(cleaned)) return;
+    if (tags.length >= MAX_VIDEO_TAGS) return;
+    setTags((prev) => [...prev, cleaned]);
+    setTagInput("");
+  };
+
+  const removeTag = (tag: string) => {
+    setTags((prev) => prev.filter((t) => t !== tag));
+  };
+
+  const saveHashtag = async (tag: string) => {
+    if (mySavedHashtags.includes(tag)) return;
+    const next = [...mySavedHashtags, tag];
+    setMySavedHashtags(next);
+    await updateSavedHashtagsAction(next);
+  };
+
+  const removeSavedHashtag = async (tag: string) => {
+    const next = mySavedHashtags.filter((t) => t !== tag);
+    setMySavedHashtags(next);
+    await updateSavedHashtagsAction(next);
+  };
+
+  const handleTagKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "," || e.key === "Enter") {
+      e.preventDefault();
+      addTag(tagInput);
+    }
+    if (e.key === "Backspace" && !tagInput && tags.length > 0) {
+      setTags((prev) => prev.slice(0, -1));
+    }
   };
 
   const openThumbPicker = () => thumbInputRef.current?.click();
@@ -474,7 +519,6 @@ export function UploadVideoForm({ userId, competitions }: Props) {
       return URL.createObjectURL(f);
     });
     setThumbnailFile(f);
-    setThumbnailFromUrl(null);
     setError(null);
   };
 
@@ -503,11 +547,7 @@ export function UploadVideoForm({ userId, competitions }: Props) {
       setError(t("upload.errTitle"));
       return;
     }
-    if (uploadMode === "vimeo" && !vimeoPreview) {
-      setError(t("upload.errVimeo"));
-      return;
-    }
-    if (!thumbnailFile && !thumbnailFromUrl) {
+    if (!thumbnailFile) {
       setError(t("upload.errThumbnail"));
       return;
     }
@@ -534,7 +574,6 @@ export function UploadVideoForm({ userId, competitions }: Props) {
       }
     }
 
-    const tags = parseHashtagTagInput(tagInput);
     if (tags.length > MAX_VIDEO_TAGS) {
       setError(t("upload.errTagMax").replace("{n}", String(MAX_VIDEO_TAGS)));
       return;
@@ -548,7 +587,7 @@ export function UploadVideoForm({ userId, competitions }: Props) {
 
     setLoading(true);
     try {
-      let finalThumbnailUrl = thumbnailFromUrl ?? "";
+      let finalThumbnailUrl = "";
       if (thumbnailFile) {
         const safe = thumbnailFile.name.replace(/[^\w.-]/g, "_");
         const path = `${userId}/${Date.now()}-${safe}`;
@@ -563,11 +602,11 @@ export function UploadVideoForm({ userId, competitions }: Props) {
         finalThumbnailUrl = publicUrl;
       }
 
-      const aiTools = buildAiToolsPayload(tools, otherText);
+      const aiTools = tools;
 
       const res = await createVideoAction({
         title: title.trim(),
-        vimeoUrl: uploadMode === "vimeo" ? vimeoUrl : null,
+        vimeoUrl: null,
         thumbnailUrl: finalThumbnailUrl,
         genre: mainGenre,
         subGenre: showSubGenre ? subGenre : null,
@@ -580,9 +619,9 @@ export function UploadVideoForm({ userId, competitions }: Props) {
         runtimeMinutes: runtimeMinutes + runtimeSeconds / 60,
         visibility,
         submittedCompetitionId: purpose === "competition" ? competitionId : null,
-        muxPlaybackId: uploadMode === "mux" ? muxPlaybackId : null,
-        muxAssetId: uploadMode === "mux" ? muxAssetId : null,
-        muxUploadId: uploadMode === "mux" ? muxUploadId : null,
+        muxPlaybackId: muxPlaybackId,
+        muxAssetId: muxAssetId,
+        muxUploadId: muxUploadId,
       });
 
       if (!res.ok) {
@@ -673,106 +712,43 @@ export function UploadVideoForm({ userId, competitions }: Props) {
               </h2>
 
               <div className="space-y-3">
-                {/* 업로드 모드 토글 */}
-                <div className="grid grid-cols-2 gap-2">
-                  {(["mux", "vimeo"] as const).map((mode) => (
+                <div className="space-y-3">
+                  {!muxUploadUrl ? (
                     <button
-                      key={mode}
                       type="button"
-                      onClick={() => setUploadMode(mode)}
-                      className="relative flex items-center justify-center gap-1.5 rounded-xl border py-2 text-xs font-medium transition"
-                      style={{
-                        borderColor: uploadMode === mode ? "rgba(127,119,221,0.5)" : "rgba(255,255,255,0.06)",
-                        background: uploadMode === mode ? "rgba(83,74,183,0.35)" : "rgba(255,255,255,0.02)",
-                        color: uploadMode === mode ? "#AFA9EC" : "rgba(255,255,255,0.55)",
-                      }}
+                      onClick={() => videoInputRef.current?.click()}
+                      className="flex h-[140px] w-full flex-col items-center justify-center gap-3 rounded-xl border border-dashed border-[#7F77DD]/25 bg-white/[0.02] transition hover:border-[#7F77DD]/50 hover:bg-white/[0.04]"
                     >
-                      {mode === "mux" ? t("upload.modeDirect") : t("upload.modeVimeo")}
+                      <svg className="h-8 w-8 text-[#7F77DD]/40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                        <path d="M12 16v-8m0 0-3 3m3-3 3 3M4 17h16" strokeLinecap="round" strokeLinejoin="round" />
+                      </svg>
+                      <div className="text-center">
+                        <p className="text-sm font-medium text-white/40">{t("upload.clickUploadVideo")}</p>
+                        <p className="text-[11px] text-white/20">{t("upload.videoFormatsHint")}</p>
+                      </div>
                     </button>
-                  ))}
+                  ) : selectedVideoFile ? (
+                    <SelectedVideoUploader
+                      file={selectedVideoFile}
+                      uploadUrl={muxUploadUrl}
+                      onUploadStart={() => setMuxUploadStatus("uploading")}
+                      onProgress={() => {}}
+                      onSuccess={() => {
+                        setMuxUploadStatus("processing");
+                        const id = muxUploadIdRef.current;
+                        if (id) void pollMuxAsset(id);
+                      }}
+                      onReset={() => {
+                        setSelectedVideoFile(null);
+                        setMuxUploadUrl(null);
+                        setMuxUploadId(null);
+                        setMuxUploadStatus("idle");
+                      }}
+                      status={muxUploadStatus}
+                      duration={muxDuration}
+                    />
+                  ) : null}
                 </div>
-
-                {uploadMode === "mux" ? (
-                  <div className="space-y-3">
-                    {!muxUploadUrl ? (
-                      <button
-                        type="button"
-                        onClick={() => videoInputRef.current?.click()}
-                        className="flex h-[140px] w-full flex-col items-center justify-center gap-3 rounded-xl border border-dashed border-[#7F77DD]/25 bg-white/[0.02] transition hover:border-[#7F77DD]/50 hover:bg-white/[0.04]"
-                      >
-                        <svg className="h-8 w-8 text-[#7F77DD]/40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-                          <path d="M12 16v-8m0 0-3 3m3-3 3 3M4 17h16" strokeLinecap="round" strokeLinejoin="round" />
-                        </svg>
-                        <div className="text-center">
-                          <p className="text-sm font-medium text-white/40">{t("upload.clickUploadVideo")}</p>
-                          <p className="text-[11px] text-white/20">{t("upload.videoFormatsHint")}</p>
-                        </div>
-                      </button>
-                    ) : selectedVideoFile ? (
-                      <SelectedVideoUploader
-                        file={selectedVideoFile}
-                        uploadUrl={muxUploadUrl}
-                        onUploadStart={() => setMuxUploadStatus("uploading")}
-                        onProgress={() => {}}
-                        onSuccess={() => {
-                          setMuxUploadStatus("processing");
-                          const id = muxUploadIdRef.current;
-                          if (id) void pollMuxAsset(id);
-                        }}
-                        onReset={() => {
-                          setSelectedVideoFile(null);
-                          setMuxUploadUrl(null);
-                          setMuxUploadId(null);
-                          setMuxUploadStatus("idle");
-                        }}
-                        status={muxUploadStatus}
-                        duration={muxDuration}
-                      />
-                    ) : null}
-                  </div>
-                ) : (
-                  <div className="space-y-3">
-                    <div>
-                      <label className={lbl}>{t("upload.labelVimeo")}</label>
-                      <input
-                        id="uv-vimeo"
-                        value={vimeoUrl}
-                        onChange={(e) => setVimeoUrl(e.target.value)}
-                        className={inp}
-                        placeholder={t("upload.placeholderVimeo")}
-                      />
-                      {vimeoPreview && (
-                        <p className="mt-1.5 text-[11px] text-emerald-400">
-                          {t("upload.videoIdLabel")} {vimeoPreview}
-                          {thumbnailFromUrl && !thumbnailFile && (
-                            <span className="ml-2 text-[#AFA9EC]">{t("upload.thumbAutoFilled")}</span>
-                          )}
-                          {title && <span className="ml-2 text-[#AFA9EC]">{t("upload.titleAutoFilled")}</span>}
-                        </p>
-                      )}
-                    </div>
-                    {vimeoPreview ? (
-                      <div className="overflow-hidden rounded-xl border border-white/[0.08]">
-                        <div className="aspect-video w-full bg-black">
-                          <iframe
-                            title={t("upload.vimeoPreviewTitle")}
-                            src={`https://player.vimeo.com/video/${vimeoPreview}?title=0&byline=0&portrait=0`}
-                            className="h-full w-full"
-                            allow="autoplay; fullscreen"
-                            allowFullScreen
-                          />
-                        </div>
-                      </div>
-                    ) : (
-                      <div className="flex h-[140px] w-full flex-col items-center justify-center gap-3 rounded-xl border border-dashed border-[#7F77DD]/20 bg-white/[0.02]">
-                        <svg className="h-8 w-8 text-[#7F77DD]/30" viewBox="0 0 24 24" fill="currentColor">
-                          <path d="M21 3a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h18zm-1 2H4v8h16V5zM8 17h8v2H8v-2z" />
-                        </svg>
-                        <p className="text-xs text-white/25">{t("upload.vimeoPasteHint")}</p>
-                      </div>
-                    )}
-                  </div>
-                )}
               </div>
 
               {/* 플랫폼 혜택 */}
@@ -840,26 +816,110 @@ export function UploadVideoForm({ userId, competitions }: Props) {
                   />
                 </div>
                 <div>
-                  <label className={lbl} htmlFor="uv-tags">
-                    {t("upload.tagsWithMax").replace("{max}", String(MAX_VIDEO_TAGS))}
-                  </label>
-                  <input
-                    id="uv-tags"
-                    value={tagInput}
-                    onChange={(e) => setTagInput(e.target.value)}
-                    className={inp}
-                    placeholder={t("upload.placeholderTags")}
-                  />
-                  {tagPreview.length > 0 && (
-                    <div className="mt-2 flex flex-wrap gap-1.5">
-                      {tagPreview.map((tagName) => (
-                        <span
-                          key={tagName}
-                          className="rounded-full border border-[#7F77DD]/30 bg-[#534AB7]/20 px-2.5 py-0.5 text-xs text-[#AFA9EC]"
+                  <div className="mb-1.5 flex items-center justify-between">
+                    <label className={lbl} htmlFor="uv-tags">
+                      {t("upload.tagsWithMax").replace("{max}", String(MAX_VIDEO_TAGS))}
+                    </label>
+                    <span className="text-[10px] text-white/25">{tags.length}/{MAX_VIDEO_TAGS}</span>
+                  </div>
+
+                  <div
+                    className="flex min-h-[44px] flex-wrap items-center gap-1.5 rounded-xl border border-white/[0.12] bg-[#0d0b20] px-3 py-2 transition focus-within:border-[#7F77DD]/60"
+                    onClick={() => document.getElementById("uv-tags")?.focus()}
+                  >
+                    {tags.map((tag) => (
+                      <span
+                        key={tag}
+                        className="flex items-center gap-1 rounded-full border border-[#7F77DD]/30 bg-[#534AB7]/20 px-2.5 py-0.5 text-xs text-[#AFA9EC]"
+                      >
+                        #{tag}
+                        <button
+                          type="button"
+                          onClick={() => removeTag(tag)}
+                          className="text-white/30 transition hover:text-white/70"
                         >
-                          #{tagName}
-                        </span>
-                      ))}
+                          ×
+                        </button>
+                      </span>
+                    ))}
+                    <input
+                      id="uv-tags"
+                      value={tagInput}
+                      onChange={(e) => setTagInput(e.target.value)}
+                      onKeyDown={handleTagKeyDown}
+                      placeholder={tags.length === 0 ? t("upload.placeholderTags") : ""}
+                      className="min-w-[120px] flex-1 bg-transparent text-sm text-white outline-none placeholder:text-white/20"
+                      disabled={tags.length >= MAX_VIDEO_TAGS}
+                    />
+                  </div>
+                  <p className="mt-1 text-[10px] text-white/20">쉼표(,) 또는 Enter로 추가</p>
+
+                  {recentTags.length > 0 && (
+                    <div className="mt-3">
+                      <p className="mb-1.5 text-[10px] font-bold uppercase tracking-widest text-white/25">
+                        이전 영상 태그
+                      </p>
+                      <div className="flex flex-wrap gap-1.5">
+                        {recentTags
+                          .filter((t) => !tags.includes(t))
+                          .map((tag) => (
+                            <button
+                              key={tag}
+                              type="button"
+                              onClick={() => addTag(tag)}
+                              className="flex items-center gap-1 rounded-full border border-white/[0.08] bg-white/[0.02] px-2.5 py-0.5 text-xs text-white/40 transition hover:border-[#7F77DD]/30 hover:bg-[#534AB7]/15 hover:text-[#AFA9EC]"
+                            >
+                              + #{tag}
+                            </button>
+                          ))}
+                      </div>
+                    </div>
+                  )}
+
+                  <div className="mt-3">
+                    <p className="mb-1.5 text-[10px] font-bold uppercase tracking-widest text-white/25">
+                      즐겨찾기 태그
+                    </p>
+                    {mySavedHashtags.length === 0 ? (
+                      <p className="text-[10px] text-white/20">태그 위에 ★ 버튼으로 저장하세요</p>
+                    ) : (
+                      <div className="flex flex-wrap gap-1.5">
+                        {mySavedHashtags.map((tag) => (
+                          <div key={tag} className="group relative flex items-center">
+                            <button
+                              type="button"
+                              onClick={() => addTag(tag)}
+                              className="flex items-center gap-1 rounded-full border border-[#7F77DD]/20 bg-[#534AB7]/10 px-2.5 py-0.5 pr-6 text-xs text-[#AFA9EC]/60 transition hover:border-[#7F77DD]/40 hover:text-[#AFA9EC]"
+                            >
+                              ★ #{tag}
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => void removeSavedHashtag(tag)}
+                              className="absolute right-1.5 hidden text-[10px] text-white/20 transition group-hover:block hover:text-red-400"
+                            >
+                              ×
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+
+                  {tags.length > 0 && (
+                    <div className="mt-2 flex flex-wrap gap-1.5">
+                      {tags
+                        .filter((t) => !mySavedHashtags.includes(t))
+                        .map((tag) => (
+                          <button
+                            key={tag}
+                            type="button"
+                            onClick={() => void saveHashtag(tag)}
+                            className="rounded-full border border-white/[0.06] px-2 py-0.5 text-[10px] text-white/25 transition hover:border-[#7F77DD]/30 hover:text-[#AFA9EC]"
+                          >
+                            ☆ #{tag} 저장
+                          </button>
+                        ))}
                     </div>
                   )}
                 </div>
@@ -877,56 +937,110 @@ export function UploadVideoForm({ userId, competitions }: Props) {
               >
                 {t("upload.sectionAiToolsUsed")}
               </h2>
-              <div className="space-y-3">
+              <div className="space-y-4">
                 {AI_TOOL_CATEGORIES.map((cat) => {
-                  const otherActive = otherOpen[cat.key] || Boolean(otherText[cat.key]?.trim());
+                  const visibleDefaults = cat.tools.filter((t) => !hiddenTools.includes(t));
+                  const hiddenCount = cat.tools.filter((t) => hiddenTools.includes(t)).length;
+                  const catCustomTools = customTools[cat.key] ?? [];
+
                   return (
                     <div key={cat.key}>
-                      <p className="mb-2 text-[10px] font-bold uppercase tracking-widest text-white/25">
-                        {t(`upload.aiCategory.${cat.key}`)}
-                      </p>
+                      <div className="mb-2 flex items-center justify-between">
+                        <p className="text-[10px] font-bold uppercase tracking-widest text-white/25">
+                          {t(`upload.aiCategory.${cat.key}`)}
+                        </p>
+                        {hiddenCount > 0 && (
+                          <button
+                            type="button"
+                            onClick={() => void restoreHiddenTools(cat.key)}
+                            className="text-[10px] text-[#7F77DD]/50 transition hover:text-[#7F77DD]"
+                          >
+                            {hiddenCount}개 복원
+                          </button>
+                        )}
+                      </div>
+
                       <div className="flex flex-wrap gap-1.5">
-                        {cat.tools.map((opt) => {
+                        {visibleDefaults.map((opt) => {
                           const canon = normalizeToolName(opt);
                           const on = tools.some((sel) => normalizeToolName(sel) === canon);
                           return (
-                            <button
-                              key={opt}
-                              type="button"
-                              onClick={() => toggleTool(canon)}
-                              className="rounded-full border px-3 py-1 text-xs font-medium transition"
-                              style={{
-                                borderColor: on ? "rgba(127,119,221,0.5)" : "rgba(255,255,255,0.06)",
-                                background: on ? "rgba(83,74,183,0.35)" : "rgba(255,255,255,0.02)",
-                                color: on ? "#AFA9EC" : "rgba(255,255,255,0.35)",
-                              }}
-                            >
-                              {opt}
-                            </button>
+                            <div key={opt} className="group relative">
+                              <button
+                                type="button"
+                                onClick={() => toggleTool(canon)}
+                                className="rounded-full border px-3 py-1 pr-6 text-xs font-medium transition"
+                                style={{
+                                  borderColor: on ? "rgba(127,119,221,0.5)" : "rgba(255,255,255,0.06)",
+                                  background: on ? "rgba(83,74,183,0.35)" : "rgba(255,255,255,0.02)",
+                                  color: on ? "#AFA9EC" : "rgba(255,255,255,0.35)",
+                                }}
+                              >
+                                {opt}
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => void hideDefaultTool(opt)}
+                                className="absolute right-1.5 top-1/2 hidden h-3.5 w-3.5 -translate-y-1/2 items-center justify-center rounded-full text-white/30 transition group-hover:flex hover:text-red-400"
+                                title="숨기기"
+                              >
+                                ×
+                              </button>
+                            </div>
                           );
                         })}
-                        <button
-                          type="button"
-                          onClick={() => toggleOtherOpen(cat.key)}
-                          className="rounded-full border border-dashed px-3 py-1 text-xs font-medium transition"
-                          style={{
-                            borderColor: otherActive ? "rgba(127,119,221,0.5)" : "rgba(255,255,255,0.06)",
-                            background: otherActive ? "rgba(83,74,183,0.35)" : "transparent",
-                            color: otherActive ? "#AFA9EC" : "rgba(255,255,255,0.25)",
-                          }}
-                        >
-                          {t("upload.otherTool")}
-                        </button>
+
+                        {catCustomTools.map((tool) => {
+                          const on = tools.includes(tool);
+                          return (
+                            <div key={tool} className="group relative">
+                              <button
+                                type="button"
+                                onClick={() => toggleTool(tool)}
+                                className="rounded-full border px-3 py-1 pr-6 text-xs font-medium transition"
+                                style={{
+                                  borderColor: on ? "rgba(127,119,221,0.5)" : "rgba(127,119,221,0.2)",
+                                  background: on ? "rgba(83,74,183,0.35)" : "rgba(83,74,183,0.08)",
+                                  color: on ? "#AFA9EC" : "rgba(175,169,236,0.5)",
+                                }}
+                              >
+                                {tool}
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => void removeCustomTool(cat.key, tool)}
+                                className="absolute right-1.5 top-1/2 hidden h-3.5 w-3.5 -translate-y-1/2 items-center justify-center rounded-full text-white/30 transition group-hover:flex hover:text-red-400"
+                                title="삭제"
+                              >
+                                ×
+                              </button>
+                            </div>
+                          );
+                        })}
                       </div>
-                      {(otherOpen[cat.key] || Boolean(otherText[cat.key]?.trim())) && (
+
+                      <div className="mt-2 flex gap-2">
                         <input
                           type="text"
-                          value={otherText[cat.key] ?? ""}
-                          onChange={(e) => setOtherText((o) => ({ ...o, [cat.key]: e.target.value }))}
-                          className={`${inp} mt-2`}
-                          placeholder={t("upload.customToolPlaceholder")}
+                          value={customInput[cat.key] ?? ""}
+                          onChange={(e) => setCustomInput((prev) => ({ ...prev, [cat.key]: e.target.value }))}
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter") {
+                              e.preventDefault();
+                              void addCustomTool(cat.key);
+                            }
+                          }}
+                          placeholder="직접 추가..."
+                          className="flex-1 rounded-xl border border-white/[0.08] bg-[#0d0b20] px-3 py-1.5 text-xs text-white placeholder:text-white/20 outline-none focus:border-[#7F77DD]/40"
                         />
-                      )}
+                        <button
+                          type="button"
+                          onClick={() => void addCustomTool(cat.key)}
+                          className="rounded-xl border border-[#7F77DD]/30 bg-[#534AB7]/20 px-3 py-1.5 text-xs font-semibold text-[#AFA9EC] transition hover:bg-[#534AB7]/40"
+                        >
+                          + 추가
+                        </button>
+                      </div>
                     </div>
                   );
                 })}
@@ -1017,13 +1131,7 @@ export function UploadVideoForm({ userId, competitions }: Props) {
                 </div>
 
                 {/* 런타임 */}
-                {uploadMode === "vimeo" && (
-                  <div>
-                    <label className={lbl}>{t("upload.runtimeMinutes")}</label>
-                    <NumberInput value={runtimeMinutes} onChange={setRuntimeMinutes} min={1} />
-                  </div>
-                )}
-                {uploadMode === "mux" && muxUploadStatus === "ready" && muxDuration && (
+                {muxUploadStatus === "ready" && muxDuration && (
                   <div className="rounded-lg border border-emerald-500/20 bg-emerald-950/20 px-3 py-2">
                     <p className="text-[11px] text-emerald-400/70">Runtime (auto-detected)</p>
                     <p className="text-sm font-bold text-emerald-400">
@@ -1031,7 +1139,7 @@ export function UploadVideoForm({ userId, competitions }: Props) {
                     </p>
                   </div>
                 )}
-                {uploadMode === "mux" && muxUploadStatus !== "ready" && (
+                {muxUploadStatus !== "ready" && (
                   <div>
                     <label className={lbl}>{t("upload.runtimeMinutes")}</label>
                     <NumberInput value={runtimeMinutes} onChange={setRuntimeMinutes} min={1} />
@@ -1043,12 +1151,15 @@ export function UploadVideoForm({ userId, competitions }: Props) {
                   <p className={lbl}>{t("upload.seriesToggleLabel")}</p>
                   <button
                     type="button"
+                    disabled={!!competitionIdFromUrl}
                     onClick={() => setIsSeriesMode(!isSeriesMode)}
                     className="relative flex w-full items-center justify-between rounded-xl border px-4 py-2.5 text-sm font-medium transition"
                     style={{
                       borderColor: isSeriesMode ? "rgba(127,119,221,0.5)" : "rgba(255,255,255,0.06)",
                       background: isSeriesMode ? "rgba(83,74,183,0.35)" : "rgba(255,255,255,0.02)",
                       color: isSeriesMode ? "#AFA9EC" : "rgba(255,255,255,0.55)",
+                      cursor: competitionIdFromUrl ? "not-allowed" : "pointer",
+                      opacity: competitionIdFromUrl ? 0.5 : 1,
                     }}
                   >
                     <span>{t("upload.partOfSeries")}</span>
@@ -1140,12 +1251,15 @@ export function UploadVideoForm({ userId, competitions }: Props) {
                       <button
                         key={v}
                         type="button"
+                        disabled={v === "private" && !!competitionIdFromUrl}
                         onClick={() => setVisibility(v)}
                         className="relative flex items-center justify-center gap-1.5 rounded-xl border py-2.5 text-sm font-medium transition"
                         style={{
                           borderColor: visibility === v ? "rgba(127,119,221,0.5)" : "rgba(255,255,255,0.06)",
                           background: visibility === v ? "rgba(83,74,183,0.35)" : "rgba(255,255,255,0.02)",
                           color: visibility === v ? "#AFA9EC" : "rgba(255,255,255,0.55)",
+                          cursor: v === "private" && !!competitionIdFromUrl ? "not-allowed" : "pointer",
+                          opacity: v === "private" && !!competitionIdFromUrl ? 0.4 : 1,
                         }}
                       >
                         <span>{v === "public" ? "🌐" : "🔒"}</span>
@@ -1166,12 +1280,15 @@ export function UploadVideoForm({ userId, competitions }: Props) {
                       <button
                         key={v}
                         type="button"
+                        disabled={!!competitionIdFromUrl}
                         onClick={() => setPurpose(v)}
                         className="relative flex items-center justify-center gap-1.5 rounded-xl border py-2.5 text-sm font-medium transition"
                         style={{
                           borderColor: purpose === v ? "rgba(127,119,221,0.5)" : "rgba(255,255,255,0.06)",
                           background: purpose === v ? "rgba(83,74,183,0.35)" : "rgba(255,255,255,0.02)",
                           color: purpose === v ? "#AFA9EC" : "rgba(255,255,255,0.3)",
+                          cursor: !!competitionIdFromUrl ? "not-allowed" : "pointer",
+                          opacity: !!competitionIdFromUrl && purpose !== v ? 0.4 : 1,
                         }}
                       >
                         <span>{v === "personal" ? "✦" : "🏆"}</span>
@@ -1188,7 +1305,23 @@ export function UploadVideoForm({ userId, competitions }: Props) {
                 {purpose === "competition" && (
                   <div>
                     <label className={lbl}>{t("upload.selectCompetition")}</label>
-                    {competitions.length > 0 ? (
+                    {competitionIdFromUrl ? (
+                      <div
+                        className="flex items-center justify-between rounded-xl border px-4 py-2 text-sm"
+                        style={{
+                          borderColor: "rgba(127,119,221,0.3)",
+                          background: "rgba(83,74,183,0.15)",
+                          color: "#AFA9EC",
+                          cursor: "not-allowed",
+                        }}
+                      >
+                        <span>{competitions.find((c) => c.id === competitionIdFromUrl)?.title ?? competitionIdFromUrl}</span>
+                        <svg viewBox="0 0 24 24" className="h-3.5 w-3.5 text-[#7F77DD]/50" fill="none" stroke="currentColor" strokeWidth={2}>
+                          <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+                          <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+                        </svg>
+                      </div>
+                    ) : competitions.length > 0 ? (
                       <CustomSelect
                         value={competitionId}
                         onChange={setCompetitionId}

@@ -1,7 +1,6 @@
 import { notFound } from "next/navigation";
 import { AnimateIn } from "@/components/animate-in";
 import { GenovaProfileClient } from "@/components/profile/profile-page-client";
-import { createProfileMockGridVideos } from "@/lib/profile-mock-grid-videos";
 import { attachEngagementToVideos } from "@/lib/queries/engagement-queries";
 import {
   fetchFinalistVideosByUploader,
@@ -12,7 +11,6 @@ import {
   fetchProfileById,
   fetchSavedVideos,
   fetchUploadedVideos,
-  type ProfileAwardBadge,
 } from "@/lib/queries/profile-queries";
 import type { Video } from "@/lib/types";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
@@ -66,9 +64,9 @@ export default async function ProfileByIdPage({ params }: { params: Promise<{ id
     fetchProfileAwardBadges(id),
   ]);
 
-  const worksSource = rawWorks.length ? rawWorks : createProfileMockGridVideos("videos").slice(0, 2);
-  const finalistSource = rawFinalist.length ? rawFinalist : createProfileMockGridVideos("competition").slice(0, 2);
-  const savedSource = isOwner ? (rawSaved.length ? rawSaved : createProfileMockGridVideos("saved").slice(0, 2)) : [];
+  const worksSource = rawWorks;
+  const finalistSource = rawFinalist;
+  const savedSource = isOwner ? rawSaved : [];
 
   const works = await attachEngagementToVideos(worksSource);
   const finalistVideos = await attachEngagementToVideos(finalistSource);
@@ -83,12 +81,7 @@ export default async function ProfileByIdPage({ params }: { params: Promise<{ id
   const joinedLabel = formatJoinedLabel(profile.joinedAt);
   const activityVideos = (rawWorks.length ? rawWorks : works).slice(0, 5);
   const videoCount = rawWorks.length;
-  const mockAwardBadges: ProfileAwardBadge[] = [
-    { id: "mock-award-weekly-gold", awardType: "weekly", awardTier: "gold", createdAt: new Date().toISOString() },
-    { id: "mock-award-comp-1", awardType: "competition", awardTier: "1", createdAt: new Date().toISOString() },
-    { id: "mock-award-weekly-silver", awardType: "weekly", awardTier: "silver", createdAt: new Date().toISOString() },
-  ];
-  const awardBadges: ProfileAwardBadge[] = rawAwards.length ? rawAwards : mockAwardBadges;
+  const awardBadges = rawAwards;
 
   return (
     <div className="min-h-screen w-full text-[#F8F7FF]">

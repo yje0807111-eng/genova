@@ -28,9 +28,13 @@ function FadeIn({ children, delay = 0, className }: { children: React.ReactNode;
 export function CompetitionHero({
   activeCount,
   upcomingCount,
+  totalPrizeLabel,
+  totalParticipants,
 }: {
   activeCount: number;
   upcomingCount: number;
+  totalPrizeLabel: string;
+  totalParticipants: number;
 }) {
   const { t } = useI18n();
   return (
@@ -112,8 +116,13 @@ export function CompetitionHero({
                     {[
                       { Icon: PlayCircle, color: "#7F77DD", value: activeCount.toString(), label: t("competition.nowOpen", "Now Open") },
                       { Icon: Calendar, color: "#7F77DD", value: upcomingCount.toString(), label: t("competition.upcoming", "Upcoming") },
-                      { Icon: Trophy, color: "#FFD700", value: "$35,000+", label: t("competition.totalPrizes", "Total Prizes") },
-                      { Icon: Users, color: "#7F77DD", value: "1.2K+", label: t("competition.participants", "Participants") },
+                      { Icon: Trophy, color: "#FFD700", value: totalPrizeLabel, label: t("competition.totalPrizes", "Total Prizes") },
+                      {
+                        Icon: Users,
+                        color: "#7F77DD",
+                        value: totalParticipants >= 1000 ? `${(totalParticipants / 1000).toFixed(1)}K+` : `${totalParticipants}+`,
+                        label: t("competition.participants", "Participants"),
+                      },
                     ].map((stat) => (
                       <div key={stat.label} className="flex items-center gap-2">
                         <stat.Icon size={18} color={stat.color} />
@@ -139,7 +148,7 @@ export function CompetitionHero({
                 <FadeIn delay={200}>
                   <div className="flex items-center gap-2 rounded-full border border-[#FFD700]/40 bg-[#0f0d24]/80 px-4 py-2 backdrop-blur-md">
                     <span className="text-[13px] font-semibold text-[#FFD700]/80">
-                      <span className="text-[17px]">🏆</span> {t("competition.winUpTo", "Win up to $35,000")}
+                      <span className="text-[17px]">🏆</span> {t("competition.winUpTo", "Win up to")} {totalPrizeLabel}
                     </span>
                   </div>
                 </FadeIn>

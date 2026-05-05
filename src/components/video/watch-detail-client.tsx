@@ -5,6 +5,7 @@ import { LocalizedGenreText } from "@/components/genova/localized-genre";
 import { useI18n } from "@/components/genova/language-provider";
 import { AiToolsCollapsible } from "@/components/video/ai-tools-collapsible";
 import { formatGenreDisplay } from "@/lib/constants/genres";
+import { trackHashtagEvent } from "@/lib/hashtags/client-track";
 import { intlDateLocale } from "@/lib/i18n/browser-locale";
 import type { Video } from "@/lib/types";
 import { formatViewCountShort } from "@/lib/view-count";
@@ -67,12 +68,14 @@ export function WatchDescriptionInner({
       {tags.length > 0 ? (
         <div className="flex flex-wrap gap-1.5">
           {tags.map((tag) => (
-            <span
+            <Link
               key={tag}
+              href={`/search?q=${encodeURIComponent(tag)}&tab=tags#search-tags-section`}
+              onClick={() => trackHashtagEvent(tag, "click")}
               className="cursor-pointer text-[13px] text-[#7F77DD]/70 transition hover:text-[#7F77DD]"
             >
               #{tag}
-            </span>
+            </Link>
           ))}
         </div>
       ) : null}
