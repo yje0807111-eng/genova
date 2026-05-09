@@ -196,7 +196,6 @@ export async function fetchRelatedVideos(excludeId: string, limit = 8): Promise<
   const supabase = await createServerSupabaseClient();
   if (!supabase) return [];
 
-  // 현재 유저의 시청 기록 가져오기 (최근 50개)
   const { data: { user } } = await supabase.auth.getUser();
   let watchedIds: string[] = [];
 
@@ -207,30 +206,67 @@ export async function fetchRelatedVideos(excludeId: string, limit = 8): Promise<
       .eq("user_id", user.id)
       .order("watched_at", { ascending: false })
       .limit(50);
-    watchedIds = (history ?? []).map((h) => h.video_id as string);
+    watchedIds = [...new Set((history ?? []).map((h) => h.video_id as string).filter(Boolean))];
   }
 
-  // 전체 공개 영상 가져오기
-  const { data, error } = await supabase
+  const selectRelated =
+    "*, profiles!videos_uploaded_by_fkey(display_name, avatar_url)";
+
+  let q1 = supabase
     .from("videos")
-    .select("*")
+    .select(selectRelated)
     .eq("visibility", "public")
-    .order("created_at", { ascending: false })
-    .limit(limit + watchedIds.length + 10);
+    .neq("id", excludeId);
 
-  if (error || !data) return [];
+  if (watchedIds.length > 0) {
+    const inList = watchedIds.map((id) => `"${id}"`).join(",");
+    q1 = q1.not("id", "in", `(${inList})`);
+  }
 
-  // JS에서 필터링 (현재 영상 + 시청 기록 제외)
-  const excludeSet = new Set([excludeId, ...watchedIds]);
-  const filtered = data.filter((v) => !excludeSet.has(v.id as string));
-  const result = filtered.slice(0, limit);
+  const { data: unwatched, error: err1 } = await q1.order("created_at", { ascending: false }).limit(limit);
 
-  // 부족하면 시청 기록 무시하고 현재 영상만 제외
-  const final = result.length >= limit
-    ? result
-    : data.filter((v) => v.id !== excludeId).slice(0, limit);
+  if (err1) {
+    console.error("[fetchRelatedVideos] unwatched phase", err1.message);
+  }
 
-  const merged = await mergeVideoRows(final as Parameters<typeof mapVideo>[0][]);
+  let rows = (unwatched ?? []) as Parameters<typeof mapVideo>[0][];
+  let fallbackCount = 0;
+
+  if (rows.length < limit) {
+    const needed = limit - rows.length;
+    const existingIds = new Set<string>([excludeId, ...rows.map((v) => v.id as string)]);
+
+    let q2 = supabase
+      .from("videos")
+      .select(selectRelated)
+      .eq("visibility", "public")
+      .neq("id", excludeId);
+
+    const excludeList = [...existingIds];
+    if (excludeList.length > 0) {
+      const inList = excludeList.map((id) => `"${id}"`).join(",");
+      q2 = q2.not("id", "in", `(${inList})`);
+    }
+
+    const { data: fallback, error: err2 } = await q2.order("view_count", { ascending: false }).limit(needed);
+
+    if (err2) {
+      console.error("[fetchRelatedVideos] fallback phase", err2.message);
+    }
+
+    const fb = (fallback ?? []) as Parameters<typeof mapVideo>[0][];
+    fallbackCount = fb.length;
+    rows = [...rows, ...fb];
+  }
+
+  console.log("[RELATED_DEBUG]", {
+    watchedIds: watchedIds.length,
+    unwatched: unwatched?.length ?? 0,
+    fallback: fallbackCount,
+    total: rows.length,
+  });
+
+  const merged = await mergeVideoRows(rows);
   return merged.map((row) => mapVideo(row));
 }
 
@@ -462,6 +498,7 @@ export async function fetchSpotlightCreators(): Promise<{
   videoCount: number;
   totalLikes: number;
   recentVideos: Video[];
+  aiTools: string[];
 }[]> {
   const supabase = await createServerSupabaseClient();
   if (!supabase) return [];
@@ -495,17 +532,17 @@ export async function fetchSpotlightCreators(): Promise<{
     {
       videoCount: number;
       totalLikes: number;
-      recentVideos: VideoRow[];
+      allVideos: VideoRow[];
     }
   >();
 
   for (const v of rows) {
     if (!v.uploaded_by) continue;
     const existing =
-      creatorMap.get(v.uploaded_by) ?? { videoCount: 0, totalLikes: 0, recentVideos: [] };
+      creatorMap.get(v.uploaded_by) ?? { videoCount: 0, totalLikes: 0, allVideos: [] };
     existing.videoCount += 1;
     existing.totalLikes += likeCountMap.get(v.id) ?? 0;
-    if (existing.recentVideos.length < 3) existing.recentVideos.push(v);
+    existing.allVideos.push(v);
     creatorMap.set(v.uploaded_by, existing);
   }
 
@@ -533,13 +570,29 @@ export async function fetchSpotlightCreators(): Promise<{
 
   return sorted.map(([uploadedBy, data]) => {
     const profile = profileMap.get(uploadedBy);
+
+    // 조회수 가장 많은 영상
+    const topVideo = [...data.allVideos]
+      .sort((a, b) => ((b.view_count as number) ?? 0) - ((a.view_count as number) ?? 0))[0];
+
+    // 가장 최근 영상 (topVideo와 다른 것)
+    const latestVideo = [...data.allVideos]
+      .sort((a, b) => new Date(b.created_at as string).getTime() - new Date(a.created_at as string).getTime())
+      .find((v) => v.id !== topVideo?.id) ?? topVideo;
+
+    // AI 툴 수집
+    const allTools = [...new Set(
+      data.allVideos.flatMap((v) => (v.ai_tools as string[] | null) ?? [])
+    )].slice(0, 6);
+
     return {
       uploadedBy,
       displayName: profile?.display_name ?? "Creator",
       avatarUrl: profile?.avatar_url ?? null,
       videoCount: data.videoCount,
       totalLikes: data.totalLikes,
-      recentVideos: data.recentVideos.map((row) => mapVideo(row)),
+      recentVideos: [topVideo, latestVideo].filter(Boolean).map((row) => mapVideo(row!)),
+      aiTools: allTools,
     };
   });
 }

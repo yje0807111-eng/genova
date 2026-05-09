@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import { AnimateIn } from "@/components/animate-in";
 import { GenovaProfileClient } from "@/components/profile/profile-page-client";
+import { mapVideo } from "@/lib/mappers";
 import { attachEngagementToVideos } from "@/lib/queries/engagement-queries";
 import {
   fetchFinalistVideosByUploader,
@@ -37,6 +38,45 @@ function formatJoinedLabel(iso: string | null | undefined): string | null {
   return `Joined ${new Intl.DateTimeFormat("en", { month: "long", year: "numeric" }).format(d)}`;
 }
 
+type CompetitionMeta = {
+  id: string;
+  title: string;
+  title_ko?: string | null;
+  title_en?: string | null;
+  title_ja?: string | null;
+  status?: string | null;
+};
+
+type CompetitionVideo = Video & {
+  competitions?: CompetitionMeta | null;
+};
+
+async function fetchUserCompetitionVideos(userId: string): Promise<CompetitionVideo[]> {
+  const supabase = await createServerSupabaseClient();
+  if (!supabase) return [];
+
+  const { data, error } = await supabase
+    .from("videos")
+    .select("*, profiles!videos_uploaded_by_fkey(display_name, avatar_url)")
+    .eq("uploaded_by", userId)
+    .eq("purpose", "competition")
+    .not("submitted_competition_id", "is", null)
+    .eq("visibility", "public")
+    .order("created_at", { ascending: false });
+
+  if (error || !data) {
+    console.error("[fetchUserCompetitionVideos]", {
+      message: error?.message,
+      code: error?.code,
+      details: error?.details,
+      hint: error?.hint,
+    });
+    return [];
+  }
+
+  return data.map((row) => mapVideo(row as Parameters<typeof mapVideo>[0]));
+}
+
 export default async function ProfileByIdPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   if (!UUID_RE.test(id)) notFound();
@@ -54,10 +94,11 @@ export default async function ProfileByIdPage({ params }: { params: Promise<{ id
   const profile = await fetchProfileById(id);
   if (!profile) notFound();
 
-  const [counts, rawWorks, rawFinalist, initialFollowing, rawSaved, followingUsers, rawAwards] = await Promise.all([
+  const [counts, rawWorks, rawFinalist, rawCompetitionVideos, initialFollowing, rawSaved, followingUsers, rawAwards] = await Promise.all([
     fetchFollowCounts(id),
     fetchUploadedVideos(id),
     fetchFinalistVideosByUploader(id),
+    fetchUserCompetitionVideos(id),
     fetchIsFollowing(currentUser?.id, id),
     isOwner ? fetchSavedVideos(id) : Promise.resolve([] as Video[]),
     fetchFollowingPreviewUsers(id),
@@ -70,6 +111,7 @@ export default async function ProfileByIdPage({ params }: { params: Promise<{ id
 
   const works = await attachEngagementToVideos(worksSource);
   const finalistVideos = await attachEngagementToVideos(finalistSource);
+  const competitionVideos = await attachEngagementToVideos(rawCompetitionVideos);
   const savedVideos = isOwner ? await attachEngagementToVideos(savedSource) : [];
 
   const displayName = profile.displayName?.trim() || `user_${id.slice(0, 8)}`;
@@ -93,6 +135,17 @@ export default async function ProfileByIdPage({ params }: { params: Promise<{ id
           headerIntro={headerIntro}
           headerToolsLine={headerToolsLine}
           bioFull={profile.bio}
+          mainGenre={profile.mainGenre}
+          country={profile.country}
+          availableForCollab={profile.availableForCollab}
+          tagline={profile.tagline}
+          pronouns={profile.pronouns}
+          websiteUrl={profile.websiteUrl}
+          twitterUrl={profile.twitterUrl}
+          instagramUrl={profile.instagramUrl}
+          youtubeUrl={profile.youtubeUrl}
+          tiktokUrl={profile.tiktokUrl}
+          vimeoUrl={profile.vimeoUrl}
           avatarUrl={avatarUrl}
           bannerUrl={profile.bannerUrl}
           joinedLabel={joinedLabel}
@@ -101,6 +154,7 @@ export default async function ProfileByIdPage({ params }: { params: Promise<{ id
           videoCount={videoCount}
           works={works}
           finalistVideos={finalistVideos}
+          competitionVideos={competitionVideos}
           savedVideos={savedVideos}
           isOwner={isOwner}
           showFollow={showFollow}

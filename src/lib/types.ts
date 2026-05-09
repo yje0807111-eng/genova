@@ -17,11 +17,14 @@ export type Video = {
   id: string;
   title: string;
   thumbnailUrl: string;
+  backdropUrl?: string | null;
   vimeoId: string | null;
   /** Mux playback ID when video was uploaded via Mux direct upload */
   muxPlaybackId?: string | null;
   /** Main genre slug (e.g. `short_film`) */
   genre: string;
+  /** Additional main genres selected by creator (first selected genre remains `genre`) */
+  additionalGenres?: string[];
   /** Sub-genre slug; optional depending on main genre */
   subGenre: string | null;
   /** Upload purpose (portfolio vs competition) */
@@ -30,6 +33,8 @@ export type Video = {
   creatorId: string | null;
   isOriginal: boolean;
   isFinalist: boolean;
+  /** 관리자 지정: 공모전 상세 등에서 강조 노출 */
+  isCompetitionFeatured?: boolean;
   award?: string | null;
   runtime: string;
   createdAt: string;
@@ -67,6 +72,7 @@ export type VideoComment = {
   parentId: string | null;
   content: string;
   isPinned?: boolean;
+  pinOrder?: number | null;
   createdAt: string;
   displayName: string | null;
   avatarUrl: string | null;
@@ -101,4 +107,6 @@ export type Competition = {
   currency?: string | null;
   exchangeRateUsdKrw?: number | null;
   exchangeRateUsdJpy?: number | null;
+  /** 관리자: /competition 목록 등에서 추천 공모전으로 노출 */
+  isFeatured?: boolean | null;
 };

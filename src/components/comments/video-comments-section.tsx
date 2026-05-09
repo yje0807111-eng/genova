@@ -37,12 +37,14 @@ function CommentBlock({
   currentUserId,
   depth,
   isVideoOwner,
+  onPinToggle,
 }: {
   c: VideoComment;
   videoId: string;
   currentUserId: string | null;
   depth: number;
   isVideoOwner: boolean;
+  onPinToggle: (commentId: string, pinned: boolean, pinOrder: number | null) => void;
 }) {
   const { t } = useI18n();
   const router = useRouter();
@@ -85,8 +87,9 @@ function CommentBlock({
     startTransition(async () => {
       const res = await pinCommentAction(c.id, videoId, !pinned);
       if (res.ok) {
-        setPinned((v) => !v);
-        router.refresh();
+        const nextPinned = !pinned;
+        setPinned(nextPinned);
+        onPinToggle(c.id, nextPinned, res.pinOrder);
       }
     });
   };
@@ -127,8 +130,11 @@ function CommentBlock({
 
         <div className="min-w-0 flex-1">
           {depth === 0 && pinned && (
-            <div className="mb-1 flex items-center gap-1 text-[10px] font-semibold text-[#7F77DD]">
-              📌 고정된 댓글
+            <div className="mb-1 flex items-center gap-1 text-[10px] text-white/30">
+              <svg className="h-2.5 w-2.5" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M16 4a1 1 0 0 1 1 1v1h1a1 1 0 0 1 0 2h-.5l.5 5h.5a1 1 0 0 1 0 2h-5v4a1 1 0 0 1-2 0v-4H6a1 1 0 0 1 0-2h.5l.5-5H6a1 1 0 0 1 0-2h1V5a1 1 0 0 1 1-1h8z"/>
+              </svg>
+              Pinned
             </div>
           )}
           {/* Name + time + delete */}
@@ -149,7 +155,7 @@ function CommentBlock({
                   disabled={pending}
                   className={cn(
                     "text-xs transition",
-                    pinned ? "text-[#7F77DD]" : "text-white/40 hover:text-[#7F77DD]",
+                    pinned ? "text-white/40" : "text-white/20 hover:text-white/40",
                   )}
                 >
                   {pinned ? "📌 핀 해제" : "📌 핀"}
@@ -236,6 +242,7 @@ function CommentBlock({
               currentUserId={currentUserId}
               depth={depth + 1}
               isVideoOwner={isVideoOwner}
+              onPinToggle={onPinToggle}
             />
           ))}
         </div>
@@ -297,6 +304,7 @@ export function VideoCommentsSection({
 }) {
   const { t } = useI18n();
   const router = useRouter();
+  const [comments, setComments] = useState<VideoComment[]>(initialComments);
   const [text, setText] = useState("");
   const [pending, startTransition] = useTransition();
 
@@ -314,25 +322,51 @@ export function VideoCommentsSection({
     });
   };
 
+  const onPinToggle = (commentId: string, pinned: boolean, pinOrder: number | null) => {
+    setComments((prev) => {
+      if (pinned) {
+        const maxOrder = prev.reduce((max, item) => {
+          if (!item.isPinned) return max;
+          return Math.max(max, item.pinOrder ?? 0);
+        }, -1);
+        const nextOrder = pinOrder ?? (maxOrder >= 0 ? maxOrder + 1 : 0);
+        return prev.map((item) =>
+          item.id === commentId ? { ...item, isPinned: true, pinOrder: nextOrder } : item,
+        );
+      }
+
+      const unpinned = prev.map((item) =>
+        item.id === commentId ? { ...item, isPinned: false, pinOrder: null } : item,
+      );
+      const orderedPinned = [...unpinned]
+        .filter((item) => item.isPinned)
+        .sort((a, b) => (a.pinOrder ?? 0) - (b.pinOrder ?? 0));
+      const orderMap = new Map(orderedPinned.map((item, idx) => [item.id, idx]));
+      return unpinned.map((item) =>
+        item.isPinned ? { ...item, pinOrder: orderMap.get(item.id) ?? null } : item,
+      );
+    });
+  };
+
   const sortedComments = useMemo(() => {
-    return [...initialComments].sort((a, b) => {
-      // 핀된 댓글 최상단
-      if (a.isPinned && !b.isPinned) return -1;
-      if (!a.isPinned && b.isPinned) return 1;
-      // 기존 정렬 로직 유지
+    return [...comments].sort((a, b) => {
+      const aPinned = a.isPinned ?? false;
+      const bPinned = b.isPinned ?? false;
+
+      // 핀된 댓글 최상단, pin_order 오름차순 (0이 가장 위)
+      if (aPinned && bPinned) return (a.pinOrder ?? 0) - (b.pinOrder ?? 0);
+      if (aPinned && !bPinned) return -1;
+      if (!aPinned && bPinned) return 1;
+
+      // 일반 댓글 기존 정렬
       const aHasLikes = a.likeCount > 0;
       const bHasLikes = b.likeCount > 0;
-
-      if (bHasLikes && !aHasLikes) return 1;   // b has likes, a doesn't → b goes first
-      if (aHasLikes && !bHasLikes) return -1;  // a has likes, b doesn't → a goes first
-
-      // Both have likes → sort by like count descending
+      if (bHasLikes && !aHasLikes) return 1;
+      if (aHasLikes && !bHasLikes) return -1;
       if (aHasLikes && bHasLikes) return b.likeCount - a.likeCount;
-
-      // Neither has likes → sort by oldest first (chronological)
       return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
     });
-  }, [initialComments]);
+  }, [comments]);
 
   return (
     <section
@@ -342,7 +376,7 @@ export function VideoCommentsSection({
     >
       {/* Comments list first */}
       <div className="divide-y divide-white/5">
-        {initialComments.length === 0 ? (
+        {comments.length === 0 ? (
           <p className="text-sm text-white/60">{t("comments.empty")}</p>
         ) : (
           sortedComments.map((c) => (
@@ -353,6 +387,7 @@ export function VideoCommentsSection({
               currentUserId={currentUserId}
               depth={0}
               isVideoOwner={isVideoOwner ?? false}
+              onPinToggle={onPinToggle}
             />
           ))
         )}

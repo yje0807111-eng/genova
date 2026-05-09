@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { Globe, Instagram, LogOut, X as XIcon, Youtube } from "lucide-react";
+import { ChevronDown, Globe, Instagram, LogOut, X as XIcon, Youtube } from "lucide-react";
 import { updateProfileAction } from "@/app/actions/profile";
 import { useI18n } from "@/components/genova/language-provider";
 import type { Profile } from "@/lib/queries/profile-queries";
@@ -12,17 +12,47 @@ import { createBrowserSupabaseClient } from "@/lib/supabase/browser";
 const TOOL_CATEGORIES = [
   {
     category: "Image",
-    tools: ["Midjourney", "Stable Diffusion", "Leonardo", "ComfyUI", "Ideogram", "Flux"],
+    tools: [
+      "Midjourney",
+      "Nano Banana Pro",
+      "Nano Banana 2",
+      "ChatGPT Image 2",
+      "Flux",
+      "Stable Diffusion",
+      "Ideogram",
+      "Leonardo",
+    ],
   },
   {
     category: "Video",
-    tools: ["Runway", "Kling", "Sora", "Pika", "Luma", "HeyGen", "D-ID"],
+    tools: ["Sora 2", "Veo 3", "Runway Gen-4", "Kling 2.0", "Hailuo", "Luma Dream Machine", "Pika 2.0", "Higgsfield"],
   },
   {
-    category: "Music & Voice",
-    tools: ["ElevenLabs", "Suno", "Udio", "Mubert", "Bark"],
+    category: "Music",
+    tools: ["Suno v5", "Udio", "Stable Audio", "Mubert"],
+  },
+  {
+    category: "Voice",
+    tools: ["ElevenLabs", "OpenAI Voice", "PlayHT"],
+  },
+  {
+    category: "Editing",
+    tools: ["CapCut", "DaVinci Resolve", "Adobe Premiere", "Topaz Video AI"],
+  },
+  {
+    category: "Platforms",
+    tools: ["ComfyUI", "Krea", "Freepik", "Magnific", "Higgsfield", "Hedra", "Viggle", "Domo AI", "Genmo", "Replicate", "Fal.ai"],
   },
 ];
+
+const CATEGORY_COLOR: Record<string, { from: string; to: string; glow: string }> = {
+  Image: { from: "#EC4899", to: "#F472B6", glow: "rgba(236,72,153,0.15)" },
+  Video: { from: "#06B6D4", to: "#22D3EE", glow: "rgba(6,182,212,0.15)" },
+  Music: { from: "#F59E0B", to: "#FBBF24", glow: "rgba(245,158,11,0.15)" },
+  Voice: { from: "#10B981", to: "#34D399", glow: "rgba(16,185,129,0.15)" },
+  Editing: { from: "#8B5CF6", to: "#A78BFA", glow: "rgba(139,92,246,0.15)" },
+  Platforms: { from: "#6366F1", to: "#818CF8", glow: "rgba(99,102,241,0.15)" },
+};
 
 export function ProfileSettingsClient({ profile }: { profile: Profile }) {
   const router = useRouter();
@@ -43,6 +73,10 @@ export function ProfileSettingsClient({ profile }: { profile: Profile }) {
   const [bannerUrl, setBannerUrl] = useState(profile.bannerUrl ?? "");
   const [country, setCountry] = useState(profile.country ?? "");
   const [mainGenre, setMainGenre] = useState(profile.mainGenre ?? "");
+  const [tagline, setTagline] = useState(profile.tagline ?? "");
+  const [pronouns, setPronouns] = useState(profile.pronouns ?? "");
+  const [availableForCollab, setAvailableForCollab] = useState(profile.availableForCollab ?? false);
+  const [pinnedVideoId, setPinnedVideoId] = useState(profile.pinnedVideoId ?? "");
   const [tiktokUrl, setTiktokUrl] = useState(profile.tiktokUrl ?? "");
   const [vimeoUrl, setVimeoUrl] = useState(profile.vimeoUrl ?? "");
   const [notifyLikes, setNotifyLikes] = useState(profile.notifyLikes ?? true);
@@ -50,6 +84,7 @@ export function ProfileSettingsClient({ profile }: { profile: Profile }) {
   const [notifyFollows, setNotifyFollows] = useState(profile.notifyFollows ?? true);
   const [uploadingBanner, setUploadingBanner] = useState(false);
   const [showLogoutModal, setShowLogoutModal] = useState(false);
+  const [activeTab, setActiveTab] = useState<"profile" | "creator" | "social" | "notifications">("profile");
   const avatarPreview = avatarUrl.trim();
   const avatarPreviewValid = (() => {
     if (!avatarPreview) return false;
@@ -60,6 +95,10 @@ export function ProfileSettingsClient({ profile }: { profile: Profile }) {
       return false;
     }
   })();
+
+  const inputClass =
+    "w-full rounded-lg border border-white/[0.08] bg-white/[0.02] px-3 py-2.5 text-sm text-white placeholder:text-white/30 outline-none transition focus:border-[#7F77DD]/50 focus:bg-white/[0.04]";
+  const labelClass = "mb-1.5 block text-xs font-medium text-white/60";
 
   const addTool = () => {
     const next = toolInput.trim();
@@ -86,11 +125,7 @@ export function ProfileSettingsClient({ profile }: { profile: Profile }) {
 
     const fileExt = file.name.split(".").pop();
     const filePath = `${user.id}/avatar.${fileExt}`;
-
-    const { error: uploadError } = await supabase.storage
-      .from("avatars")
-      .upload(filePath, file, { upsert: true });
-
+    const { error: uploadError } = await supabase.storage.from("avatars").upload(filePath, file, { upsert: true });
     if (uploadError) {
       setError(uploadError.message);
       setUploadingAvatar(false);
@@ -139,6 +174,10 @@ export function ProfileSettingsClient({ profile }: { profile: Profile }) {
       bannerUrl: bannerUrl.trim() ? bannerUrl.trim() : null,
       country: country.trim() ? country.trim() : null,
       mainGenre: mainGenre.trim() ? mainGenre.trim() : null,
+      tagline: tagline.trim() ? tagline.trim() : null,
+      pronouns: pronouns.trim() ? pronouns.trim() : null,
+      availableForCollab,
+      pinnedVideoId: pinnedVideoId.trim() ? pinnedVideoId.trim() : null,
       websiteUrl: websiteUrl.trim() ? websiteUrl.trim() : null,
       twitterUrl: twitterUrl.trim() ? twitterUrl.trim() : null,
       instagramUrl: instagramUrl.trim() ? instagramUrl.trim() : null,
@@ -154,9 +193,7 @@ export function ProfileSettingsClient({ profile }: { profile: Profile }) {
       setError(res.message);
       return;
     }
-    if (res.ok) {
-      router.push(`/profile/${profile.id}`);
-    }
+    router.push(`/profile/${profile.id}`);
   };
 
   const handleLogout = () => setShowLogoutModal(true);
@@ -170,275 +207,345 @@ export function ProfileSettingsClient({ profile }: { profile: Profile }) {
 
   return (
     <>
-    <div className="w-full pb-16">
-      <form onSubmit={onSubmit}>
-        {/* 외부 큰 박스 */}
-        <div
-          className="rounded-2xl border border-white/[0.08] p-5"
-          style={{
-            background: "linear-gradient(135deg, rgba(20,17,50,0.98) 0%, rgba(10,8,28,0.99) 100%)",
-            boxShadow: "0 0 0 1px rgba(127,119,221,0.08), inset 0 1px 0 rgba(127,119,221,0.05)",
-          }}
-        >
-          {/* 헤더 */}
-          <div className="mb-4 flex items-end justify-between border-b border-white/[0.06] pb-3">
-            <div>
-              <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-[#7F77DD]/60">{t("settings.pageEyebrow")}</p>
-              <h1 className="mt-1 text-2xl font-black tracking-tight text-white">
-                {t("settings.editProfile", "Edit Profile")}
-              </h1>
-            </div>
-            <Link
-              href={`/profile/${profile.id}`}
-              className="text-sm font-medium text-[#7F77DD] transition hover:text-[#AFA9EC]"
-            >
-              {t("settings.viewProfile", "View profile")} →
-            </Link>
-          </div>
-
-          <div className="grid grid-cols-1 gap-4 lg:grid-cols-[1.2fr_1fr_1fr]">
-            {/* 왼쪽 — 프로필 기본 정보 */}
-            <div className="space-y-3">
-              <div
-                className="rounded-xl border border-white/[0.08] p-3"
-                style={{ background: "rgba(83,74,183,0.08)", borderColor: "rgba(127,119,221,0.12)" }}
-              >
-                <h2 className="mb-3 border-b border-[#7F77DD]/20 pb-2 text-[11px] font-bold uppercase tracking-[0.2em] text-[#AFA9EC]">
-                  {t("settings.sectionProfile")}
-                </h2>
-
-                {/* 배너 */}
-                <div className="mb-3">
-                  <label className="mb-1.5 block text-[11px] font-bold uppercase tracking-widest text-white/40">
-                    {t("settings.bannerLabel")}
-                  </label>
-                  <div
-                    className="relative h-20 w-full overflow-hidden rounded-xl border border-white/[0.08]"
-                    style={{ background: "linear-gradient(135deg, #1a1535, #26215c, #0f0d1e)" }}
-                  >
-                    {bannerUrl ? (
-                      <img src={bannerUrl} alt="" className="absolute inset-0 h-full w-full object-cover" />
-                    ) : (
-                      <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_50%,rgba(83,74,183,0.3),transparent_60%)]" />
-                    )}
-                    <label className="absolute inset-0 flex cursor-pointer flex-col items-center justify-center gap-1 bg-black/40 opacity-0 transition hover:opacity-100">
-                      <span className="text-[11px] font-bold text-white">{t("settings.uploadBanner")}</span>
-                      <span className="text-[10px] text-white/50">{t("settings.bannerSizeHint")}</span>
-                      <input
-                        type="file"
-                        accept="image/*"
-                        className="hidden"
-                        onChange={(e) => {
-                          const f = e.target.files?.[0];
-                          if (f) void handleBannerUpload(f);
-                        }}
-                      />
-                    </label>
-                  </div>
-                  {uploadingBanner && <p className="mt-1 text-[10px] text-white/40">{t("settings.uploadingBanner")}</p>}
-                </div>
-
-                {/* 아바타 */}
-                <div className="mb-3 flex items-center gap-4">
-                  <div className="relative shrink-0">
-                    <img
-                      src={avatarPreviewValid ? avatarUrl : "/placeholder-user.jpg"}
-                      alt="Avatar"
-                      className="h-16 w-16 rounded-full object-cover"
-                      style={{ boxShadow: "0 0 0 2px #534AB7, 0 0 16px rgba(83,74,183,0.4)" }}
-                    />
-                    <label className="absolute inset-0 flex cursor-pointer items-center justify-center rounded-full bg-black/50 opacity-0 transition hover:opacity-100">
-                      <span className="text-[10px] font-bold text-white">Edit</span>
-                      <input
-                        type="file"
-                        accept="image/*"
-                        className="hidden"
-                        onChange={(e) => {
-                          const f = e.target.files?.[0];
-                          if (f) void handleAvatarUpload(f);
-                        }}
-                      />
-                    </label>
-                  </div>
-                  <div className="flex-1">
-                    <label className="mb-1 block text-[11px] font-bold uppercase tracking-widest text-white/40">
-                      {t("settings.displayNameField")}
-                    </label>
-                    <input
-                      value={displayName}
-                      onChange={(e) => setDisplayName(e.target.value)}
-                      className="w-full rounded-xl border border-white/[0.12] bg-[#0d0b20] px-3 py-2 text-sm text-white outline-none transition focus:border-[#7F77DD]/60 focus:ring-1 focus:ring-[#7F77DD]/30"
-                      autoComplete="name"
-                    />
-                  </div>
-                </div>
-
-                {/* 바이오 */}
-                <div>
-                  <label className="mb-1.5 block text-[11px] font-bold uppercase tracking-widest text-white/40">
-                    {t("settings.bioField")}
-                  </label>
-                  <textarea
-                    value={bio}
-                    onChange={(e) => setBio(e.target.value)}
-                    rows={4}
-                    className="w-full resize-none rounded-xl border border-white/[0.12] bg-[#0d0b20] px-3 py-2 text-sm text-white outline-none transition focus:border-[#7F77DD]/60 focus:ring-1 focus:ring-[#7F77DD]/30"
-                    placeholder={t("settings.bioPlaceholderShort")}
-                  />
-                </div>
+      <div className="w-full pb-16">
+        <form onSubmit={onSubmit}>
+          <div
+            className="rounded-2xl border border-white/[0.06] bg-[#0d0b20]/60 p-6 md:p-8"
+          >
+            <div className="mb-4 flex items-end justify-between border-b border-white/[0.06] pb-3">
+              <div>
+                <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-[#7F77DD]/60">{t("settings.pageEyebrow")}</p>
+                <h1 className="mt-1 text-xl font-bold text-white">
+                  {t("settings.editProfile", "Edit Profile")}
+                </h1>
               </div>
-
-              {/* Creator Info */}
-              <div
-                className="rounded-xl border border-white/[0.08] p-3"
-                style={{ background: "rgba(255,255,255,0.025)" }}
+              <Link
+                href={`/profile/${profile.id}`}
+                className="text-sm font-medium text-white/60 transition hover:text-white"
               >
-                <h2 className="mb-3 border-b border-[#7F77DD]/20 pb-2 text-[11px] font-bold uppercase tracking-[0.2em] text-[#AFA9EC]">
-                  {t("settings.creatorInfoSection")}
-                </h2>
-                <div className="space-y-2">
-                  <div>
-                    <label className="mb-1 block text-[11px] font-bold uppercase tracking-widest text-white/40">
-                      {t("settings.countryField")}
-                    </label>
-                    <input
-                      value={country}
-                      onChange={(e) => setCountry(e.target.value)}
-                      className="w-full rounded-xl border border-white/[0.12] bg-[#0d0b20] px-3 py-2 text-sm text-white outline-none transition focus:border-[#7F77DD]/60"
-                      placeholder={t("settings.countryPlaceholder")}
-                    />
-                  </div>
-                  <div>
-                    <label className="mb-1 block text-[11px] font-bold uppercase tracking-widest text-white/40">
-                      {t("settings.mainGenreField")}
-                    </label>
-                    <select
-                      value={mainGenre}
-                      onChange={(e) => setMainGenre(e.target.value)}
-                      className="w-full rounded-xl border border-white/[0.12] bg-[#0d0b20] px-3 py-2 text-sm text-white outline-none transition focus:border-[#7F77DD]/60"
+                {t("settings.viewProfile", "View profile")} →
+              </Link>
+            </div>
+
+            <div className="overflow-x-auto border-b border-white/[0.06]">
+              <div className="flex min-w-max items-center gap-1">
+                {[
+                  { id: "profile", label: "Profile" },
+                  { id: "creator", label: "Creator" },
+                  { id: "social", label: "Social" },
+                  { id: "notifications", label: "Notifications" },
+                ].map((tab) => {
+                  const isActive = activeTab === tab.id;
+                  return (
+                    <button
+                      key={tab.id}
+                      type="button"
+                      onClick={() => setActiveTab(tab.id as typeof activeTab)}
+                      className={`border-b-2 px-1 pb-3 text-sm font-medium transition ${isActive ? "border-[#534AB7] text-white" : "border-transparent text-white/40 hover:text-white"}`}
                     >
-                      <option value="">{t("settings.genrePlaceholder")}</option>
-                      <option value="film">{t("settings.genreFilm")}</option>
-                      <option value="animation">{t("settings.genreAnimation")}</option>
-                      <option value="music">{t("settings.genreMusicVideo")}</option>
-                      <option value="daily">{t("settings.genreDaily")}</option>
-                      <option value="art">{t("settings.genreArt")}</option>
-                      <option value="documentary">{t("settings.genreDocumentary")}</option>
-                      <option value="horror">{t("settings.genreHorror")}</option>
-                      <option value="sci_fi">{t("settings.genreScifi")}</option>
-                    </select>
-                  </div>
-                  <div>
-                    <label className="mb-1 block text-[11px] font-bold uppercase tracking-widest text-white/40">
-                      {t("settings.languageUi")}
-                    </label>
-                    <select
-                      value={locale}
-                      onChange={(e) => {
-                        const v = e.target.value;
-                        setLocale(v === "ko" ? "ko" : v === "ja" ? "ja" : "en");
-                      }}
-                      className="w-full rounded-xl border border-white/[0.12] bg-[#0d0b20] px-3 py-2 text-sm text-white outline-none transition focus:border-[#7F77DD]/60"
-                    >
-                      <option value="en">English</option>
-                      <option value="ko">Korean</option>
-                      <option value="ja">Japanese</option>
-                    </select>
-                  </div>
-                </div>
+                      {tab.label}
+                    </button>
+                  );
+                })}
               </div>
             </div>
 
-            {/* 가운데 — AI Tools */}
-            <div>
-              <div
-                className="rounded-xl border border-white/[0.08] p-3"
-                style={{ background: "rgba(83,74,183,0.06)", borderColor: "rgba(127,119,221,0.1)" }}
-              >
-                <h2 className="mb-3 border-b border-[#7F77DD]/20 pb-2 text-[11px] font-bold uppercase tracking-[0.2em] text-[#AFA9EC]">
-                  {t("settings.aiToolsHeading")}
-                </h2>
-                <div className="space-y-3">
-                  {TOOL_CATEGORIES.map((group) => (
-                    <div key={group.category}>
-                      <p className="mb-2 text-[10px] font-bold uppercase tracking-widest text-white/25">{group.category}</p>
-                      <div className="flex flex-wrap gap-1.5">
-                        {group.tools.map((tool) => {
-                          const active = tools.includes(tool);
+            <div className="mt-6 space-y-6">
+              {activeTab === "profile" && (
+                <div className="space-y-8">
+                  <section className="space-y-4">
+                    <h2 className="text-sm font-semibold text-white">{t("settings.sectionProfile")}</h2>
+                    <div>
+                      <label className={labelClass}>{t("settings.bannerLabel")}</label>
+                    <div
+                      className="relative h-28 w-full overflow-hidden rounded-lg border border-white/10"
+                      style={{ background: "linear-gradient(135deg, #1a1535, #26215c, #0f0d1e)" }}
+                    >
+                      {bannerUrl ? (
+                        <img src={bannerUrl} alt="" className="absolute inset-0 h-full w-full object-cover" />
+                      ) : (
+                        <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_50%,rgba(83,74,183,0.3),transparent_60%)]" />
+                      )}
+                      <label className="absolute inset-0 flex cursor-pointer flex-col items-center justify-center gap-1 bg-black/45 opacity-0 transition hover:opacity-100">
+                        <span className="text-xs font-semibold text-white">{t("settings.uploadBanner")}</span>
+                        <span className="text-[10px] text-white/50">{t("settings.bannerSizeHint")}</span>
+                        <input
+                          type="file"
+                          accept="image/*"
+                          className="hidden"
+                          onChange={(e) => {
+                            const f = e.target.files?.[0];
+                            if (f) void handleBannerUpload(f);
+                          }}
+                        />
+                      </label>
+                    </div>
+                    {uploadingBanner && <p className="mt-1 text-xs text-white/40">{t("settings.uploadingBanner")}</p>}
+                  </div>
+
+                  <div className="flex items-center gap-4">
+                    <div className="relative shrink-0">
+                      <img
+                        src={avatarPreviewValid ? avatarUrl : "/placeholder-user.jpg"}
+                        alt="Avatar"
+                        className="h-16 w-16 rounded-full object-cover"
+                        style={{ boxShadow: "0 0 0 2px #534AB7, 0 0 16px rgba(83,74,183,0.35)" }}
+                      />
+                      <label className="absolute inset-0 flex cursor-pointer items-center justify-center rounded-full bg-black/50 opacity-0 transition hover:opacity-100">
+                        <span className="text-[10px] font-semibold text-white">Edit</span>
+                        <input
+                          type="file"
+                          accept="image/*"
+                          className="hidden"
+                          onChange={(e) => {
+                            const f = e.target.files?.[0];
+                            if (f) void handleAvatarUpload(f);
+                          }}
+                        />
+                      </label>
+                    </div>
+                    <div className="flex-1">
+                      <label className={labelClass}>{t("settings.displayNameField")}</label>
+                      <input value={displayName} onChange={(e) => setDisplayName(e.target.value)} className={inputClass} autoComplete="name" />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className={labelClass}>{t("settings.taglineField", "Tagline")}</label>
+                    <input
+                      value={tagline}
+                      onChange={(e) => setTagline(e.target.value)}
+                      className={inputClass}
+                      maxLength={60}
+                      placeholder="AI filmmaker exploring sci-fi narratives"
+                    />
+                    <p className="mt-1 text-right text-[11px] text-white/35">{tagline.length}/60</p>
+                  </div>
+
+                  <div>
+                    <label className={labelClass}>{t("settings.pronounsField", "Pronouns")}</label>
+                    <input
+                      value={pronouns}
+                      onChange={(e) => setPronouns(e.target.value)}
+                      className={inputClass}
+                      placeholder="he/him, she/her, they/them"
+                    />
+                  </div>
+
+                  <div>
+                    <label className={labelClass}>{t("settings.bioField")}</label>
+                    <textarea
+                      value={bio}
+                      onChange={(e) => setBio(e.target.value)}
+                      rows={5}
+                      className={`${inputClass} resize-none`}
+                      placeholder={t("settings.bioPlaceholderShort")}
+                    />
+                  </div>
+                  </section>
+                </div>
+              )}
+
+              {activeTab === "creator" && (
+                <div className="space-y-8">
+                  <section className="space-y-4">
+                    <h2 className="text-sm font-semibold text-white">{t("settings.creatorInfoSection")}</h2>
+                    <div>
+                    <label className={labelClass}>{t("settings.countryField")}</label>
+                    <div className="relative">
+                      <select value={country} onChange={(e) => setCountry(e.target.value)} className={`${inputClass} appearance-none pr-10`}>
+                        <option style={{ backgroundColor: "#0d0b20", color: "white" }} value="">{t("settings.countryPlaceholder")}</option>
+                        <option style={{ backgroundColor: "#0d0b20", color: "white" }} value="United States">United States</option>
+                        <option style={{ backgroundColor: "#0d0b20", color: "white" }} value="Korea">Korea</option>
+                        <option style={{ backgroundColor: "#0d0b20", color: "white" }} value="Japan">Japan</option>
+                        <option style={{ backgroundColor: "#0d0b20", color: "white" }} value="United Kingdom">United Kingdom</option>
+                        <option style={{ backgroundColor: "#0d0b20", color: "white" }} value="France">France</option>
+                        <option style={{ backgroundColor: "#0d0b20", color: "white" }} value="Germany">Germany</option>
+                        <option style={{ backgroundColor: "#0d0b20", color: "white" }} value="Canada">Canada</option>
+                        <option style={{ backgroundColor: "#0d0b20", color: "white" }} value="Australia">Australia</option>
+                        <option style={{ backgroundColor: "#0d0b20", color: "white" }} value="Other">Other</option>
+                      </select>
+                      <ChevronDown className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-white/40" />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className={labelClass}>{t("settings.mainGenreField")}</label>
+                    <div className="relative">
+                      <select value={mainGenre} onChange={(e) => setMainGenre(e.target.value)} className={`${inputClass} appearance-none pr-10`}>
+                        <option style={{ backgroundColor: "#0d0b20", color: "white" }} value="">{t("settings.genrePlaceholder")}</option>
+                        <option style={{ backgroundColor: "#0d0b20", color: "white" }} value="film">{t("settings.genreFilm")}</option>
+                        <option style={{ backgroundColor: "#0d0b20", color: "white" }} value="animation">{t("settings.genreAnimation")}</option>
+                        <option style={{ backgroundColor: "#0d0b20", color: "white" }} value="music">{t("settings.genreMusicVideo")}</option>
+                        <option style={{ backgroundColor: "#0d0b20", color: "white" }} value="daily">{t("settings.genreDaily")}</option>
+                        <option style={{ backgroundColor: "#0d0b20", color: "white" }} value="art">{t("settings.genreArt")}</option>
+                        <option style={{ backgroundColor: "#0d0b20", color: "white" }} value="documentary">{t("settings.genreDocumentary")}</option>
+                        <option style={{ backgroundColor: "#0d0b20", color: "white" }} value="horror">{t("settings.genreHorror")}</option>
+                        <option style={{ backgroundColor: "#0d0b20", color: "white" }} value="sci_fi">{t("settings.genreScifi")}</option>
+                      </select>
+                      <ChevronDown className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-white/40" />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className={labelClass}>{t("settings.languageUi")}</label>
+                    <div className="relative">
+                      <select
+                        value={locale}
+                        onChange={(e) => {
+                          const v = e.target.value;
+                          setLocale(v === "ko" ? "ko" : v === "ja" ? "ja" : "en");
+                        }}
+                        className={`${inputClass} appearance-none pr-10`}
+                      >
+                        <option style={{ backgroundColor: "#0d0b20", color: "white" }} value="en">English</option>
+                        <option style={{ backgroundColor: "#0d0b20", color: "white" }} value="ko">Korean</option>
+                        <option style={{ backgroundColor: "#0d0b20", color: "white" }} value="ja">Japanese</option>
+                      </select>
+                      <ChevronDown className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-white/40" />
+                    </div>
+                  </div>
+
+                  <div className="flex items-center justify-between py-2.5">
+                    <div>
+                      <p className="text-sm text-white">{t("settings.openToCollab", "Open to collaboration")}</p>
+                      <p className="mt-0.5 text-xs text-white/40">{t("settings.openToCollabDesc", "Show a badge on your profile")}</p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setAvailableForCollab((prev) => !prev)}
+                      className="relative h-5 w-9 shrink-0 rounded-full transition-colors duration-200"
+                      style={{ background: availableForCollab ? "#534AB7" : "rgba(255,255,255,0.14)" }}
+                    >
+                      <span
+                        className="absolute top-0.5 h-4 w-4 rounded-full bg-white shadow transition-[left] duration-200"
+                        style={{ left: availableForCollab ? "18px" : "2px" }}
+                      />
+                    </button>
+                  </div>
+
+                  <div>
+                    <label className={labelClass}>{t("settings.pinnedVideoHeading", "Pinned video")}</label>
+                    <input
+                      value={pinnedVideoId}
+                      onChange={(e) => setPinnedVideoId(e.target.value)}
+                      className={inputClass}
+                      placeholder={t("settings.pinnedVideoPlaceholder", "Paste video ID from /watch/[id]")}
+                    />
+                    <p className="mt-1 text-xs text-white/30">
+                      {t("settings.pinnedVideoHint", "Copy the ID from your /watch/[id] URL.")}
+                    </p>
+                  </div>
+                  </section>
+
+                  <section className="space-y-4">
+                    <h2 className="text-sm font-semibold text-white">{t("settings.aiToolsHeading")}</h2>
+                    {TOOL_CATEGORIES.map((group) => (
+                      <div key={group.category} className="space-y-2.5">
+                        {(() => {
+                          const color = CATEGORY_COLOR[group.category] ?? {
+                            from: "#7F77DD",
+                            to: "#AFA9EC",
+                            glow: "rgba(127,119,221,0.15)",
+                          };
+                          const selectedCount = group.tools.filter((tool) => tools.includes(tool)).length;
                           return (
-                            <button
-                              key={tool}
-                              type="button"
-                              onClick={() =>
-                                setTools((prev) => (active ? prev.filter((n) => n !== tool) : [...prev, tool]))
-                              }
-                              className="rounded-full border px-3 py-1 text-xs font-medium transition"
-                              style={{
-                                borderColor: active ? "rgba(127,119,221,0.5)" : "rgba(255,255,255,0.06)",
-                                background: active ? "rgba(83,74,183,0.35)" : "rgba(255,255,255,0.02)",
-                                color: active ? "#AFA9EC" : "rgba(255,255,255,0.35)",
-                              }}
-                            >
-                              {tool}
-                            </button>
+                            <div className="mb-2.5 flex items-center gap-2">
+                              <span className="h-2 w-2 rounded-full" style={{ background: color.from }} />
+                              <p className="text-xs font-semibold text-white/70">{group.category}</p>
+                              <span className="text-[10px] text-white/30">
+                                {selectedCount > 0 ? `${selectedCount} selected` : ""}
+                              </span>
+                            </div>
                           );
-                        })}
+                        })()}
+                        <div className="flex flex-wrap gap-1.5">
+                          {group.tools.map((tool) => {
+                            const active = tools.includes(tool);
+                            const color = CATEGORY_COLOR[group.category] ?? {
+                              from: "#7F77DD",
+                              to: "#AFA9EC",
+                              glow: "rgba(127,119,221,0.15)",
+                            };
+                            return (
+                              <button
+                                key={tool}
+                                type="button"
+                                onClick={() => setTools((prev) => (active ? prev.filter((n) => n !== tool) : [...prev, tool]))}
+                                className="rounded-lg border px-2.5 py-1.5 text-xs font-medium transition"
+                                style={{
+                                  borderColor: active ? `${color.from}80` : "rgba(255,255,255,0.06)",
+                                  background: active
+                                    ? `linear-gradient(135deg, ${color.from}20 0%, ${color.to}10 100%)`
+                                    : "rgba(255,255,255,0.02)",
+                                  color: active ? "#FFFFFF" : "rgba(255,255,255,0.4)",
+                                  boxShadow: active ? `0 0 12px ${color.glow}` : "none",
+                                }}
+                              >
+                                {tool}
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    ))}
+                    <div>
+                      <div className="mb-1.5 flex items-center gap-2">
+                        <label className="text-xs font-medium text-white/60">Other tools</label>
+                        <span className="text-[10px] text-white/30">Add a tool not listed above</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <input
+                          value={toolInput}
+                          onChange={(e) => setToolInput(e.target.value)}
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter") {
+                              e.preventDefault();
+                              addTool();
+                            }
+                          }}
+                          className={inputClass}
+                          placeholder={t("settings.toolInputPlaceholder")}
+                        />
+                        <button
+                          type="button"
+                          onClick={addTool}
+                          className="rounded-lg border border-white/[0.08] bg-white/[0.02] px-3 py-1.5 text-xs text-white/70 transition hover:bg-white/[0.06]"
+                        >
+                          Add
+                        </button>
                       </div>
                     </div>
-                  ))}
-
-                  <div>
-                    <p className="mb-2 text-[10px] font-bold uppercase tracking-widest text-white/25">
-                      {t("settings.customToolsLabel")}
-                    </p>
-                    <input
-                      value={toolInput}
-                      onChange={(e) => setToolInput(e.target.value)}
-                      onKeyDown={(e) => {
-                        if (e.key === "Enter") {
-                          e.preventDefault();
-                          addTool();
-                        }
-                      }}
-                      className="w-full rounded-xl border border-white/[0.12] bg-[#0d0b20] px-3 py-2 text-sm text-white outline-none transition focus:border-[#7F77DD]/60"
-                      placeholder={t("settings.toolInputPlaceholder")}
-                    />
-                  </div>
-
-                  {tools.length > 0 && (
-                    <div className="flex flex-wrap gap-1.5 pt-1">
-                      {tools.map((tool) => (
-                        <span
-                          key={tool}
-                          className="flex items-center gap-1.5 rounded-full border border-[#7F77DD]/30 bg-[#534AB7]/20 px-3 py-1 text-xs text-[#AFA9EC]"
-                        >
-                          {tool}
-                          <button
-                            type="button"
-                            onClick={() => setTools((prev) => prev.filter((i) => i !== tool))}
-                            className="text-white/40 hover:text-white"
-                          >
-                            ×
-                          </button>
-                        </span>
-                      ))}
-                    </div>
-                  )}
+                    {tools.length > 0 && (
+                      <div>
+                        <p className="mb-2 text-xs text-white/40">Selected ({tools.length})</p>
+                        <div className="flex flex-wrap gap-1.5">
+                          {tools.map((tool) => (
+                            <span
+                              key={tool}
+                              className="flex items-center gap-1.5 rounded-lg border border-white/[0.08] bg-white/[0.02] px-3 py-1 text-xs text-white/70"
+                            >
+                              {tool}
+                              <button
+                                type="button"
+                                onClick={() => setTools((prev) => prev.filter((i) => i !== tool))}
+                                className="text-white/40 hover:text-white"
+                              >
+                                ×
+                              </button>
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </section>
                 </div>
-              </div>
-            </div>
+              )}
 
-            {/* 오른쪽 — 소셜 + 알림 */}
-            <div className="space-y-3">
-              {/* 소셜 링크 */}
-              <div
-                className="rounded-xl border border-white/[0.08] p-3"
-                style={{ background: "rgba(255,255,255,0.025)" }}
-              >
-                <h2 className="mb-3 border-b border-[#7F77DD]/20 pb-2 text-[11px] font-bold uppercase tracking-[0.2em] text-[#AFA9EC]">
-                  {t("settings.socialHeading")}
-                </h2>
-                <div className="space-y-2">
+              {activeTab === "social" && (
+                <div className="space-y-8">
+                  <section className="space-y-4">
+                    <h2 className="text-sm font-semibold text-white">{t("settings.socialHeading")}</h2>
                   {[
                     {
                       icon: <Globe className="h-3 w-3" />,
@@ -492,29 +599,21 @@ export function ProfileSettingsClient({ profile }: { profile: Profile }) {
                     },
                   ].map(({ icon, label, value, onChange, placeholder }) => (
                     <div key={label}>
-                      <label className="mb-1 flex items-center gap-2 text-[11px] font-bold uppercase tracking-widest text-white/40">
-                        {icon} {label}
+                      <label className={labelClass}>
+                        <span className="mr-2 inline-flex items-center text-white/50">{icon}</span>
+                        {label}
                       </label>
-                      <input
-                        value={value}
-                        onChange={(e) => onChange(e.target.value)}
-                        className="w-full rounded-xl border border-white/[0.12] bg-[#0d0b20] px-3 py-2 text-sm text-white outline-none transition focus:border-[#7F77DD]/60"
-                        placeholder={placeholder}
-                      />
+                      <input value={value} onChange={(e) => onChange(e.target.value)} className={inputClass} placeholder={placeholder} />
                     </div>
                   ))}
+                  </section>
                 </div>
-              </div>
+              )}
 
-              {/* 알림 설정 */}
-              <div
-                className="rounded-xl border border-white/[0.08] p-3"
-                style={{ background: "rgba(255,255,255,0.025)" }}
-              >
-                <h2 className="mb-3 border-b border-[#7F77DD]/20 pb-2 text-[11px] font-bold uppercase tracking-[0.2em] text-[#AFA9EC]">
-                  {t("settings.notificationsHeading")}
-                </h2>
-                <div className="space-y-2">
+              {activeTab === "notifications" && (
+                <div className="space-y-8">
+                  <section className="space-y-4">
+                    <h2 className="text-sm font-semibold text-white">{t("settings.notificationsHeading")}</h2>
                   {[
                     {
                       label: t("settings.notifLikes"),
@@ -535,19 +634,16 @@ export function ProfileSettingsClient({ profile }: { profile: Profile }) {
                       onChange: setNotifyFollows,
                     },
                   ].map(({ label, desc, value, onChange }) => (
-                    <div
-                      key={label}
-                      className="flex items-center justify-between rounded-xl border border-white/[0.06] bg-white/[0.02] px-3 py-2.5"
-                    >
+                    <div key={label} className="flex items-center justify-between py-2.5">
                       <div>
-                        <p className="text-xs font-semibold text-white">{label}</p>
-                        <p className="text-[10px] text-white/30">{desc}</p>
+                        <p className="text-sm text-white">{label}</p>
+                        <p className="mt-0.5 text-xs text-white/40">{desc}</p>
                       </div>
                       <button
                         type="button"
                         onClick={() => onChange(!value)}
                         className="relative h-5 w-9 shrink-0 rounded-full transition-colors duration-200"
-                        style={{ background: value ? "#534AB7" : "rgba(255,255,255,0.1)" }}
+                        style={{ background: value ? "#534AB7" : "rgba(255,255,255,0.14)" }}
                       >
                         <span
                           className="absolute top-0.5 h-4 w-4 rounded-full bg-white shadow transition-[left] duration-200"
@@ -556,71 +652,57 @@ export function ProfileSettingsClient({ profile }: { profile: Profile }) {
                       </button>
                     </div>
                   ))}
+                  </section>
                 </div>
-              </div>
+              )}
+            </div>
 
+            <div className="mt-8 space-y-4">
               {error && <p className="text-sm text-red-400">{error}</p>}
               {message && <p className="text-sm text-emerald-400">{message}</p>}
-
               <button
                 type="submit"
                 disabled={saving}
-                className="w-full rounded-xl py-3 text-sm font-bold text-white transition hover:opacity-90 disabled:opacity-50"
-                style={{
-                  background: "linear-gradient(135deg, #534AB7 0%, #7B6FE8 100%)",
-                  boxShadow: "0 4px 20px rgba(83,74,183,0.4)",
-                }}
+                className="w-full rounded-lg bg-[#534AB7] px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-[#7F77DD] disabled:opacity-50"
               >
                 {saving ? t("settings.saving", "Saving…") : t("settings.saveChanges", "Save changes")}
               </button>
-
               <button
                 type="button"
                 onClick={handleLogout}
-                className="flex w-full items-center justify-center gap-2 rounded-xl border border-white/[0.08] py-3 text-sm font-medium text-white/40 transition hover:border-red-500/30 hover:text-red-400"
+                className="flex w-full items-center justify-center gap-2 rounded-lg border border-white/[0.08] px-4 py-2.5 text-sm text-white/50 transition hover:border-red-500/30 hover:text-red-400"
               >
                 <LogOut className="h-4 w-4" />
-                Log out
+                {t("profile.logoutAction")}
+              </button>
+            </div>
+          </div>
+        </form>
+      </div>
+      {showLogoutModal && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm">
+          <div className="w-full max-w-sm rounded-xl border border-white/[0.06] bg-[#0d0b20]/95 p-6">
+            <h2 className="text-sm font-semibold text-white">{t("profile.logoutTitle")}</h2>
+            <p className="mt-1 text-sm text-white/40">{t("profile.logoutConfirm")}</p>
+            <div className="mt-5 flex gap-3">
+              <button
+                type="button"
+                onClick={() => setShowLogoutModal(false)}
+                className="flex-1 rounded-lg border border-white/[0.08] px-4 py-2.5 text-sm text-white/50 transition hover:border-white/20 hover:text-white"
+              >
+                {t("common.cancel")}
+              </button>
+              <button
+                type="button"
+                onClick={() => void confirmLogout()}
+                className="flex-1 rounded-lg bg-[#534AB7] px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-[#7F77DD]"
+              >
+                {t("profile.logoutAction")}
               </button>
             </div>
           </div>
         </div>
-      </form>
-    </div>
-    {showLogoutModal && (
-      <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm">
-        <div
-          className="w-full max-w-sm rounded-2xl border border-white/[0.08] p-6"
-          style={{
-            background: "linear-gradient(135deg, rgba(20,17,50,0.99) 0%, rgba(10,8,28,1) 100%)",
-            boxShadow: "0 0 0 1px rgba(127,119,221,0.1), 0 40px 80px rgba(0,0,0,0.6)",
-          }}
-        >
-          <h2 className="text-lg font-black text-white">로그아웃</h2>
-          <p className="mt-1 text-sm text-white/40">정말 로그아웃 하시겠습니까?</p>
-          <div className="mt-5 flex gap-3">
-            <button
-              type="button"
-              onClick={() => setShowLogoutModal(false)}
-              className="flex-1 rounded-xl border border-white/[0.08] py-2.5 text-sm font-semibold text-white/50 transition hover:border-white/20 hover:text-white"
-            >
-              취소
-            </button>
-            <button
-              type="button"
-              onClick={() => void confirmLogout()}
-              className="flex-1 rounded-xl py-2.5 text-sm font-bold text-white transition hover:opacity-90"
-              style={{
-                background: "linear-gradient(135deg, #dc2626 0%, #ef4444 100%)",
-                boxShadow: "0 4px 16px rgba(220,38,38,0.3)",
-              }}
-            >
-              로그아웃
-            </button>
-          </div>
-        </div>
-      </div>
-    )}
+      )}
     </>
   );
 }

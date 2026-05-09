@@ -124,7 +124,7 @@ export function CompetitionPageClient({
 
   return (
     <>
-      <AnimateIn delay={0} className="rounded-xl border border-white/10 bg-[#1A1535]/80 p-5 sm:p-6">
+      <AnimateIn delay={0} className="rounded-xl border border-white/10 bg-[#0D0B1E]/90 p-5 sm:p-6">
         <p className="text-xs text-[#AFA9EC]">{t("competition.page.currentLabel")}</p>
         <h1 className="mt-1 text-2xl font-bold sm:text-3xl">
           {competition?.title ?? t("competition.page.noCompetitionTitle")}
@@ -150,7 +150,7 @@ export function CompetitionPageClient({
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
             {rankedFinalists.map(({ video, rank }, idx) => (
               <AnimateIn key={video.id} delay={0.18 + idx * 0.08}>
-                <div className="video-card-hover overflow-hidden rounded-lg border border-white/10 bg-[#0A0A18]/50">
+                <div className="video-card-hover overflow-hidden rounded-lg border border-white/[0.08] bg-[#07061A]/80">
                 <div className="flex h-full flex-col">
                   <button
                     type="button"
@@ -192,7 +192,7 @@ export function CompetitionPageClient({
           <div className="grid gap-3 sm:grid-cols-2">
             {archiveVideos.map((video, idx) => (
               <AnimateIn key={video.id} delay={0.24 + idx * 0.08}>
-                <div className="video-card-hover overflow-hidden rounded-lg border border-white/10 bg-[#0A0A18]/50">
+                <div className="video-card-hover overflow-hidden rounded-lg border border-white/[0.08] bg-[#07061A]/80">
                 <div className="relative flex gap-3">
                   <button
                     type="button"

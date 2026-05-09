@@ -7,5 +7,11 @@
   "github": {
     "enabled": true,
     "silent": true
-  }
+  },
+  "crons": [
+    {
+      "path": "/api/cron/cleanup-mux",
+      "schedule": "0 15 * * *"
+    }
+  ]
 }

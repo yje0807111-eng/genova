@@ -1,7 +1,18 @@
 "use client";
 
 import { useRef, useState, useEffect, useMemo } from "react";
-import { ChevronLeft, ChevronRight, Play, Plus, Info } from "lucide-react";
+import {
+  Award,
+  ChevronLeft,
+  ChevronRight,
+  Info,
+  Medal,
+  PlayCircle,
+  Plus,
+  Star,
+  Trophy,
+  type LucideIcon,
+} from "lucide-react";
 import { AnimateIn } from "@/components/animate-in";
 import { useI18n } from "@/components/genova/language-provider";
 import { MAIN_GENRE_KEYS, normalizeToMainGenre, mainGenreLabel } from "@/lib/constants/genres";
@@ -11,6 +22,7 @@ import type { Video } from "@/lib/types";
 import Link from "next/link";
 import { ContinueWatching } from "@/components/films/continue-watching";
 import { cn } from "@/lib/utils/cn";
+import { VideoCard } from "@/components/video/video-card";
 
 function stableHash(input: string): number {
   let hash = 0;
@@ -20,51 +32,40 @@ function stableHash(input: string): number {
   return Math.abs(hash);
 }
 
-function TrophyIcon({ color }: { color: string }) {
-  return (
-    <svg viewBox="0 0 24 24" className="h-5 w-5" fill={color}>
-      <path d="M19 5h-2V3H7v2H5C3.9 5 3 5.9 3 7v1c0 2.55 1.92 4.63 4.39 4.94.63 1.5 1.98 2.63 3.61 2.96V18H8v2h8v-2h-3v-2.1c1.63-.33 2.98-1.46 3.61-2.96C19.08 12.63 21 10.55 21 8V7c0-1.1-.9-2-2-2zM5 8V7h2v3.82C5.84 10.4 5 9.3 5 8zm14 0c0 1.3-.84 2.4-2 2.82V7h2v1z" />
-    </svg>
-  );
+function startOfDayMs(d: Date) {
+  return new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();
 }
 
-function Particles() {
-  const seededRange = (i: number, salt: string, min: number, max: number) => {
-    const normalized = (stableHash(`particle-${i}-${salt}`) % 10000) / 10000;
-    return min + normalized * (max - min);
-  };
-
-  const particles = Array.from({ length: 30 }, (_, i) => ({
-    id: i,
-    x: seededRange(i, "x", 0, 100),
-    y: seededRange(i, "y", 0, 100),
-    size: seededRange(i, "size", 1, 4),
-    duration: seededRange(i, "duration", 3, 7),
-    delay: seededRange(i, "delay", 0, 4),
-    color: i % 3 === 0 ? "#FFD700" : i % 3 === 1 ? "#8b5cf6" : "#AFA9EC",
-    opacity: seededRange(i, "opacity", 0.2, 0.7),
-  }));
-
-  return (
-    <div className="pointer-events-none absolute inset-0 overflow-hidden">
-      {particles.map((p) => (
-        <div
-          key={p.id}
-          className="absolute rounded-full"
-          style={{
-            left: `${p.x}%`,
-            top: `${p.y}%`,
-            width: `${p.size}px`,
-            height: `${p.size}px`,
-            backgroundColor: p.color,
-            opacity: p.opacity,
-            animation: `floatParticle ${p.duration}s ${p.delay}s ease-in-out infinite alternate`,
-          }}
-        />
-      ))}
-    </div>
-  );
+/** Submission deadline → D-day label; past midnight local day after deadline counts as ended. */
+function filmsHeroDeadlineBadge(deadlineIso: string | null): { dDayLabel: string | null; ended: boolean } {
+  if (!deadlineIso) return { dDayLabel: null, ended: false };
+  const end = new Date(deadlineIso);
+  if (Number.isNaN(end.getTime())) return { dDayLabel: null, ended: false };
+  const diffDays = Math.round((startOfDayMs(end) - startOfDayMs(new Date())) / 86400000);
+  if (diffDays > 0) return { dDayLabel: `D-${diffDays}`, ended: false };
+  if (diffDays === 0) return { dDayLabel: "D-Day", ended: false };
+  return { dDayLabel: null, ended: true };
 }
+
+export type FilmsHeroFeaturedCompetition = {
+  id: string;
+  deadline: string | null;
+};
+
+export type FilmsHeroAwardSlotRank = "grand" | "excellence" | "merit" | "audience";
+
+export type FilmsHeroAwardSlot = {
+  rank: FilmsHeroAwardSlotRank;
+  /** i18n key for tier label (e.g. 대상 / Grand Prize) */
+  labelKey: string;
+  eyebrow: string;
+  Icon: LucideIcon;
+  color: string;
+  colorDark: string;
+  cardBorder?: string;
+  cardShadow?: string;
+  video: Video | null;
+};
 
 function HeroBanner({
   awardWinners,
@@ -74,6 +75,7 @@ function HeroBanner({
   heroEyebrowEn,
   heroEyebrowJa,
   heroAwardVideos,
+  heroFeaturedCompetition,
 }: {
   awardWinners: (Video & { award?: string | null })[];
   allVideos: Video[];
@@ -87,6 +89,7 @@ function HeroBanner({
     merit: Video | null;
     audience: Video | null;
   };
+  heroFeaturedCompetition: FilmsHeroFeaturedCompetition | null;
 }) {
   void awardWinners;
   void allVideos;
@@ -97,359 +100,277 @@ function HeroBanner({
       : locale === "ja"
         ? heroEyebrowJa || heroEyebrowEn || heroEyebrow
         : heroEyebrowEn || heroEyebrow;
-  const heroDescLine1 =
-    locale === "ko"
-      ? "상상력이 빚어낸 새로운 영화의 세계."
-      : locale === "ja"
-        ? "大胆な想像力が形にした、新しいシネマの世界。"
-        : "A new world of cinema shaped by bold imagination.";
-  const heroDescLine2 =
-    locale === "ko"
-      ? "지금 수상작을 만나보세요."
-      : locale === "ja"
-        ? "受賞作を今すぐご覧ください。"
-        : "Explore the winning films now.";
-  const [hoveredCard, setHoveredCard] = useState<number | null>(null);
-  const displayVideos = [
-    heroAwardVideos.grandPrize,
-    heroAwardVideos.excellence,
-    heroAwardVideos.merit,
-    heroAwardVideos.audience,
-  ];
+  const heroDescLine1 = t("films.heroDescLine1");
+  const heroDescLine2 = t("films.heroDescLine2");
 
-  const glowColors = [
-    "rgba(255,215,0,0.6)", // 금 - Grand Prize
-    "rgba(192,192,192,0.6)", // 은 - Excellence
-    "rgba(205,127,50,0.6)", // 동 - Merit
-    "rgba(139,92,246,0.6)", // 보라 - Audience
-  ];
-  const glowBorders = ["#FFD700", "#C0C0C0", "#CD7F32", "#8b5cf6"];
+  const competitionHref = heroFeaturedCompetition?.id ? `/competition/${heroFeaturedCompetition.id}` : "/competition";
+  const { dDayLabel, ended } = filmsHeroDeadlineBadge(heroFeaturedCompetition?.deadline ?? null);
+
+  const awardSlots: FilmsHeroAwardSlot[] = useMemo(
+    () => [
+      {
+        rank: "grand",
+        labelKey: "films.heroTierGrand",
+        eyebrow: "GRAND",
+        Icon: Trophy,
+        color: "#F5D182",
+        colorDark: "#C8963E",
+        video: heroAwardVideos.grandPrize,
+      },
+      {
+        rank: "excellence",
+        labelKey: "films.heroTierExcellence",
+        eyebrow: "EXCELLENCE",
+        Icon: Award,
+        color: "rgba(255,255,255,0.9)",
+        colorDark: "rgba(192,192,192,0.6)",
+        cardBorder: "1px solid rgba(192,192,192,0.22)",
+        cardShadow: "0 0 20px rgba(255,255,255,0.06)",
+        video: heroAwardVideos.excellence,
+      },
+      {
+        rank: "merit",
+        labelKey: "films.heroTierMerit",
+        eyebrow: "MERIT",
+        Icon: Medal,
+        color: "#CD7F32",
+        colorDark: "#A66A3D",
+        video: heroAwardVideos.merit,
+      },
+      {
+        rank: "audience",
+        labelKey: "films.heroTierAudience",
+        eyebrow: "AUDIENCE",
+        Icon: Star,
+        color: "#AFA9EC",
+        colorDark: "#7F77DD",
+        video: heroAwardVideos.audience,
+      },
+    ],
+    [heroAwardVideos],
+  );
 
   return (
     <div
-      className="relative w-full overflow-hidden"
+      className="relative w-full overflow-hidden bg-[#04020c]"
       style={{
-        minHeight: "520px",
-        backgroundImage: "url('/award-banner-bg.png')",
-        backgroundSize: "cover",
-        backgroundPosition: "center center",
+        minHeight: "auto",
         zIndex: 10,
         position: "relative",
       }}
     >
-      <style>{`
-        @keyframes floatParticle {
-          0% { transform: translateY(0px) translateX(0px); opacity: 0.2; }
-          50% { opacity: 0.6; }
-          100% { transform: translateY(-20px) translateX(10px); opacity: 0.1; }
-        }
-
-        @keyframes glowPulse {
-          0% { opacity: 0.15; transform: scale(1); }
-          50% { opacity: 0.35; transform: scale(1.05); }
-          100% { opacity: 0.15; transform: scale(1); }
-        }
-
-        @keyframes glowPulse2 {
-          0% { opacity: 0.1; transform: scale(1.05); }
-          50% { opacity: 0.25; transform: scale(1); }
-          100% { opacity: 0.1; transform: scale(1.05); }
-        }
-      `}</style>
-
-      {/* Darken full area */}
-      <div className="absolute inset-0"
-        style={{ background: "rgba(8,6,24,0.55)" }} />
-
-      {/* Darker gradient on left (text/cards) */}
-      <div className="absolute inset-0"
-        style={{ background: "linear-gradient(to right, rgba(8,6,24,0.85) 0%, rgba(8,6,24,0.75) 40%, rgba(8,6,24,0.3) 70%, rgba(8,6,24,0) 100%)" }} />
-
-      {/* Darken bottom */}
-      <div className="absolute inset-0"
-        style={{ background: "linear-gradient(to top, rgba(8,6,24,0.7) 0%, transparent 40%)" }} />
-
-      {/* Blur overlay */}
-      <div className="absolute inset-0 backdrop-blur-[2px]" />
-
-      {/* Purple glow pulse — left */}
-      <div
-        className="pointer-events-none absolute"
-        style={{
-          left: "15%",
-          top: "30%",
-          width: "300px",
-          height: "300px",
-          borderRadius: "50%",
-          background: "radial-gradient(circle, rgba(139,92,246,0.4) 0%, transparent 70%)",
-          animation: "glowPulse 4s ease-in-out infinite",
-          filter: "blur(40px)",
-        }}
-      />
-
-      {/* Gold glow pulse — center bottom */}
-      <div
-        className="pointer-events-none absolute"
-        style={{
-          left: "45%",
-          bottom: "10%",
-          width: "200px",
-          height: "200px",
-          borderRadius: "50%",
-          background: "radial-gradient(circle, rgba(255,215,0,0.2) 0%, transparent 70%)",
-          animation: "glowPulse2 5s ease-in-out infinite",
-          filter: "blur(30px)",
-        }}
-      />
-
-      {/* Purple glow pulse — right */}
-      <div
-        className="pointer-events-none absolute"
-        style={{
-          right: "10%",
-          top: "20%",
-          width: "250px",
-          height: "250px",
-          borderRadius: "50%",
-          background: "radial-gradient(circle, rgba(83,74,183,0.3) 0%, transparent 70%)",
-          animation: "glowPulse 6s ease-in-out infinite",
-          filter: "blur(50px)",
-        }}
-      />
-
-      {/* Particles */}
-      <Particles />
-
-      <div className="relative z-30 w-full flex items-center px-[3%] gap-6">
-        <div className="flex w-[36%] min-w-[280px] shrink-0 flex-col items-center text-center pt-[12%] pb-[4%]">
-          <div className="relative mb-8 flex flex-col items-center">
-            {/* Left laurel — 고정 위치 */}
-            <img
-              src="/laurel-left.png"
-              alt=""
-              aria-hidden
-              className="pointer-events-none absolute w-auto"
-              style={{
-                ...(locale === "ko"
-                  ? {
-                      left: "-170px",
-                      top: "50%",
-                      height: "240px",
-                      transform: "translateY(-50%)",
-                      opacity: 0.9,
-                    }
-                  : locale === "ja"
-                    ? {
-                        left: "-160px",
-                        top: "50%",
-                        height: "200px",
-                        transform: "translateY(-50%)",
-                        opacity: 0.9,
-                      }
-                    : {
-                        // en
-                        left: "-105px",
-                        top: "50%",
-                        height: "240px",
-                        transform: "translateY(-50%)",
-                        opacity: 0.9,
-                      }),
-              }}
-            />
-            {/* Right laurel — 고정 위치 */}
-            <img
-              src="/laurel-left.png"
-              alt=""
-              aria-hidden
-              className="pointer-events-none absolute w-auto"
-              style={{
-                ...(locale === "ko"
-                  ? {
-                      right: "-170px",
-                      top: "50%",
-                      height: "240px",
-                      transform: "translateY(-50%) scaleX(-1)",
-                      opacity: 0.9,
-                    }
-                  : locale === "ja"
-                    ? {
-                        right: "-160px",
-                        top: "50%",
-                        height: "200px",
-                        transform: "translateY(-50%) scaleX(-1)",
-                        opacity: 0.9,
-                      }
-                    : {
-                        // en
-                        right: "-105px",
-                        top: "50%",
-                        height: "240px",
-                        transform: "translateY(-50%) scaleX(-1)",
-                        opacity: 0.9,
-                      }),
-              }}
-            />
-
-            {/* 글로우 */}
-            <div
-              className="absolute inset-0 pointer-events-none"
-              style={{
-                background: "radial-gradient(ellipse at center, rgba(83,74,183,0.25) 0%, transparent 70%)",
-                filter: "blur(30px)",
-                transform: "scale(2)",
-              }}
-            />
-
-            {/* 텍스트 */}
-            <div className="mb-5 flex items-center justify-center gap-2">
-              <div className="h-1.5 w-1.5 rounded-full bg-[#7F77DD]" />
-              <p className="text-sm font-semibold uppercase tracking-[0.2em] text-white/80">
-                {eyebrowText}
-              </p>
-            </div>
-            <h2
-              className="mb-6 font-black leading-tight tracking-tight"
-              style={{
-                fontSize: "clamp(2.4rem, 3.5vw, 3.4rem)",
-                background: "linear-gradient(135deg, #ffffff 0%, #d4d0f5 60%, #AFA9EC 100%)",
-                WebkitBackgroundClip: "text",
-                WebkitTextFillColor: "transparent",
-                backgroundClip: "text",
-              }}
-            >
-              {locale === "ko" ? "수상작 갤러리" : locale === "ja" ? "受賞作ギャラリー" : "Award Winners Gallery"}
-            </h2>
-            <p className="text-sm leading-relaxed text-white/70">
-              {heroDescLine1}
-              <br />
-              {heroDescLine2}
+      <div className="pointer-events-none absolute inset-0 z-0">
+        <div className="absolute inset-0 bg-gradient-to-b from-[#0A0617] via-[#06040f] to-[#06040f]" />
+        <div
+          className="absolute left-1/2 top-0 h-[400px] w-[800px] -translate-x-1/2 rounded-full"
+          style={{
+            background: "radial-gradient(circle, rgba(127,119,221,0.08) 0%, transparent 70%)",
+            filter: "blur(60px)",
+          }}
+        />
+      </div>
+      <div className="relative z-30 mx-auto flex w-full max-w-[1680px] flex-col gap-8 px-12 pb-8 pt-12">
+        <div className="mb-2 flex flex-col gap-6 lg:mb-0 lg:flex-row lg:items-start lg:justify-between lg:gap-4">
+          <div className="max-w-2xl text-left">
+            <p className="mb-2 text-[11px] uppercase tracking-[0.2em] text-[#AFA9EC]">✦ {eyebrowText}</p>
+            <h1 className="mb-2 text-[clamp(2rem,3.5vw,3.5rem)] font-black tracking-tight text-white drop-shadow-[0_4px_24px_rgba(127,119,221,0.2)]">
+              {t("films.heroAwardGalleryTitle")}
+            </h1>
+            <p className="max-w-xl text-[15px] leading-relaxed text-white/55">
+              {heroDescLine1} {heroDescLine2}
             </p>
           </div>
 
-          {/* CTA outside laurels */}
-          <Link
-            href="/competition"
-            className="inline-flex items-center gap-2 rounded-xl px-12 py-3.5 text-sm font-bold text-white transition-all duration-300 hover:scale-[1.03]"
-            style={{
-              background: "linear-gradient(135deg, #534AB7 0%, #6B5FD4 100%)",
-              boxShadow: "0 4px 20px rgba(83,74,183,0.5), inset 0 1px 0 rgba(255,255,255,0.1)",
-            }}
-          >
-            {t("films.heroViewAllWinners")}
-          </Link>
+          <div className="flex flex-col items-start gap-2 lg:items-end">
+            {heroFeaturedCompetition ? (
+              <div className="flex flex-wrap items-center gap-2 text-[11px]">
+                {!ended ? (
+                  <>
+                    <span className="text-emerald-400">●</span>
+                    <span className="text-white/60">{t("films.heroCompetitionRunning")}</span>
+                    {dDayLabel ? (
+                      <>
+                        <span className="text-white/30">·</span>
+                        <span className="font-bold text-[#AFA9EC]">{dDayLabel}</span>
+                      </>
+                    ) : null}
+                  </>
+                ) : (
+                  <>
+                    <span className="text-white/35">●</span>
+                    <span className="text-white/50">{t("competition.statusClosed")}</span>
+                  </>
+                )}
+              </div>
+            ) : null}
+            <Link
+              href={competitionHref}
+              className="inline-flex items-center gap-1 text-[12px] text-white/50 transition hover:text-white/80"
+            >
+              {t("films.heroViewAllWinners")}
+            </Link>
+          </div>
         </div>
 
-        <div className="flex flex-1 items-end justify-between gap-3 px-4 pb-4 pt-[4%]">
-          {[
-            { labelKey: "films.heroTierGrand", color: "#FFD700", idx: 0 },
-            { labelKey: "films.heroTierExcellence", color: "#C0C0C0", idx: 1 },
-            { labelKey: "films.heroTierMerit", color: "#CD7F32", idx: 2 },
-            { labelKey: "films.heroTierAudience", color: "#8b5cf6", idx: 3 },
-          ].map((tier) => {
-            const video = displayVideos[tier.idx] ?? null;
-            return (
-              <Link
-                key={tier.labelKey}
-                href={video ? "/watch/" + video.id : "/competition"}
-                className="gradient-border-card-subtle relative mt-8 block shrink-0 cursor-pointer overflow-visible rounded-xl border transition-all duration-300 hover:scale-[1.03]"
-                style={{
-                  flex: "1 1 0",
-                  minWidth: "0",
-                  height: "auto",
-                  aspectRatio: "222 / 422",
-                  borderColor: hoveredCard === tier.idx ? glowBorders[tier.idx] : "rgba(255,255,255,0.06)",
-                  background: "linear-gradient(to bottom, rgba(30,28,53,0.92), rgba(22,20,40,0.88))",
-                  boxShadow: hoveredCard === tier.idx
-                    ? `0 0 25px ${glowColors[tier.idx]}, 0 0 60px ${glowColors[tier.idx].replace("0.6", "0.2")}, inset 0 0 20px ${glowColors[tier.idx].replace("0.6", "0.05")}`
-                    : "none",
-                  transition: "all 0.3s ease",
-                }}
-                onMouseEnter={() => setHoveredCard(tier.idx)}
-                onMouseLeave={() => setHoveredCard(null)}
-              >
-                <div className="gradient-border-card-inner">
-                  <div
-                    className="absolute -top-5 left-1/2 z-10 flex h-10 w-10 -translate-x-1/2 items-center justify-center rounded-full"
-                    style={{
-                      background: tier.idx === 0
-                        ? "radial-gradient(circle, #2a1e00 0%, #0f0900 100%)"
-                        : tier.idx === 1
-                          ? "radial-gradient(circle, #1a1a1a 0%, #0a0a0a 100%)"
-                          : tier.idx === 2
-                            ? "radial-gradient(circle, #1e1000 0%, #0a0800 100%)"
-                            : "radial-gradient(circle, #130520 0%, #080210 100%)",
-                      border: `1px solid ${tier.color}70`,
-                      boxShadow: `0 0 8px ${tier.color}50`,
-                    }}
-                  >
-                    <TrophyIcon color={tier.idx === 0 ? "#FFD700" : tier.idx === 1 ? "#C0C0C0" : tier.idx === 2 ? "#CD7F32" : "#8b5cf6"} />
-                  </div>
+        <div className="grid w-full grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          {awardSlots.map((slot) => {
+            const video = slot.video;
+            const TierIcon = slot.Icon;
+            const thumb = video?.thumbnailUrl?.trim();
+            const cardBorder =
+              slot.cardBorder ??
+              (slot.colorDark.startsWith("#") ? `1px solid ${slot.colorDark}33` : "1px solid rgba(192,192,192,0.22)");
+            const cardShadow =
+              slot.cardShadow ??
+              (slot.color.startsWith("#") ? `0 0 20px ${slot.color}14` : "0 0 20px rgba(175,169,236,0.12)");
 
-                  <p
-                    className="pb-1 pt-6 text-center text-sm font-extrabold"
-                    style={{
-                      color: "white",
-                      textShadow: `0 0 8px ${tier.color}`,
-                      mixBlendMode: "normal",
-                    }}
-                  >
-                    {t(tier.labelKey)}
-                  </p>
+            const cardClass = cn(
+              "group relative overflow-hidden rounded-xl aspect-[16/10] ease-out",
+              video
+                ? "cursor-pointer transition-all duration-300 hover:scale-[1.02]"
+                : "cursor-default transition-all duration-300 hover:scale-[1.01]",
+            );
 
-                  <div className="relative overflow-hidden px-3" style={{ height: "57%" }}>
-                    {video?.thumbnailUrl ? (
-                      <img src={video.thumbnailUrl} alt="" className="h-full w-full rounded-lg object-cover" />
-                    ) : (
-                      <div className="flex h-full w-full flex-col items-center justify-center gap-2 bg-gradient-to-br from-[#1a1547] to-[#0f0d24]">
-                        <svg viewBox="0 0 24 24" className="h-8 w-8 text-white/20" fill="none" stroke="currentColor" strokeWidth={1.5}>
-                          <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
-                          <path d="M7 11V7a5 5 0 0 1 10 0v4" />
-                        </svg>
-                        <p className="text-[10px] font-semibold uppercase tracking-widest text-white/20">Coming Soon</p>
-                      </div>
-                    )}
-                  </div>
+            const dotGridBg =
+              slot.colorDark.startsWith("#") && slot.colorDark.length >= 7
+                ? `radial-gradient(circle, ${slot.colorDark}26 1px, transparent 1px)`
+                : "radial-gradient(circle, rgba(255,255,255,0.07) 1px, transparent 1px)";
+            const orbTopBg =
+              slot.color.startsWith("#") && slot.color.length >= 7
+                ? `radial-gradient(circle, ${slot.color}33 0%, transparent 70%)`
+                : "radial-gradient(circle, rgba(255,255,255,0.14) 0%, transparent 70%)";
+            const orbBottomBg =
+              slot.color.startsWith("#") && slot.color.length >= 7
+                ? `radial-gradient(circle, ${slot.color}1a 0%, transparent 70%)`
+                : "radial-gradient(circle, rgba(255,255,255,0.06) 0%, transparent 70%)";
+            const shimmerBg =
+              slot.color.startsWith("#") && slot.color.length >= 7
+                ? `linear-gradient(to right, transparent, ${slot.color}66 50%, transparent)`
+                : "linear-gradient(to right, transparent, rgba(255,255,255,0.22) 50%, transparent)";
 
-                  <div className="px-3 pt-2 pb-3">
-                    <div className="flex items-center justify-between gap-2">
-                      <h3 className="line-clamp-1 flex-1 text-sm font-bold text-white">
-                        {video ? video.title?.trim() || "—" : "Coming Soon"}
-                      </h3>
-                      <div className="relative flex shrink-0 items-center justify-center">
-                        <img src="/genova-play1.png" alt="" className="h-[50px] w-[50px] object-contain opacity-50" aria-hidden />
-                        <svg className="absolute h-[18px] w-[18px]" viewBox="0 0 24 24" fill="white" style={{ marginLeft: "1px" }} aria-hidden>
-                          <polygon points="6,3 20,12 6,21" />
-                        </svg>
-                      </div>
+            const inner = (
+              <>
+                {thumb ? (
+                  <>
+                    <img
+                      src={thumb}
+                      alt={video?.title ?? ""}
+                      className="absolute inset-0 h-full w-full object-cover transition-transform duration-700 group-hover:scale-110"
+                    />
+                    <div
+                      className="absolute inset-0"
+                      style={{
+                        background:
+                          "linear-gradient(to top, rgba(8,6,24,0.95) 0%, rgba(8,6,24,0.4) 50%, transparent 100%)",
+                      }}
+                    />
+                  </>
+                ) : null}
+
+                {!video ? (
+                  <>
+                    <div
+                      className="pointer-events-none absolute inset-0 z-[1]"
+                      style={{
+                        backgroundImage: dotGridBg,
+                        backgroundSize: "16px 16px",
+                        opacity: 0.4,
+                      }}
+                    />
+                    <div className="pointer-events-none absolute inset-0 z-[2] flex items-center justify-center opacity-[0.05] transition-opacity duration-300 group-hover:opacity-[0.08]">
+                      <TierIcon size={140} style={{ color: slot.color }} strokeWidth={1} />
                     </div>
+                    <div
+                      className="pointer-events-none absolute -right-12 -top-12 z-[2] h-40 w-40 rounded-full opacity-90 transition-all duration-300 group-hover:scale-105 group-hover:opacity-100"
+                      style={{
+                        background: orbTopBg,
+                        filter: "blur(40px)",
+                      }}
+                    />
+                    <div
+                      className="pointer-events-none absolute -bottom-8 -left-8 z-[2] h-32 w-32 rounded-full opacity-90 transition-all duration-300 group-hover:opacity-100"
+                      style={{
+                        background: orbBottomBg,
+                        filter: "blur(30px)",
+                      }}
+                    />
+                    <div
+                      className="pointer-events-none absolute left-0 right-0 top-0 z-[3] h-px"
+                      style={{ background: shimmerBg }}
+                    />
+                  </>
+                ) : null}
 
-                    {(video?.creatorName ?? video?.uploaderDisplayName) ? (
-                      <p className="mt-0.5 text-[10px] text-white/50">
-                        {t("films.heroDirectorLabel")}{" "}
-                        {video?.creatorName ?? video?.uploaderDisplayName}
-                      </p>
-                    ) : null}
-
-                    {video?.description?.trim() ? (
-                      <p className="mt-1 line-clamp-2 text-[10px] leading-relaxed text-white/30">
-                        {video.description.trim()}
-                      </p>
+                <div className="relative z-10 flex h-full flex-col p-5">
+                  <div className="flex items-start justify-between gap-2">
+                    <TierIcon size={20} style={{ color: slot.color }} strokeWidth={1.75} />
+                    {!video ? (
+                      <span className="text-[9px] font-mono text-white/30">COMING SOON</span>
                     ) : null}
                   </div>
 
-                  <div
-                    className="absolute bottom-0 left-0 right-0 h-0.5"
-                    style={{ background: `linear-gradient(to right, transparent, ${tier.color}, transparent)` }}
-                  />
+                  <div className="mt-auto">
+                    <p
+                      className="mb-1 text-[10px] font-black uppercase tracking-[0.22em]"
+                      style={{ color: slot.color }}
+                    >
+                      {slot.eyebrow}
+                    </p>
+                    <p className="text-[18px] font-bold text-white">{t(slot.labelKey)}</p>
+
+                    {video ? (
+                      <>
+                        <div className="mt-2 space-y-0.5">
+                          <p className="line-clamp-1 text-[14px] font-semibold text-white">{video.title?.trim() || "—"}</p>
+                          {(video.uploaderDisplayName ?? video.creatorName)?.trim() ? (
+                            <p className="text-[11px] text-white/60">
+                              {video.uploaderDisplayName ?? video.creatorName}
+                            </p>
+                          ) : null}
+                        </div>
+                        <div className="mt-3 flex items-center gap-1 text-[11px] text-white/60 opacity-0 transition-opacity group-hover:opacity-100">
+                          <PlayCircle className="h-3 w-3 shrink-0" strokeWidth={2} />
+                          <span>{t("films.heroPlayCue")}</span>
+                        </div>
+                      </>
+                    ) : null}
+                  </div>
                 </div>
+              </>
+            );
+
+            return video ? (
+              <Link
+                key={slot.rank}
+                href={`/watch/${video.id}`}
+                className={cardClass}
+                style={{
+                  background: thumb ? "transparent" : "linear-gradient(160deg, rgba(20,15,40,0.7) 0%, rgba(12,8,30,0.85) 100%)",
+                  border: cardBorder,
+                  boxShadow: cardShadow,
+                }}
+              >
+                {inner}
+              </Link>
+            ) : (
+              <Link
+                key={slot.rank}
+                href="#"
+                className={cardClass}
+                onClick={(e) => e.preventDefault()}
+                style={{
+                  background: "linear-gradient(160deg, rgba(20,15,40,0.7) 0%, rgba(12,8,30,0.85) 100%)",
+                  border: cardBorder,
+                  boxShadow: cardShadow,
+                }}
+              >
+                {inner}
               </Link>
             );
           })}
         </div>
       </div>
-
-      <div className="absolute bottom-0 left-0 right-0 h-32 pointer-events-none z-10 bg-gradient-to-b from-transparent to-[#080618]" />
-
+      <div className="pointer-events-none absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-b from-transparent to-[#06040f]" />
     </div>
   );
 }
@@ -484,10 +405,13 @@ function VideoRow({ title, videos }: { title: string; videos: (Video & { award?:
 
   return (
     <div className="space-y-3 overflow-visible" style={{ position: "relative", zIndex: 0 }}>
-      <h2 className="relative z-0 text-[20px] font-bold text-white tracking-tight">
-        {title}
-        <span className="ml-2 inline-block h-[3px] w-6 rounded-full bg-[#7F77DD] align-middle" />
-      </h2>
+      <div className="flex items-center gap-3">
+        <span className="text-sm text-[#7F77DD]">✦</span>
+        <h2 className="text-[22px] font-black tracking-tight text-white">
+          {title}
+        </h2>
+        <span className="h-[2px] w-8 rounded-full bg-gradient-to-r from-[#7F77DD] to-transparent" />
+      </div>
       <div
         className="relative"
         onMouseEnter={() => setIsHovered(true)}
@@ -504,110 +428,20 @@ function VideoRow({ title, videos }: { title: string; videos: (Video & { award?:
             style={{ overflowX: "auto", overflowY: "visible", paddingTop: "20px", paddingBottom: "20px", marginTop: "-20px", marginBottom: "-20px", paddingLeft: "0px", paddingRight: "60px", marginLeft: "0px", marginRight: "-60px" }}
             className="hide-scrollbar flex gap-4"
           >
-            {videos.map((video, index) => {
-              const creator = video.creatorName ?? video.uploaderDisplayName ?? t("video.creatorFallback");
-              return (
-                <Link
-                  key={video.id}
-                  href={"/watch/" + video.id}
-                  className={
-                    "gradient-border-card-subtle group/card relative shrink-0 rounded-xl transition-all duration-300 hover:shadow-[0_0_0_1px_rgba(127,119,221,0.6),0_0_20px_rgba(127,119,221,0.3)] hover:scale-[1.03]"
-                    + (arrowHovered ? " pointer-events-none" : "")
-                  }
-                  style={{ width: "calc((100% - 60px) / 6.9)", transformOrigin: "center center" }}
-                >
-                  <div className="gradient-border-card-inner relative w-full" style={{ aspectRatio: "3/4" }}>
-                    {/* Thumbnail fills entire card */}
-                    {video.thumbnailUrl ? (
-                      <img
-                        src={video.thumbnailUrl}
-                        alt=""
-                        className="h-full w-full object-cover transition-transform duration-500 group-hover/card:scale-105"
-                      />
-                    ) : (
-                      <div className="h-full w-full bg-gradient-to-br from-[#1a1547] to-[#0f0d24]" />
-                    )}
-
-                    {/* Bottom gradient overlay */}
-                    <div
-                      className="absolute inset-x-0 bottom-0 z-[1]"
-                      style={{
-                        height: "68%",
-                        background: "linear-gradient(to top, rgba(8,6,24,1) 0%, rgba(8,6,24,0.9) 30%, rgba(8,6,24,0.4) 60%, transparent 100%)",
-                        transform: "scaleY(1.04) scaleX(1.02)",
-                        transformOrigin: "bottom center",
-                        transition: "transform 0.25s ease",
-                      }}
-                    />
-
-                    {/* Top-left genre badge */}
-                    {video.genre && (
-                      <div className="absolute top-1.5 left-2 z-[2]">
-                        <span
-                          className="text-[10px] font-semibold text-white/90 px-2 py-0.5 rounded"
-                          style={{
-                            background: "linear-gradient(135deg, rgba(83,74,183,0.7) 0%, rgba(39,33,92,0.5) 100%)",
-                            backdropFilter: "blur(4px)",
-                            border: "1px solid rgba(127,119,221,0.25)",
-                          }}
-                        >
-                          {mainGenreLabel(video.genre, locale)}
-                        </span>
-                      </div>
-                    )}
-
-                    {/* Bottom text */}
-                    <div
-                      className="absolute bottom-0 left-0 right-0 px-4 pb-2 z-[2]"
-                      style={{ paddingTop: "0px" }}
-                    >
-                      <h3 className="line-clamp-1 text-[14px] font-bold text-white">{video.title}</h3>
-                      <p className="mt-0.5 text-[12px] text-white/70">{creator}</p>
-                      {video.description && (
-                        <p className="mt-1 line-clamp-2 text-[11px] leading-relaxed text-white/50">
-                          {video.description}
-                        </p>
-                      )}
-                      <div className="mt-1 flex items-center justify-between text-[11px] text-white/50">
-                        <div className="flex items-center gap-2">
-                          {video.viewCount != null && (
-                            <span>
-                              {video.viewCount >= 1000
-                                ? `${(video.viewCount / 1000).toFixed(1)}K ${t("feed.views")}`
-                                : `${video.viewCount} ${t("feed.views")}`}
-                            </span>
-                          )}
-                          {video.viewCount != null && video.createdAt && (
-                            <span className="text-white/20">·</span>
-                          )}
-                          {video.createdAt && (
-                            <span>{formatUploadedRelative(video.createdAt, locale)}</span>
-                          )}
-                        </div>
-                        {/* Play affordance — right */}
-                        <div className="opacity-0 group-hover/card:opacity-100 transition-all duration-300 flex items-center justify-center shrink-0">
-                          <div className="relative flex items-center justify-center">
-                            <img
-                              src="/genova-play1.png"
-                              alt="play"
-                              className="h-[38px] w-[38px] object-contain opacity-50"
-                            />
-                            <svg
-                              className="absolute h-[14px] w-[14px]"
-                              viewBox="0 0 24 24"
-                              fill="white"
-                              style={{ marginLeft: "1px" }}
-                            >
-                              <polygon points="6,3 20,12 6,21" />
-                            </svg>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </Link>
-              );
-            })}
+            {videos.map((video) => (
+              <div
+                key={video.id}
+                className={cn("shrink-0", arrowHovered ? "pointer-events-none" : "")}
+                style={{ width: "calc((100% - 60px) / 6.9)", transformOrigin: "center center" }}
+              >
+                <VideoCard
+                  video={video}
+                  showRank={false}
+                  showLikes={true}
+                  showMadeWith={false}
+                />
+              </div>
+            ))}
           </div>
         </div>
         {/* Left click zone */}
@@ -683,6 +517,9 @@ export function FilmsPageClient({
   heroEyebrowEn,
   heroEyebrowJa,
   heroAwardVideos,
+  heroFeaturedCompetition,
+  continueWatchingItems,
+  isLoggedIn,
 }: {
   originals: Video[];
   awardWinners: (Video & { award?: string | null })[];
@@ -699,6 +536,9 @@ export function FilmsPageClient({
     merit: Video | null;
     audience: Video | null;
   };
+  heroFeaturedCompetition: FilmsHeroFeaturedCompetition | null;
+  continueWatchingItems: { video: Video; progressSeconds: number; durationSeconds: number }[];
+  isLoggedIn: boolean;
 }) {
   const { t, locale } = useI18n();
   const [selectedGenres, setSelectedGenres] = useState<string[]>([]);
@@ -768,14 +608,15 @@ export function FilmsPageClient({
   }, [isAllSelected, selectedGenres, allVideosFlat]);
 
   return (
-    <div className="relative min-h-screen">
+    <div className="relative min-h-screen pt-12">
       <div
         className="pointer-events-none absolute inset-0"
-        style={{ background: "#080618" }}
+        style={{ background: "#06040f" }}
       />
 
-      {/* Hero Banner - full width */}
+      {/* Hero Banner - full width, extends behind navbar */}
       <AnimateIn delay={0.05}>
+        <div className="-mt-16">
         <HeroBanner
           awardWinners={awardWinners}
           allVideos={allVideosFlat}
@@ -784,22 +625,31 @@ export function FilmsPageClient({
           heroEyebrowEn={heroEyebrowEn ?? ""}
           heroEyebrowJa={heroEyebrowJa ?? ""}
           heroAwardVideos={heroAwardVideos}
+          heroFeaturedCompetition={heroFeaturedCompetition}
         />
+        </div>
       </AnimateIn>
 
-      <div className="relative mx-auto max-w-[1680px] px-12 pb-24 pt-10 text-white space-y-6">
+      <div className="relative mx-auto max-w-[1680px] px-12 pb-24 pt-8 text-white space-y-10">
+        <div className="mx-auto mb-6 h-px max-w-3xl bg-gradient-to-r from-transparent via-white/15 to-transparent" />
         {/* Continue Watching */}
         <div id="films-continue" className="scroll-mt-20">
-          <ContinueWatching allVideos={allVideos} />
+          <ContinueWatching
+            items={continueWatchingItems}
+            isLoggedIn={isLoggedIn}
+          />
         </div>
 
         <AnimateIn delay={0.1}>
           <div id="films-genre-section" className="space-y-3 scroll-mt-20">
-            <h2 className="text-[20px] font-bold text-white tracking-tight">
-              {t("films.browseByGenre")}
-              <span className="ml-2 inline-block h-[3px] w-6 rounded-full bg-[#7F77DD] align-middle" />
-            </h2>
-            <div className="grid grid-cols-2 gap-3 py-3 md:grid-cols-3 xl:grid-cols-6">
+            <div className="flex items-center gap-3">
+              <span className="text-sm text-[#7F77DD]">✦</span>
+              <h2 className="text-[22px] font-black tracking-tight text-white">
+                {t("films.browseByGenre")}
+              </h2>
+              <span className="h-[2px] w-8 rounded-full bg-gradient-to-r from-[#7F77DD] to-transparent" />
+            </div>
+            <div className="mb-2 flex flex-wrap gap-2 py-3">
               {[{ key: "all" as const }, ...MAIN_GENRE_KEYS.map((k) => ({ key: k }))].map((tab) => {
                 const mood = {
                   all: { emoji: "✦", image: "https://images.unsplash.com/photo-1536440136628-849c177e76a1?w=400&q=80" },
@@ -821,41 +671,21 @@ export function FilmsPageClient({
                     type="button"
                     onClick={() => handleGenreClick(tab.key)}
                     className={cn(
-                      "group relative h-[100px] w-full overflow-hidden rounded-2xl border text-left transition-all duration-300",
+                      "h-9 rounded-full border px-4 backdrop-blur-md transition-all duration-200",
+                      "inline-flex items-center gap-2",
+                      titleCount === 0 ? "opacity-60" : "",
                       isActive
-                        ? "border-[#7F77DD]/80 ring-1 ring-[#7F77DD]/60 shadow-lg shadow-[#534AB7]/30 scale-[1.02]"
-                        : "border-white/10 hover:border-white/25 hover:scale-[1.01]"
+                        ? "border-transparent bg-white text-[#080618]"
+                        : "border-white/[0.08] bg-white/[0.04] text-white hover:bg-white/[0.08] hover:border-white/[0.15]"
                     )}
                   >
-                    <img src={mood.image} alt="" className="absolute inset-0 h-full w-full object-cover" />
-                    <div
-                      className="absolute inset-0 rounded-[inherit] pointer-events-none"
-                      style={{ background: "rgba(8,6,24,0.45)" }}
-                    />
-                    <div
-                      className="absolute inset-0 rounded-[inherit] pointer-events-none"
-                      style={{
-                        background: "radial-gradient(ellipse at 0% 0%, rgba(8,6,24,0.85) 0%, transparent 60%)",
-                      }}
-                    />
-                    <div
-                      className="absolute inset-0 rounded-[inherit] pointer-events-none"
-                      style={{
-                        background: "linear-gradient(to top, rgba(8,6,24,0.7) 0%, transparent 50%)",
-                      }}
-                    />
-
-                    <div className="relative z-10 flex h-full flex-col justify-between p-3">
-                      <div className="flex items-center gap-1.5">
-                        <span className="text-sm">{mood.emoji}</span>
-                        <span className="text-sm font-bold text-white">
-                          {tab.key === "all" ? t("common.all") : mainGenreLabel(tab.key, locale)}
-                        </span>
-                      </div>
-                      <span className="text-[11px] text-white/65">
-                        {t("films.titleCount").replace("{n}", String(titleCount))}
-                      </span>
-                    </div>
+                    <span className={cn("text-sm", isActive ? "text-[#534AB7]" : "text-[#AFA9EC]")}>{mood.emoji}</span>
+                    <span className={cn("text-sm font-medium", isActive ? "text-[#080618]" : "text-white")}>
+                      {tab.key === "all" ? t("common.all") : mainGenreLabel(tab.key, locale)}
+                    </span>
+                    <span className={cn("text-xs", isActive ? "text-[#080618]/60" : "text-white/40")}>
+                      ({titleCount})
+                    </span>
                   </button>
                 );
               })}
@@ -866,183 +696,91 @@ export function FilmsPageClient({
         {/* Content rows */}
         <div className="space-y-10">
           {filteredVideos.length === 0 ? (
-            <p className="py-16 text-center text-sm text-white/45">아직 영상이 없습니다</p>
+            <p className="py-16 text-center text-sm text-white/45">{t("films.noVideosYet")}</p>
           ) : (
             <>
-              {/* Top 10 sections — one per selected genre, or overall if all */}
-              {isAllSelected ? (
+            {/* 전체 선택 시 — 전체 TOP 10 + 신작 */}
+            {isAllSelected && (
+              <>
                 <AnimateIn delay={0.15}>
-                  <div id="films-top10" className="scroll-mt-20">
-                    <VideoRow title={t("films.top10Today", "Top 10 Today")} videos={getTop10(filteredVideos)} />
-                  </div>
+                  <VideoRow
+                    title={t("films.top10All", "TOP 10")}
+                    videos={[...filteredVideos]
+                      .sort((a, b) => (b.views ?? 0) - (a.views ?? 0))
+                      .slice(0, 10)}
+                  />
                 </AnimateIn>
-              ) : (
-                selectedGenres.map((genreKey, idx) => {
-                  const tabLabel = mainGenreLabel(genreKey, locale);
-                  const top10 = getTop10(filteredVideos, genreKey);
-                  if (top10.length === 0) return null;
-                  return (
-                    <AnimateIn key={genreKey} delay={0.15 + idx * 0.05}>
-                      <div id={idx === 0 ? "films-top10" : undefined} className={idx === 0 ? "scroll-mt-20" : undefined}>
-                        <VideoRow
-                          title={t("films.top10InGenre").replace("{genre}", tabLabel)}
-                          videos={top10}
-                        />
-                      </div>
-                    </AnimateIn>
-                  );
-                })
+                <AnimateIn delay={0.2}>
+                  <VideoRow
+                    title={t("films.newAll", "신작")}
+                    videos={[...filteredVideos]
+                      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+                      .slice(0, 15)}
+                  />
+                </AnimateIn>
+              </>
+            )}
+
+            {/* 장르 선택 시에만 — Top 10 / New / Picks (깊은 탐색) */}
+            {!isAllSelected && (
+                <>
+                  {selectedGenres.map((genreKey, idx) => {
+                    const tabLabel = mainGenreLabel(genreKey, locale);
+                    const top10 = getTop10(filteredVideos, genreKey);
+                    if (top10.length === 0) return null;
+                    return (
+                      <AnimateIn key={genreKey} delay={0.15 + idx * 0.05}>
+                        <div id={idx === 0 ? "films-top10" : undefined} className={idx === 0 ? "scroll-mt-20" : undefined}>
+                          <VideoRow
+                            title={t("films.top10InGenre").replace("{genre}", tabLabel)}
+                            videos={top10}
+                          />
+                        </div>
+                      </AnimateIn>
+                    );
+                  })}
+
+                  <AnimateIn delay={0.2}>
+                    <VideoRow
+                      title={t("films.newGenreArrivals").replace(
+                        "{genre}",
+                        mainGenreLabel(selectedGenres[0], locale),
+                      )}
+                      videos={[...filteredVideos]
+                        .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+                        .slice(0, 15)}
+                    />
+                  </AnimateIn>
+
+                </>
               )}
-
-              {/* New Content */}
-              <AnimateIn delay={0.2}>
-                <VideoRow
-                  title={
-                    isAllSelected
-                      ? t("films.newArrivals", "New Arrivals")
-                      : t("films.newGenreArrivals").replace(
-                          "{genre}",
-                          mainGenreLabel(selectedGenres[0], locale),
-                        )
-                  }
-                  videos={[...filteredVideos].sort((a, b) =>
-                    new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-                  ).slice(0, 15)}
-                />
-              </AnimateIn>
-
-              {/* Today's Picks */}
-              <AnimateIn delay={0.25}>
-                <VideoRow
-                  title={
-                    isAllSelected
-                      ? t("films.todaysRecommendations", "Today's Recommendations")
-                      : t("films.topGenrePicks").replace(
-                          "{genre}",
-                          mainGenreLabel(selectedGenres[0], locale),
-                        )
-                  }
-                  videos={[...filteredVideos]
-                    .sort((a, b) => stableHash(a.id) - stableHash(b.id))
-                    .slice(0, 15)}
-                />
-              </AnimateIn>
             </>
           )}
-
-          {/* Genre rows — filtered by selection */}
-          {genreSpotlight
-            .filter(({ genreKey }) => isAllSelected || selectedGenres.includes(genreKey))
-            .map(({ genreKey, picks }, idx) =>
-              picks.length > 0 ? (
-                <AnimateIn key={genreKey} delay={0.3 + idx * 0.04}>
-                  <div id={"films-spotlight-" + genreKey} className="scroll-mt-20">
-                    <VideoRow title={mainGenreLabel(genreKey, locale)} videos={picks} />
-                  </div>
-                </AnimateIn>
-              ) : null
-            )}
         </div>
-
-        {/* Series Section - Coming Soon */}
-        <div id="films-series" className="scroll-mt-20 space-y-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <h2 className="text-[20px] font-bold text-white tracking-tight">
-                {t("films.sectionSeries")}
-                <span className="ml-2 inline-block h-[3px] w-6 rounded-full bg-[#7F77DD] align-middle" />
-              </h2>
-              <span className="text-xs font-semibold uppercase tracking-widest text-[#7F77DD]/60 border border-[#7F77DD]/20 rounded-full px-3 py-1">
-                {t("films.comingSoonTitle")}
-              </span>
-            </div>
-            <button
-              type="button"
-              onClick={() => setSeriesExpanded(!seriesExpanded)}
-              className="flex items-center gap-1.5 text-xs text-white/40 hover:text-white/70 transition-colors"
-            >
-              {seriesExpanded ? t("films.expandCollapse") : t("films.expandPreview")}
-              <svg
-                viewBox="0 0 24 24"
-                className={`h-4 w-4 transition-transform duration-300 ${seriesExpanded ? "rotate-180" : ""}`}
-                fill="none"
-                stroke="currentColor"
-                strokeWidth={2}
-              >
-                <polyline points="6 9 12 15 18 9" />
-              </svg>
-            </button>
-          </div>
-
-          {/* Expandable content */}
-          <div
-            className="overflow-hidden transition-all duration-500 ease-in-out"
-            style={{ maxHeight: seriesExpanded ? "400px" : "0px", opacity: seriesExpanded ? 1 : 0 }}
-          >
-            <div className="space-y-4 pt-1">
-              {/* Sub tabs */}
-              <div className="flex gap-3">
-                {(
-                  [
-                    ["popular", "films.seriesTabPopular"],
-                    ["latest", "films.seriesTabLatest"],
-                    ["completed", "films.seriesTabCompleted"],
-                    ["new", "films.seriesTabNew"],
-                  ] as const
-                ).map(([tabKey, labelKey]) => (
-                  <div
-                    key={tabKey}
-                    className="rounded-full border border-white/10 px-4 py-1.5 text-xs text-white/30 cursor-not-allowed"
-                  >
-                    {t(labelKey)}
-                  </div>
-                ))}
+        <AnimateIn delay={0.3}>
+          <section className="mt-12">
+            <div className="mb-5 flex items-end justify-between gap-4">
+              <div>
+                <div className="mb-1.5 flex items-center gap-1.5">
+                  <span className="text-[10px] text-[#7F77DD]">✦</span>
+                  <p className="text-[10px] font-black uppercase tracking-[0.22em]" style={{ color: "#7F77DD", opacity: 0.75 }}>
+                    Series
+                  </p>
+                </div>
+                <h2 className="text-[26px] font-black tracking-tight text-white" style={{ letterSpacing: "-0.02em" }}>
+                  시리즈
+                </h2>
               </div>
-
-              <p className="py-6 text-sm text-white/45">아직 영상이 없습니다</p>
-            </div>
-          </div>
-        </div>
-
-        <div id="films-awards" className="scroll-mt-20 space-y-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <h2 className="text-[20px] font-bold text-white tracking-tight">
-                {t("films.awardWinners")}
-                <span className="ml-2 inline-block h-[3px] w-6 rounded-full bg-[#7F77DD] align-middle" />
-              </h2>
-              <span className="text-xs font-semibold uppercase tracking-widest text-[#7F77DD]/60 border border-[#7F77DD]/20 rounded-full px-3 py-1">
-                {t("films.comingSoonTitle")}
+              <span className="shrink-0 rounded-full border border-white/[0.08] bg-white/[0.04] px-3 py-1 text-[11px] font-bold text-white/60">
+                Coming Soon
               </span>
             </div>
-            <button
-              type="button"
-              onClick={() => setAwardsExpanded(!awardsExpanded)}
-              className="flex items-center gap-1.5 text-xs text-white/40 hover:text-white/70 transition-colors"
-            >
-              {awardsExpanded ? t("films.expandCollapse") : t("films.expandPreview")}
-              <svg
-                viewBox="0 0 24 24"
-                className={`h-4 w-4 transition-transform duration-300 ${awardsExpanded ? "rotate-180" : ""}`}
-                fill="none"
-                stroke="currentColor"
-                strokeWidth={2}
-              >
-                <polyline points="6 9 12 15 18 9" />
-              </svg>
-            </button>
-          </div>
-
-          <div
-            className="overflow-hidden transition-all duration-500 ease-in-out"
-            style={{
-              maxHeight: awardsExpanded ? "400px" : "0px",
-              opacity: awardsExpanded ? 1 : 0
-            }}
-          >
-            <p className="py-6 text-sm text-white/45">아직 영상이 없습니다</p>
-          </div>
-        </div>
+            <div className="rounded-2xl border border-white/[0.06] bg-white/[0.02] py-20 text-center">
+              <p className="text-[14px] font-semibold text-white/50">시리즈 콘텐츠 준비 중</p>
+              <p className="mt-1 text-[12px] text-white/30">곧 다양한 시리즈 작품을 만나보실 수 있습니다.</p>
+            </div>
+          </section>
+        </AnimateIn>
       </div>
     </div>
   );

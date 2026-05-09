@@ -13,16 +13,19 @@ type VideoRow = {
   id: string;
   title: string;
   thumbnail_url: string;
+  backdrop_url?: string | null;
   vimeo_id: string | null;
   mux_playback_id?: string | null;
   mux_asset_id?: string | null;
   mux_upload_id?: string | null;
   genre: string;
+  additional_genres?: string[] | null;
   sub_genre?: string | null;
   purpose?: string | null;
   creator_id: string | null;
   is_original: boolean;
   is_finalist: boolean;
+  is_competition_featured?: boolean | null;
   award: string | null;
   runtime: string;
   created_at: string;
@@ -56,6 +59,7 @@ type CompetitionRow = {
   prize_info_ko?: string | null;
   prize_info_ja?: string | null;
   sponsor: string;
+  is_featured?: boolean | null;
 };
 
 export function mapCreator(row: CreatorRow): Creator {
@@ -89,14 +93,17 @@ export function mapVideo(row: VideoRow): Video {
     id: row.id,
     title: row.title,
     thumbnailUrl: row.thumbnail_url,
+    backdropUrl: row.backdrop_url ?? null,
     vimeoId: row.vimeo_id ?? null,
     muxPlaybackId: row.mux_playback_id ?? null,
     genre: row.genre,
+    additionalGenres: Array.isArray(row.additional_genres) ? row.additional_genres : [],
     subGenre: row.sub_genre ?? null,
     purpose,
     creatorId: row.creator_id,
     isOriginal: row.is_original,
     isFinalist: row.is_finalist,
+    isCompetitionFeatured: Boolean(row.is_competition_featured),
     award: row.award,
     runtime: row.runtime,
     createdAt: row.created_at,
@@ -131,5 +138,6 @@ export function mapCompetition(row: CompetitionRow): Competition {
     prizeInfoKo: row.prize_info_ko ?? null,
     prizeInfoJa: row.prize_info_ja ?? null,
     sponsor: row.sponsor,
+    isFeatured: Boolean(row.is_featured),
   };
 }

@@ -15,12 +15,14 @@ import { SiteFooter } from "@/components/site-shell";
 function LayoutChrome({ children }: { children: ReactNode }) {
   const { t } = useI18n();
   const pathname = usePathname();
+  const isBareAuthPage = pathname === "/auth" || pathname === "/login";
   const { selectedGenre, setSelectedGenre } = useGenreFilter();
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [chatOpen, setChatOpen] = useState(false);
   const [chatTarget, setChatTarget] = useState<{ userId: string; displayName: string; avatarUrl?: string } | null>(null);
   const [unreadMessageCount, setUnreadMessageCount] = useState(0);
   const genresDisabled = pathname === "/profile" || Boolean(pathname?.startsWith("/profile/"));
+  const isProfilePage = pathname === "/profile" || Boolean(pathname?.startsWith("/profile/"));
 
   useEffect(() => {
     const openChatHandler = () => {
@@ -40,8 +42,18 @@ function LayoutChrome({ children }: { children: ReactNode }) {
     };
   }, []);
 
+  if (isBareAuthPage) {
+    return (
+      <>
+        <ClientDocumentMeta />
+        {children}
+      </>
+    );
+  }
+
   return (
     <>
+      <ClientDocumentMeta />
       <ChatDrawer
         open={chatOpen}
         onClose={() => {
@@ -61,7 +73,8 @@ function LayoutChrome({ children }: { children: ReactNode }) {
       />
       <div
         className={cn(
-          "pt-16 transition-all duration-300",
+          "transition-all duration-300",
+          isProfilePage ? "" : "pt-16",
           sidebarOpen ? "md:pl-60" : "md:pl-16",
           chatOpen ? "md:pr-80" : "md:pr-0",
         )}
@@ -73,14 +86,31 @@ function LayoutChrome({ children }: { children: ReactNode }) {
         type="button"
         onClick={() => setChatOpen((prev) => !prev)}
         className={cn(
-          "fixed bottom-20 z-[59] flex h-12 w-12 items-center justify-center rounded-full bg-[#8b5cf6] shadow-lg shadow-purple-900/30 transition-all duration-300 hover:bg-[#7c3aed]",
+          "group fixed bottom-20 z-[59] flex h-12 w-12 items-center justify-center rounded-full transition-all duration-300 hover:scale-110 active:scale-95",
           chatOpen ? "right-[calc(1.5rem+320px)]" : "right-6",
         )}
+        style={{
+          background: "linear-gradient(135deg, #534AB7 0%, #7B6FE8 100%)",
+          boxShadow: chatOpen
+            ? "0 4px 16px rgba(83,74,183,0.3)"
+            : "0 8px 32px rgba(83,74,183,0.5), 0 0 0 1px rgba(127,119,221,0.2) inset",
+        }}
         aria-label={t("layout.messages", "Messages")}
       >
-        <MessageCircle className="h-5 w-5 text-white" />
+        <span
+          className="pointer-events-none absolute inset-0 rounded-full opacity-0 transition-opacity duration-300 group-hover:opacity-100"
+          style={{
+            background: "radial-gradient(circle at 30% 30%, rgba(175,169,236,0.4) 0%, transparent 70%)",
+          }}
+        />
+        <MessageCircle className="relative h-5 w-5 text-white" />
         {unreadMessageCount > 0 && !chatOpen && (
-          <span className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white">
+          <span
+            className="absolute -right-1 -top-1 flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-[#AFA9EC] px-1 text-[10px] font-bold text-[#080618] ring-2 ring-[#080618]"
+            style={{
+              boxShadow: "0 0 12px rgba(175,169,236,0.6)",
+            }}
+          >
             {unreadMessageCount > 9 ? "9+" : unreadMessageCount}
           </span>
         )}

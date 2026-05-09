@@ -23,7 +23,13 @@ export async function fetchCommentsForVideo(videoId: string): Promise<VideoComme
     data: { user },
   } = await supabase.auth.getUser();
 
-  const { data: rows, error } = await supabase.from("comments").select("*").eq("video_id", videoId).order("created_at", { ascending: true });
+  const { data: rows, error } = await supabase
+    .from("comments")
+    .select("*")
+    .eq("video_id", videoId)
+    .order("is_pinned", { ascending: false })
+    .order("pin_order", { ascending: true, nullsFirst: false })
+    .order("created_at", { ascending: true });
 
   if (error || !rows?.length) {
     return [];
@@ -43,6 +49,7 @@ export async function fetchCommentsForVideo(videoId: string): Promise<VideoComme
         parentId: row.parent_id,
         content: row.content,
         isPinned: (row as any).is_pinned ?? false,
+        pinOrder: (row as any).pin_order ?? null,
         createdAt: row.created_at,
         displayName: pr?.display_name ?? null,
         avatarUrl: pr?.avatar_url ?? null,

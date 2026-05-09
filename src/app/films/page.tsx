@@ -5,7 +5,9 @@ import { attachEngagementToVideos } from "@/lib/queries/engagement-queries";
 import { buildFilmsPageData } from "@/lib/films-page-data";
 import { mapVideo } from "@/lib/mappers";
 import { fetchVideosWithCreators } from "@/lib/queries";
+import { fetchHeroAwardVideosForCompetition } from "@/lib/queries/films-hero-award-videos";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
+import { getRecentProgress } from "@/app/actions/video-progress";
 
 export default async function FilmsPage() {
   const raw = await fetchVideosWithCreators();
@@ -13,6 +15,8 @@ export default async function FilmsPage() {
   const { originals, awardWinners, editorsPicks, genreSpotlight } = buildFilmsPageData(videos);
 
   const supabase = await createServerSupabaseClient();
+  const { data: userData } = supabase ? await supabase.auth.getUser() : { data: { user: null } };
+  const user = userData?.user ?? null;
   let heroEyebrowKo = "";
   let heroEyebrowEn = "2ND GENOVA AI FILM COMPETITION";
   let heroEyebrowJa = "";
@@ -36,6 +40,8 @@ export default async function FilmsPage() {
     audience: (typeof videos)[0] | null;
   } = { grandPrize: null, excellence: null, merit: null, audience: null };
 
+  let heroFeaturedCompetition: { id: string; deadline: string | null } | null = null;
+
   if (supabase) {
     const { data: compSetting } = await supabase
       .from("site_settings")
@@ -46,27 +52,36 @@ export default async function FilmsPage() {
     featuredCompetitionId = compSetting?.value ?? "";
 
     if (featuredCompetitionId) {
-      const { data: awardVideos } = await supabase
-        .from("videos")
-        .select("*")
-        .eq("submitted_competition_id", featuredCompetitionId)
-        .not("award", "is", null);
+      const { data: compRow } = await supabase
+        .from("competitions")
+        .select("id, deadline")
+        .eq("id", featuredCompetitionId)
+        .maybeSingle();
 
-      const mapped = (awardVideos ?? []).map((v) => mapVideo(v));
+      if (compRow?.id) {
+        heroFeaturedCompetition = {
+          id: compRow.id,
+          deadline: compRow.deadline ?? null,
+        };
+      }
 
-      const GRAND = ["대상", "Grand Prize", "grand prize"];
-      const EXCELLENCE = ["우수상", "금상", "Excellence", "excellence"];
-      const MERIT = ["장려상", "은상", "Merit", "merit"];
-      const AUDIENCE = ["관객상", "Audience Award", "audience award", "입선"];
-
-      heroAwardVideos = {
-        grandPrize: mapped.find((v) => GRAND.includes(v.award ?? "")) ?? null,
-        excellence: mapped.find((v) => EXCELLENCE.includes(v.award ?? "")) ?? null,
-        merit: mapped.find((v) => MERIT.includes(v.award ?? "")) ?? null,
-        audience: mapped.find((v) => AUDIENCE.includes(v.award ?? "")) ?? null,
-      };
+      heroAwardVideos = await fetchHeroAwardVideosForCompetition(featuredCompetitionId);
     }
   }
+
+  const recentProgress = await getRecentProgress(10);
+  const continueWatchingItems = recentProgress
+    .map((row) => {
+      const rawVideo = row.video as Record<string, unknown> | null;
+      if (!rawVideo) return null;
+      const video = mapVideo(rawVideo);
+      return {
+        video,
+        progressSeconds: row.progressSeconds,
+        durationSeconds: row.durationSeconds,
+      };
+    })
+    .filter((item): item is { video: (typeof videos)[number]; progressSeconds: number; durationSeconds: number } => item !== null);
 
   return (
     <FilmsPageClient
@@ -80,6 +95,9 @@ export default async function FilmsPage() {
       heroEyebrowEn={heroEyebrowEn}
       heroEyebrowJa={heroEyebrowJa}
       heroAwardVideos={heroAwardVideos}
+      heroFeaturedCompetition={heroFeaturedCompetition}
+      continueWatchingItems={continueWatchingItems}
+      isLoggedIn={Boolean(user)}
     />
   );
 }

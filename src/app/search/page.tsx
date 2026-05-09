@@ -21,16 +21,22 @@ export default async function SearchPage({
   const sortRaw = (sp.sort ?? "relevance").toLowerCase();
 
   const tab: ResultTab =
-    tabRaw === "videos" || tabRaw === "creators" || tabRaw === "tags" || tabRaw === "all" ? (tabRaw as ResultTab) : "all";
+    tabRaw === "videos" || tabRaw === "creators" || tabRaw === "tags" || tabRaw === "all"
+      ? (tabRaw as ResultTab)
+      : qRaw.startsWith("#")
+        ? "tags"
+        : "all";
   const sort: SearchSortMode = sortRaw === "latest" ? "latest" : sortRaw === "likes" ? "likes" : "relevance";
   const hashtagQuery = (qRaw.startsWith("#") || tab === "tags") && q ? q : null;
 
   const empty = !q;
   const result = empty ? null : await runFullSearch(q, 60, 32, sort);
   const fallback =
-    !empty && result && result.videos.length === 0 && result.profiles.length === 0 && result.matchingTags.length === 0
+    empty
       ? await getFallbackRecommendations()
-      : null;
+      : !empty && result && (result.videos.length + result.profiles.length + result.matchingTags.length) < 4
+        ? await getFallbackRecommendations()
+        : null;
 
   const videos = result?.videos ?? [];
   const profiles = result?.profiles ?? [];

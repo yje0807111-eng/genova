@@ -94,11 +94,13 @@ export async function updateVideoReportStatusAction(reportId: string, status: Vi
   const auth = await requireAdmin();
   if ("error" in auth) return { ok: false, message: auth.error };
   const { supabase } = auth;
-  const { error } = await supabase
+  const { data, error } = await supabase
     .from("video_reports")
     .update({ status })
-    .eq("id", reportId);
+    .eq("id", reportId)
+    .select("id");
   if (error) return { ok: false, message: error.message };
+  if (!data || data.length === 0) return { ok: false, message: "Report update failed (not found or no permission)." };
   revalidatePath("/admin");
   return { ok: true };
 }
@@ -107,8 +109,9 @@ export async function deleteVideoReportAction(reportId: string): Promise<AdminRe
   const auth = await requireAdmin();
   if ("error" in auth) return { ok: false, message: auth.error };
   const { supabase } = auth;
-  const { error } = await supabase.from("video_reports").delete().eq("id", reportId);
+  const { data, error } = await supabase.from("video_reports").delete().eq("id", reportId).select("id");
   if (error) return { ok: false, message: error.message };
+  if (!data || data.length === 0) return { ok: false, message: "Delete failed (not found or no permission)." };
   revalidatePath("/admin");
   return { ok: true };
 }
@@ -117,8 +120,9 @@ export async function deleteAllVideoReportsAction(): Promise<AdminResult> {
   const auth = await requireAdmin();
   if ("error" in auth) return { ok: false, message: auth.error };
   const { supabase } = auth;
-  const { error } = await supabase.from("video_reports").delete().not("id", "is", null);
+  const { data, error } = await supabase.from("video_reports").delete().not("id", "is", null).select("id");
   if (error) return { ok: false, message: error.message };
+  if (!data || data.length === 0) return { ok: false, message: "No reports were deleted (already empty or no permission)." };
   revalidatePath("/admin");
   return { ok: true };
 }

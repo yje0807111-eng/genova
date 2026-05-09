@@ -6,13 +6,6 @@ import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { useI18n } from "@/components/genova/language-provider";
 import { AuthNav } from "@/components/auth-nav";
-import { ChatDrawer } from "@/components/chat-drawer";
-
-type ChatTarget = {
-  userId: string;
-  displayName: string;
-  avatarUrl?: string;
-};
 
 function NavItem({ href, label, active }: { href: string; label: string; active: boolean }) {
   return (
@@ -40,8 +33,6 @@ export function SiteHeader() {
   const [scrolled, setScrolled] = useState(false);
   const [search, setSearch] = useState("");
   const [searchOpen, setSearchOpen] = useState(false);
-  const [isChatOpen, setIsChatOpen] = useState(false);
-  const [chatTarget, setChatTarget] = useState<ChatTarget | null>(null);
   const searchRef = useRef<HTMLDivElement | null>(null);
   const searchInputRef = useRef<HTMLInputElement | null>(null);
 
@@ -50,25 +41,6 @@ export function SiteHeader() {
     setSearch("");
     setSearchOpen(false);
   }, [pathname]);
-
-  useEffect(() => {
-    const handler = (event: Event) => {
-      const customEvent = event as CustomEvent<ChatTarget>;
-      if (!customEvent.detail?.userId || !customEvent.detail?.displayName) return;
-      setChatTarget(customEvent.detail);
-      setIsChatOpen(true);
-    };
-    window.addEventListener("open-message", handler);
-    return () => window.removeEventListener("open-message", handler);
-  }, []);
-
-  useEffect(() => {
-    const openChatHandler = () => {
-      setIsChatOpen(true);
-    };
-    window.addEventListener("open-chat", openChatHandler);
-    return () => window.removeEventListener("open-chat", openChatHandler);
-  }, []);
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 16);
@@ -217,14 +189,6 @@ export function SiteHeader() {
           </nav>
         </div>
       ) : null}
-      <ChatDrawer
-        open={isChatOpen}
-        onClose={() => {
-          setIsChatOpen(false);
-          setChatTarget(null);
-        }}
-        initialTarget={chatTarget}
-      />
     </header>
   );
 }
@@ -253,6 +217,7 @@ export function SiteFooter() {
         <div className="flex flex-wrap gap-5 text-sm">
           <Link href="/films" className="hover:text-[#EEEDFE]">{t("nav.films", "Films")}</Link>
           <Link href="/competition" className="hover:text-[#EEEDFE]">{t("nav.competition", "Competition")}</Link>
+            <Link href="/business" className="hover:text-[#EEEDFE]">{t("nav.business", "공모전 열기")}</Link>
           <Link href="/creator/c1" className="hover:text-[#EEEDFE]">{t("nav.creators", "Creators")}</Link>
           <Link href="#" className="hover:text-[#EEEDFE]">{t("footer.terms", "Terms of Service")}</Link>
           <Link href="#" className="hover:text-[#EEEDFE]">{t("footer.privacy", "Privacy Policy")}</Link>

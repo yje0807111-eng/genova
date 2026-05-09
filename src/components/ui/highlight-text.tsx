@@ -8,7 +8,7 @@ export function HighlightText({ text, query, className }: { text: string; query:
   const q = query.trim();
   if (!q) return <>{text}</>;
   const parts = text.split(new RegExp(`(${escapeRegExp(q)})`, "gi"));
-  const markClass = className ?? "rounded bg-[#534AB7]/90 px-0.5 font-medium text-[#EEEDFE]";
+  const markClass = className ?? "bg-transparent font-semibold text-[#AFA9EC]";
   return (
     <>
       {parts.map((part, i) =>

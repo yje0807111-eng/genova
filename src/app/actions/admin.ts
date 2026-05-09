@@ -21,6 +21,7 @@ async function requireAdmin() {
 export async function createCompetitionAction(form: {
   id: string;
   title: string;
+  subtitle?: string;
   genre: string;
   status: string;
   deadline: string;
@@ -41,6 +42,7 @@ export async function createCompetitionAction(form: {
   const { error } = await supabase.from("competitions").insert({
     id,
     title: form.title.trim(),
+    description: form.subtitle?.trim() || null,
     genre: form.genre.trim() || "All",
     status: form.status.trim() || "Open",
     deadline: form.deadline || null,
@@ -66,6 +68,7 @@ export async function updateCompetitionAction(
     title_ko?: string;
     title_en?: string;
     title_ja?: string;
+    description?: string;
     genre: string;
     status: string;
     deadline: string;
@@ -91,6 +94,15 @@ export async function updateCompetitionAction(
     announcement_ko?: string;
     announcement_en?: string;
     announcement_ja?: string;
+    concept_ko?: string;
+    concept_en?: string;
+    concept_ja?: string;
+    start_date?: string;
+    prize_grand?: string;
+    prize_excellence?: string;
+    prize_merit?: string;
+    prize_audience?: string;
+    prize_audience_count?: number;
     templateUrl: string;
     exchange_rate_usd_krw?: number;
     exchange_rate_usd_jpy?: number;
@@ -113,6 +125,7 @@ export async function updateCompetitionAction(
     .from("competitions")
     .update({
       title: titleMain,
+      description: form.description?.trim() || null,
       title_ko: form.title_ko?.trim() || null,
       title_en: form.title_en?.trim() || null,
       title_ja: form.title_ja?.trim() || null,
@@ -164,6 +177,16 @@ export async function updateCompetitionAction(
       announcement_ko: form.announcement_ko?.trim() || null,
       announcement_en: form.announcement_en?.trim() || null,
       announcement_ja: form.announcement_ja?.trim() || null,
+      concept: form.concept_ko?.trim() || form.concept_en?.trim() || form.concept_ja?.trim() || null,
+      concept_ko: form.concept_ko?.trim() || null,
+      concept_en: form.concept_en?.trim() || null,
+      concept_ja: form.concept_ja?.trim() || null,
+      start_date: form.start_date || null,
+      prize_grand: form.prize_grand?.trim() || null,
+      prize_excellence: form.prize_excellence?.trim() || null,
+      prize_merit: form.prize_merit?.trim() || null,
+      prize_audience: form.prize_audience?.trim() || null,
+      prize_audience_count: form.prize_audience_count ?? 1,
       template_url: form.templateUrl.trim() || null,
       exchange_rate_usd_krw: form.exchange_rate_usd_krw ?? 1350,
       exchange_rate_usd_jpy: form.exchange_rate_usd_jpy ?? 148,
@@ -269,5 +292,122 @@ export async function setVideoAwardAction(videoId: string, award: string): Promi
   }
   revalidatePath("/admin");
   revalidatePath("/competition");
+  return { ok: true };
+}
+
+/** Single-competition submissions for admin expand panel (likes from `likes` table; no `videos.like_count` column). */
+export type CompetitionSubmissionVideo = {
+  id: string;
+  title: string;
+  thumbnail_url: string | null;
+  view_count: number | null;
+  created_at: string;
+  like_count: number;
+  is_finalist: boolean;
+  is_original: boolean;
+  is_competition_featured: boolean;
+  award: string | null;
+  visibility: "public" | "private";
+  profiles: { display_name: string | null; avatar_url: string | null } | null;
+};
+
+export async function getCompetitionVideosAction(competitionId: string): Promise<CompetitionSubmissionVideo[]> {
+  const auth = await requireAdmin();
+  if ("error" in auth) return [];
+  const { supabase } = auth;
+  const cid = competitionId.trim();
+  if (!cid) return [];
+
+  const { data, error } = await supabase
+    .from("videos")
+    .select(
+      "id, title, thumbnail_url, view_count, created_at, is_finalist, is_original, is_competition_featured, award, visibility, profiles!videos_uploaded_by_fkey(display_name, avatar_url)",
+    )
+    .eq("submitted_competition_id", cid)
+    .eq("purpose", "competition")
+    .order("created_at", { ascending: false });
+
+  if (error) {
+    console.error("[getCompetitionVideosAction]", error.message);
+    return [];
+  }
+
+  const rows = data ?? [];
+  const ids = rows.map((r) => r.id as string);
+  const likeCountMap = new Map<string, number>();
+  if (ids.length > 0) {
+    const { data: likeRows, error: likesErr } = await supabase.from("likes").select("video_id").in("video_id", ids);
+    if (likesErr) {
+      console.error("[getCompetitionVideosAction] likes", likesErr.message);
+    } else {
+      for (const row of likeRows ?? []) {
+        const vid = row.video_id as string;
+        likeCountMap.set(vid, (likeCountMap.get(vid) ?? 0) + 1);
+      }
+    }
+  }
+
+  return rows.map((v) => ({
+    id: v.id as string,
+    title: (v.title as string) ?? "",
+    thumbnail_url: (v.thumbnail_url as string | null) ?? null,
+    view_count: (v.view_count as number | null) ?? null,
+    created_at: v.created_at as string,
+    like_count: likeCountMap.get(v.id as string) ?? 0,
+    is_finalist: Boolean(v.is_finalist),
+    is_original: Boolean(v.is_original),
+    is_competition_featured: Boolean(v.is_competition_featured),
+    award: (v.award as string | null) ?? null,
+    visibility: (v.visibility as "public" | "private") ?? "public",
+    profiles: (v.profiles as CompetitionSubmissionVideo["profiles"]) ?? null,
+  }));
+}
+
+export async function toggleCompetitionFeaturedAction(videoId: string, featured: boolean): Promise<AdminResult> {
+  const auth = await requireAdmin();
+  if ("error" in auth) return { ok: false, message: auth.error ?? "Unauthorized" };
+  const { supabase } = auth;
+
+  const { data: video, error: fetchErr } = await supabase
+    .from("videos")
+    .select("id, submitted_competition_id, purpose")
+    .eq("id", videoId)
+    .maybeSingle();
+
+  if (fetchErr) return { ok: false, message: fetchErr.message };
+  if (!video) return { ok: false, message: "영상을 찾을 수 없습니다." };
+  if (video.purpose !== "competition" || !video.submitted_competition_id) {
+    return { ok: false, message: "공모전 출품작이 아닙니다." };
+  }
+
+  const { error } = await supabase.from("videos").update({ is_competition_featured: featured }).eq("id", videoId);
+
+  if (error) {
+    console.error("[toggleCompetitionFeaturedAction]", error.message);
+    return { ok: false, message: error.message };
+  }
+
+  revalidatePath(`/competition/${video.submitted_competition_id as string}`);
+  revalidatePath("/competition");
+  revalidatePath("/admin");
+  return { ok: true };
+}
+
+/** 공모전 행 `competitions.is_featured` (목록 추천). 영상용 `toggleCompetitionFeaturedAction`과 구분. */
+export async function toggleCompetitionFeaturedFlagAction(competitionId: string, featured: boolean): Promise<AdminResult> {
+  const auth = await requireAdmin();
+  if ("error" in auth) return { ok: false, message: auth.error ?? "Unauthorized" };
+  const { supabase } = auth;
+
+  const { error } = await supabase.from("competitions").update({ is_featured: featured }).eq("id", competitionId);
+
+  if (error) {
+    console.error("[toggleCompetitionFeaturedFlagAction]", error.message);
+    return { ok: false, message: error.message };
+  }
+
+  revalidatePath("/competition");
+  revalidatePath("/admin");
+  revalidatePath("/");
   return { ok: true };
 }

@@ -1,0 +1,21 @@
+/** Maps canonical / marketing tool names to UI category keys (home AI tool cards, /tools/[slug] header). */
+export const TOOL_CATEGORY: Record<string, "image" | "video" | "audio" | "text"> = {
+  Midjourney: "image",
+  "Stable Diffusion": "image",
+  "Nano Banana 2": "image",
+  "Nano Banana Pro": "image",
+  "ChatGPT Image 2": "image",
+  Flux: "image",
+  Kling: "video",
+  Runway: "video",
+  Sora: "video",
+  Veo: "video",
+  Pika: "video",
+  Hailuo: "video",
+  ElevenLabs: "audio",
+  Udio: "audio",
+  Suno: "audio",
+  ChatGPT: "text",
+  Claude: "text",
+  Gemini: "text",
+};

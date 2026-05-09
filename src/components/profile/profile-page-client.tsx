@@ -9,6 +9,7 @@ import {
   ArrowLeft,
   Bookmark,
   Check,
+  ChevronDown,
   ChevronLeft,
   ChevronRight,
   ChevronsLeft,
@@ -16,27 +17,54 @@ import {
   Eye,
   EyeOff,
   Film,
+  Globe,
   Grid,
+  Instagram,
   MessageCircle,
   MoreHorizontal,
   Pencil,
+  Play,
+  Plus,
   Star,
   Trophy,
   UserCheck,
   UserPlus,
   X,
+  Youtube,
 } from "lucide-react";
 import { followUserAction, unfollowUserAction } from "@/app/actions/profile";
 import { updateVideoVisibilityAction } from "@/app/actions/video";
 import type { FollowingPreviewUser, ProfileAwardBadge } from "@/lib/queries/profile-queries";
 import type { Video } from "@/lib/types";
+import { AnimateIn } from "@/components/animate-in";
 import { addWindowCustomListener } from "@/lib/dom/window-custom-events";
 import { formatUploadedRelative } from "@/lib/format-uploaded-relative";
 import { formatViewCountShort } from "@/lib/view-count";
 import { cn } from "@/lib/utils/cn";
 
 type TabKey = "Videos" | "Competition" | "Series" | "Saved";
+type CompetitionMeta = {
+  id: string;
+  title: string;
+  title_ko?: string | null;
+  title_en?: string | null;
+  title_ja?: string | null;
+  status?: string | null;
+};
+type CompetitionVideo = Video & {
+  competitions?: CompetitionMeta | null;
+};
 const VIDEOS_PER_PAGE = 32;
+const GENRE_LABEL: Record<string, string> = {
+  film: "Filmmaker",
+  animation: "Animator",
+  music: "Music Video",
+  documentary: "Documentary",
+  horror: "Horror",
+  sci_fi: "Sci-Fi",
+  art: "Art",
+  daily: "Daily",
+};
 
 function getVisiblePages(currentPage: number, totalPages: number): number[] {
   const WINDOW = 9;
@@ -51,6 +79,66 @@ function getVisiblePages(currentPage: number, totalPages: number): number[] {
   return pages;
 }
 
+function SocialLinks({
+  websiteUrl,
+  twitterUrl,
+  instagramUrl,
+  youtubeUrl,
+  tiktokUrl,
+  vimeoUrl,
+}: {
+  websiteUrl: string | null;
+  twitterUrl: string | null;
+  instagramUrl: string | null;
+  youtubeUrl: string | null;
+  tiktokUrl: string | null;
+  vimeoUrl: string | null;
+}) {
+  const links = [
+    { href: websiteUrl, label: "Website", icon: <Globe className="h-4 w-4" /> },
+    { href: twitterUrl, label: "X", icon: <X className="h-4 w-4" /> },
+    { href: instagramUrl, label: "Instagram", icon: <Instagram className="h-4 w-4" /> },
+    { href: youtubeUrl, label: "YouTube", icon: <Youtube className="h-4 w-4" /> },
+    {
+      href: tiktokUrl,
+      label: "TikTok",
+      icon: (
+        <svg viewBox="0 0 24 24" className="h-4 w-4" fill="currentColor" aria-hidden>
+          <path d="M19.59 6.69a4.83 4.83 0 01-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 01-2.88 2.5 2.89 2.89 0 01-2.89-2.89 2.89 2.89 0 012.89-2.89c.28 0 .54.04.79.1V9.01a6.33 6.33 0 00-.79-.05 6.34 6.34 0 00-6.34 6.34 6.34 6.34 0 006.34 6.34 6.34 6.34 0 006.33-6.34V8.69a8.18 8.18 0 004.78 1.52V6.75a4.85 4.85 0 01-1.01-.06z" />
+        </svg>
+      ),
+    },
+    {
+      href: vimeoUrl,
+      label: "Vimeo",
+      icon: (
+        <svg viewBox="0 0 24 24" className="h-4 w-4" fill="currentColor" aria-hidden>
+          <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69.01-.03.01-.14-.07-.2-.08-.06-.19-.04-.27-.02-.12.02-1.96 1.25-5.53 3.67-.52.36-1 .53-1.42.52-.47-.01-1.37-.26-2.03-.48-.82-.27-1.47-.42-1.42-.88.03-.25.38-.51 1.07-.78 4.18-1.82 6.97-3.02 8.37-3.6 3.98-1.66 4.81-1.95 5.35-1.96.12 0 .38.03.55.17.14.12.18.28.2.45-.02.07-.02.13-.02.22z" />
+        </svg>
+      ),
+    },
+  ].filter((item) => Boolean(item.href?.trim()));
+
+  if (!links.length) return null;
+
+  return (
+    <div className="flex flex-wrap gap-2">
+      {links.map((item) => (
+        <a
+          key={item.label}
+          href={item.href ?? "#"}
+          target="_blank"
+          rel="noreferrer"
+          className="rounded-lg border border-white/[0.08] p-1.5 text-white/55 transition hover:border-[#7F77DD]/40 hover:text-white"
+          aria-label={item.label}
+        >
+          {item.icon}
+        </a>
+      ))}
+    </div>
+  );
+}
+
 export function GenovaProfileClient({
   profileId,
   displayName,
@@ -58,6 +146,17 @@ export function GenovaProfileClient({
   headerIntro,
   headerToolsLine,
   bioFull,
+  mainGenre,
+  country,
+  availableForCollab,
+  tagline,
+  pronouns,
+  websiteUrl,
+  twitterUrl,
+  instagramUrl,
+  youtubeUrl,
+  tiktokUrl,
+  vimeoUrl,
   avatarUrl,
   bannerUrl,
   joinedLabel,
@@ -66,6 +165,7 @@ export function GenovaProfileClient({
   videoCount,
   works,
   finalistVideos,
+  competitionVideos,
   savedVideos,
   isOwner,
   showFollow,
@@ -80,6 +180,17 @@ export function GenovaProfileClient({
   headerIntro: string;
   headerToolsLine: string;
   bioFull: string;
+  mainGenre: string | null;
+  country: string | null;
+  availableForCollab: boolean;
+  tagline: string | null;
+  pronouns: string | null;
+  websiteUrl: string | null;
+  twitterUrl: string | null;
+  instagramUrl: string | null;
+  youtubeUrl: string | null;
+  tiktokUrl: string | null;
+  vimeoUrl: string | null;
   avatarUrl: string;
   bannerUrl: string | null;
   joinedLabel: string | null;
@@ -88,6 +199,7 @@ export function GenovaProfileClient({
   videoCount: number;
   works: Video[];
   finalistVideos: Video[];
+  competitionVideos: CompetitionVideo[];
   savedVideos: Video[];
   isOwner: boolean;
   showFollow: boolean;
@@ -108,11 +220,13 @@ export function GenovaProfileClient({
   const [showBulkHint, setShowBulkHint] = useState(false);
   const [localWorks, setLocalWorks] = useState<Video[]>(works);
   const [localFinalistVideos, setLocalFinalistVideos] = useState<Video[]>(finalistVideos);
+  const [localCompetitionVideos, setLocalCompetitionVideos] = useState<CompetitionVideo[]>(competitionVideos);
   const [bulkSaving, setBulkSaving] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [activeAwardFilter, setActiveAwardFilter] = useState<string | null>(null);
   const [awardsModalOpen, setAwardsModalOpen] = useState(false);
-  const [visibleAwardIds, setVisibleAwardIds] = useState<string[]>(() => awardBadges.map((a) => a.id));
+  const [expanded, setExpanded] = useState(false);
+  const [visibleAwardIds, setVisibleAwardIds] = useState<string[]>([]);
 
   const tabs = useMemo(() => {
     const base: TabKey[] = ["Videos", "Competition", "Series"];
@@ -124,7 +238,7 @@ export function GenovaProfileClient({
     activeTab === "Videos"
       ? localWorks
       : activeTab === "Competition"
-        ? localFinalistVideos
+        ? localCompetitionVideos
         : activeTab === "Series"
           ? localWorks.filter((v) => v.seriesName)
           : savedVideos;
@@ -156,7 +270,7 @@ export function GenovaProfileClient({
       activeTab === "Videos"
         ? localWorks
         : activeTab === "Competition"
-          ? localFinalistVideos
+          ? localCompetitionVideos
           : activeTab === "Series"
             ? localWorks.filter((v) => v.seriesName)
             : savedVideos;
@@ -191,7 +305,11 @@ export function GenovaProfileClient({
       return sortBy === "Newest" ? tb - ta : ta - tb;
     });
     return arr;
-  }, [activeTab, sortBy, activeAwardFilter, bulkAction, editMode, localWorks, localFinalistVideos, savedVideos]);
+  }, [activeTab, sortBy, activeAwardFilter, bulkAction, editMode, localWorks, localCompetitionVideos, savedVideos]);
+
+  useEffect(() => {
+    setLocalCompetitionVideos(competitionVideos);
+  }, [competitionVideos]);
 
   const displayVideos = useMemo(() => {
     const totalPages = Math.ceil(sortedVideos.length / VIDEOS_PER_PAGE);
@@ -200,11 +318,6 @@ export function GenovaProfileClient({
   }, [sortedVideos, currentPage]);
 
   const totalVideoCount = useMemo(() => localWorks.length, [localWorks]);
-
-  const visibleAwards = useMemo(
-    () => awardBadges.filter((a) => visibleAwardIds.includes(a.id)),
-    [awardBadges, visibleAwardIds],
-  );
 
   const awardCounts = useMemo(() => {
     const counts: Record<string, number> = {};
@@ -239,15 +352,19 @@ export function GenovaProfileClient({
 
   function GenreTrophySvg({ color, rank }: { color: string; rank: "1" | "2" | "3" }) {
     return (
-      <svg width="28" height="28" viewBox="0 0 28 28" className="h-7 w-7" aria-hidden>
-        <path d="M8 4h12v10q0 6-6 8q-6-2-6-8z" fill={color} opacity="0.92" />
-        <path d="M8 6q-4 0-4 4q0 4 4 4" fill="none" stroke={color} strokeWidth="1.5" />
-        <path d="M20 6q4 0 4 4q0 4-4 4" fill="none" stroke={color} strokeWidth="1.5" />
-        <rect x="11" y="22" width="6" height="2" rx="1" fill={color} opacity="0.75" />
-        <rect x="9" y="24" width="10" height="1.5" rx="0.75" fill={color} opacity="0.75" />
-        <text x="14" y="14" textAnchor="middle" fontSize="8" fontWeight="700" fill="white" opacity="0.95">
+      <svg width="36" height="36" viewBox="0 0 36 36" className="h-11 w-11" aria-hidden>
+        <defs>
+          <linearGradient id={`grad-${color.replace("#", "")}-${rank}`} x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor={color} stopOpacity="1" />
+            <stop offset="100%" stopColor={color} stopOpacity="0.6" />
+          </linearGradient>
+        </defs>
+        <circle cx="18" cy="16" r="11" fill={`url(#grad-${color.replace("#", "")}-${rank})`} />
+        <circle cx="18" cy="16" r="11" fill="none" stroke="white" strokeOpacity="0.2" strokeWidth="0.5" />
+        <text x="18" y="20" textAnchor="middle" fontSize="11" fontWeight="800" fill="white">
           {rank}
         </text>
+        <rect x="14" y="27" width="8" height="2" rx="1" fill={color} opacity="0.4" />
       </svg>
     );
   }
@@ -261,19 +378,23 @@ export function GenovaProfileClient({
     gemColor?: string;
     showStar?: boolean;
   }) {
+    const id = cupColor.replace("#", "") + (gemColor?.replace("#", "") ?? "") + (showStar ? "s" : "");
     return (
-      <svg width="28" height="28" viewBox="0 0 28 28" className="h-7 w-7" aria-hidden>
-        <path d="M8 4h12v10q0 6-6 8q-6-2-6-8z" fill={cupColor} opacity="0.92" />
-        <path d="M8 6q-4 0-4 4q0 4 4 4" fill="none" stroke={cupColor} strokeWidth="1.5" />
-        <path d="M20 6q4 0 4 4q0 4-4 4" fill="none" stroke={cupColor} strokeWidth="1.5" />
-        <rect x="11" y="22" width="6" height="2" rx="1" fill={cupColor} opacity="0.75" />
-        <rect x="9" y="24" width="10" height="1.5" rx="0.75" fill={cupColor} opacity="0.75" />
-        {gemColor ? <polygon points="14,5 16,8 14,11 12,8" fill={gemColor} opacity="0.95" /> : null}
+      <svg width="36" height="36" viewBox="0 0 36 36" className="h-11 w-11" aria-hidden>
+        <defs>
+          <linearGradient id={`cup-${id}`} x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor={cupColor} stopOpacity="1" />
+            <stop offset="100%" stopColor={cupColor} stopOpacity="0.5" />
+          </linearGradient>
+        </defs>
+        <path d="M11 5h14v9q0 7-7 9q-7-2-7-9z" fill={`url(#cup-${id})`} />
+        <path d="M11 7q-4 0-4 4q0 4 4 5" fill="none" stroke={cupColor} strokeWidth="1.5" strokeLinecap="round" />
+        <path d="M25 7q4 0 4 4q0 4-4 5" fill="none" stroke={cupColor} strokeWidth="1.5" strokeLinecap="round" />
+        <rect x="14" y="24" width="8" height="2.5" rx="1" fill={cupColor} opacity="0.7" />
+        <rect x="11" y="27" width="14" height="2" rx="1" fill={cupColor} opacity="0.5" />
+        {gemColor ? <circle cx="18" cy="11" r="2" fill={gemColor} opacity="0.95" /> : null}
         {showStar ? (
-          <path
-            d="M14 6.4l.9 1.8 2 .3-1.45 1.4.35 1.95L14 10.9l-1.8.95.35-1.95L11.1 8.5l2-.3z"
-            fill="rgba(255,255,255,0.72)"
-          />
+          <path d="M18 8l1.2 2.4 2.6.4-1.9 1.8.45 2.6L18 14l-2.35 1.2.45-2.6L14.2 10.8l2.6-.4z" fill="white" opacity="0.85" />
         ) : null}
       </svg>
     );
@@ -326,257 +447,348 @@ export function GenovaProfileClient({
     return filter ?? "";
   };
 
-  return (
-    <div className="min-h-screen w-full bg-background text-foreground">
-      <div>
-        {/* 커버 배너 — 풀 폭 */}
-        <div
-          className="relative h-56 w-full overflow-hidden"
-          style={{
-            background: "linear-gradient(135deg, #1a1547 0%, #26215C 40%, #0f0d24 100%)",
-          }}
-        >
-          {bannerUrl ? (
-            <img src={bannerUrl} alt="" className="absolute inset-0 h-full w-full object-cover" />
-          ) : null}
-          <div
-            className="absolute inset-0"
-            style={{
-              background:
-                "radial-gradient(ellipse at 30% 50%, rgba(83,74,183,0.4) 0%, transparent 60%), radial-gradient(ellipse at 80% 30%, rgba(127,119,221,0.2) 0%, transparent 50%)",
-            }}
-          />
-          <div
-            className="absolute inset-0"
-            style={{
-              background: "linear-gradient(to bottom, transparent 50%, rgba(8,6,24,0.9) 100%)",
-            }}
-          />
-        </div>
+  const totalAwardCount = useMemo(() => works.filter((v) => v.award !== null).length, [works]);
+  const getCount = (type: ProfileAwardBadge["awardType"], tier: ProfileAwardBadge["awardTier"]) =>
+    awardBadges.filter((a) => a.awardType === type && a.awardTier === tier).length;
+  const achievementItems = [
+    { id: "weekly-gold", awardType: "weekly" as const, awardTier: "gold" as const, count: getCount("weekly", "gold"), tooltip: "Genre Award · 1st" },
+    { id: "weekly-silver", awardType: "weekly" as const, awardTier: "silver" as const, count: getCount("weekly", "silver"), tooltip: "Genre Award · 2nd" },
+    { id: "weekly-bronze", awardType: "weekly" as const, awardTier: "bronze" as const, count: getCount("weekly", "bronze"), tooltip: "Genre Award · 3rd" },
+    { id: "competition-1", awardType: "competition" as const, awardTier: "1" as const, count: getCount("competition", "1"), tooltip: "Competition · Grand Prize" },
+    { id: "competition-2", awardType: "competition" as const, awardTier: "2" as const, count: getCount("competition", "2"), tooltip: "Competition · Runner-up" },
+    { id: "competition-3", awardType: "competition" as const, awardTier: "3" as const, count: getCount("competition", "3"), tooltip: "Competition · 3rd Place" },
+    { id: "competition-4-10", awardType: "competition" as const, awardTier: "4-10" as const, count: getCount("competition", "4-10"), tooltip: "Competition · Top 10" },
+  ].filter((item) => item.count > 0);
+  const sortedAwards = useMemo(() => {
+    const order: Record<string, number> = {
+      "competition-1": 1,
+      "competition-2": 2,
+      "competition-3": 3,
+      "competition-4-10": 4,
+      "weekly-gold": 5,
+      "weekly-silver": 6,
+      "weekly-bronze": 7,
+    };
+    return [...achievementItems].sort(
+      (a, b) => (order[`${a.awardType}-${a.awardTier}`] ?? 99) - (order[`${b.awardType}-${b.awardTier}`] ?? 99),
+    );
+  }, [achievementItems]);
+  useEffect(() => {
+    if (visibleAwardIds.length === 0 && sortedAwards.length > 0) {
+      setVisibleAwardIds(sortedAwards.map((a) => a.id));
+    }
+  }, [sortedAwards, visibleAwardIds.length]);
+  const visibleAwards = useMemo(
+    () => sortedAwards.filter((a) => visibleAwardIds.includes(a.id)),
+    [sortedAwards, visibleAwardIds],
+  );
+  const awardLabel = (a: ProfileAwardBadge): string => {
+    if (a.awardType === "competition") {
+      if (a.awardTier === "1") return "Grand Prize";
+      if (a.awardTier === "2") return "Runner-up";
+      if (a.awardTier === "3") return "3rd Place";
+      if (a.awardTier === "4-10") return "Special Award";
+    }
+    if (a.awardType === "weekly") {
+      if (a.awardTier === "gold") return "Weekly Gold";
+      if (a.awardTier === "silver") return "Weekly Silver";
+      if (a.awardTier === "bronze") return "Weekly Bronze";
+    }
+    return "";
+  };
 
-        <div className="mx-auto w-full max-w-[1400px] px-4 sm:px-6">
-        {/* 프로필 정보 */}
-        <div className="relative z-10 flex items-end gap-6 pb-6" style={{ marginTop: "-64px" }}>
-          {/* 아바타 */}
-          <div className="shrink-0">
+  return (
+    <div className="relative min-h-screen w-full overflow-hidden bg-background text-foreground">
+      <div
+        className="pointer-events-none fixed inset-0 z-0"
+        style={{
+          background:
+            "radial-gradient(ellipse at 20% 0%, rgba(83,74,183,0.08) 0%, transparent 50%), radial-gradient(ellipse at 80% 100%, rgba(127,119,221,0.05) 0%, transparent 50%)",
+        }}
+      />
+      <div className="relative z-10">
+      <div>
+        {/* 커버 배너 */}
+        <div className="relative">
+          <div
+            className="relative h-[200px] w-full overflow-hidden md:h-[420px]"
+            style={{
+              background: "linear-gradient(135deg, #1a1547 0%, #26215C 40%, #0f0d24 100%)",
+            }}
+          >
+            {bannerUrl ? (
+              <img src={bannerUrl} alt="" className="absolute inset-0 h-full w-full object-cover" />
+            ) : null}
             <div
-              className="h-32 w-32 overflow-hidden rounded-full border-4 border-[#080618]"
+              className="absolute inset-0"
               style={{
-                boxShadow: "0 0 0 3px #534AB7, 0 0 30px rgba(83,74,183,0.6)",
+                background:
+                  "radial-gradient(ellipse at 30% 50%, rgba(83,74,183,0.4) 0%, transparent 60%), radial-gradient(ellipse at 80% 30%, rgba(127,119,221,0.2) 0%, transparent 50%)",
               }}
-            >
-              <Image
-                src={avatarUrl}
-                alt={displayName}
-                width={128}
-                height={128}
-                className="h-full w-full object-cover"
-                unoptimized={avatarUrl.startsWith("http")}
-              />
+            />
+            <div className="pointer-events-none absolute inset-x-0 top-0 z-10 h-32 bg-gradient-to-b from-[#080618]/60 via-transparent to-transparent" />
+            <div
+              className="pointer-events-none absolute inset-x-0 bottom-0 h-[60%]"
+              style={{
+                background: "linear-gradient(to bottom, transparent 0%, rgba(8,6,24,0.6) 50%, #080618 100%)",
+              }}
+            />
+
+            <div className="absolute right-3 top-16 z-20 md:right-6 md:top-20">
+              {isOwner ? null : (
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      window.dispatchEvent(
+                        new CustomEvent("open-message", {
+                          detail: {
+                            userId: profileId,
+                            displayName: displayName,
+                            avatarUrl: avatarUrl,
+                          },
+                        }),
+                      );
+                    }}
+                    className="flex items-center gap-2 rounded-lg border border-white/15 bg-white/5 px-4 py-2 text-sm transition hover:bg-white/10"
+                  >
+                    <MessageCircle className="h-4 w-4" />
+                    {t("profile.message", "Message")}
+                  </button>
+                  {showFollow ? (
+                    <button
+                      type="button"
+                      onClick={onFollowToggle}
+                      disabled={pending}
+                      className={cn(
+                        "flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold transition disabled:opacity-60",
+                        following
+                          ? "border border-white/20 bg-white/5 hover:bg-white/10"
+                          : "bg-[#534AB7] text-white hover:bg-[#6B5FD4]",
+                      )}
+                    >
+                      {following ? <UserCheck className="h-4 w-4" /> : <UserPlus className="h-4 w-4" />}
+                      {following ? t("profile.following", "Following") : t("profile.follow", "Follow")}
+                    </button>
+                  ) : null}
+                  <button
+                    type="button"
+                    className="rounded-lg border border-white/15 bg-white/5 p-2 transition hover:bg-white/10"
+                  >
+                    <MoreHorizontal className="h-4 w-4" />
+                  </button>
+                </div>
+              )}
             </div>
           </div>
+        </div>
 
-          {/* 텍스트 정보 */}
-          <div className="min-w-0 flex-1 pb-2">
-            <div className="flex items-end justify-between gap-4">
-              <div>
-                <h1 className="text-2xl font-black tracking-tight text-white">{displayName}</h1>
-                <p className="mt-0.5 text-sm font-medium text-[#7F77DD]/70">@{handle}</p>
-                {headerIntro ? (
-                  <p className="mt-1.5 text-sm leading-relaxed text-[#AFA9EC]">{headerIntro}</p>
-                ) : null}
-                {headerToolsLine ? (
-                  <p className="mt-1 text-[11px] tracking-wide text-white/25">{headerToolsLine}</p>
-                ) : null}
-
-                {/* 통계 */}
-                <div className="mt-3 flex items-center gap-4">
-                  <div className="text-center">
-                    <p className="text-xl font-black tracking-tight text-white">{followersCount}</p>
-                    <p className="text-[11px] font-medium uppercase tracking-widest text-white/35">{t("profile.followers", "Followers")}</p>
+        <AnimateIn delay={0.05}>
+        <div className="relative z-10 mx-auto w-full max-w-[1280px] -mt-40 px-6 pb-6 sm:px-12 md:-mt-48">
+          <div className="grid grid-cols-1 gap-4 lg:grid-cols-[1fr_auto]">
+            {/* 좌측: 프로필 + Stats */}
+            <div className="relative min-w-0 rounded-xl border border-white/10 bg-[#080618]/40 p-6 backdrop-blur-xl transition-all duration-500 hover:border-[#7F77DD]/25 hover:shadow-[0_0_40px_rgba(127,119,221,0.15)] md:p-8">
+              {isOwner ? (
+                <Link
+                  href="/profile/settings"
+                  className="absolute right-3 top-3 rounded-lg border border-white/10 bg-white/5 px-3 py-1.5 text-xs font-medium text-white/70 backdrop-blur-md transition hover:border-white/20 hover:bg-white/10 hover:text-white"
+                >
+                  {t("settings.editProfile", "Edit profile")}
+                </Link>
+              ) : null}
+              <div className="flex flex-row items-center justify-between gap-5">
+                <div className="flex flex-col items-center gap-6 text-center md:flex-row md:items-center md:gap-10 md:text-left">
+                  <div className="relative">
+                    <div className="h-36 w-36 overflow-hidden rounded-full ring-1 ring-white/10">
+                      <Image
+                        src={avatarUrl}
+                        alt={displayName}
+                        width={144}
+                        height={144}
+                        className="h-full w-full object-cover"
+                        unoptimized={avatarUrl.startsWith("http")}
+                      />
+                    </div>
+                    {isOwner ? (
+                      <Link
+                        href="/profile/settings"
+                        className="absolute bottom-1 right-1 flex h-7 w-7 items-center justify-center rounded-full border border-white/10 bg-black/50 text-white/70 backdrop-blur-md transition hover:border-white/20 hover:bg-black/70"
+                        aria-label={t("settings.editProfile", "Edit profile")}
+                      >
+                        <Pencil className="h-3 w-3" />
+                      </Link>
+                    ) : null}
                   </div>
-                  <div className="h-8 w-px bg-white/10" />
-                  <div className="text-center">
-                    <p className="text-xl font-black tracking-tight text-white">{followingCount}</p>
-                    <p className="text-[11px] font-medium uppercase tracking-widest text-white/35">
-                      {t("profile.followingCountLabel")}
+
+                  <div className="min-w-0 flex-1">
+                    <div className="flex flex-wrap items-center justify-center gap-3 md:justify-start">
+                      <h1 className="text-2xl font-bold text-white md:text-3xl">{displayName}</h1>
+                    </div>
+                    <div className="mt-2.5 flex flex-wrap items-center gap-3">
+                      <p className="text-sm text-white/50">@{handle}</p>
+                      {mainGenre ? (
+                        <span className="inline-flex rounded-md border border-[#7F77DD]/30 bg-[#534AB7]/15 px-2 py-0.5 text-[10px] font-medium uppercase tracking-wider text-[#AFA9EC]">
+                          {GENRE_LABEL[mainGenre] ?? mainGenre}
+                        </span>
+                      ) : null}
+                    </div>
+                    {headerIntro ? <p className="mt-4 line-clamp-1 text-sm text-white/70">{headerIntro}</p> : null}
+                    <div className="mt-4 inline-flex items-center gap-2">
+                      {availableForCollab ? (
+                        <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2 py-0.5 text-[10px] font-medium text-emerald-300">
+                          <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                          Open to collaborate
+                        </span>
+                      ) : null}
+                      <button
+                        type="button"
+                        onClick={() => setExpanded((prev) => !prev)}
+                        className="inline-flex items-center gap-1 text-xs text-white/50 transition hover:text-white"
+                      >
+                        {expanded ? "Show less" : "Show more"}
+                        <ChevronDown className={cn("h-3 w-3 transition-transform", expanded && "rotate-180")} />
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                <div
+                  className="relative overflow-hidden rounded-xl border border-white/[0.06] px-8 py-6"
+                  style={{
+                    background:
+                      "radial-gradient(ellipse 100% 80% at 50% 100%, rgba(83,74,183,0.25) 0%, transparent 60%), rgba(255,255,255,0.02)",
+                  }}
+                >
+                  <div className="flex items-center gap-10 md:gap-12">
+                    <div className="flex flex-col items-center">
+                      <p className="text-2xl font-bold leading-none tabular-nums text-white">
+                      {totalVideoCount}
                     </p>
-                  </div>
-                  <div className="h-8 w-px bg-white/10" />
-                  <div className="text-center">
-                    <p className="text-xl font-black tracking-tight text-white">{totalVideoCount}</p>
-                    <p className="text-[11px] font-medium uppercase tracking-widest text-white/35">{t("profile.videos", "Videos")}</p>
+                      <p className="mt-2 text-xs text-white/40">{t("profile.videos", "Videos")}</p>
+                    </div>
+                    <div className="flex flex-col items-center">
+                      <p className="text-2xl font-bold leading-none tabular-nums text-white">
+                      {followersCount}
+                    </p>
+                      <p className="mt-2 text-xs text-white/40">{t("profile.followers", "Followers")}</p>
+                    </div>
+                    <div className="flex flex-col items-center">
+                      <p className="text-2xl font-bold leading-none tabular-nums text-white">
+                      {followingCount}
+                    </p>
+                      <p className="mt-2 text-xs text-white/40">{t("profile.followingCountLabel")}</p>
+                    </div>
                   </div>
                 </div>
               </div>
 
-              {/* 버튼 */}
-              <div className="shrink-0 pb-2">
-                {isOwner ? (
-                  <Link
-                    href="/profile/settings"
-                    className="rounded-lg border border-white/20 bg-white/5 px-4 py-2 text-sm font-semibold text-white backdrop-blur-sm transition hover:bg-white/10"
-                  >
-                    {t("settings.editProfile", "Edit profile")}
-                  </Link>
-                ) : (
-                  <div className="flex items-center gap-2">
-                    <button
-                      type="button"
-                      onClick={() => {
-                        window.dispatchEvent(
-                          new CustomEvent("open-message", {
-                            detail: {
-                              userId: profileId,
-                              displayName: displayName,
-                              avatarUrl: avatarUrl,
-                            },
-                          }),
-                        );
-                      }}
-                      className="flex items-center gap-2 rounded-lg border border-white/15 bg-white/5 px-4 py-2 text-sm transition hover:bg-white/10"
-                    >
-                      <MessageCircle className="h-4 w-4" />
-                      {t("profile.message", "Message")}
-                    </button>
-                    {showFollow ? (
-                      <button
-                        type="button"
-                        onClick={onFollowToggle}
-                        disabled={pending}
-                        className={cn(
-                          "flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold transition disabled:opacity-60",
-                          following
-                            ? "border border-white/20 bg-white/5 hover:bg-white/10"
-                            : "bg-[#534AB7] text-white hover:bg-[#6B5FD4]",
-                        )}
-                      >
-                        {following ? <UserCheck className="h-4 w-4" /> : <UserPlus className="h-4 w-4" />}
-                        {following ? t("profile.following", "Following") : t("profile.follow", "Follow")}
-                      </button>
-                    ) : null}
-                    <button
-                      type="button"
-                      className="rounded-lg border border-white/15 bg-white/5 p-2 transition hover:bg-white/10"
-                    >
-                      <MoreHorizontal className="h-4 w-4" />
-                    </button>
+              {expanded ? (
+                <div className="mt-6 space-y-5 border-t border-white/[0.06] pt-6">
+                  {headerToolsLine ? (
+                    <div>
+                      <p className="mb-1.5 text-[10px] font-medium uppercase tracking-widest text-white/40">AI Tools</p>
+                      <div className="flex flex-wrap gap-1.5">
+                        {headerToolsLine.split(" · ").map((tool) => (
+                          <span
+                            key={tool}
+                            className="rounded-md border border-white/[0.08] bg-white/[0.02] px-2 py-0.5 text-xs text-white/70"
+                          >
+                            {tool}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  ) : null}
+
+                  <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-white/50">
+                    {country ? <span>📍 {country}</span> : null}
+                    {joinedLabel ? <span>{joinedLabel}</span> : null}
                   </div>
-                )}
-              </div>
+
+                  {bioFull && bioFull.length > headerIntro.length ? (
+                    <p className="whitespace-pre-wrap text-sm text-white/70">{bioFull}</p>
+                  ) : null}
+
+                  <SocialLinks
+                    websiteUrl={websiteUrl}
+                    twitterUrl={twitterUrl}
+                    instagramUrl={instagramUrl}
+                    youtubeUrl={youtubeUrl}
+                    tiktokUrl={tiktokUrl}
+                    vimeoUrl={vimeoUrl}
+                  />
+                </div>
+              ) : null}
             </div>
+
+            {/* 우측: Achievements */}
+            {awardBadges.length > 0 || isOwner ? (
+              <div className="shrink-0 rounded-xl border border-white/10 bg-[#080618]/40 p-5 backdrop-blur-xl transition-all duration-500 hover:border-[#7F77DD]/25 hover:shadow-[0_0_40px_rgba(127,119,221,0.15)] md:p-6 lg:w-[300px]">
+                <div className="mb-4 flex items-center justify-between">
+                  <p className="text-xs uppercase tracking-wider text-white/50">
+                    {t("profile.achievements", "Achievements")}
+                  </p>
+                  <span className="text-xs text-white/40">{visibleAwards.length} earned</span>
+                </div>
+                <div className="grid grid-cols-4 gap-3">
+                  {visibleAwards.map((item) => (
+                    <div
+                      key={item.id}
+                      className="group relative flex flex-col items-center"
+                    >
+                      <span className="pointer-events-none absolute -top-9 left-1/2 z-10 -translate-x-1/2 whitespace-nowrap rounded-md border border-white/10 bg-black/90 px-2 py-1 text-[10px] font-medium text-white opacity-0 transition group-hover:opacity-100">
+                        {awardLabel({
+                          id: item.id,
+                          awardType: item.awardType,
+                          awardTier: item.awardTier,
+                          createdAt: "",
+                        })}
+                      </span>
+                      <div className="transition-transform duration-200 group-hover:scale-110 group-hover:drop-shadow-[0_0_14px_rgba(127,119,221,0.35)]">
+                        {renderAwardIcon({
+                          id: item.id,
+                          awardType: item.awardType,
+                          awardTier: item.awardTier,
+                          createdAt: "",
+                        })}
+                      </div>
+                      <span className="text-xs font-semibold text-white/70">x{item.count}</span>
+                    </div>
+                  ))}
+                  {(visibleAwards.length < sortedAwards.length || isOwner) && (
+                    <button
+                      type="button"
+                      onClick={() => setAwardsModalOpen(true)}
+                      className="flex h-10 w-10 items-center justify-center rounded-full border border-dashed border-white/15 text-white/40 transition hover:border-[#7F77DD]/50 hover:text-[#7F77DD]"
+                      aria-label={t("profile.customize", "Customize")}
+                    >
+                      <Plus className="h-4 w-4" />
+                    </button>
+                  )}
+                </div>
+              </div>
+            ) : null}
           </div>
         </div>
-
-      <div className="border-t border-white/[0.06] py-4">
-        <p className="mb-3 text-[10px] font-bold uppercase tracking-[0.2em] text-[#7F77DD]/50">
-          {t("profile.achievements", "Achievements")}
-        </p>
-        <div className="flex items-center gap-4">
-          {competitionAwards.map((award) => (
-            <div
-              key={award.tier}
-              className={cn(
-                "group relative flex-shrink-0",
-                award.count === 0 ? "opacity-40" : "cursor-pointer transition-transform duration-200 hover:scale-125",
-              )}
-              title={award.tooltip}
-              onClick={
-                award.count > 0
-                  ? () => {
-                      setActiveTab("Competition");
-                      setActiveAwardFilter(award.tier);
-                    }
-                  : undefined
-              }
-            >
-              <span className="pointer-events-none absolute -top-8 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-md bg-neutral-800 px-2 py-1 text-xs text-white opacity-0 transition-opacity duration-200 group-hover:opacity-100">
-                {award.tooltip}
-              </span>
-              <Trophy className="h-6 w-6" style={{ color: award.count === 0 ? "#3a3a3a" : award.color }} aria-hidden />
-              <div
-                className={cn(
-                  "absolute -bottom-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-background text-[9px] font-bold",
-                  award.count > 0 ? "border border-white/20 text-white" : "border border-white/5 text-neutral-600",
-                )}
-              >
-                x{award.count}
-              </div>
-            </div>
-          ))}
-          <div className="mx-4 h-8 self-center border-l border-neutral-700" aria-hidden />
-          {genreAwards.map((award) => (
-            <div
-              key={award.place}
-              className={cn(
-                "group relative flex-shrink-0",
-                award.count === 0 ? "opacity-40" : "cursor-pointer transition-transform duration-200 hover:scale-125",
-              )}
-              title={award.tooltip}
-              onClick={
-                award.count > 0
-                  ? () => {
-                      setActiveTab("Videos");
-                      setActiveAwardFilter(`genre_${award.place}`);
-                    }
-                  : undefined
-              }
-            >
-              <span className="pointer-events-none absolute -top-8 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-md bg-neutral-800 px-2 py-1 text-xs text-white opacity-0 transition-opacity duration-200 group-hover:opacity-100">
-                {award.tooltip}
-              </span>
-              <Star className="h-6 w-6" style={{ color: award.count === 0 ? "#3a3a3a" : award.color }} aria-hidden />
-              <div
-                className={cn(
-                  "absolute -bottom-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-background text-[9px] font-bold",
-                  award.count > 0 ? "border border-white/20 text-white" : "border border-white/5 text-neutral-600",
-                )}
-              >
-                x{award.count}
-              </div>
-            </div>
-          ))}
-          {(() => {
-            const totalAwardCount = works.filter((v) => v.award !== null).length;
-            return totalAwardCount > 0 ? (
-              <div
-                className="group relative flex-shrink-0 ml-2 cursor-pointer transition-transform duration-200 hover:scale-110"
-                onClick={() => {
-                  setActiveTab("Videos");
-                  setActiveAwardFilter("all");
-                }}
-              >
-                <span
-                  className={cn(
-                    "flex items-center gap-1 rounded-full border px-2 py-0.5 text-[10px] font-semibold transition",
-                    activeAwardFilter === "all"
-                      ? "border-primary bg-primary/20 text-primary"
-                      : "border-white/20 bg-white/5 text-white/60 hover:text-white hover:border-white/40",
-                  )}
-                >
-                  All
-                </span>
-              </div>
-            ) : null;
-          })()}
-        </div>
+        </AnimateIn>
       </div>
 
       {/* Tabs + grid */}
-      <div className="border-t border-border pb-12 pt-4">
-        <div className="min-w-0 w-full">
-            <div className="flex flex-col gap-3 border-b border-border sm:flex-row sm:items-center sm:justify-between">
-              <div className="flex flex-wrap">
+      <AnimateIn delay={0.1}>
+      <div className="pb-12 pt-6">
+        <div className="mx-auto min-w-0 w-full max-w-[1280px] px-6 sm:px-12">
+            <div className="flex flex-col gap-3 border-b border-white/[0.04] sm:flex-row sm:items-center sm:justify-between">
+              <div className="flex flex-wrap rounded-xl border border-white/[0.06] bg-white/[0.02] p-1">
                 {tabs.map((tab) => (
                   <button
                     key={tab}
                     type="button"
                     onClick={() => setActiveTab(tab)}
                     className={cn(
-                      "-mb-px mr-6 flex items-center gap-2 border-b-2 pb-3 text-sm transition last:mr-0",
+                      "flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium transition",
                       activeTab === tab
-                        ? "border-[#7F77DD] text-[#AFA9EC] font-semibold"
-                        : "border-transparent text-white/35 hover:text-white/60",
+                        ? "bg-white/[0.05] text-white shadow-[0_2px_8px_rgba(127,119,221,0.4)]"
+                        : "text-white/40 hover:text-white/70",
                     )}
                   >
                     {tab === "Videos" ? <Grid className="h-4 w-4" /> : null}
@@ -594,21 +806,21 @@ export function GenovaProfileClient({
                 ))}
               </div>
               <div className="flex shrink-0 items-center gap-2">
-                {(["Newest", "Oldest", "Most Viewed"] as const).map((opt) => (
-                  <button
-                    key={opt}
-                    type="button"
-                    onClick={() => setSortBy(opt)}
-                    className={cn(
-                      "rounded-full px-3 py-1 text-xs transition",
-                      sortBy === opt
-                        ? "border border-[#7F77DD]/30 bg-[#534AB7]/30 font-semibold text-[#AFA9EC]"
-                        : "text-white/30 hover:text-white/60",
-                    )}
+                <div className="relative">
+                  <select
+                    value={sortBy}
+                    onChange={(e) => {
+                      const v = e.target.value as "Newest" | "Oldest" | "Most Viewed";
+                      setSortBy(v);
+                    }}
+                    className="appearance-none rounded-lg border border-white/[0.08] bg-white/[0.02] px-3 py-2 pr-9 text-sm text-white/80 outline-none transition hover:border-white/15 focus:border-[#7F77DD]/40"
                   >
-                    {opt === "Newest" ? t("profile.sortNewest", "Newest") : opt === "Oldest" ? t("profile.sortOldest", "Oldest") : t("profile.sortMostViewed", "Most viewed")}
-                  </button>
-                ))}
+                    <option value="Newest">Newest</option>
+                    <option value="Oldest">Oldest</option>
+                    <option value="Most Viewed">Most viewed</option>
+                  </select>
+                  <ChevronDown className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-white/40" />
+                </div>
                 {isOwner ? (
                   <button
                     type="button"
@@ -834,9 +1046,22 @@ export function GenovaProfileClient({
                 );
               })()
             ) : (
-              <div className="mt-4 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
-                {displayVideos.videos.length === 0 && activeAwardFilter ? (
-                  <p className="col-span-4 mt-12 text-center text-sm text-neutral-500">{t("profile.noVideosForAward")}</p>
+              <div className="mt-4 grid grid-cols-2 gap-5 md:grid-cols-3 lg:grid-cols-4">
+                {displayVideos.videos.length === 0 ? (
+                  <div className="col-span-4 mt-12 flex flex-col items-center justify-center gap-4 text-center">
+                    <Film className="h-16 w-16 text-white/15" />
+                    <p className="text-sm text-white/40">
+                      {activeAwardFilter ? t("profile.noVideosForAward") : t("profile.noVideosYet", "No videos yet.")}
+                    </p>
+                    {isOwner ? (
+                      <Link
+                        href="/upload"
+                        className="rounded-lg bg-[#534AB7] px-4 py-2 text-sm text-white transition hover:bg-[#7F77DD]"
+                      >
+                        {t("upload.uploadTitle", "Upload video")}
+                      </Link>
+                    ) : null}
+                  </div>
                 ) : null}
                 {displayVideos.videos.map((video) => {
                   const thumb =
@@ -844,11 +1069,18 @@ export function GenovaProfileClient({
                     `https://picsum.photos/seed/${encodeURIComponent(video.id)}/400/225`;
                   const views = formatViewCountShort(video.viewCount ?? 0);
                   const when = formatUploadedRelative(video.createdAt, locale);
+                  const competitionVideo = video as CompetitionVideo;
+                  const competitionTitle =
+                    locale === "ko"
+                      ? competitionVideo.competitions?.title_ko || competitionVideo.competitions?.title
+                      : locale === "ja"
+                        ? competitionVideo.competitions?.title_ja || competitionVideo.competitions?.title
+                        : competitionVideo.competitions?.title_en || competitionVideo.competitions?.title;
                   return (
                     <div
                       key={`${activeTab}-${video.id}`}
                       className={cn(
-                        "relative group/card cursor-pointer",
+                        "relative cursor-pointer",
                         editMode && selectedVideoIds.includes(video.id) && "scale-95 ring-2 ring-primary rounded-xl",
                       )}
                       onClick={
@@ -870,9 +1102,12 @@ export function GenovaProfileClient({
                       <Link
                         href={editMode ? "#" : `/watch/${video.id}`}
                         onClick={editMode ? (e) => e.preventDefault() : undefined}
-                        className="group/card relative block cursor-pointer overflow-hidden rounded-xl border border-white/[0.08] transition-all duration-300 hover:scale-[1.03] hover:border-[#7F77DD]/40 hover:shadow-[0_8px_30px_rgba(0,0,0,0.6)]"
+                        className="group/card block cursor-pointer rounded-xl border border-white/[0.08] transition duration-300 hover:scale-[1.02] hover:border-[#7F77DD]/60 hover:shadow-[0_0_40px_rgba(127,119,221,0.4)]"
                       >
-                        <div className="relative w-full overflow-hidden" style={{ aspectRatio: "16/9" }}>
+                        <div
+                          className="relative w-full overflow-hidden rounded-xl ring-1 ring-transparent transition group-hover/card:ring-[#7F77DD]/30"
+                          style={{ aspectRatio: "16/9" }}
+                        >
                           <Image
                             src={thumb}
                             alt={video.title}
@@ -882,75 +1117,66 @@ export function GenovaProfileClient({
                             unoptimized={thumb.startsWith("http")}
                           />
 
-                          {/* 하단 그라데이션 */}
                           <div
-                            className="absolute inset-x-0 bottom-0 z-[1]"
+                            className="pointer-events-none absolute -right-16 top-1/2 z-[1] h-48 w-48 -translate-y-1/2 rounded-full opacity-0 transition-opacity duration-700 group-hover/card:opacity-100"
                             style={{
-                              height: "85%",
-                              background:
-                                "linear-gradient(to top, rgba(8,6,24,1) 0%, rgba(8,6,24,0.95) 25%, rgba(8,6,24,0.6) 50%, transparent 100%)",
-                              marginBottom: "-1px",
+                              background: "radial-gradient(circle, rgba(127,119,221,0.25) 0%, transparent 70%)",
+                              filter: "blur(40px)",
                             }}
                           />
 
-                          {/* 수상 배지 */}
-                          {video.award ? (
-                            <div className="absolute left-2 top-2 z-[2] flex items-center gap-1 rounded-full bg-black/60 px-2 py-0.5 backdrop-blur-sm">
-                              {video.award === "gold" && <Trophy className="h-3 w-3 text-yellow-400" />}
-                              {video.award === "silver" && <Trophy className="h-3 w-3 text-slate-300" />}
-                              {video.award === "bronze" && <Trophy className="h-3 w-3 text-amber-600" />}
-                              {video.award === "special" && <Trophy className="h-3 w-3 text-purple-400" />}
-                              {video.award === "genre_1st" && <Star className="h-3 w-3 text-yellow-400" />}
-                              {video.award === "genre_2nd" && <Star className="h-3 w-3 text-slate-300" />}
-                              {video.award === "genre_3rd" && <Star className="h-3 w-3 text-amber-600" />}
-                              <span className="text-[10px] font-semibold text-white">
-                                {video.award === "gold" && t("profile.awardGrandPrize")}
-                                {video.award === "silver" && t("profile.awardRunnerUp")}
-                                {video.award === "bronze" && t("profile.awardThirdPlace")}
-                                {video.award === "special" && t("profile.awardSpecial")}
-                                {video.award === "genre_1st" && t("profile.awardGenreFirst")}
-                                {video.award === "genre_2nd" && t("profile.awardGenreSecond")}
-                                {video.award === "genre_3rd" && t("profile.awardGenreThird")}
+                          <div className="absolute inset-0 z-[1] bg-black/0 transition group-hover/card:bg-black/20" />
+
+                          {activeTab === "Competition" && competitionTitle ? (
+                            <div className="absolute left-2 top-2 z-[3]">
+                              <span className="rounded-full border border-[#7F77DD]/30 bg-[#7F77DD]/20 px-2.5 py-1 text-[10px] uppercase tracking-wider text-[#AFA9EC] backdrop-blur-md">
+                                ✦ {competitionTitle}
                               </span>
                             </div>
                           ) : null}
 
-                          {/* 런타임 */}
-                          {video.runtime ? (
-                            <span className="absolute bottom-[44px] right-2 z-[2] rounded bg-black/70 px-1.5 py-0.5 text-[10px] font-bold text-white backdrop-blur-sm">
-                              {video.runtime}
-                            </span>
+                          {/* 수상 배지 */}
+                          {video.award ? (
+                            <div
+                              title={
+                                video.award === "gold"
+                                  ? t("profile.awardGrandPrize")
+                                  : video.award === "silver"
+                                    ? t("profile.awardRunnerUp")
+                                    : video.award === "bronze"
+                                      ? t("profile.awardThirdPlace")
+                                      : video.award === "special"
+                                        ? t("profile.awardSpecial")
+                                        : video.award === "genre_1st"
+                                          ? t("profile.awardGenreFirst")
+                                          : video.award === "genre_2nd"
+                                            ? t("profile.awardGenreSecond")
+                                            : t("profile.awardGenreThird")
+                              }
+                              className="absolute left-2 top-2 z-[3] rounded-full border border-white/10 bg-black/60 p-1.5 backdrop-blur-md"
+                            >
+                              {video.award === "gold" && <Trophy className="h-4 w-4 text-yellow-400" />}
+                              {video.award === "silver" && <Trophy className="h-4 w-4 text-slate-300" />}
+                              {video.award === "bronze" && <Trophy className="h-4 w-4 text-amber-600" />}
+                              {video.award === "special" && <Trophy className="h-4 w-4 text-purple-400" />}
+                              {video.award === "genre_1st" && <Star className="h-4 w-4 text-yellow-400" />}
+                              {video.award === "genre_2nd" && <Star className="h-4 w-4 text-slate-300" />}
+                              {video.award === "genre_3rd" && <Star className="h-4 w-4 text-amber-600" />}
+                            </div>
                           ) : null}
 
                           {/* 호버 플레이 */}
-                          <div className="absolute inset-0 z-[2] flex items-center justify-center opacity-0 transition-opacity duration-300 group-hover/card:opacity-100">
-                            <div className="relative flex items-center justify-center">
-                              <img src="/genova-play1.png" alt="" className="h-[44px] w-[44px] object-contain opacity-50" aria-hidden />
-                              <svg className="absolute h-[16px] w-[16px]" viewBox="0 0 24 24" fill="white" style={{ marginLeft: "1px" }} aria-hidden>
-                                <polygon points="6,3 20,12 6,21" />
-                              </svg>
+                          <div className="absolute inset-0 z-[3] flex items-center justify-center opacity-0 transition-opacity duration-300 group-hover/card:opacity-100">
+                            <div className="flex h-12 w-12 items-center justify-center rounded-full border border-white/20 bg-white/10 backdrop-blur-md">
+                              <Play className="h-5 w-5 text-white" />
                             </div>
-                          </div>
-
-                          {/* 하단 텍스트 */}
-                          <div className="absolute bottom-0 left-0 right-0 z-[3] px-3 pb-2.5">
-                            <h3 className="line-clamp-1 text-[13px] font-bold text-white">{video.title}</h3>
-                            <div className="mt-0.5 flex items-center justify-between">
-                              <p className="text-[11px] text-white/45">
-                                {views} {t("profile.viewsSuffix")}
-                              </p>
-                              <p className="text-[11px] text-white/30">{when}</p>
-                            </div>
-                            {video.description ? (
-                              <p className="mt-0.5 line-clamp-1 text-[11px] text-white/30">{video.description}</p>
-                            ) : null}
                           </div>
 
                           {/* 편집 버튼 */}
                           {isOwner ? (
                             <button
                               type="button"
-                              className="absolute top-2 right-2 z-[10] flex items-center gap-1 rounded-md border-0 bg-black/70 px-2 py-1 text-[10px] text-white/70 opacity-0 backdrop-blur-sm transition group-hover/card:opacity-100 hover:bg-black/90 hover:text-white"
+                              className="absolute right-2 top-2 z-[10] flex items-center gap-1 rounded-md border border-white/15 bg-black/65 px-2 py-1 text-[10px] text-white/70 opacity-0 backdrop-blur-sm transition group-hover/card:opacity-100 hover:bg-black/85 hover:text-white"
                               onClick={(e) => {
                                 e.preventDefault();
                                 e.stopPropagation();
@@ -972,6 +1198,18 @@ export function GenovaProfileClient({
                             </div>
                           ) : null}
                         </div>
+                        <div className="px-2.5 pt-2.5">
+                          <h3 className="line-clamp-1 text-sm font-semibold text-white">{video.title}</h3>
+                          <div className="mt-1 flex items-center gap-2 text-xs text-white/40">
+                            {video.runtime ? <span>{video.runtime}</span> : null}
+                            {video.runtime ? <span>·</span> : null}
+                            <span>
+                              {views} {t("profile.viewsSuffix")}
+                            </span>
+                            <span>·</span>
+                            <span>{when}</span>
+                          </div>
+                        </div>
                       </Link>
                     </div>
                   );
@@ -980,7 +1218,7 @@ export function GenovaProfileClient({
             )}
             {displayVideos.totalPages > 1 ? (
               <div className="w-full px-0">
-                <div className="mt-8 flex items-center justify-center gap-1.5">
+                <div className="mt-8 flex items-center justify-center gap-2">
                   <button
                     type="button"
                     onClick={() => {
@@ -988,7 +1226,7 @@ export function GenovaProfileClient({
                       setTimeout(() => window.scrollTo({ top: 0, behavior: "smooth" }), 50);
                     }}
                     disabled={currentPage === 1}
-                    className="flex h-7 w-7 items-center justify-center rounded-lg border border-border bg-card text-foreground transition-all duration-200 hover:bg-white/5 hover:-translate-y-0.5 hover:border-primary/50 hover:text-primary hover:shadow-md hover:shadow-purple-500/10 disabled:opacity-30"
+                    className="flex h-8 w-8 items-center justify-center rounded-lg border border-white/[0.08] bg-white/[0.02] text-white/50 transition hover:border-white/15 hover:bg-white/[0.05] hover:text-white disabled:opacity-30"
                   >
                     <ChevronsLeft className="h-3.5 w-3.5" />
                   </button>
@@ -999,11 +1237,11 @@ export function GenovaProfileClient({
                       setTimeout(() => window.scrollTo({ top: 0, behavior: "smooth" }), 50);
                     }}
                     disabled={currentPage === 1}
-                    className="flex h-7 w-7 items-center justify-center rounded-lg border border-border bg-card text-foreground transition-all duration-200 hover:bg-white/5 hover:-translate-y-0.5 hover:border-primary/50 hover:text-primary hover:shadow-md hover:shadow-purple-500/10 disabled:opacity-30"
+                    className="flex h-8 w-8 items-center justify-center rounded-lg border border-white/[0.08] bg-white/[0.02] text-white/50 transition hover:border-white/15 hover:bg-white/[0.05] hover:text-white disabled:opacity-30"
                   >
                     <ChevronLeft className="h-3.5 w-3.5" />
                   </button>
-                  <div className="flex items-center gap-1.5">
+                  <div className="flex items-center gap-2">
                     {getVisiblePages(currentPage, displayVideos.totalPages).map((page) => (
                       <button
                         key={page}
@@ -1013,10 +1251,10 @@ export function GenovaProfileClient({
                           window.scrollTo({ top: 0, behavior: "smooth" });
                         }}
                         className={cn(
-                          "h-7 w-7 rounded-lg border text-xs transition-all duration-200",
+                          "h-8 w-8 rounded-lg border text-xs transition",
                           currentPage === page
-                            ? "border-primary bg-primary/20 font-medium text-primary shadow-md shadow-purple-500/20"
-                            : "border-border bg-card text-foreground hover:bg-white/5 hover:border-primary/50 hover:text-primary hover:-translate-y-0.5 hover:shadow-md hover:shadow-purple-500/10",
+                            ? "border-[#534AB7]/40 bg-[#534AB7]/20 font-medium text-[#AFA9EC]"
+                            : "border-white/[0.08] bg-white/[0.02] text-white/50 hover:border-white/15 hover:bg-white/[0.05] hover:text-white",
                         )}
                       >
                         {page}
@@ -1030,7 +1268,7 @@ export function GenovaProfileClient({
                       setTimeout(() => window.scrollTo({ top: 0, behavior: "smooth" }), 50);
                     }}
                     disabled={currentPage === displayVideos.totalPages}
-                    className="flex h-7 w-7 items-center justify-center rounded-lg border border-border bg-card text-foreground transition-all duration-200 hover:bg-white/5 hover:-translate-y-0.5 hover:border-primary/50 hover:text-primary hover:shadow-md hover:shadow-purple-500/10 disabled:opacity-30"
+                    className="flex h-8 w-8 items-center justify-center rounded-lg border border-white/[0.08] bg-white/[0.02] text-white/50 transition hover:border-white/15 hover:bg-white/[0.05] hover:text-white disabled:opacity-30"
                   >
                     <ChevronRight className="h-3.5 w-3.5" />
                   </button>
@@ -1041,7 +1279,7 @@ export function GenovaProfileClient({
                       setTimeout(() => window.scrollTo({ top: 0, behavior: "smooth" }), 50);
                     }}
                     disabled={currentPage === displayVideos.totalPages}
-                    className="flex h-7 w-7 items-center justify-center rounded-lg border border-border bg-card text-foreground transition-all duration-200 hover:bg-white/5 hover:-translate-y-0.5 hover:border-primary/50 hover:text-primary hover:shadow-md hover:shadow-purple-500/10 disabled:opacity-30"
+                    className="flex h-8 w-8 items-center justify-center rounded-lg border border-white/[0.08] bg-white/[0.02] text-white/50 transition hover:border-white/15 hover:bg-white/[0.05] hover:text-white disabled:opacity-30"
                   >
                     <ChevronsRight className="h-3.5 w-3.5" />
                   </button>
@@ -1050,8 +1288,7 @@ export function GenovaProfileClient({
             ) : null}
         </div>
       </div>
-      </div>
-      </div>
+      </AnimateIn>
 
       {isOwner && awardsModalOpen ? (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
@@ -1068,7 +1305,7 @@ export function GenovaProfileClient({
               </button>
             </div>
             <div className="max-h-[50vh] space-y-2 overflow-auto pr-1">
-              {awardBadges.map((award) => {
+              {sortedAwards.map((award) => {
                 const checked = visibleAwardIds.includes(award.id);
                 return (
                   <label
@@ -1088,12 +1325,12 @@ export function GenovaProfileClient({
                       {renderAwardIcon(award)}
                     </span>
                     <span className="text-sm text-foreground">
-                      {award.awardType} · {award.awardTier}
+                      {awardLabel(award)}
                     </span>
                   </label>
                 );
               })}
-              {awardBadges.length === 0 ? (
+              {sortedAwards.length === 0 ? (
                 <p className="text-sm text-muted-foreground">{t("profile.noTrophiesYet")}</p>
               ) : null}
             </div>
@@ -1109,6 +1346,7 @@ export function GenovaProfileClient({
           </div>
         </div>
       ) : null}
+      </div>
     </div>
   );
 }

@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation";
+import { fetchBusinessInquiries } from "@/app/actions/business-inquiries";
 import type { VideoReportItem } from "@/app/actions/reports";
 import { AdminDashboard } from "@/components/admin/admin-dashboard";
 import { isAdminEmail } from "@/lib/auth/admin";
@@ -28,6 +29,7 @@ export default async function AdminPage() {
     voteEnd: r.vote_end as string,
     prizeInfo: r.prize_info as string,
     sponsor: r.sponsor as string,
+    isFeatured: Boolean((r as { is_featured?: boolean | null }).is_featured),
   }));
 
   const reportRows = (reportsRes.data ?? []) as {
@@ -70,10 +72,11 @@ export default async function AdminPage() {
     timestampSec: r.timestamp_sec,
     status: r.status,
   }));
+  const inquiries = await fetchBusinessInquiries();
 
   return (
     <div className="px-4 py-6 text-[#EEEDFE] sm:px-6">
-      <AdminDashboard competitions={competitions} videos={videos} reports={reports} />
+      <AdminDashboard competitions={competitions} videos={videos} reports={reports} inquiries={inquiries} />
     </div>
   );
 }

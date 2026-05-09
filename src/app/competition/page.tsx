@@ -61,8 +61,40 @@ export default async function CompetitionPage() {
       .eq("visibility", "public")
     : { count: 0 };
 
+  // 공모전별 참여자 수 (unique uploaded_by)
+  const participantCountMap: Record<string, number> = {};
+  if (supabase) {
+    const { data: submittedVideos } = await supabase
+      .from("videos")
+      .select("submitted_competition_id, uploaded_by")
+      .eq("purpose", "competition")
+      .eq("visibility", "public")
+      .not("submitted_competition_id", "is", null);
+
+    for (const v of submittedVideos ?? []) {
+      const cid = v.submitted_competition_id as string;
+      const uid = v.uploaded_by as string;
+      if (!cid || !uid) continue;
+      if (!participantCountMap[cid]) participantCountMap[cid] = 0;
+      // unique uploaded_by per competition — use a Set approach
+    }
+
+    // Group by competition, count unique uploaded_by
+    const grouped: Record<string, Set<string>> = {};
+    for (const v of submittedVideos ?? []) {
+      const cid = v.submitted_competition_id as string;
+      const uid = v.uploaded_by as string;
+      if (!cid || !uid) continue;
+      if (!grouped[cid]) grouped[cid] = new Set();
+      grouped[cid].add(uid);
+    }
+    for (const [cid, set] of Object.entries(grouped)) {
+      participantCountMap[cid] = set.size;
+    }
+  }
+
   return (
-    <div className="bg-[#080618] text-white">
+    <div className="bg-[#06040f] text-white">
       <CompetitionHero
         activeCount={active.length}
         upcomingCount={upcoming.length}
@@ -71,13 +103,14 @@ export default async function CompetitionPage() {
       />
 
       {/* Tab filters - client component */}
-      <div className="bg-[#080618]">
-        <div className="mx-auto max-w-[1680px] px-16 py-12">
+      <div className="bg-[#06040f]">
+        <div className="mx-auto max-w-[1680px] px-16 pt-2 pb-12">
           <CompetitionListClient
             active={active as any[]}
             upcoming={upcoming as any[]}
             closed={closed as any[]}
             now={now.toISOString()}
+            participantCounts={participantCountMap}
           />
         </div>
       </div>

@@ -1,6 +1,5 @@
 "use client";
 
-import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
@@ -13,7 +12,9 @@ function SearchBar() {
   const router = useRouter();
   const [query, setQuery] = useState("");
   const [focused, setFocused] = useState(false);
-  const [suggestions, setSuggestions] = useState<string[]>([]);
+  const [suggestVideos, setSuggestVideos] = useState<{ id: string; title: string; thumbnailUrl?: string }[]>([]);
+  const [suggestProfiles, setSuggestProfiles] = useState<{ id: string; displayName: string; avatarUrl?: string }[]>([]);
+  const [suggestTags, setSuggestTags] = useState<string[]>([]);
   const [recentSearches, setRecentSearches] = useState<string[]>([]);
   const inputRef = useRef<HTMLInputElement>(null);
   const wrapperRef = useRef<HTMLDivElement>(null);
@@ -40,16 +41,22 @@ function SearchBar() {
   // 연관 검색어
   useEffect(() => {
     if (!query.trim()) {
-      setSuggestions([]);
+      setSuggestVideos([]);
+      setSuggestProfiles([]);
+      setSuggestTags(["AI", "ShortFilm", "Animation", "Sci-Fi", "Music"]);
       return;
     }
     const timer = setTimeout(async () => {
       try {
         const res = await fetch(`/api/search/suggest?q=${encodeURIComponent(query)}`);
         const data = await res.json();
-        const tags: string[] = data.tags ?? [];
-        const videoTitles: string[] = (data.videos ?? []).map((v: { title: string }) => v.title);
-        setSuggestions([...new Set([...tags, ...videoTitles])].slice(0, 7));
+        setSuggestVideos(
+          ((data.videos ?? []) as { id: string; title: string; thumbnailUrl?: string }[]).slice(0, 4),
+        );
+        setSuggestProfiles(
+          ((data.profiles ?? []) as { id: string; displayName: string; avatarUrl?: string }[]).slice(0, 3),
+        );
+        setSuggestTags(((data.tags ?? []) as string[]).slice(0, 5));
       } catch {}
     }, 250);
     return () => clearTimeout(timer);
@@ -80,13 +87,18 @@ function SearchBar() {
     localStorage.setItem("genova_recent_searches", JSON.stringify(next));
   };
 
-  const showDropdown = focused && (query.trim() ? suggestions.length > 0 : recentSearches.length > 0);
+  const showDropdown = focused
+    && (
+      query.trim()
+        ? true
+        : recentSearches.length > 0 || suggestTags.length > 0
+    );
 
   return (
     <div ref={wrapperRef} className="relative flex min-w-0 flex-1 justify-center px-6">
       <div className="relative w-full max-w-[720px]">
         <div
-          className={`flex items-center gap-2 rounded-full border bg-white/[0.06] px-4 py-2 transition-colors duration-200 ${focused ? "border-[#7F77DD]/50 bg-white/[0.08]" : "border-white/10"}`}
+          className={`flex items-center gap-2 rounded-full border px-4 py-2 transition-colors duration-200 ${focused ? "border-[#7F77DD]/50 bg-[#080614]/80 backdrop-blur-xl" : "border-white/10 bg-[#080614]/70 backdrop-blur-xl"}`}
         >
           <Search className="h-4 w-4 shrink-0 text-white/40" aria-hidden />
           <input
@@ -128,26 +140,90 @@ function SearchBar() {
             }}
           >
             {query.trim() ? (
-              // 연관 검색어
               <>
-                <p className="px-4 pb-1 pt-2 text-[10px] font-bold uppercase tracking-widest text-white/25">Suggestions</p>
-                {suggestions.map((s) => (
+        {suggestVideos.length === 0 && suggestProfiles.length === 0 && suggestTags.length === 0 && (
+          <div className="px-4 py-6 text-center">
+            <p className="text-[12px] text-white/40">"{query}"에 대한 결과가 없습니다</p>
+            <p className="mt-1 text-[10px] text-white/25">다른 키워드로 검색해보세요</p>
+          </div>
+        )}
+                {suggestVideos.length > 0 && (
+                  <>
+                    <p className="px-4 pb-1 pt-2 text-[10px] font-bold uppercase tracking-widest text-[#AFA9EC]/70">✦ FILMS</p>
+                    {suggestVideos.map((v) => (
+                      <button
+                        key={v.id}
+                        type="button"
+                        onClick={() => {
+                          setFocused(false);
+                          setQuery("");
+                          router.push(`/watch/${v.id}`);
+                        }}
+                        className="flex w-full items-center gap-3 px-4 py-2.5 text-left text-sm transition hover:bg-white/[0.05]"
+                      >
+                <div className="aspect-video h-10 shrink-0 overflow-hidden rounded-md border border-white/10 bg-[#1a1638]">
+                          {v.thumbnailUrl ? (
+                            <img src={v.thumbnailUrl} alt="" className="h-full w-full object-cover" />
+                          ) : null}
+                        </div>
+                        <span className="line-clamp-1 text-white/75">{v.title}</span>
+                      </button>
+                    ))}
+                  </>
+                )}
+                {suggestProfiles.length > 0 && (
+                  <>
+                    <p className="px-4 pb-1 pt-2 text-[10px] font-bold uppercase tracking-widest text-[#AFA9EC]/70">✦ CREATORS</p>
+                    {suggestProfiles.map((p) => (
+                      <button
+                        key={p.id}
+                        type="button"
+                        onClick={() => {
+                          setFocused(false);
+                          setQuery("");
+                          router.push(`/profile/${p.id}`);
+                        }}
+                        className="flex w-full items-center gap-3 px-4 py-2.5 text-left text-sm transition hover:bg-white/[0.05]"
+                      >
+                        <div className="h-8 w-8 shrink-0 overflow-hidden rounded-full border border-white/10 bg-[#26215C]">
+                          {p.avatarUrl ? (
+                            <img src={p.avatarUrl} alt="" className="h-full w-full object-cover" />
+                          ) : null}
+                        </div>
+                        <span className="line-clamp-1 text-white/75">{p.displayName}</span>
+                      </button>
+                    ))}
+                  </>
+                )}
+                {suggestTags.length > 0 && (
+                  <>
+                    <p className="px-4 pb-1 pt-2 text-[10px] font-bold uppercase tracking-widest text-[#AFA9EC]/70">✦ TAGS</p>
+                    <div className="flex flex-wrap gap-2 px-4 pb-2 pt-1">
+                      {suggestTags.map((tag) => (
+                        <button
+                          key={tag}
+                          type="button"
+                          onClick={() => handleSearch(`#${tag}`)}
+                          className="rounded-full border border-[#7F77DD]/30 bg-[#534AB7]/20 px-2.5 py-1 text-xs font-medium text-[#C8C3F7] transition hover:bg-[#534AB7]/35"
+                        >
+                          #{tag}
+                        </button>
+                      ))}
+                    </div>
+                  </>
+                )}
+        <div className="mt-1 border-t border-white/[0.06] px-2 pt-2 pb-1">
                   <button
-                    key={s}
                     type="button"
-                    onClick={() => handleSearch(s)}
-                    className="flex w-full items-center gap-3 px-4 py-2.5 text-left text-sm transition hover:bg-white/[0.05]"
+                    onClick={() => handleSearch(query)}
+            className="flex w-full items-center justify-between rounded-lg px-3 py-2 text-[12px] font-semibold text-[#AFA9EC] transition hover:bg-[#7F77DD]/10 hover:text-white"
                   >
-                    <svg viewBox="0 0 24 24" className="h-3.5 w-3.5 shrink-0 text-white/25" fill="none" stroke="currentColor" strokeWidth={2}>
-                      <circle cx="11" cy="11" r="7" />
-                      <path d="m20 20-3.5-3.5" />
-                    </svg>
-                    <span className="text-white/70">{s}</span>
+            <span>"<span className="text-white">{query}</span>" 전체 결과 보기</span>
+            <span className="transition-transform group-hover:translate-x-1">→</span>
                   </button>
-                ))}
+                </div>
               </>
             ) : (
-              // 최근 검색어
               <>
                 <div className="flex items-center justify-between px-4 pb-1 pt-2">
                   <p className="text-[10px] font-bold uppercase tracking-widest text-white/25">Recent</p>
@@ -186,6 +262,25 @@ function SearchBar() {
                     </button>
                   </div>
                 ))}
+                {suggestTags.length > 0 && (
+                  <>
+                    <div className="mt-1 border-t border-white/[0.06] px-4 pb-1 pt-2">
+                      <p className="text-[10px] font-bold uppercase tracking-widest text-[#AFA9EC]/70">✦ TAGS</p>
+                    </div>
+                    <div className="flex flex-wrap gap-2 px-4 pb-2 pt-1">
+                      {suggestTags.map((tag) => (
+                        <button
+                          key={tag}
+                          type="button"
+                          onClick={() => handleSearch(`#${tag}`)}
+                          className="rounded-full border border-[#7F77DD]/30 bg-[#534AB7]/20 px-2.5 py-1 text-xs font-medium text-[#C8C3F7] transition hover:bg-[#534AB7]/35"
+                        >
+                          #{tag}
+                        </button>
+                      ))}
+                    </div>
+                  </>
+                )}
               </>
             )}
           </div>
@@ -351,18 +446,26 @@ export function Navbar() {
   }, [userId]);
 
   const profileHref = userId ? `/profile/${userId}` : "/auth";
+  const popupUnreadCount = notifications.filter((n) => !n.isRead).length;
+
+  const formatNotificationRelativeTime = (iso: string | null) => {
+    if (!iso) return "";
+    const d = new Date(iso);
+    if (Number.isNaN(d.getTime())) return "";
+    const diffMs = Date.now() - d.getTime();
+    const mins = Math.floor(diffMs / 60000);
+    if (mins < 1) return "방금";
+    if (mins < 60) return `${mins}분 전`;
+    const hours = Math.floor(mins / 60);
+    if (hours < 24) return `${hours}시간 전`;
+    const days = Math.floor(hours / 24);
+    if (days < 7) return `${days}일 전`;
+    return d.toLocaleDateString("ko-KR", { month: "numeric", day: "numeric" });
+  };
 
   return (
-    <nav className="fixed left-0 right-0 top-0 z-50 border-b border-white/[0.06] bg-[#080618]/90 backdrop-blur-xl">
-      <div className="flex h-16 min-w-0 items-center justify-between gap-3 px-2">
-          <Link href="/" className="flex w-60 shrink-0 items-center gap-1 pl-2">
-            <Image src="/genova-logo.png" alt="Genova" width={48} height={48} className="ml-1 h-[38px] w-[38px] shrink-0" />
-            <span className="text-[27px] font-semibold tracking-[-0.02em] text-foreground">Genova</span>
-            <span className="rounded-full bg-primary/12 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.14em] text-primary/90">
-              Beta
-            </span>
-          </Link>
-
+    <nav className="fixed left-0 right-0 top-0 z-50">
+      <div className="flex h-16 min-w-0 items-center justify-between gap-3 pl-64 pr-4">
           <SearchBar />
 
           <div className="flex shrink-0 items-center gap-3 pr-4">
@@ -376,8 +479,9 @@ export function Navbar() {
               }}
               className="flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-bold text-white transition-all duration-300 hover:scale-[1.03]"
               style={{
-                background: "linear-gradient(135deg, #534AB7 0%, #7B6FE8 100%)",
-                boxShadow: "0 0 20px rgba(83,74,183,0.4), 0 4px 12px rgba(83,74,183,0.3), inset 0 1px 0 rgba(255,255,255,0.2)",
+                background: "linear-gradient(135deg, rgba(107,95,212,0.85) 0%, rgba(83,74,183,0.75) 50%, rgba(63,54,163,0.65) 100%)",
+                border: "1px solid rgba(175,169,236,0.35)",
+                boxShadow: "inset 0 1px 0 rgba(255,255,255,0.12), 0 2px 8px rgba(83,74,183,0.2)",
               }}
             >
               <Upload className="h-3.5 w-3.5" />
@@ -394,7 +498,7 @@ export function Navbar() {
                       setUnreadCount(0);
                     }
                   }}
-                  className="relative flex h-9 w-9 items-center justify-center rounded-full border border-white/10 bg-white/[0.06] transition-all duration-200 hover:border-[#7F77DD]/40 hover:bg-white/[0.1]"
+                  className="relative flex h-9 w-9 items-center justify-center rounded-full border border-white/10 bg-[#080614]/80 backdrop-blur-xl transition-all duration-200 hover:border-[#7F77DD]/40 hover:bg-[#0f0d24]/90"
                   aria-label="Notifications"
                 >
                   <Bell className="h-4 w-4 text-white/60" />
@@ -418,18 +522,17 @@ export function Navbar() {
                   >
                     <div className="flex items-center justify-between border-b border-white/[0.06] px-4 py-3">
                       <div className="flex items-center gap-2">
-                        <p className="text-sm font-bold text-white">알림</p>
-                        {unreadCount > 0 && (
+                        <p className="text-[13px] font-bold text-white">알림</p>
+                        {popupUnreadCount > 0 && (
                           <span
-                            className="inline-flex h-5 min-w-5 items-center justify-center rounded-full px-1.5 text-[10px] font-bold text-white"
-                            style={{ background: "#534AB7" }}
+                            className="flex h-5 min-w-[20px] items-center justify-center rounded-full bg-[#7F77DD] px-1.5 text-[10px] font-bold text-white"
                           >
-                            {unreadCount}
+                            {popupUnreadCount}
                           </span>
                         )}
                       </div>
                       <div className="flex items-center gap-2">
-                        {unreadCount > 0 && (
+                        {popupUnreadCount > 0 && (
                           <button
                             type="button"
                             onClick={async () => {
@@ -478,7 +581,7 @@ export function Navbar() {
                         notifications.map((n) => {
                           const content = (
                             <div
-                              className={`flex cursor-pointer items-start gap-3 px-4 py-3 transition hover:bg-white/[0.03] ${!n.isRead ? "bg-[#534AB7]/10" : ""}`}
+                              className={`flex cursor-pointer items-start gap-3 px-4 py-3 transition hover:bg-white/[0.04] ${!n.isRead ? "bg-[#534AB7]/10" : ""}`}
                               onClick={async () => {
                                 if (!n.isRead) {
                                   const supabase = getBrowserSupabaseClient();
@@ -496,6 +599,7 @@ export function Navbar() {
                                 }
                               }}
                             >
+                              {!n.isRead && <span className="mt-2 h-2 w-2 shrink-0 rounded-full bg-[#7F77DD]" />}
                               <div
                                 className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full"
                                 style={{ background: n.isRead ? "rgba(255,255,255,0.04)" : "rgba(83,74,183,0.2)" }}
@@ -519,7 +623,14 @@ export function Navbar() {
                               </div>
 
                               <div className="min-w-0 flex-1">
-                                <p className={`text-xs font-semibold ${n.isRead ? "text-white/50" : "text-white"}`}>{n.title}</p>
+                                <div className="flex items-start justify-between gap-2">
+                                  <p className={`text-xs font-semibold ${n.isRead ? "text-white/50" : "text-white"}`}>{n.title}</p>
+                                  {n.createdAt && (
+                                    <span className="shrink-0 text-[10px] text-white/25">
+                                      {formatNotificationRelativeTime(n.createdAt)}
+                                    </span>
+                                  )}
+                                </div>
                                 {n.body && <p className="mt-0.5 text-[10px] text-white/30">{n.body}</p>}
                               </div>
 
@@ -574,7 +685,7 @@ export function Navbar() {
               <>
                 <Link
                   href={profileHref}
-                  className="flex h-9 w-9 items-center justify-center rounded-full border border-white/10 bg-white/[0.06] transition-all duration-200 hover:border-[#7F77DD]/40 hover:bg-white/[0.1]"
+                  className="flex h-9 w-9 items-center justify-center rounded-full border border-white/10 bg-[#080614]/80 backdrop-blur-xl transition-all duration-200 hover:border-[#7F77DD]/40 hover:bg-[#0f0d24]/90"
                   aria-label={userId ? t("common.myProfile", "My profile") : t("common.signIn", "Sign in")}
                 >
                   <User className="h-4 w-4 text-white/60" />
@@ -582,7 +693,7 @@ export function Navbar() {
                 {isAdmin && (
                   <Link
                     href="/admin"
-                    className="flex h-9 w-9 items-center justify-center rounded-full border border-white/10 bg-white/[0.06] transition-all duration-200 hover:border-[#7F77DD]/40 hover:bg-white/[0.1]"
+                    className="flex h-9 w-9 items-center justify-center rounded-full border border-white/10 bg-[#080614]/80 backdrop-blur-xl transition-all duration-200 hover:border-[#7F77DD]/40 hover:bg-[#0f0d24]/90"
                     aria-label="Admin"
                   >
                     <svg viewBox="0 0 24 24" className="h-4 w-4 text-white/60" fill="none" stroke="currentColor" strokeWidth={2}>

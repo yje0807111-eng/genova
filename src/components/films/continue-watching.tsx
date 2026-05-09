@@ -1,55 +1,33 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import Link from "next/link";
 import { ChevronLeft, ChevronRight, Trash2 } from "lucide-react";
 import { useI18n } from "@/components/genova/language-provider";
 import { getBrowserSupabaseClient } from "@/lib/supabase/browser";
-import { fetchWatchHistory } from "@/lib/queries/watch-history-queries";
 import type { Video } from "@/lib/types";
 import { cn } from "@/lib/utils/cn";
 
-export function ContinueWatching({ allVideos }: { allVideos: Video[] }) {
+export function ContinueWatching({
+  items,
+  isLoggedIn,
+}: {
+  items: { video: Video; progressSeconds: number; durationSeconds: number }[];
+  isLoggedIn: boolean;
+}) {
   const { t } = useI18n();
-  const [history, setHistory] = useState<{ video: Video; progress: number; duration: number }[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [history, setHistory] = useState<{ video: Video; progress: number; duration: number }[]>(
+    items.map((item) => ({
+      video: item.video,
+      progress: item.progressSeconds,
+      duration: item.durationSeconds,
+    })),
+  );
   const scrollRef = useRef<HTMLDivElement>(null);
   const [atStart, setAtStart] = useState(true);
   const [atEnd, setAtEnd] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
   const [arrowHovered, setArrowHovered] = useState(false);
-
-  useEffect(() => {
-    const load = async () => {
-      try {
-        const supabase = getBrowserSupabaseClient();
-        if (!supabase) return;
-        const { data: { user } } = await supabase.auth.getUser();
-        if (!user) return;
-
-        const records = await fetchWatchHistory(user.id);
-        const matched = records
-          .map((r) => {
-            const video = allVideos.find((v) => v.id === r.video_id);
-            if (!video) return null;
-            return { video, progress: r.progress_seconds, duration: r.duration_seconds };
-          })
-          .filter(Boolean)
-          .filter((item) => {
-            if (!item) return false;
-            const pct = item.duration > 0
-              ? (item.progress / item.duration) * 100
-              : 0;
-            return pct < 98;
-          }) as { video: Video; progress: number; duration: number }[];
-
-        setHistory(matched);
-      } finally {
-        setLoading(false);
-      }
-    };
-    load();
-  }, [allVideos]);
 
   const scroll = (dir: "left" | "right") => {
     if (!scrollRef.current) return;
@@ -74,7 +52,7 @@ export function ContinueWatching({ allVideos }: { allVideos: Video[] }) {
     if (!user) return;
 
     await supabase
-      .from("watch_history")
+      .from("video_progress")
       .delete()
       .eq("user_id", user.id)
       .eq("video_id", videoId);
@@ -82,19 +60,31 @@ export function ContinueWatching({ allVideos }: { allVideos: Video[] }) {
     setHistory((prev) => prev.filter((h) => h.video.id !== videoId));
   };
 
-  if (loading) {
+  if (!isLoggedIn) return null;
+  if (history.length === 0) {
     return (
-      <div style={{ minHeight: "180px" }} />
+      <div className="space-y-2">
+        <div className="flex items-center gap-3">
+          <span className="text-sm text-[#7F77DD]">✦</span>
+          <h2 className="text-[22px] font-black tracking-tight text-white">
+            {t("films.continueWatching", "Continue Watching")}
+          </h2>
+          <span className="h-[2px] w-8 rounded-full bg-gradient-to-r from-[#7F77DD] to-transparent" />
+        </div>
+        <p className="text-sm text-white/45">아직 이어볼 영상이 없어요</p>
+      </div>
     );
   }
-  if (history.length === 0) return null;
 
   return (
     <div className="space-y-2" style={{ isolation: "isolate" }}>
-      <h2 className="text-[16px] font-semibold text-white/70 tracking-tight">
-        {t("films.continueWatching", "Continue Watching")}
-        <span className="ml-2 inline-block h-[3px] w-6 rounded-full bg-[#7F77DD] align-middle" />
-      </h2>
+      <div className="flex items-center gap-3">
+        <span className="text-sm text-[#7F77DD]">✦</span>
+        <h2 className="text-[22px] font-black tracking-tight text-white">
+          {t("films.continueWatching", "Continue Watching")}
+        </h2>
+        <span className="h-[2px] w-8 rounded-full bg-gradient-to-r from-[#7F77DD] to-transparent" />
+      </div>
       <div
         className="relative"
         onMouseEnter={() => setIsHovered(true)}
@@ -108,25 +98,31 @@ export function ContinueWatching({ allVideos }: { allVideos: Video[] }) {
             overflowY: "visible",
             paddingTop: "20px",
             paddingBottom: "20px",
+            paddingLeft: "6px",
             marginTop: "-20px",
             marginBottom: "-20px",
-            paddingRight: "48px",
+            paddingRight: "54px",
           }}
           className="hide-scrollbar flex gap-4"
         >
           {history.map(({ video, progress, duration }) => {
-            const percent = duration > 0 ? Math.min(100, Math.round((progress / duration) * 100)) : 0;
+            const rawPercent = duration > 0 ? (progress / duration) * 100 : 0;
+            const percent = Math.max(0, Math.min(100, Math.round(rawPercent)));
+            const remaining = Math.max(0, duration - progress);
+            const m = Math.floor(remaining / 60);
+            const s = Math.floor(remaining % 60);
+            const remainingLabel = `${m}:${String(s).padStart(2, "0")} ${t("films.remaining", "left")}`;
             return (
               <Link
                 key={video.id}
                 href={"/watch/" + video.id}
                 className={cn(
-                  "gradient-border-card-subtle group/card relative shrink-0 overflow-hidden rounded-xl bg-[#0f0d24] transition-all duration-300 hover:z-[999] hover:shadow-[0_20px_60px_rgba(0,0,0,0.8)] hover:scale-[1.05]",
+                  "group/card relative shrink-0 overflow-hidden rounded-xl transition-all duration-300 hover:z-[999] hover:shadow-[0_20px_60px_rgba(0,0,0,0.8)] hover:scale-[1.01]",
                   arrowHovered ? "pointer-events-none" : ""
                 )}
                 style={{ width: "calc((100% - 60px) / 6.9)", transformOrigin: "center center" }}
               >
-                <div className="gradient-border-card-inner relative aspect-video w-full overflow-hidden">
+                <div className="relative aspect-video w-full overflow-hidden rounded-xl border border-white/10 bg-[#0f0d24]">
                     {video.thumbnailUrl ? (
                       <img
                         src={video.thumbnailUrl}
@@ -137,22 +133,13 @@ export function ContinueWatching({ allVideos }: { allVideos: Video[] }) {
                       <div className="h-full w-full bg-gradient-to-br from-[#1a1547] to-[#0f0d24]" />
                     )}
                     <div className="absolute inset-0 z-[1] bg-black/0 transition-opacity duration-150 group-hover/card:bg-black/40" />
-                    {/* Always visible bottom info */}
-                    <div className="absolute bottom-0 left-0 right-0 z-[2]"
-                      style={{ background: "linear-gradient(to top, rgba(8,6,24,0.95) 0%, rgba(8,6,24,0.5) 50%, transparent 100%)" }}>
-                      <div className="px-3 pb-2 pt-1">
-                        {percent > 0 && (
-                          <div className="mb-1.5 h-[2px] w-full rounded-full bg-white/20">
-                            <div
-                              className="h-full rounded-full bg-[#7F77DD]"
-                              style={{ width: percent + "%" }}
-                            />
-                          </div>
-                        )}
-                        <h3 className="typo-filmstrip-title line-clamp-1 text-white">{video.title}</h3>
-                      </div>
+                    <div className="absolute bottom-0 left-0 right-0 z-[3] h-1 bg-white/10">
+                      <div
+                        className="h-full bg-[#7F77DD]"
+                        style={{ width: `${percent}%` }}
+                      />
                     </div>
-                    <div className="absolute top-2 right-2 z-[10] flex items-center justify-center opacity-0 group-hover/card:opacity-100 transition-opacity duration-150">
+                    <div className="absolute inset-0 z-[10] flex items-center justify-center opacity-0 transition-opacity duration-150 group-hover/card:opacity-100">
                       <img
                         src="/genova-play1.png"
                         alt="play"
@@ -167,6 +154,13 @@ export function ContinueWatching({ allVideos }: { allVideos: Video[] }) {
                         <polygon points="6,3 20,12 6,21" />
                       </svg>
                     </div>
+                    {percent > 0 && (
+                      <div className="absolute bottom-2 right-2 z-[11] opacity-0 transition-opacity duration-150 group-hover/card:opacity-100">
+                        <span className="rounded bg-black/50 px-2 py-0.5 text-[10px] text-white/70 backdrop-blur">
+                          {remainingLabel}
+                        </span>
+                      </div>
+                    )}
                     {/* Delete button */}
                     <button
                       type="button"
@@ -175,11 +169,14 @@ export function ContinueWatching({ allVideos }: { allVideos: Video[] }) {
                         e.stopPropagation();
                         void removeFromHistory(video.id);
                       }}
-                      className="absolute bottom-2 right-2 z-[10] flex h-6 w-6 items-center justify-center rounded-full bg-black/60 text-white/50 opacity-0 backdrop-blur-sm transition group-hover/card:opacity-100 hover:bg-red-500/80 hover:text-white"
+                      className="absolute right-2 top-2 z-[12] flex h-6 w-6 items-center justify-center rounded-full bg-black/60 text-white/50 opacity-0 backdrop-blur-sm transition group-hover/card:opacity-100 hover:bg-red-500/80 hover:text-white"
                       title={t("films.removeFromHistory", "Remove from history")}
                     >
                       <Trash2 size={10} />
                     </button>
+                </div>
+                <div className="mt-2 px-1">
+                  <h3 className="line-clamp-1 text-sm font-semibold text-white">{video.title}</h3>
                 </div>
               </Link>
             );

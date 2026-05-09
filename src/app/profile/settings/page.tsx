@@ -19,8 +19,10 @@ export default async function ProfileSettingsPage() {
   if (!profile) redirect("/auth");
 
   return (
-    <div className="min-h-screen bg-background px-4 py-6 text-foreground sm:px-6">
-      <ProfileSettingsClient profile={profile} />
+    <div className="min-h-screen bg-background py-8 text-foreground">
+      <div className="mx-auto w-full max-w-3xl px-4 sm:px-6">
+        <ProfileSettingsClient profile={profile} />
+      </div>
     </div>
   );
 }

@@ -5,6 +5,7 @@ import { createNotification } from "@/lib/notifications";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 
 export type CommentActionResult = { ok: true } | { ok: false; needAuth?: boolean; message: string };
+export type PinCommentResult = { ok: true; pinOrder: number | null } | { ok: false; needAuth?: boolean; message: string };
 
 export async function createCommentAction(videoId: string, content: string, parentId: string | null): Promise<CommentActionResult> {
   const trimmed = content.trim();
@@ -98,12 +99,10 @@ export async function toggleCommentLikeAction(commentId: string, videoId: string
   return { ok: true, liked, count: count ?? 0 };
 }
 
-export async function pinCommentAction(commentId: string, videoId: string, pin: boolean): Promise<CommentActionResult> {
+export async function pinCommentAction(commentId: string, videoId: string, pin: boolean): Promise<PinCommentResult> {
   const supabase = await createServerSupabaseClient();
   if (!supabase) return { ok: false, message: "Configuration error." };
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const { data: { user } } = await supabase.auth.getUser();
   if (!user) return { ok: false, needAuth: true, message: "Please sign in." };
 
   // 영상 업로더만 핀 가능
@@ -117,21 +116,55 @@ export async function pinCommentAction(commentId: string, videoId: string, pin: 
     return { ok: false, message: "Only the video owner can pin comments." };
   }
 
-  // 기존 핀 해제
-  if (pin) {
-    await supabase
+  if (!pin) {
+    // 핀 해제 — pin_order null로
+    const { error: unpinError } = await supabase
       .from("comments")
-      .update({ is_pinned: false })
-      .eq("video_id", videoId);
+      .update({ is_pinned: false, pin_order: null })
+      .eq("id", commentId);
+    if (unpinError) {
+      console.error("[pinCommentAction] unpin failed:", unpinError.message, unpinError.code);
+      return { ok: false, message: unpinError.message };
+    }
+
+    // 남은 pinned 댓글 순서 재정렬 (0부터 연속)
+    const { data: remainingPinned } = await supabase
+      .from("comments")
+      .select("id, pin_order")
+      .eq("video_id", videoId)
+      .eq("is_pinned", true)
+      .order("pin_order", { ascending: true });
+
+    for (const [idx, row] of (remainingPinned ?? []).entries()) {
+      await supabase
+        .from("comments")
+        .update({ pin_order: idx })
+        .eq("id", (row as { id: string }).id);
+    }
+    revalidatePath(`/watch/${videoId}`);
+    return { ok: true, pinOrder: null };
+  } else {
+    // 현재 최대 pin_order 가져오기
+    const { data: pinned } = await supabase
+      .from("comments")
+      .select("pin_order")
+      .eq("video_id", videoId)
+      .eq("is_pinned", true)
+      .order("pin_order", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    const nextOrder = pinned?.pin_order != null ? pinned.pin_order + 1 : 0;
+
+    const { error: pinError } = await supabase
+      .from("comments")
+      .update({ is_pinned: true, pin_order: nextOrder })
+      .eq("id", commentId);
+    if (pinError) {
+      console.error("[pinCommentAction] pin failed:", pinError.message, pinError.code);
+      return { ok: false, message: pinError.message };
+    }
+    revalidatePath(`/watch/${videoId}`);
+    return { ok: true, pinOrder: nextOrder };
   }
-
-  // 새 핀 설정
-  const { error } = await supabase
-    .from("comments")
-    .update({ is_pinned: pin })
-    .eq("id", commentId);
-
-  if (error) return { ok: false, message: error.message };
-  revalidatePath(`/watch/${videoId}`);
-  return { ok: true };
 }

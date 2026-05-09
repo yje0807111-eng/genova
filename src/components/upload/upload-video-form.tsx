@@ -7,12 +7,11 @@ import { createVideoAction } from "@/app/actions/video";
 import { AI_TOOL_CATEGORIES, normalizeToolName } from "@/lib/constants/ai-tools";
 import {
   FEED_GENRE_KEYS,
+  defaultSubGenreForMain,
+  getSubGenreOptions,
   needsSubGenre,
-  subGenreLabel,
   mainGenreLabel,
-  SUB_GENRE_KEYS,
   type MainGenreKey,
-  type SubGenreKey,
 } from "@/lib/constants/genres";
 import { useI18n } from "@/components/genova/language-provider";
 import { MAX_VIDEO_TAGS } from "@/lib/tags";
@@ -276,15 +275,23 @@ export function UploadVideoForm({
   const searchParams = useSearchParams();
   const competitionIdFromUrl = searchParams.get("competition");
   const purposeFromUrl = searchParams.get("purpose");
+  const isCompetitionLocked = purposeFromUrl === "competition" && Boolean(competitionIdFromUrl);
   const thumbInputRef = useRef<HTMLInputElement>(null);
+  const backdropInputRef = useRef<HTMLInputElement>(null);
   const videoInputRef = useRef<HTMLInputElement>(null);
   const muxUploadIdRef = useRef<string | null>(null);
+  const submitSucceededRef = useRef(false);
+  const muxAssetIdCleanupRef = useRef<string | null>(null);
+  const muxCleanupDoneRef = useRef(false);
 
   const [title, setTitle] = useState("");
   const [thumbnailFile, setThumbnailFile] = useState<File | null>(null);
   const [thumbnailPreview, setThumbnailPreview] = useState<string | null>(null);
+  const [backdropFile, setBackdropFile] = useState<File | null>(null);
+  const [backdropPreview, setBackdropPreview] = useState<string | null>(null);
   const [mainGenre, setMainGenre] = useState<MainGenreKey>("film");
-  const [subGenre, setSubGenre] = useState<SubGenreKey>("drama");
+  const [additionalGenres, setAdditionalGenres] = useState<MainGenreKey[]>([]);
+  const [subGenre, setSubGenre] = useState<string>(defaultSubGenreForMain("film") ?? "");
   const [tools, setTools] = useState<string[]>([]);
   const [customTools, setCustomTools] = useState<Partial<Record<CatKey, string[]>>>(() => {
     return { image: userCustomTools, video: [], music: [], platform: [] };
@@ -304,6 +311,7 @@ export function UploadVideoForm({
   const [description, setDescription] = useState("");
   const [runtimeMinutes, setRuntimeMinutes] = useState(5);
   const [runtimeSeconds, setRuntimeSeconds] = useState(0);
+  const [detectedDurationSeconds, setDetectedDurationSeconds] = useState(0);
   const [visibility, setVisibility] = useState<"public" | "private">("public");
   const [purpose, setPurpose] = useState<"personal" | "competition">(
     purposeFromUrl === "competition" ? "competition" : "personal",
@@ -312,6 +320,9 @@ export function UploadVideoForm({
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [step, setStep] = useState<1 | 2 | 3>(1);
+  const [stepTransitioning, setStepTransitioning] = useState(false);
+  const [previewOpen, setPreviewOpen] = useState(false);
 
   const [muxUploadUrl, setMuxUploadUrl] = useState<string | null>(null);
   const [muxUploadId, setMuxUploadId] = useState<string | null>(null);
@@ -322,8 +333,15 @@ export function UploadVideoForm({
   const [selectedVideoFile, setSelectedVideoFile] = useState<File | null>(null);
   const [isDraggingOver, setIsDraggingOver] = useState(false);
 
-  const showSubGenre = needsSubGenre(mainGenre);
+  useEffect(() => {
+    muxAssetIdCleanupRef.current = muxAssetId;
+  }, [muxAssetId]);
 
+  const showSubGenre = needsSubGenre(mainGenre);
+  const subGenreOptions = getSubGenreOptions(mainGenre, locale);
+  const additionalGenreOptions = FEED_GENRE_KEYS.filter((k) => k !== mainGenre);
+
+  // deps: isSeriesMode — 시리즈 모드가 꺼지면 시리즈 입력 초기화
   useEffect(() => {
     if (!isSeriesMode) {
       setSeriesName("");
@@ -331,6 +349,23 @@ export function UploadVideoForm({
     }
   }, [isSeriesMode]);
 
+  // deps: mainGenre — 메인 장르 변경 시 보조 장르에서 동일 항목 제거
+  useEffect(() => {
+    setAdditionalGenres((prev) => prev.filter((g) => g !== mainGenre));
+  }, [mainGenre]);
+
+  // deps: showSubGenre/subGenre/subGenreOptions — 서브장르 필요 여부 및 유효값 동기화
+  useEffect(() => {
+    if (!showSubGenre) {
+      setSubGenre("");
+      return;
+    }
+    if (!subGenreOptions.some((opt) => opt.value === subGenre)) {
+      setSubGenre(subGenreOptions[0]?.value ?? "");
+    }
+  }, [showSubGenre, subGenre, subGenreOptions]);
+
+  // deps: isSeriesMode — 시리즈 모드일 때만 사용자 시리즈 목록 로드
   useEffect(() => {
     if (!isSeriesMode) return;
     fetch("/api/user-series")
@@ -339,6 +374,7 @@ export function UploadVideoForm({
       .catch(() => {});
   }, [isSeriesMode]);
 
+  // deps: t — DnD 전역 이벤트 리스너 등록/해제, 오류 메시지 로캘 반영
   useEffect(() => {
     const handleDragOver = (e: DragEvent) => {
       e.preventDefault();
@@ -354,6 +390,8 @@ export function UploadVideoForm({
 
       for (const file of files) {
         if (file.type.startsWith("video/")) {
+          setSelectedVideoFile(file);
+          detectVideoDuration(file);
           try {
             const res = await fetch("/api/mux/upload", { method: "POST" });
             const data = await res.json();
@@ -390,6 +428,28 @@ export function UploadVideoForm({
     };
   }, [t]);
 
+  // deps: step — Step 자동 진행/submit 추적용 로그
+  useEffect(() => {
+    console.log("[UPLOAD_DEBUG] step changed", {
+      step,
+      timestamp: Date.now(),
+    });
+  }, [step]);
+
+  // deps: isCompetitionLocked/purpose — 공모전 진입 시 업로드 목적을 competition으로 고정
+  useEffect(() => {
+    if (isCompetitionLocked && purpose !== "competition") {
+      setPurpose("competition");
+    }
+  }, [isCompetitionLocked, purpose]);
+
+  // deps: isCompetitionLocked/competitionId/competitionIdFromUrl — 공모전 진입 시 competitionId를 URL 값으로 고정
+  useEffect(() => {
+    if (isCompetitionLocked && competitionIdFromUrl && competitionId !== competitionIdFromUrl) {
+      setCompetitionId(competitionIdFromUrl);
+    }
+  }, [isCompetitionLocked, competitionId, competitionIdFromUrl]);
+
   const initMuxUpload = async () => {
     try {
       const res = await fetch("/api/mux/upload", { method: "POST" });
@@ -401,6 +461,28 @@ export function UploadVideoForm({
     } catch {
       setError(t("upload.errInitUpload"));
     }
+  };
+
+  const detectVideoDuration = (file: File) => {
+    const objectUrl = URL.createObjectURL(file);
+    const probe = document.createElement("video");
+    probe.preload = "metadata";
+    probe.onloadedmetadata = () => {
+      const durationSeconds = Math.max(0, Math.round(probe.duration || 0));
+      URL.revokeObjectURL(objectUrl);
+      setDetectedDurationSeconds(durationSeconds);
+      if (durationSeconds > 0) {
+        setRuntimeMinutes(Math.floor(durationSeconds / 60));
+        setRuntimeSeconds(durationSeconds % 60);
+      }
+      console.log("[UPLOAD_DEBUG] duration auto-detected", durationSeconds);
+    };
+    probe.onerror = () => {
+      URL.revokeObjectURL(objectUrl);
+      setDetectedDurationSeconds(0);
+      console.log("[UPLOAD_DEBUG] duration auto-detected", 0);
+    };
+    probe.src = objectUrl;
   };
 
   const pollMuxAsset = async (uploadId: string) => {
@@ -503,6 +585,7 @@ export function UploadVideoForm({
   };
 
   const openThumbPicker = () => thumbInputRef.current?.click();
+  const openBackdropPicker = () => backdropInputRef.current?.click();
 
   const onThumbChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const f = e.target.files?.[0];
@@ -523,10 +606,30 @@ export function UploadVideoForm({
     setError(null);
   };
 
+  const onBackdropChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const f = e.target.files?.[0];
+    if (!f) return;
+    if (!f.type.startsWith("image/")) {
+      setError(t("upload.errImageFile"));
+      return;
+    }
+    if (f.size > 8 * 1024 * 1024) {
+      setError(t("upload.errImageSize"));
+      return;
+    }
+    setBackdropPreview((prev) => {
+      if (prev?.startsWith("blob:")) URL.revokeObjectURL(prev);
+      return URL.createObjectURL(f);
+    });
+    setBackdropFile(f);
+    setError(null);
+  };
+
   const onVideoChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const f = e.target.files?.[0];
     if (!f) return;
     setSelectedVideoFile(f);
+    detectVideoDuration(f);
     setError(null);
     try {
       const res = await fetch("/api/mux/upload", { method: "POST" });
@@ -543,6 +646,19 @@ export function UploadVideoForm({
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
+    console.log("[UPLOAD_DEBUG] submit called", {
+      step,
+      purpose,
+      competitionId,
+      timestamp: Date.now(),
+    });
+    if (step !== 3) {
+      return;
+    }
+    if (stepTransitioning) {
+      console.log("[UPLOAD_DEBUG] submit blocked by transition", { timestamp: Date.now() });
+      return;
+    }
     setError(null);
     if (!title.trim()) {
       setError(t("upload.errTitle"));
@@ -552,7 +668,8 @@ export function UploadVideoForm({
       setError(t("upload.errThumbnail"));
       return;
     }
-    if (runtimeMinutes * 60 + runtimeSeconds < 1) {
+    const finalDurationSeconds = detectedDurationSeconds || (muxDuration ? Math.round(muxDuration) : 0);
+    if (finalDurationSeconds < 1) {
       setError(t("upload.errRuntime"));
       return;
     }
@@ -603,13 +720,34 @@ export function UploadVideoForm({
         finalThumbnailUrl = publicUrl;
       }
 
+      let finalBackdropUrl: string | null = null;
+      if (backdropFile) {
+        const safe = backdropFile.name.replace(/[^\w.-]/g, "_");
+        const path = `${userId}/backdrop-${Date.now()}-${safe}`;
+        const { error: upErr } = await supabase.storage.from("thumbnails").upload(path, backdropFile, { upsert: true });
+        if (upErr) {
+          setError(upErr.message);
+          return;
+        }
+        const {
+          data: { publicUrl },
+        } = supabase.storage.from("thumbnails").getPublicUrl(path);
+        finalBackdropUrl = publicUrl;
+      }
+
       const aiTools = tools;
 
+      console.log("[UPLOAD_DEBUG] action calling", {
+        step,
+        trigger: "manual_submit",
+        timestamp: Date.now(),
+      });
       const res = await createVideoAction({
         title: title.trim(),
-        vimeoUrl: null,
         thumbnailUrl: finalThumbnailUrl,
+        backdropUrl: finalBackdropUrl,
         genre: mainGenre,
+        additionalGenres,
         subGenre: showSubGenre ? subGenre : null,
         purpose,
         aiTools,
@@ -617,7 +755,7 @@ export function UploadVideoForm({
         seriesName: isSeriesMode ? seriesName.trim() : null,
         episodeNumber: isSeriesMode ? episodeNumber : null,
         description,
-        runtimeMinutes: runtimeMinutes + runtimeSeconds / 60,
+        runtimeMinutes: finalDurationSeconds / 60,
         visibility,
         submittedCompetitionId: purpose === "competition" ? competitionId : null,
         muxPlaybackId: muxPlaybackId,
@@ -630,12 +768,38 @@ export function UploadVideoForm({
         return;
       }
 
+      submitSucceededRef.current = true;
       router.push(`/watch/${res.videoId}`);
       router.refresh();
     } finally {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    const tryCleanupOrphanMuxAsset = () => {
+      if (submitSucceededRef.current || muxCleanupDoneRef.current) return;
+      const assetId = muxAssetIdCleanupRef.current;
+      if (!assetId) return;
+      muxCleanupDoneRef.current = true;
+      void fetch("/api/mux/asset/delete", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ assetId }),
+        keepalive: true,
+      });
+    };
+
+    const onBeforeUnload = () => {
+      tryCleanupOrphanMuxAsset();
+    };
+
+    window.addEventListener("beforeunload", onBeforeUnload);
+    return () => {
+      window.removeEventListener("beforeunload", onBeforeUnload);
+      tryCleanupOrphanMuxAsset();
+    };
+  }, []);
 
   return (
     <div className="min-h-screen px-2 py-6">
@@ -648,6 +812,14 @@ export function UploadVideoForm({
         onChange={onThumbChange}
       />
       <input
+        ref={backdropInputRef}
+        id="uv-backdrop-input"
+        type="file"
+        accept="image/*"
+        className="sr-only"
+        onChange={onBackdropChange}
+      />
+      <input
         ref={videoInputRef}
         type="file"
         accept="video/mp4,video/quicktime,video/webm,video/*"
@@ -655,7 +827,18 @@ export function UploadVideoForm({
         onChange={(e) => void onVideoChange(e)}
       />
 
-      <form onSubmit={(e) => void submit(e)}>
+      <form
+        onSubmit={(e) => void submit(e)}
+        onKeyDown={(e) => {
+          if (
+            e.key === "Enter" &&
+            (e.target as HTMLElement).tagName === "INPUT" &&
+            step !== 3
+          ) {
+            e.preventDefault();
+          }
+        }}
+      >
         {isDraggingOver && (
           <div
             className="fixed inset-0 z-[200] flex flex-col items-center justify-center gap-4 pointer-events-none"
@@ -698,7 +881,103 @@ export function UploadVideoForm({
             <p className="text-sm text-white/25">{t("upload.heroSubtitle")}</p>
           </div>
 
-          <div className="grid grid-cols-1 gap-3 lg:grid-cols-[1.1fr_1.8fr_1.3fr]">
+          {/* Progress Indicator */}
+          <div className="mb-6 flex items-center gap-3">
+            {[
+              { num: 1, label: "Source & Info" },
+              { num: 2, label: "AI Tools & Tags" },
+              { num: 3, label: "Settings" },
+            ].map((s, idx, arr) => {
+              const active = step === s.num;
+              const done = step > s.num;
+              return (
+                <div key={s.num} className="flex flex-1 items-center gap-3">
+                  <button
+                    type="button"
+                    onClick={() => done && setStep(s.num as 1 | 2 | 3)}
+                    disabled={!done && !active}
+                    className="flex flex-1 items-center gap-3 rounded-xl px-3 py-2.5 transition-all duration-300"
+                    style={{
+                      background: active
+                        ? "linear-gradient(135deg, rgba(127,119,221,0.18) 0%, rgba(83,74,183,0.08) 100%)"
+                        : done
+                          ? "rgba(127,119,221,0.06)"
+                          : "rgba(255,255,255,0.02)",
+                      border: active
+                        ? "1px solid rgba(127,119,221,0.45)"
+                        : done
+                          ? "1px solid rgba(127,119,221,0.2)"
+                          : "1px solid rgba(255,255,255,0.06)",
+                      cursor: done ? "pointer" : active ? "default" : "not-allowed",
+                      boxShadow: active ? "0 0 16px rgba(127,119,221,0.18)" : "none",
+                    }}
+                  >
+                    <div
+                      className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-[11px] font-black tabular-nums"
+                      style={{
+                        background: active
+                          ? "linear-gradient(135deg, #7F77DD 0%, #534AB7 100%)"
+                          : done
+                            ? "rgba(127,119,221,0.3)"
+                            : "rgba(255,255,255,0.05)",
+                        color: active ? "#ffffff" : done ? "#AFA9EC" : "rgba(255,255,255,0.3)",
+                        boxShadow: active ? "0 0 12px rgba(127,119,221,0.5)" : "none",
+                      }}
+                    >
+                      {done ? "✓" : s.num}
+                    </div>
+                    <div className="min-w-0 text-left">
+                      <p
+                        className="text-[9px] font-black uppercase tracking-[0.2em]"
+                        style={{
+                          color: active ? "#AFA9EC" : done ? "rgba(175,169,236,0.7)" : "rgba(255,255,255,0.3)",
+                        }}
+                      >
+                        Step {String(s.num).padStart(2, "0")}
+                      </p>
+                      <p
+                        className="truncate text-[12px] font-bold"
+                        style={{
+                          color: active ? "white" : done ? "rgba(255,255,255,0.7)" : "rgba(255,255,255,0.4)",
+                        }}
+                      >
+                        {s.label}
+                      </p>
+                    </div>
+                  </button>
+                  {idx < arr.length - 1 && (
+                    <div
+                      className="hidden h-px w-6 sm:block"
+                      style={{
+                        background: done ? "rgba(127,119,221,0.4)" : "rgba(255,255,255,0.08)",
+                      }}
+                    />
+                  )}
+                </div>
+              );
+            })}
+          </div>
+
+          {isCompetitionLocked && (
+            <div
+              className="mb-4 flex items-center gap-3 rounded-lg border p-4"
+              style={{
+                borderColor: "rgba(127,119,221,0.3)",
+                background: "rgba(127,119,221,0.06)",
+              }}
+            >
+              <span className="text-sm text-[#7F77DD]">✦</span>
+              <div className="flex-1">
+                <p className="text-sm font-semibold text-white">공모전 출품 모드</p>
+                <p className="mt-0.5 text-xs text-white/60">
+                  이 영상은 선택된 공모전에 출품됩니다. 변경하려면 공모전 페이지로 돌아가세요.
+                </p>
+              </div>
+            </div>
+          )}
+
+          {/* Step 1 — Source, film title/description, thumbnail */}
+          <div style={{ display: step === 1 ? "grid" : "none" }} className="grid-cols-1 gap-3 lg:grid-cols-[1fr_1.2fr_1fr]">
           {/* ── 왼쪽: 비디오 입력 패널 ── */}
           <div className="space-y-3">
             <div
@@ -752,28 +1031,6 @@ export function UploadVideoForm({
                 </div>
               </div>
 
-              {/* 플랫폼 혜택 */}
-              <div className="mt-4 grid grid-cols-3 gap-2 border-t border-white/[0.06] pt-4">
-                {[
-                  { icon: "🎬", title: t("upload.benefitQualityTitle"), desc: t("upload.benefitQualityDesc") },
-                  { icon: "🌍", title: t("upload.benefitReachTitle"), desc: t("upload.benefitReachDesc") },
-                  { icon: "🏆", title: t("upload.benefitCompTitle"), desc: t("upload.benefitCompDesc") },
-                ].map(({ icon, title: benefitTitle, desc }) => (
-                  <div
-                    key={benefitTitle}
-                    className="flex flex-col items-center gap-1.5 rounded-xl border border-white/[0.06] bg-white/[0.02] p-3 text-center"
-                  >
-                    <span
-                      className="flex h-7 w-7 items-center justify-center rounded-lg text-sm"
-                      style={{ background: "rgba(83,74,183,0.25)", border: "1px solid rgba(127,119,221,0.2)" }}
-                    >
-                      {icon}
-                    </span>
-                    <p className="text-[11px] font-semibold text-white/60">{benefitTitle}</p>
-                    <p className="text-[10px] leading-tight text-white/25">{desc}</p>
-                  </div>
-                ))}
-              </div>
             </div>
           </div>
 
@@ -816,249 +1073,26 @@ export function UploadVideoForm({
                     placeholder={t("upload.placeholderFilmDescription")}
                   />
                 </div>
-                <div>
-                  <div className="mb-1.5 flex items-center justify-between">
-                    <label className={lbl} htmlFor="uv-tags">
-                      {t("upload.tagsWithMax").replace("{max}", String(MAX_VIDEO_TAGS))}
-                    </label>
-                    <span className="text-[10px] text-white/25">{tags.length}/{MAX_VIDEO_TAGS}</span>
-                  </div>
-
-                  <div
-                    className="flex min-h-[44px] flex-wrap items-center gap-1.5 rounded-xl border border-white/[0.12] bg-[#0d0b20] px-3 py-2 transition focus-within:border-[#7F77DD]/60"
-                    onClick={() => document.getElementById("uv-tags")?.focus()}
-                  >
-                    {tags.map((tag) => (
-                      <span
-                        key={tag}
-                        className="flex items-center gap-1 rounded-full border border-[#7F77DD]/30 bg-[#534AB7]/20 px-2.5 py-0.5 text-xs text-[#AFA9EC]"
-                      >
-                        #{tag}
-                        <button
-                          type="button"
-                          onClick={() => removeTag(tag)}
-                          className="text-white/30 transition hover:text-white/70"
-                        >
-                          ×
-                        </button>
-                      </span>
-                    ))}
-                    <input
-                      id="uv-tags"
-                      value={tagInput}
-                      onChange={(e) => setTagInput(e.target.value)}
-                      onKeyDown={handleTagKeyDown}
-                      placeholder={tags.length === 0 ? t("upload.placeholderTags") : ""}
-                      className="min-w-[120px] flex-1 bg-transparent text-sm text-white outline-none placeholder:text-white/20"
-                      disabled={tags.length >= MAX_VIDEO_TAGS}
-                    />
-                  </div>
-                  <p className="mt-1 text-[10px] text-white/20">쉼표(,) 또는 Enter로 추가</p>
-
-                  {recentTags.length > 0 && (
-                    <div className="mt-3">
-                      <p className="mb-1.5 text-[10px] font-bold uppercase tracking-widest text-white/25">
-                        이전 영상 태그
-                      </p>
-                      <div className="flex flex-wrap gap-1.5">
-                        {recentTags
-                          .filter((t) => !tags.includes(t))
-                          .map((tag) => (
-                            <button
-                              key={tag}
-                              type="button"
-                              onClick={() => addTag(tag)}
-                              className="flex items-center gap-1 rounded-full border border-white/[0.08] bg-white/[0.02] px-2.5 py-0.5 text-xs text-white/40 transition hover:border-[#7F77DD]/30 hover:bg-[#534AB7]/15 hover:text-[#AFA9EC]"
-                            >
-                              + #{tag}
-                            </button>
-                          ))}
-                      </div>
-                    </div>
-                  )}
-
-                  <div className="mt-3">
-                    <p className="mb-1.5 text-[10px] font-bold uppercase tracking-widest text-white/25">
-                      즐겨찾기 태그
-                    </p>
-                    {mySavedHashtags.length === 0 ? (
-                      <p className="text-[10px] text-white/20">태그 위에 ★ 버튼으로 저장하세요</p>
-                    ) : (
-                      <div className="flex flex-wrap gap-1.5">
-                        {mySavedHashtags.map((tag) => (
-                          <div key={tag} className="group relative flex items-center">
-                            <button
-                              type="button"
-                              onClick={() => addTag(tag)}
-                              className="flex items-center gap-1 rounded-full border border-[#7F77DD]/20 bg-[#534AB7]/10 px-2.5 py-0.5 pr-6 text-xs text-[#AFA9EC]/60 transition hover:border-[#7F77DD]/40 hover:text-[#AFA9EC]"
-                            >
-                              ★ #{tag}
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => void removeSavedHashtag(tag)}
-                              className="absolute right-1.5 hidden text-[10px] text-white/20 transition group-hover:block hover:text-red-400"
-                            >
-                              ×
-                            </button>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-
-                  {tags.length > 0 && (
-                    <div className="mt-2 flex flex-wrap gap-1.5">
-                      {tags
-                        .filter((t) => !mySavedHashtags.includes(t))
-                        .map((tag) => (
-                          <button
-                            key={tag}
-                            type="button"
-                            onClick={() => void saveHashtag(tag)}
-                            className="rounded-full border border-white/[0.06] px-2 py-0.5 text-[10px] text-white/25 transition hover:border-[#7F77DD]/30 hover:text-[#AFA9EC]"
-                          >
-                            ☆ #{tag} 저장
-                          </button>
-                        ))}
-                    </div>
-                  )}
-                </div>
-              </div>
-            </div>
-
-            {/* AI 툴 */}
-            <div
-              className="rounded-2xl border border-white/[0.08] p-3"
-              style={{ background: "rgba(83,74,183,0.06)", borderColor: "rgba(127,119,221,0.1)" }}
-            >
-              <h2
-                className="mb-3 text-[11px] font-bold uppercase tracking-[0.2em] text-[#AFA9EC] border-b border-[#7F77DD]/20 pb-2"
-                style={{ letterSpacing: "0.18em" }}
-              >
-                {t("upload.sectionAiToolsUsed")}
-              </h2>
-              <div className="space-y-4">
-                {AI_TOOL_CATEGORIES.map((cat) => {
-                  const visibleDefaults = cat.tools.filter((t) => !hiddenTools.includes(t));
-                  const hiddenCount = cat.tools.filter((t) => hiddenTools.includes(t)).length;
-                  const catCustomTools = customTools[cat.key] ?? [];
-
-                  return (
-                    <div key={cat.key}>
-                      <div className="mb-2 flex items-center justify-between">
-                        <p className="text-[10px] font-bold uppercase tracking-widest text-white/25">
-                          {t(`upload.aiCategory.${cat.key}`)}
-                        </p>
-                        {hiddenCount > 0 && (
-                          <button
-                            type="button"
-                            onClick={() => void restoreHiddenTools(cat.key)}
-                            className="text-[10px] text-[#7F77DD]/50 transition hover:text-[#7F77DD]"
-                          >
-                            {hiddenCount}개 복원
-                          </button>
-                        )}
-                      </div>
-
-                      <div className="flex flex-wrap gap-1.5">
-                        {visibleDefaults.map((opt) => {
-                          const canon = normalizeToolName(opt);
-                          const on = tools.some((sel) => normalizeToolName(sel) === canon);
-                          return (
-                            <div key={opt} className="group relative">
-                              <button
-                                type="button"
-                                onClick={() => toggleTool(canon)}
-                                className="rounded-full border px-3 py-1 pr-6 text-xs font-medium transition"
-                                style={{
-                                  borderColor: on ? "rgba(127,119,221,0.5)" : "rgba(255,255,255,0.06)",
-                                  background: on ? "rgba(83,74,183,0.35)" : "rgba(255,255,255,0.02)",
-                                  color: on ? "#AFA9EC" : "rgba(255,255,255,0.35)",
-                                }}
-                              >
-                                {opt}
-                              </button>
-                              <button
-                                type="button"
-                                onClick={() => void hideDefaultTool(opt)}
-                                className="absolute right-1.5 top-1/2 hidden h-3.5 w-3.5 -translate-y-1/2 items-center justify-center rounded-full text-white/30 transition group-hover:flex hover:text-red-400"
-                                title="숨기기"
-                              >
-                                ×
-                              </button>
-                            </div>
-                          );
-                        })}
-
-                        {catCustomTools.map((tool) => {
-                          const on = tools.includes(tool);
-                          return (
-                            <div key={tool} className="group relative">
-                              <button
-                                type="button"
-                                onClick={() => toggleTool(tool)}
-                                className="rounded-full border px-3 py-1 pr-6 text-xs font-medium transition"
-                                style={{
-                                  borderColor: on ? "rgba(127,119,221,0.5)" : "rgba(127,119,221,0.2)",
-                                  background: on ? "rgba(83,74,183,0.35)" : "rgba(83,74,183,0.08)",
-                                  color: on ? "#AFA9EC" : "rgba(175,169,236,0.5)",
-                                }}
-                              >
-                                {tool}
-                              </button>
-                              <button
-                                type="button"
-                                onClick={() => void removeCustomTool(cat.key, tool)}
-                                className="absolute right-1.5 top-1/2 hidden h-3.5 w-3.5 -translate-y-1/2 items-center justify-center rounded-full text-white/30 transition group-hover:flex hover:text-red-400"
-                                title="삭제"
-                              >
-                                ×
-                              </button>
-                            </div>
-                          );
-                        })}
-                      </div>
-
-                      <div className="mt-2 flex gap-2">
-                        <input
-                          type="text"
-                          value={customInput[cat.key] ?? ""}
-                          onChange={(e) => setCustomInput((prev) => ({ ...prev, [cat.key]: e.target.value }))}
-                          onKeyDown={(e) => {
-                            if (e.key === "Enter") {
-                              e.preventDefault();
-                              void addCustomTool(cat.key);
-                            }
-                          }}
-                          placeholder="직접 추가..."
-                          className="flex-1 rounded-xl border border-white/[0.08] bg-[#0d0b20] px-3 py-1.5 text-xs text-white placeholder:text-white/20 outline-none focus:border-[#7F77DD]/40"
-                        />
-                        <button
-                          type="button"
-                          onClick={() => void addCustomTool(cat.key)}
-                          className="rounded-xl border border-[#7F77DD]/30 bg-[#534AB7]/20 px-3 py-1.5 text-xs font-semibold text-[#AFA9EC] transition hover:bg-[#534AB7]/40"
-                        >
-                          + 추가
-                        </button>
-                      </div>
-                    </div>
-                  );
-                })}
               </div>
             </div>
           </div>
 
-          {/* ── 오른쪽: Settings + 썸네일 ── */}
+          {/* ── 오른쪽 Step 1: 썸네일만 ── */}
           <div className="space-y-3">
             {/* 썸네일 */}
             <div
               className="rounded-2xl border border-white/[0.08] p-3"
               style={{ background: "rgba(255,255,255,0.025)" }}
             >
-              <h2 className="mb-3 text-[11px] font-bold uppercase tracking-[0.2em] text-[#7F77DD] border-b border-[#7F77DD]/15 pb-2">
-                {t("upload.sectionPosterThumb")}
-              </h2>
+              <div className="mb-3 border-b border-[#7F77DD]/15 pb-2">
+                <h2 className="text-[11px] font-bold uppercase tracking-[0.2em] text-[#7F77DD]">
+                  {t("upload.sectionPosterThumb")}
+                </h2>
+                <p className="mt-1.5 text-[10px] text-white/30 leading-relaxed">
+                  ✦ Recommended: <span className="text-white/50 font-semibold">3:4 portrait</span> (1080×1440) for card display<br />
+                  Pro tip: include your film title in the thumbnail for best visibility on feeds.
+                </p>
+              </div>
               {!thumbnailPreview ? (
                 <button
                   type="button"
@@ -1080,8 +1114,8 @@ export function UploadVideoForm({
                   </div>
                 </button>
               ) : (
-                <div className="relative overflow-hidden rounded-xl border border-white/[0.08]">
-                  <div className="aspect-video w-full bg-black">
+                <div className="relative mx-auto overflow-hidden rounded-xl border border-white/[0.08]" style={{ maxWidth: "240px" }}>
+                  <div className="aspect-[3/4] w-full bg-black">
                     <img src={thumbnailPreview} alt="" className="h-full w-full object-cover" />
                   </div>
                   <button
@@ -1095,7 +1129,548 @@ export function UploadVideoForm({
               )}
             </div>
 
-            {/* Settings */}
+            {/* Hero Backdrop (Optional) */}
+            <div
+              className="rounded-2xl border border-white/[0.08] p-3"
+              style={{ background: "rgba(255,255,255,0.025)" }}
+            >
+              <div className="mb-3 border-b border-[#7F77DD]/15 pb-2">
+                <div className="flex items-center gap-2">
+                  <h2 className="text-[11px] font-bold uppercase tracking-[0.2em] text-[#7F77DD]">
+                    Hero Backdrop
+                  </h2>
+                  <span
+                    className="rounded-full px-1.5 py-0.5 text-[8px] font-black uppercase tracking-[0.15em]"
+                    style={{
+                      background: "rgba(255,255,255,0.04)",
+                      color: "rgba(255,255,255,0.35)",
+                      border: "1px solid rgba(255,255,255,0.06)",
+                    }}
+                  >
+                    Optional
+                  </span>
+                </div>
+                <p className="mt-1.5 text-[10px] text-white/30 leading-relaxed">
+                  ✦ 16:9 wide cinematic shot · <span className="text-white/50 font-semibold">no text recommended</span><br />
+                  Used when your film is featured in the homepage hero. If empty, the thumbnail is used.
+                </p>
+              </div>
+              {!backdropPreview ? (
+                <button
+                  type="button"
+                  onClick={openBackdropPicker}
+                  className="flex min-h-[120px] w-full cursor-pointer flex-col items-center justify-center gap-2 rounded-xl border border-dashed border-[#7F77DD]/15 bg-white/[0.015] transition hover:border-[#7F77DD]/35 hover:bg-white/[0.03]"
+                >
+                  <svg
+                    className="h-7 w-7 text-[#7F77DD]/30"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="1.5"
+                  >
+                    <path d="M21 15l-5-5L5 21" strokeLinecap="round" strokeLinejoin="round" />
+                    <rect x="3" y="3" width="18" height="18" rx="2" strokeLinecap="round" />
+                    <circle cx="9" cy="9" r="1.5" />
+                  </svg>
+                  <p className="text-[11px] font-medium text-white/35">Upload cinematic backdrop</p>
+                </button>
+              ) : (
+                <div className="relative overflow-hidden rounded-xl border border-white/[0.08]">
+                  <div className="w-full bg-black" style={{ aspectRatio: "16/5.5" }}>
+                    <img src={backdropPreview} alt="" className="h-full w-full object-cover" />
+                  </div>
+                  <button
+                    type="button"
+                    onClick={openBackdropPicker}
+                    className="absolute right-2 top-2 rounded-lg bg-black/70 px-3 py-1.5 text-xs font-semibold text-white backdrop-blur-sm transition hover:bg-black/90"
+                  >
+                    {t("upload.change")}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (backdropPreview?.startsWith("blob:")) URL.revokeObjectURL(backdropPreview);
+                      setBackdropPreview(null);
+                      setBackdropFile(null);
+                    }}
+                    className="absolute right-2 top-12 rounded-lg bg-black/70 px-3 py-1.5 text-xs font-semibold text-red-300 backdrop-blur-sm transition hover:bg-black/90"
+                  >
+                    Remove
+                  </button>
+                </div>
+              )}
+            </div>
+
+            {/* Preview Toggle */}
+            {(thumbnailPreview || backdropPreview) && (
+              <div
+                className="rounded-2xl border border-white/[0.08] overflow-hidden"
+                style={{ background: "rgba(255,255,255,0.025)" }}
+              >
+                <button
+                  type="button"
+                  onClick={() => setPreviewOpen((v) => !v)}
+                  className="flex w-full items-center justify-between px-3 py-2.5 transition hover:bg-white/[0.02]"
+                >
+                  <div className="flex items-center gap-2">
+                    <svg className="h-3.5 w-3.5 text-[#7F77DD]/70" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                      <circle cx="12" cy="12" r="3"/>
+                    </svg>
+                    <span className="text-[11px] font-bold uppercase tracking-[0.2em] text-[#AFA9EC]">
+                      Live Preview
+                    </span>
+                  </div>
+                  <svg
+                    viewBox="0 0 24 24"
+                    className="h-3.5 w-3.5 text-white/40 transition-transform duration-300"
+                    style={{ transform: previewOpen ? "rotate(180deg)" : "rotate(0deg)" }}
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth={2}
+                  >
+                    <polyline points="6 9 12 15 18 9" />
+                  </svg>
+                </button>
+
+                {previewOpen && (
+                  <div className="space-y-3 border-t border-white/[0.06] p-3">
+                    {/* 카드 미리보기 (포스터) */}
+                    <div>
+                      <p className="mb-1.5 text-[9px] font-bold uppercase tracking-widest text-white/35">
+                        ✦ As card on feed
+                      </p>
+                      <div
+                        className="relative mx-auto overflow-hidden rounded-xl border border-white/[0.08]"
+                        style={{ maxWidth: "180px", aspectRatio: "3/4" }}
+                      >
+                        {thumbnailPreview ? (
+                          <img src={thumbnailPreview} alt="" className="absolute inset-0 h-full w-full object-cover" />
+                        ) : (
+                          <div className="absolute inset-0 bg-gradient-to-br from-[#1a1547] to-[#0f0d24]" />
+                        )}
+                        <div
+                          className="absolute inset-0"
+                          style={{
+                            background: "linear-gradient(to top, rgba(8,6,24,1) 0%, rgba(8,6,24,0.5) 40%, transparent 75%)",
+                          }}
+                        />
+                        <div className="absolute bottom-0 left-0 right-0 p-2.5">
+                          <h3 className="line-clamp-2 text-[11px] font-black text-white" style={{ textShadow: "0 2px 8px rgba(0,0,0,0.6)" }}>
+                            {title || "Your film title"}
+                          </h3>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* 히어로 미리보기 (백드롭) */}
+                    <div>
+                      <p className="mb-1.5 text-[9px] font-bold uppercase tracking-widest text-white/35">
+                        ✦ As homepage hero
+                      </p>
+                      <div
+                        className="relative w-full overflow-hidden rounded-xl border border-white/[0.08]"
+                        style={{ aspectRatio: "16/5.5" }}
+                      >
+                        {(backdropPreview || thumbnailPreview) ? (
+                          <img
+                            src={backdropPreview || thumbnailPreview || ""}
+                            alt=""
+                            className="absolute inset-0 h-full w-full object-cover"
+                            style={{ filter: "brightness(1.15)" }}
+                          />
+                        ) : (
+                          <div className="absolute inset-0 bg-gradient-to-br from-[#1a1547] to-[#0f0d24]" />
+                        )}
+                        {/* 페이드 — 백드롭 없으면 강하게 */}
+                        <div
+                          className="absolute inset-0"
+                          style={{
+                            background: backdropPreview
+                              ? "linear-gradient(to right, rgba(8,6,20,0.95) 0%, rgba(8,6,20,0.5) 50%, rgba(8,6,20,0) 85%)"
+                              : "linear-gradient(to right, rgba(8,6,20,0.98) 0%, rgba(8,6,20,0.95) 30%, rgba(8,6,20,0.4) 75%, rgba(8,6,20,0.1) 90%)",
+                          }}
+                        />
+                        <div className="absolute inset-0 flex items-center pl-4">
+                          <h3
+                            className="line-clamp-1 text-[14px] font-black text-white"
+                            style={{ letterSpacing: "-0.02em", textShadow: "0 2px 8px rgba(0,0,0,0.6)" }}
+                          >
+                            {title || "Your film title"}
+                          </h3>
+                        </div>
+                      </div>
+                      {!backdropPreview && (
+                        <p className="mt-1 text-[9px] text-white/30">
+                          ⚠ Without backdrop, thumbnail is used with stronger fade.
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+          </div>
+
+          <div style={{ display: step === 2 ? "grid" : "none" }} className="grid-cols-1 gap-3 lg:grid-cols-[1fr_1.2fr]">
+            <div className="space-y-4">
+              <div
+                className="rounded-2xl border border-white/[0.08] p-3"
+                style={{ background: "rgba(255,255,255,0.025)", borderColor: "rgba(255,255,255,0.07)" }}
+              >
+                <div className="mb-3 flex items-center justify-between border-b border-[#7F77DD]/20 pb-2">
+                  <h2
+                    className="text-[11px] font-bold uppercase tracking-[0.2em] text-[#AFA9EC]"
+                    style={{ letterSpacing: "0.18em" }}
+                  >
+                    {t("upload.sectionTags")}
+                  </h2>
+                  <span
+                    className="rounded-full px-2 py-0.5 text-[10px] font-black tabular-nums transition-all"
+                    style={{
+                      background: tags.length > 0 ? "rgba(127,119,221,0.2)" : "rgba(255,255,255,0.04)",
+                      color: tags.length > 0 ? "#AFA9EC" : "rgba(255,255,255,0.3)",
+                      border: tags.length > 0 ? "1px solid rgba(127,119,221,0.35)" : "1px solid rgba(255,255,255,0.06)",
+                    }}
+                  >
+                    {tags.length}/{MAX_VIDEO_TAGS}
+                  </span>
+                </div>
+                <div className="space-y-3">
+                  <div className="space-y-3">
+                    {/* 메인 입력 */}
+                    <div>
+                      <label className={lbl} htmlFor="uv-tags">
+                        {t("upload.tagsWithMax").replace("{max}", String(MAX_VIDEO_TAGS))}
+                      </label>
+
+                      <div
+                        className="mt-1.5 flex min-h-[58px] flex-wrap items-center gap-1.5 rounded-xl px-3.5 py-2.5 transition-all duration-300 cursor-text focus-within:scale-[1.005]"
+                        onClick={() => document.getElementById("uv-tags")?.focus()}
+                        style={{
+                          background: "linear-gradient(135deg, rgba(20,17,50,0.6) 0%, rgba(13,11,32,0.7) 100%)",
+                          border: tags.length > 0
+                            ? "1px solid rgba(127,119,221,0.4)"
+                            : "1px solid rgba(255,255,255,0.08)",
+                          boxShadow: tags.length > 0
+                            ? "0 0 20px rgba(127,119,221,0.12), inset 0 1px 0 rgba(127,119,221,0.08)"
+                            : "inset 0 1px 0 rgba(255,255,255,0.03)",
+                        }}
+                      >
+                        {tags.map((tag) => (
+                          <span
+                            key={tag}
+                            className="flex items-center gap-1 rounded-full px-2.5 py-1 text-[12px] font-bold transition-all"
+                            style={{
+                              background: "linear-gradient(135deg, rgba(127,119,221,0.4) 0%, rgba(83,74,183,0.25) 100%)",
+                              border: "1px solid rgba(127,119,221,0.55)",
+                              color: "#ffffff",
+                              boxShadow: "0 0 8px rgba(127,119,221,0.25)",
+                            }}
+                          >
+                            #{tag}
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                removeTag(tag);
+                              }}
+                              className="ml-0.5 text-white/60 transition hover:text-white"
+                            >
+                              ×
+                            </button>
+                          </span>
+                        ))}
+                        <input
+                          id="uv-tags"
+                          value={tagInput}
+                          onChange={(e) => setTagInput(e.target.value)}
+                          onKeyDown={handleTagKeyDown}
+                          placeholder={tags.length === 0 ? t("upload.placeholderTags") : ""}
+                          className="min-w-[140px] flex-1 bg-transparent text-[13px] text-white outline-none placeholder:text-white/25"
+                          disabled={tags.length >= MAX_VIDEO_TAGS}
+                        />
+                      </div>
+                      <p className="mt-1.5 text-[10px] text-white/25">{t("upload.tagsInputHint")}</p>
+                    </div>
+
+                    {/* 추천 + 즐겨찾기 통합 박스 */}
+                    {(recentTags.length > 0 || true) && (
+                      <div className="rounded-xl border border-white/[0.06] bg-white/[0.015] p-3 space-y-3">
+                        {recentTags.length > 0 && (
+                          <div>
+                            <div className="mb-2 flex items-center gap-2">
+                              <svg className="h-3 w-3 text-white/40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                                <circle cx="12" cy="12" r="9" strokeLinecap="round" />
+                                <path d="M12 8v4l3 2" strokeLinecap="round" />
+                              </svg>
+                              <span className="text-[10px] font-bold uppercase tracking-widest text-white/40">
+                                {t("upload.recentVideoTags")}
+                              </span>
+                            </div>
+                            <div className="flex flex-wrap gap-1.5">
+                              {recentTags
+                                .filter((rt) => !tags.includes(rt))
+                                .map((tag) => (
+                                  <button
+                                    key={tag}
+                                    type="button"
+                                    onClick={() => addTag(tag)}
+                                    className="rounded-full border border-white/[0.08] bg-white/[0.02] px-2.5 py-1 text-[11px] font-bold text-white/45 transition hover:border-[#7F77DD]/40 hover:bg-[#534AB7]/15 hover:text-[#AFA9EC]"
+                                  >
+                                    + #{tag}
+                                  </button>
+                                ))}
+                            </div>
+                          </div>
+                        )}
+
+                        <div className={recentTags.length > 0 ? "border-t border-white/[0.05] pt-3" : ""}>
+                          <div className="mb-2 flex items-center gap-2">
+                            <svg className="h-3 w-3" viewBox="0 0 24 24" fill="#FFD478">
+                              <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
+                            </svg>
+                            <span className="text-[10px] font-bold uppercase tracking-widest text-white/40">
+                              {t("upload.favoriteTags")}
+                            </span>
+                          </div>
+                          {mySavedHashtags.length === 0 ? (
+                            <p className="text-[10px] text-white/25">{t("upload.favoriteTagsHint")}</p>
+                          ) : (
+                            <div className="flex flex-wrap gap-1.5">
+                              {mySavedHashtags.map((tag) => (
+                                <div key={tag} className="group relative flex items-center">
+                                  <button
+                                    type="button"
+                                    onClick={() => addTag(tag)}
+                                    className="flex items-center gap-1 rounded-full px-2.5 py-1 pr-6 text-[11px] font-bold transition"
+                                    style={{
+                                      border: "1px solid rgba(255,212,120,0.25)",
+                                      background: "rgba(255,212,120,0.06)",
+                                      color: "rgba(255,212,120,0.85)",
+                                    }}
+                                    onMouseEnter={(e) => {
+                                      const el = e.currentTarget as HTMLElement;
+                                      el.style.borderColor = "rgba(255,212,120,0.5)";
+                                      el.style.background = "rgba(255,212,120,0.12)";
+                                      el.style.color = "#FFD478";
+                                    }}
+                                    onMouseLeave={(e) => {
+                                      const el = e.currentTarget as HTMLElement;
+                                      el.style.borderColor = "rgba(255,212,120,0.25)";
+                                      el.style.background = "rgba(255,212,120,0.06)";
+                                      el.style.color = "rgba(255,212,120,0.85)";
+                                    }}
+                                  >
+                                    ★ #{tag}
+                                  </button>
+                                  <button
+                                    type="button"
+                                    onClick={() => void removeSavedHashtag(tag)}
+                                    className="absolute right-1.5 hidden text-[10px] text-white/30 transition group-hover:block hover:text-red-400"
+                                  >
+                                    ×
+                                  </button>
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* 현재 태그를 즐겨찾기로 저장 */}
+                    {tags.length > 0 && tags.filter((tg) => !mySavedHashtags.includes(tg)).length > 0 && (
+                      <div className="flex flex-wrap items-center gap-1.5">
+                        <span className="text-[10px] font-bold uppercase tracking-widest text-white/25">
+                          Save to favorites:
+                        </span>
+                        {tags
+                          .filter((tg) => !mySavedHashtags.includes(tg))
+                          .map((tag) => (
+                            <button
+                              key={tag}
+                              type="button"
+                              onClick={() => void saveHashtag(tag)}
+                              className="rounded-full border border-white/[0.06] px-2 py-0.5 text-[10px] text-white/35 transition hover:border-[#FFD478]/40 hover:text-[#FFD478]"
+                            >
+                              ☆ #{tag}
+                            </button>
+                          ))}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="space-y-4">
+              <div
+                className="rounded-2xl border border-white/[0.08] p-3"
+                style={{ background: "rgba(83,74,183,0.06)", borderColor: "rgba(127,119,221,0.1)" }}
+              >
+                <h2
+                  className="mb-3 text-[11px] font-bold uppercase tracking-[0.2em] text-[#AFA9EC] border-b border-[#7F77DD]/20 pb-2"
+                  style={{ letterSpacing: "0.18em" }}
+                >
+                  {t("upload.sectionAiToolsUsed")}
+                </h2>
+                <div className="space-y-2.5">
+                  {AI_TOOL_CATEGORIES.map((cat) => {
+                    const visibleDefaults = cat.tools.filter((toolName) => !hiddenTools.includes(toolName));
+                    const hiddenCount = cat.tools.filter((toolName) => hiddenTools.includes(toolName)).length;
+                    const catCustomTools = customTools[cat.key] ?? [];
+                    const allCatTools = [...visibleDefaults, ...catCustomTools];
+                    const selectedInCat = allCatTools.filter((tt) =>
+                      tools.some((sel) => normalizeToolName(sel) === normalizeToolName(tt)),
+                    ).length;
+                    const catIcon =
+                      cat.key === "image" ? "🎨"
+                      : cat.key === "video" ? "🎬"
+                      : cat.key === "music" ? "🎵"
+                      : "⚡";
+
+                    return (
+                      <div
+                        key={cat.key}
+                        className="rounded-xl p-3 transition-all duration-300"
+                        style={{
+                          background: selectedInCat > 0 ? "rgba(127,119,221,0.07)" : "rgba(127,119,221,0.03)",
+                          border: selectedInCat > 0 ? "1px solid rgba(127,119,221,0.22)" : "1px solid rgba(127,119,221,0.1)",
+                        }}
+                      >
+                        <div className="mb-3 flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            <span className="text-[14px]">{catIcon}</span>
+                            <p className="text-[12px] font-bold tracking-tight text-white/85">
+                              {t(`upload.aiCategory.${cat.key}`)}
+                            </p>
+                            {selectedInCat > 0 && (
+                              <span
+                                className="rounded-full px-2 py-0.5 text-[9px] font-black tabular-nums"
+                                style={{
+                                  background: "rgba(127,119,221,0.3)",
+                                  color: "#D5D1FF",
+                                  border: "1px solid rgba(127,119,221,0.4)",
+                                }}
+                              >
+                                {selectedInCat}
+                              </span>
+                            )}
+                          </div>
+                          {hiddenCount > 0 && (
+                            <button
+                              type="button"
+                              onClick={() => void restoreHiddenTools(cat.key)}
+                              className="text-[10px] text-[#7F77DD]/50 transition hover:text-[#7F77DD]"
+                            >
+                              {t("upload.restoreHiddenTools").replace("{n}", String(hiddenCount))}
+                            </button>
+                          )}
+                        </div>
+
+                        <div className="flex flex-wrap gap-1.5">
+                          {visibleDefaults.map((opt) => {
+                            const canon = normalizeToolName(opt);
+                            const on = tools.some((sel) => normalizeToolName(sel) === canon);
+                            return (
+                              <div key={opt} className="group relative">
+                                <button
+                                  type="button"
+                                  onClick={() => toggleTool(canon)}
+                                  className="rounded-full border px-3 py-1.5 pr-6 text-[11px] font-bold transition-all duration-200"
+                                  style={{
+                                    borderColor: on ? "rgba(127,119,221,0.7)" : "rgba(255,255,255,0.08)",
+                                    background: on
+                                      ? "linear-gradient(135deg, rgba(127,119,221,0.4) 0%, rgba(83,74,183,0.25) 100%)"
+                                      : "rgba(255,255,255,0.02)",
+                                    color: on ? "#ffffff" : "rgba(255,255,255,0.4)",
+                                    boxShadow: on
+                                      ? "0 0 12px rgba(127,119,221,0.3), inset 0 1px 0 rgba(175,169,236,0.2)"
+                                      : "none",
+                                  }}
+                                >
+                                  {opt}
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => void hideDefaultTool(opt)}
+                                  className="absolute right-1.5 top-1/2 hidden h-3.5 w-3.5 -translate-y-1/2 items-center justify-center rounded-full text-white/30 transition group-hover:flex hover:text-red-400"
+                                  title={t("upload.hideTool")}
+                                >
+                                  ×
+                                </button>
+                              </div>
+                            );
+                          })}
+
+                          {catCustomTools.map((tool) => {
+                            const on = tools.includes(tool);
+                            return (
+                              <div key={tool} className="group relative">
+                                <button
+                                  type="button"
+                                  onClick={() => toggleTool(tool)}
+                                  className="rounded-full border px-3 py-1.5 pr-6 text-[11px] font-bold transition-all duration-200"
+                                  style={{
+                                    borderColor: on ? "rgba(127,119,221,0.7)" : "rgba(127,119,221,0.25)",
+                                    background: on
+                                      ? "linear-gradient(135deg, rgba(127,119,221,0.4) 0%, rgba(83,74,183,0.25) 100%)"
+                                      : "rgba(83,74,183,0.06)",
+                                    color: on ? "#ffffff" : "rgba(175,169,236,0.55)",
+                                    boxShadow: on
+                                      ? "0 0 12px rgba(127,119,221,0.3), inset 0 1px 0 rgba(175,169,236,0.2)"
+                                      : "none",
+                                  }}
+                                >
+                                  {tool}
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => void removeCustomTool(cat.key, tool)}
+                                  className="absolute right-1.5 top-1/2 hidden h-3.5 w-3.5 -translate-y-1/2 items-center justify-center rounded-full text-white/30 transition group-hover:flex hover:text-red-400"
+                                  title={t("upload.deleteTool")}
+                                >
+                                  ×
+                                </button>
+                              </div>
+                            );
+                          })}
+                        </div>
+
+                        <div className="mt-2.5 flex gap-1.5 border-t border-white/[0.05] pt-2.5">
+                          <input
+                            type="text"
+                            value={customInput[cat.key] ?? ""}
+                            onChange={(e) => setCustomInput((prev) => ({ ...prev, [cat.key]: e.target.value }))}
+                            onKeyDown={(e) => {
+                              if (e.key === "Enter") {
+                                e.preventDefault();
+                                void addCustomTool(cat.key);
+                              }
+                            }}
+                            placeholder={t("upload.addCustomPlaceholder")}
+                            className="flex-1 rounded-lg border border-white/[0.06] bg-transparent px-2.5 py-1 text-[11px] text-white placeholder:text-white/20 outline-none focus:border-[#7F77DD]/40"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => void addCustomTool(cat.key)}
+                            className="rounded-lg border border-[#7F77DD]/25 bg-[#534AB7]/15 px-3 py-1 text-[11px] font-bold text-[#AFA9EC] transition hover:bg-[#534AB7]/30"
+                          >
+                            +
+                          </button>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Step 3 — Settings */}
+          <div style={{ display: step === 3 ? "block" : "none" }}>
             <div
               className="rounded-2xl border border-white/[0.08] p-3"
               style={{ background: "rgba(83,74,183,0.08)", borderColor: "rgba(127,119,221,0.12)" }}
@@ -1107,44 +1682,129 @@ export function UploadVideoForm({
                 {t("upload.sectionSettingsPanel")}
               </h2>
               <div className="space-y-3">
-                {/* 장르 */}
-                <div className="grid grid-cols-2 gap-2">
+                {/* Genre selection — Main → Sub → Additional */}
+                <div className="rounded-xl border border-white/[0.08] bg-white/[0.02] p-3.5 space-y-4">
+                  {/* 1) Main Genre */}
                   <div>
-                    <label className={lbl}>{t("upload.labelGenre")}</label>
-                    <CustomSelect
-                      value={mainGenre}
-                      onChange={(v) => setMainGenre(v as MainGenreKey)}
-                      options={FEED_GENRE_KEYS.map((k) => ({ value: k, label: mainGenreLabel(k, locale) }))}
-                    />
-                  </div>
-                  {showSubGenre ? (
-                    <div>
-                      <label className={lbl}>{t("upload.labelSubGenreShort")}</label>
-                      <CustomSelect
-                        value={subGenre}
-                        onChange={(v) => setSubGenre(v as SubGenreKey)}
-                        options={SUB_GENRE_KEYS.map((k) => ({ value: k, label: subGenreLabel(k, locale) }))}
-                      />
+                    <label className={lbl}>{t("upload.labelGenre", "Main Genre")}</label>
+                    <p className="mb-2.5 text-[10px] text-white/35">{t("upload.primaryGenreHint", "The first selected genre is used as the main genre.")}</p>
+                    <div className="flex flex-wrap gap-1.5">
+                      {FEED_GENRE_KEYS.map((k) => {
+                        const selected = mainGenre === k;
+                        return (
+                          <button
+                            key={k}
+                            type="button"
+                            onClick={() => setMainGenre(k)}
+                            className="rounded-full border px-3 py-1.5 text-[12px] font-bold transition-all duration-200"
+                            style={{
+                              borderColor: selected ? "rgba(127,119,221,0.7)" : "rgba(255,255,255,0.08)",
+                              background: selected
+                                ? "linear-gradient(135deg, rgba(127,119,221,0.4) 0%, rgba(83,74,183,0.25) 100%)"
+                                : "rgba(255,255,255,0.02)",
+                              color: selected ? "#ffffff" : "rgba(255,255,255,0.4)",
+                              boxShadow: selected
+                                ? "0 0 12px rgba(127,119,221,0.3), inset 0 1px 0 rgba(175,169,236,0.2)"
+                                : "none",
+                            }}
+                          >
+                            {mainGenreLabel(k, locale)}
+                          </button>
+                        );
+                      })}
                     </div>
-                  ) : (
-                    <div />
+                  </div>
+
+                  {/* 2) Sub Genre (조건부) */}
+                  {showSubGenre && (
+                    <div className="border-t border-white/[0.05] pt-3.5">
+                      <label className={lbl}>{t("upload.labelSubGenreShort", "Sub Genre")}</label>
+                      <p className="mb-2.5 text-[10px] text-white/35">{t("upload.subGenreHint", "Choose one detailed sub genre under the main genre.")}</p>
+                      <div className="flex flex-wrap gap-1.5">
+                        {subGenreOptions.map((opt) => {
+                          const selected = subGenre === opt.value;
+                          return (
+                            <button
+                              key={opt.value}
+                              type="button"
+                              onClick={() => setSubGenre(opt.value)}
+                              className="rounded-full border px-3 py-1.5 text-[12px] font-bold transition-all duration-200"
+                              style={{
+                                borderColor: selected ? "rgba(127,119,221,0.7)" : "rgba(255,255,255,0.08)",
+                                background: selected
+                                  ? "linear-gradient(135deg, rgba(127,119,221,0.4) 0%, rgba(83,74,183,0.25) 100%)"
+                                  : "rgba(255,255,255,0.02)",
+                                color: selected ? "#ffffff" : "rgba(255,255,255,0.4)",
+                                boxShadow: selected
+                                  ? "0 0 12px rgba(127,119,221,0.3), inset 0 1px 0 rgba(175,169,236,0.2)"
+                                  : "none",
+                              }}
+                            >
+                              {opt.label}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
                   )}
+
+                  {/* 3) Additional Genres (보조) */}
+                  <div className="border-t border-white/[0.05] pt-3.5">
+                    <div className="mb-1.5 flex items-center gap-2">
+                      <span className="text-[11px] font-bold uppercase tracking-widest text-white/40">
+                        {t("upload.additionalGenres", "Detail Genres")}
+                      </span>
+                      <span
+                        className="rounded-full px-1.5 py-0.5 text-[8px] font-black uppercase tracking-[0.15em]"
+                        style={{
+                          background: "rgba(255,255,255,0.04)",
+                          color: "rgba(255,255,255,0.35)",
+                          border: "1px solid rgba(255,255,255,0.06)",
+                        }}
+                      >
+                        Optional
+                      </span>
+                    </div>
+                    <p className="mb-2.5 text-[10px] text-white/35">{t("upload.additionalGenresHint", "You can add multiple extra genres.")}</p>
+                    <div className="flex flex-wrap gap-1.5">
+                      {additionalGenreOptions.map((k) => {
+                        const selected = additionalGenres.includes(k);
+                        return (
+                          <button
+                            key={k}
+                            type="button"
+                            onClick={() => {
+                              setAdditionalGenres((prev) =>
+                                prev.includes(k) ? prev.filter((x) => x !== k) : [...prev, k]
+                              );
+                            }}
+                            className="rounded-full border px-3 py-1.5 text-[11px] font-bold transition-all duration-200"
+                            style={{
+                              borderColor: selected ? "rgba(127,119,221,0.5)" : "rgba(255,255,255,0.06)",
+                              background: selected ? "rgba(83,74,183,0.22)" : "rgba(255,255,255,0.02)",
+                              color: selected ? "#AFA9EC" : "rgba(255,255,255,0.35)",
+                            }}
+                          >
+                            {mainGenreLabel(k, locale)}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
                 </div>
 
-                {/* 런타임 */}
-                {muxUploadStatus === "ready" && muxDuration && (
-                  <div className="rounded-lg border border-emerald-500/20 bg-emerald-950/20 px-3 py-2">
-                    <p className="text-[11px] text-emerald-400/70">Runtime (auto-detected)</p>
-                    <p className="text-sm font-bold text-emerald-400">
-                      {String(Math.floor(muxDuration / 60)).padStart(2, "0")}:{String(Math.round(muxDuration % 60)).padStart(2, "0")}
-                    </p>
-                  </div>
-                )}
-                {muxUploadStatus !== "ready" && (
-                  <div>
-                    <label className={lbl}>{t("upload.runtimeMinutes")}</label>
-                    <NumberInput value={runtimeMinutes} onChange={setRuntimeMinutes} min={1} />
-                    <p className="mt-1 text-[10px] text-white/25">Upload video to auto-detect</p>
+                {/* 런타임 (자동 인식, 읽기 전용) */}
+                {(detectedDurationSeconds > 0 || (muxDuration && muxDuration > 0)) && (
+                  <div className="rounded-lg border border-white/10 bg-white/[0.04] p-3 text-sm">
+                    <span className="text-white/40">영상 길이</span>{" "}
+                    <span className="font-mono font-semibold text-white">
+                      {(() => {
+                        const seconds = detectedDurationSeconds || Math.round(muxDuration ?? 0);
+                        const m = Math.floor(seconds / 60);
+                        const s = seconds % 60;
+                        return `${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
+                      })()}
+                    </span>
                   </div>
                 )}
 
@@ -1276,51 +1936,54 @@ export function UploadVideoForm({
                 {/* 목적 */}
                 <div>
                   <p className={lbl}>{t("upload.labelPurpose")}</p>
-                  <div className="grid grid-cols-2 gap-2">
-                    {(["personal", "competition"] as const).map((v) => (
-                      <button
-                        key={v}
-                        type="button"
-                        disabled={!!competitionIdFromUrl}
-                        onClick={() => setPurpose(v)}
-                        className="relative flex items-center justify-center gap-1.5 rounded-xl border py-2.5 text-sm font-medium transition"
-                        style={{
-                          borderColor: purpose === v ? "rgba(127,119,221,0.5)" : "rgba(255,255,255,0.06)",
-                          background: purpose === v ? "rgba(83,74,183,0.35)" : "rgba(255,255,255,0.02)",
-                          color: purpose === v ? "#AFA9EC" : "rgba(255,255,255,0.3)",
-                          cursor: !!competitionIdFromUrl ? "not-allowed" : "pointer",
-                          opacity: !!competitionIdFromUrl && purpose !== v ? 0.4 : 1,
-                        }}
-                      >
-                        <span>{v === "personal" ? "✦" : "🏆"}</span>
-                        <span>{v === "personal" ? t("upload.personal") : t("upload.competition")}</span>
-                        {purpose === v && (
-                          <span className="absolute right-2.5 h-1.5 w-1.5 rounded-full bg-[#7F77DD]" />
-                        )}
-                      </button>
-                    ))}
-                  </div>
+                  {isCompetitionLocked ? (
+                    <div className="flex items-center gap-3 rounded-lg border border-[#7F77DD]/30 bg-[#7F77DD]/[0.06] p-4">
+                      <span className="text-sm text-[#7F77DD]">✦</span>
+                      <div className="flex-1">
+                        <p className="text-sm font-semibold text-white">공모전 출품 모드</p>
+                        <p className="mt-0.5 text-xs text-white/60">
+                          이 영상은 선택된 공모전에 출품됩니다. 변경하려면 공모전 페이지로 돌아가세요.
+                        </p>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="grid grid-cols-2 gap-2">
+                      {(["personal", "competition"] as const).map((v) => (
+                        <button
+                          key={v}
+                          type="button"
+                          onClick={() => setPurpose(v)}
+                          className="relative flex items-center justify-center gap-1.5 rounded-xl border py-2.5 text-sm font-medium transition"
+                          style={{
+                            borderColor: purpose === v ? "rgba(127,119,221,0.5)" : "rgba(255,255,255,0.06)",
+                            background: purpose === v ? "rgba(83,74,183,0.35)" : "rgba(255,255,255,0.02)",
+                            color: purpose === v ? "#AFA9EC" : "rgba(255,255,255,0.3)",
+                          }}
+                        >
+                          <span>{v === "personal" ? "✦" : "🏆"}</span>
+                          <span>{v === "personal" ? t("upload.personal") : t("upload.competition")}</span>
+                          {purpose === v && (
+                            <span className="absolute right-2.5 h-1.5 w-1.5 rounded-full bg-[#7F77DD]" />
+                          )}
+                        </button>
+                      ))}
+                    </div>
+                  )}
                 </div>
 
                 {/* 공모전 선택 */}
                 {purpose === "competition" && (
                   <div>
                     <label className={lbl}>{t("upload.selectCompetition")}</label>
-                    {competitionIdFromUrl ? (
-                      <div
-                        className="flex items-center justify-between rounded-xl border px-4 py-2 text-sm"
-                        style={{
-                          borderColor: "rgba(127,119,221,0.3)",
-                          background: "rgba(83,74,183,0.15)",
-                          color: "#AFA9EC",
-                          cursor: "not-allowed",
-                        }}
-                      >
-                        <span>{competitions.find((c) => c.id === competitionIdFromUrl)?.title ?? competitionIdFromUrl}</span>
-                        <svg viewBox="0 0 24 24" className="h-3.5 w-3.5 text-[#7F77DD]/50" fill="none" stroke="currentColor" strokeWidth={2}>
-                          <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
-                          <path d="M7 11V7a5 5 0 0 1 10 0v4" />
-                        </svg>
+                    {isCompetitionLocked ? (
+                      <div className="rounded-lg border border-white/10 bg-white/[0.04] p-4">
+                        <p className="mb-2 text-[10px] uppercase tracking-[0.2em] text-white/40">
+                          출품 공모전
+                        </p>
+                        <p className="text-sm font-semibold text-white">
+                          {competitions.find((c) => c.id === competitionId)?.title ?? competitions.find((c) => c.id === competitionIdFromUrl)?.title ?? "공모전"}
+                        </p>
+                        <p className="mt-1 text-xs text-white/50">공모전 페이지에서 선택된 항목으로 고정됩니다.</p>
                       </div>
                     ) : competitions.length > 0 ? (
                       <CustomSelect
@@ -1336,26 +1999,75 @@ export function UploadVideoForm({
                 )}
               </div>
             </div>
+          </div>
 
-            {/* 에러 */}
+          {/* Navigation + 에러 */}
+          <div className="mt-5 space-y-3">
             {error && (
               <div className="rounded-xl border border-red-500/20 bg-red-950/30 px-4 py-3 text-sm text-red-300">{error}</div>
             )}
 
-            {/* 제출 버튼 */}
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full rounded-xl py-3.5 text-base font-bold text-white transition hover:opacity-90 disabled:opacity-50"
-              style={{
-                background: "linear-gradient(135deg, #534AB7 0%, #7B6FE8 100%)",
-                boxShadow: "0 4px 24px rgba(83,74,183,0.6), inset 0 1px 0 rgba(255,255,255,0.15)",
-              }}
-            >
-              {loading ? t("upload.submitBusy") : t("upload.submitCta")}
-            </button>
+            <div className="flex items-center justify-between gap-3">
+              <button
+                type="button"
+                onClick={() => setStep((s) => (s > 1 ? ((s - 1) as 1 | 2 | 3) : s))}
+                disabled={step === 1}
+                className="flex items-center gap-2 rounded-xl px-6 py-3 text-[13px] font-bold transition-all duration-300 disabled:cursor-not-allowed disabled:opacity-30"
+                style={{
+                  background: "rgba(255,255,255,0.04)",
+                  border: "1px solid rgba(255,255,255,0.1)",
+                  color: "rgba(255,255,255,0.7)",
+                }}
+              >
+                <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={2}>
+                  <path d="M15 18l-6-6 6-6" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+                Previous
+              </button>
+
+              {step < 3 ? (
+                <button
+                  key="next-btn"
+                  type="button"
+                  onClick={() => {
+                    console.log("[UPLOAD_DEBUG] Next clicked", {
+                      currentStep: step,
+                      timestamp: Date.now(),
+                    });
+                    setStep((s) => (s < 3 ? ((s + 1) as 1 | 2 | 3) : s));
+                    setStepTransitioning(true);
+                    setTimeout(() => setStepTransitioning(false), 500);
+                  }}
+                  className="flex items-center gap-2 rounded-xl px-8 py-3 text-[13px] font-bold text-white transition-all duration-300 hover:scale-[1.02]"
+                  style={{
+                    background: "linear-gradient(135deg, #534AB7 0%, #7B6FE8 100%)",
+                    boxShadow: "0 4px 16px rgba(83,74,183,0.4), inset 0 1px 0 rgba(255,255,255,0.15)",
+                  }}
+                >
+                  Next
+                  <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={2}>
+                    <path d="M9 18l6-6-6-6" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                </button>
+              ) : (
+                <button
+                  key="submit-btn"
+                  type="submit"
+                  disabled={loading || stepTransitioning}
+                  className="flex items-center gap-2 rounded-xl px-10 py-3 text-[14px] font-bold text-white transition-all duration-300 hover:scale-[1.02] disabled:opacity-50"
+                  style={{
+                    background: "linear-gradient(135deg, #534AB7 0%, #7B6FE8 100%)",
+                    boxShadow: "0 4px 24px rgba(83,74,183,0.6), inset 0 1px 0 rgba(255,255,255,0.15)",
+                  }}
+                >
+                  {loading ? t("upload.submitBusy") : t("upload.submitCta")}
+                  <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={2}>
+                    <path d="M5 12h14M12 5l7 7-7 7" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                </button>
+              )}
+            </div>
           </div>
-        </div>
         </div>
       </form>
     </div>

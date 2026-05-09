@@ -19,6 +19,10 @@ export async function updateProfileAction(updates: {
   vimeoUrl?: string | null;
   country?: string | null;
   mainGenre?: string | null;
+  tagline?: string | null;
+  pronouns?: string | null;
+  availableForCollab?: boolean;
+  pinnedVideoId?: string | null;
   notifyLikes?: boolean;
   notifyComments?: boolean;
   notifyFollows?: boolean;
@@ -46,6 +50,10 @@ export async function updateProfileAction(updates: {
   if (updates.vimeoUrl !== undefined) payload.vimeo_url = updates.vimeoUrl;
   if (updates.country !== undefined) payload.country = updates.country;
   if (updates.mainGenre !== undefined) payload.main_genre = updates.mainGenre;
+  if (updates.tagline !== undefined) payload.tagline = updates.tagline;
+  if (updates.pronouns !== undefined) payload.pronouns = updates.pronouns;
+  if (updates.availableForCollab !== undefined) payload.available_for_collab = updates.availableForCollab;
+  if (updates.pinnedVideoId !== undefined) payload.pinned_video_id = updates.pinnedVideoId;
   if (updates.notifyLikes !== undefined) payload.notify_likes = updates.notifyLikes;
   if (updates.notifyComments !== undefined) payload.notify_comments = updates.notifyComments;
   if (updates.notifyFollows !== undefined) payload.notify_follows = updates.notifyFollows;

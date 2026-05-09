@@ -14,6 +14,10 @@ export type Profile = {
   vimeoUrl: string | null;
   country: string | null;
   mainGenre: string | null;
+  tagline: string | null;
+  pronouns: string | null;
+  availableForCollab: boolean;
+  pinnedVideoId: string | null;
   notifyLikes: boolean;
   notifyComments: boolean;
   notifyFollows: boolean;
@@ -51,6 +55,10 @@ function mapProfile(row: {
   vimeo_url?: string | null;
   country?: string | null;
   main_genre?: string | null;
+  tagline?: string | null;
+  pronouns?: string | null;
+  available_for_collab?: boolean | null;
+  pinned_video_id?: string | null;
   notify_likes?: boolean | null;
   notify_comments?: boolean | null;
   notify_follows?: boolean | null;
@@ -76,6 +84,10 @@ function mapProfile(row: {
     vimeoUrl: row.vimeo_url?.trim() ? row.vimeo_url : null,
     country: row.country?.trim() ? row.country : null,
     mainGenre: row.main_genre?.trim() ? row.main_genre : null,
+    tagline: row.tagline?.trim() ? row.tagline : null,
+    pronouns: row.pronouns?.trim() ? row.pronouns : null,
+    availableForCollab: row.available_for_collab ?? false,
+    pinnedVideoId: row.pinned_video_id ?? null,
     notifyLikes: row.notify_likes ?? true,
     notifyComments: row.notify_comments ?? true,
     notifyFollows: row.notify_follows ?? true,

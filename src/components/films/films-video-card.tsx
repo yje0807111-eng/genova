@@ -32,53 +32,89 @@ export function FilmsVideoCard({
   return (
     <Link
       href={`/watch/${video.id}`}
-      className="group relative block w-full overflow-hidden rounded-xl border border-white/[0.08] bg-[#0f0d24] transition-all duration-200 hover:-translate-y-[2px] hover:border-[rgba(127,119,221,0.3)] hover:shadow-[0_8px_32px_rgba(83,74,183,0.2)]"
+      className="group relative block w-full overflow-hidden rounded-xl transition-all duration-300 hover:scale-[1.03] hover:shadow-[0_8px_30px_rgba(0,0,0,0.6)]"
     >
       <div className={`relative w-full overflow-hidden ${aspect}`}>
         {video.thumbnailUrl ? (
           <img
             src={video.thumbnailUrl}
             alt=""
-            className="h-full w-full object-cover transition duration-500 group-hover:scale-105 group-hover:brightness-90"
+            className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
           />
         ) : (
           <div className="h-full w-full bg-gradient-to-br from-[#1a1547] to-[#0f0d24]" />
         )}
 
-        {/* Gradient overlay */}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent" />
-
-        {/* Award badge */}
-        {awardLabel ? (
-          <span className="typo-stat-xs absolute left-3 top-3 rounded-md border border-[#FFD700]/30 bg-black/60 px-2.5 py-1 uppercase tracking-[0.12em] text-[#FFD700] backdrop-blur-sm">
-            🏆 {awardLabel}
-          </span>
-        ) : null}
-
-        {/* Runtime if available */}
-        {video.runtime ? (
-          <span className="typo-overlay-duration absolute bottom-3 right-3 rounded-md bg-black/60 px-2 py-0.5 text-white backdrop-blur-sm">
-            {video.runtime}
-          </span>
-        ) : null}
-      </div>
-
-      {/* Info */}
-      <div className="p-4">
-        <h3 className="typo-filmstrip-title line-clamp-2 text-white transition group-hover:text-[#AFA9EC]">
-          {video.title}
-        </h3>
-        <div className="mt-2 flex items-center justify-between gap-2">
-          <span className="typo-sidebar-tag text-white/45">{formatGenreDisplay(video.genre, video.subGenre, locale)}</span>
-          <span className="typo-card-meta truncate text-right text-white/35">{creator}</span>
+        {/* 기본 상태: 얇은 하단 그라데이션 + 제목만 */}
+        <div
+          className="absolute inset-x-0 bottom-0 z-[1] transition-opacity duration-300 group-hover:opacity-0"
+          style={{
+            height: "45%",
+            background: "linear-gradient(to top, rgba(8,6,24,0.92) 0%, rgba(8,6,24,0.5) 50%, transparent 100%)",
+          }}
+        />
+        <div className="absolute bottom-0 left-0 right-0 z-[2] px-3 pb-2.5 transition-opacity duration-300 group-hover:opacity-0">
+          <h3 className="line-clamp-1 text-[12px] font-semibold text-white/90">{video.title}</h3>
         </div>
-        {video.viewCount ? (
-          <p className="typo-card-meta mt-1 text-white/30">
-            {video.viewCount >= 1000
-              ? `${(video.viewCount / 1000).toFixed(1)}K views`
-              : `${video.viewCount} views`}
-          </p>
-        ) : null}
+
+        {/* 런타임 — 기본 표시 */}
+        {video.runtime && (
+          <div className="absolute bottom-2 right-2 z-[4] transition-opacity duration-300 group-hover:opacity-0">
+            <span className="rounded bg-black/70 px-1.5 py-0.5 text-[10px] font-bold text-white backdrop-blur-sm">
+              {video.runtime}
+            </span>
+          </div>
+        )}
+
+        {/* hover 오버레이 */}
+        <div
+          className="absolute inset-0 z-[3] flex flex-col justify-between p-3 opacity-0 transition-opacity duration-300 group-hover:opacity-100"
+          style={{
+            background: "linear-gradient(to top, rgba(8,6,24,0.97) 0%, rgba(8,6,24,0.7) 45%, rgba(8,6,24,0.15) 100%)",
+          }}
+        >
+          {/* 상단: 어워드 배지 or 장르 */}
+          <div>
+            {awardLabel ? (
+              <span className="rounded-md border border-[#FFD700]/30 bg-black/60 px-2.5 py-1 text-[10px] uppercase tracking-[0.12em] text-[#FFD700] backdrop-blur-sm">
+                🏆 {awardLabel}
+              </span>
+            ) : (
+              <span
+                className="rounded px-2 py-0.5 text-[10px] font-semibold text-white/90"
+                style={{
+                  background: "linear-gradient(135deg, rgba(83,74,183,0.7) 0%, rgba(39,33,92,0.5) 100%)",
+                  backdropFilter: "blur(4px)",
+                  border: "1px solid rgba(127,119,221,0.25)",
+                }}
+              >
+                {formatGenreDisplay(video.genre, video.subGenre, locale)}
+              </span>
+            )}
+          </div>
+
+          {/* 중앙: 플레이 버튼 */}
+          <div className="absolute inset-0 flex items-center justify-center">
+            <div className="flex h-11 w-11 items-center justify-center rounded-full bg-white/10 backdrop-blur-sm border border-white/20 transition group-hover:bg-white/20">
+              <svg className="h-4 w-4 text-white" viewBox="0 0 24 24" fill="currentColor" style={{ marginLeft: "2px" }}>
+                <polygon points="6,3 20,12 6,21" />
+              </svg>
+            </div>
+          </div>
+
+          {/* 하단: 제목 + 크리에이터 + 메타 */}
+          <div>
+            <h3 className="mb-1.5 line-clamp-2 text-[13px] font-bold leading-snug text-white">{video.title}</h3>
+            <p className="text-[11px] font-medium text-white/60">{creator}</p>
+            {video.viewCount ? (
+              <p className="mt-1 text-[10px] text-white/35">
+                {video.viewCount >= 1000
+                  ? `${(video.viewCount / 1000).toFixed(1)}K views`
+                  : `${video.viewCount} views`}
+              </p>
+            ) : null}
+          </div>
+        </div>
       </div>
     </Link>
   );

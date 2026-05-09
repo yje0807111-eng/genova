@@ -6,6 +6,7 @@ import { Bell, MessageCircle, UserPlus, Star, Trash2, X } from "lucide-react";
 import { markAllNotificationsReadAction } from "@/app/actions/notifications";
 import type { AppNotification } from "@/lib/queries/notifications-queries";
 import { getBrowserSupabaseClient } from "@/lib/supabase/browser";
+import { useI18n } from "@/components/genova/language-provider";
 
 function NotificationIcon({ type }: { type: string }) {
   const base = "h-4 w-4";
@@ -16,20 +17,29 @@ function NotificationIcon({ type }: { type: string }) {
   return <Bell className={`${base} text-[#7F77DD]`} />;
 }
 
-function timeAgo(iso: string): string {
+function notificationLineColor(type: string | null | undefined): string {
+  if (type === "comment") return "#60A5FA";
+  if (type === "follow") return "#34D399";
+  if (type === "trophy") return "#FACC15";
+  if (type === "competition_result") return "#7F77DD";
+  return "#7F77DD";
+}
+
+function timeAgo(iso: string, t: (key: string, fallback?: string) => string): string {
   const diff = Date.now() - new Date(iso).getTime();
   const mins = Math.floor(diff / 60000);
-  if (mins < 1) return "Just now";
-  if (mins < 60) return `${mins}m ago`;
+  if (mins < 1) return t("notifications.justNow", "Just now");
+  if (mins < 60) return t("notifications.timeAgo", "{n} ago").replace("{n}", `${mins}m`);
   const hours = Math.floor(mins / 60);
-  if (hours < 24) return `${hours}h ago`;
+  if (hours < 24) return t("notifications.timeAgo", "{n} ago").replace("{n}", `${hours}h`);
   const days = Math.floor(hours / 24);
-  return `${days}d ago`;
+  return t("notifications.timeAgo", "{n} ago").replace("{n}", `${days}d`);
 }
 
 type FilterType = "all" | "unread" | "read";
 
 export function NotificationsList({ items: initialItems }: { items: AppNotification[] }) {
+  const { t } = useI18n();
   const [items, setItems] = useState(initialItems);
   const [filter, setFilter] = useState<FilterType>("all");
 
@@ -95,7 +105,7 @@ export function NotificationsList({ items: initialItems }: { items: AppNotificat
         <div>
           <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-[#7F77DD]/60">Inbox</p>
           <h1 className="mt-0.5 text-xl font-black tracking-tight text-white">
-            Notifications
+            {t("notifications.title", "Notifications")}
             {unreadCount > 0 && (
               <span
                 className="ml-2 inline-flex h-5 min-w-5 items-center justify-center rounded-full px-1.5 text-[10px] font-bold text-white"
@@ -113,7 +123,7 @@ export function NotificationsList({ items: initialItems }: { items: AppNotificat
               onClick={() => void onReadAll()}
               className="rounded-lg border border-white/[0.08] px-3 py-1.5 text-xs font-medium text-white/40 transition hover:border-[#7F77DD]/30 hover:text-white/70"
             >
-              Mark all read
+              {t("notifications.markAllRead", "Mark all as read")}
             </button>
           )}
           {items.length > 0 && (
@@ -161,10 +171,16 @@ export function NotificationsList({ items: initialItems }: { items: AppNotificat
             <Bell className="h-6 w-6 text-[#7F77DD]/50" />
           </div>
           <p className="text-base font-bold text-white/50">
-            {filter === "unread" ? "No unread notifications" : filter === "read" ? "No read notifications" : "No notifications yet"}
+            {filter === "unread"
+              ? "읽지 않은 알림이 없습니다"
+              : filter === "read"
+                ? t("notifications.emptyRead", "No read notifications")
+                : t("notifications.empty", "No notifications yet.")}
           </p>
           <p className="mt-1 text-sm text-white/25">
-            Likes, comments, and follows will appear here.
+            {filter === "unread"
+              ? "모두 확인하셨습니다 ✓"
+              : t("notifications.emptyHint", "Likes, comments, and follows will appear here.")}
           </p>
         </div>
       ) : (
@@ -173,12 +189,18 @@ export function NotificationsList({ items: initialItems }: { items: AppNotificat
             const content = (
               <div
                 onClick={!n.href ? () => void handleClick(n) : undefined}
-                className={`group flex cursor-pointer items-start gap-3 rounded-xl border px-4 py-3 transition hover:bg-white/[0.03] ${
+                className={`group relative flex cursor-pointer items-start gap-3 rounded-xl border px-4 py-3 transition hover:bg-white/[0.04] hover:border-[#7F77DD]/30 hover:shadow-[0_0_24px_rgba(127,119,221,0.15)] ${
                   n.isRead
-                    ? "border-white/[0.06] bg-transparent"
+                    ? "border-white/[0.06] bg-transparent opacity-60"
                     : "border-[#7F77DD]/25 bg-[#534AB7]/10"
                 }`}
               >
+                <span
+                  className="absolute bottom-2 left-0 top-2 w-[2px] rounded-r-full"
+                  style={{ background: notificationLineColor(n.type) }}
+                  aria-hidden
+                />
+                {!n.isRead && <span className="absolute right-2 top-2 h-2 w-2 rounded-full bg-[#7F77DD]" aria-hidden />}
                 {/* 아이콘 */}
                 <div
                   className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full"
@@ -199,15 +221,11 @@ export function NotificationsList({ items: initialItems }: { items: AppNotificat
                     <p className="mt-0.5 text-xs text-white/35">{n.body}</p>
                   )}
                   {n.createdAt && (
-                    <p className="mt-1 text-[10px] text-white/25">{timeAgo(n.createdAt)}</p>
+                    <p className="mt-1 text-[10px] text-white/25">{timeAgo(n.createdAt, t)}</p>
                   )}
                 </div>
 
                 <div className="flex shrink-0 items-center gap-2">
-                  {/* 읽지 않음 표시 */}
-                  {!n.isRead && (
-                    <div className="h-2 w-2 rounded-full bg-[#7F77DD]" />
-                  )}
                   {/* 개별 삭제 */}
                   <button
                     type="button"

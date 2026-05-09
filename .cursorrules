@@ -1,0 +1,63 @@
+# Genova — Cursor Rules
+
+## 프로젝트 정보
+- Next.js 15 App Router + Tailwind CSS + Supabase + Mux
+- AI 영상 스트리밍 플랫폼
+- 경로: `src/` 기준
+
+## 코드 생성 규칙
+
+### 일반
+- TypeScript 사용, `any` 최소화
+- 함수형 컴포넌트만 사용
+- 서버 컴포넌트 기본, 클라이언트 상태 필요시만 `"use client"` 추가
+- 불필요한 주석 작성 금지
+- 기존 코드 스타일 유지
+
+### Import 순서
+1. React/Next.js
+2. 외부 라이브러리
+3. 내부 컴포넌트 (`@/components/`)
+4. 내부 유틸/lib (`@/lib/`)
+5. 타입
+
+### Supabase
+- 서버: `createServerSupabaseClient()` from `@/lib/supabase/server`
+- 브라우저: `getBrowserSupabaseClient()` from `@/lib/supabase/browser`
+- 새 컬럼 필요 시 SQL 먼저 제안
+
+### 스타일링
+- Tailwind 클래스 우선
+- 브랜드 컬러는 인라인 style 사용
+- 핵심 컬러: `#080618` 배경, `#534AB7` 포인트, `#7F77DD` 보조
+- 카드: `rounded-2xl`, 글로우 border, 그라데이션 배경
+- 히어로 배너: `-mt-16`으로 navbar 뒤까지 확장
+
+### 번역 (i18n)
+- `t("key", "fallback")` 패턴 사용
+- 다국어 DB 컬럼: `_ko`, `_en`, `_ja` 접미사
+- 현재 한국어 우선 개발
+
+### Server Actions
+- `"use server"` 상단 선언
+- 반환 타입: `{ ok: true } | { ok: false; message: string }`
+- 수정 후 반드시 `revalidatePath()` 호출
+
+## 금지사항
+- `console.log` 프로덕션 코드에 남기기
+- Vimeo 관련 코드 추가 (Mux로 전환됨)
+- `style={{ backgroundClip }}` + `style={{ background }}` 충돌 (className의 `bg-clip-text` 사용)
+- `<form>` 태그 사용 (onClick/onChange 핸들러 사용)
+
+## 파일 위치 참고
+- 공통 컴포넌트: `src/components/genova/`
+- 페이지 클라이언트: `src/components/[domain]/[domain]-page-client.tsx`
+- Server Actions: `src/app/actions/`
+- DB 쿼리: `src/lib/queries.ts`, `src/lib/queries/`
+- 번역: `src/lib/i18n/translations.ts`
+
+## 응답 스타일
+- Cursor 프롬프트는 str_replace 형식으로 제공
+- Find/Replace 패턴 사용
+- 변경 범위 최소화
+- 변경하지 않는 코드에 "Do not change anything else" 명시

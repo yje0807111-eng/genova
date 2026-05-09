@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 
-/** Legacy listing URL — browse feed at `/feed`. */
+/** Legacy listing URL — send to films hub. */
 export default function WatchListingRedirect() {
-  redirect("/feed");
+  redirect("/films");
 }

@@ -37,15 +37,22 @@ export function CompetitionHero({
   totalParticipants: number;
 }) {
   const { t } = useI18n();
+  const [rulesOpen, setRulesOpen] = useState(false);
   return (
     <div
-      className="relative w-full overflow-hidden"
+      className="relative w-full overflow-hidden -mt-16"
       style={{
-        backgroundImage: "url('/hero-bg.png')",
-        backgroundSize: "cover",
-        backgroundPosition: "center center",
+        minHeight: "480px",
       }}
     >
+      <div
+        className="absolute inset-0 opacity-50"
+        style={{
+          backgroundImage: "url('/hero-bg.png')",
+          backgroundSize: "cover",
+          backgroundPosition: "70% 30%",
+        }}
+      />
       {/* Subtle galaxy background effect */}
       <div className="pointer-events-none absolute inset-0 overflow-hidden">
         <div
@@ -76,90 +83,247 @@ export function CompetitionHero({
       </div>
 
       {/* Films hero-style overlays (full-width edge-to-edge) */}
-      <div className="absolute inset-0" style={{ background: "rgba(8,6,24,0.25)" }} />
+      <div className="absolute inset-0" style={{ background: "rgba(6,4,15,0.15)" }} />
       <div
         className="absolute inset-0"
         style={{
           background:
-            "linear-gradient(to right, rgba(8,6,24,0.75) 0%, rgba(8,6,24,0.5) 30%, rgba(8,6,24,0.1) 60%, rgba(8,6,24,0) 100%)",
+            "linear-gradient(to right, rgba(6,4,15,0.98) 0%, rgba(6,4,15,0.9) 25%, rgba(6,4,15,0.5) 50%, rgba(6,4,15,0.15) 70%, rgba(6,4,15,0) 85%)",
         }}
       />
-      <div className="absolute inset-0" style={{ background: "linear-gradient(to top, rgba(8,6,24,0.5) 0%, transparent 20%)" }} />
+      <div className="absolute inset-0 bg-gradient-to-r from-[#080618] via-[#080618]/70 to-[#080618]/30 pointer-events-none" />
+      <div className="absolute inset-0" style={{ background: "linear-gradient(to top, rgba(6,4,15,0.7) 0%, transparent 25%)" }} />
 
       {/* Content wrapper keeps existing hero content/layout */}
-      <div className="relative z-30 px-8 pt-10 pb-8">
-        <div className="mx-auto max-w-[1400px]">
+      <div className="relative z-30 px-16 pt-24 pb-0">
+        <div className="mx-auto max-w-[1680px]">
           <div
-            className="relative px-10 py-8"
+            className="relative py-8"
           >
-            <div className="flex items-center justify-between">
-              <div className="max-w-lg">
-                <FadeIn delay={50}>
-                  <p className="text-[11px] font-semibold uppercase tracking-[0.25em] text-[#7F77DD]/80">
-                    · {t("nav.competition", "Competition")}
-                  </p>
-                </FadeIn>
-                <FadeIn delay={100}>
-                  <h1 className="mt-3 text-4xl font-extrabold leading-tight tracking-tight text-white sm:text-5xl">
-                    {t("competition.heroTitle", "AI Film Competitions")}
-                  </h1>
-                </FadeIn>
-                <FadeIn delay={150}>
-                  <p className="mt-3 text-[15px] text-white/40 leading-relaxed max-w-md">
-                    {t("competition.heroDesc1", "Showcase your AI-generated films and compete with creators worldwide.")}
-                    {" "}
-                    {t("competition.heroDesc2", "Turn your imagination into the next award-winning film.")}
-                  </p>
-                </FadeIn>
-                <FadeIn delay={200}>
-                  <div className="mt-8 flex flex-wrap gap-8">
-                    {[
-                      { Icon: PlayCircle, color: "#7F77DD", value: activeCount.toString(), label: t("competition.nowOpen", "Now Open") },
-                      { Icon: Calendar, color: "#7F77DD", value: upcomingCount.toString(), label: t("competition.upcoming", "Upcoming") },
-                      { Icon: Trophy, color: "#FFD700", value: totalPrizeLabel, label: t("competition.totalPrizes", "Total Prizes") },
-                      {
-                        Icon: Users,
-                        color: "#7F77DD",
-                        value: totalParticipants >= 1000 ? `${(totalParticipants / 1000).toFixed(1)}K+` : `${totalParticipants}+`,
-                        label: t("competition.participants", "Participants"),
-                      },
-                    ].map((stat) => (
-                      <div key={stat.label} className="flex items-center gap-2">
-                        <stat.Icon size={18} color={stat.color} />
-                        <div>
-                          <p className="text-base font-bold text-white">{stat.value}</p>
-                          <p className="text-[11px] text-white/40">{stat.label}</p>
-                        </div>
+            <div className="flex flex-col gap-6">
+              {/* Top row: text + pills */}
+              <div className="flex items-start justify-between">
+                <div className="max-w-xl">
+                  {/* eyebrow, h1, description, buttons — 그대로 유지 */}
+                  <FadeIn delay={50}>
+                    <div className="inline-flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.2em] text-[#AFA9EC]">
+                      <span className="text-[#7F77DD]">✦</span>
+                      {t("nav.competition", "Competition")}
+                    </div>
+                  </FadeIn>
+                  <FadeIn delay={100}>
+                  <h1
+                    className="mt-5 text-5xl font-black leading-tight tracking-tight sm:text-6xl bg-clip-text text-transparent"
+                    style={{
+                      backgroundImage: "linear-gradient(125deg, #a8d8ff 0%, #ffffff 25%, #e8e4ff 50%, #b8a8ff 75%, #7B5FE8 100%)",
+                      filter: "drop-shadow(0 4px 24px rgba(0,0,0,0.5))",
+                    }}
+                  >
+                      {t("competition.heroTitle", "AI Film Competitions")}
+                    </h1>
+                  </FadeIn>
+                  <FadeIn delay={150}>
+                    <p className="mt-5 text-[15px] text-white/65 leading-relaxed max-w-md">
+                      {t("competition.heroDesc1", "Showcase your AI-generated films and compete with creators worldwide.")}
+                      {" "}
+                      {t("competition.heroDesc2", "Turn your imagination into the next award-winning film.")}
+                    </p>
+                  </FadeIn>
+                  <FadeIn delay={180}>
+                    <div className="mt-7 flex items-center gap-3">
+                      <a
+                        href="#competition-featured"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          const el = document.getElementById("competition-featured");
+                          if (el) {
+                            const top = el.getBoundingClientRect().top + window.scrollY;
+                            window.scrollTo({ top, behavior: "smooth" });
+                          }
+                        }}
+                        className="inline-flex items-center gap-2 rounded-xl px-8 py-2 text-[14px] font-bold text-white transition-all duration-300 hover:scale-[1.03]"
+                        style={{
+                          background: "linear-gradient(125deg, #5B7FE8 0%, #6B5FD4 35%, #7B4FCC 65%, #5B35B0 100%)",
+                          border: "1px solid rgba(150,170,255,0.3)",
+                        }}
+                        onMouseEnter={(e) => {
+                          (e.currentTarget as HTMLAnchorElement).style.boxShadow = "0 0 20px rgba(100,120,255,0.4), 0 4px 16px rgba(83,74,183,0.5)";
+                        }}
+                        onMouseLeave={(e) => {
+                          (e.currentTarget as HTMLAnchorElement).style.boxShadow = "none";
+                        }}
+                      >
+                        {t("competition.enterNowCta")}
+                      </a>
+                      <button
+                        type="button"
+                        onClick={() => setRulesOpen(true)}
+                        className="inline-flex items-center gap-2 rounded-xl px-6 py-2 text-[14px] font-semibold text-white/50 transition-all duration-300 hover:text-white/80"
+                        style={{
+                          border: "1px solid rgba(255,255,255,0.15)",
+                          background: "rgba(255,255,255,0.05)",
+                          backdropFilter: "blur(8px)",
+                        }}
+                      >
+                        {t("competition.viewRules")}
+                      </button>
+                    </div>
+                  </FadeIn>
+                </div>
+
+                {/* Right side pills */}
+                <div className="hidden sm:flex flex-col items-end gap-3 pt-8">
+                  <FadeIn delay={150}>
+                    <div
+                      className="group flex w-52 items-center gap-3 rounded-xl border border-white/10 bg-[#080618]/70 px-3 py-2.5 backdrop-blur-xl transition-all duration-300 hover:scale-[1.02]"
+                      style={{
+                        boxShadow: "0 0 0 0 rgba(83,74,183,0)",
+                      }}
+                      onMouseEnter={(e) => { (e.currentTarget as HTMLDivElement).style.boxShadow = "0 0 16px rgba(127,119,221,0.25), inset 0 0 12px rgba(83,74,183,0.1)"; }}
+                      onMouseLeave={(e) => { (e.currentTarget as HTMLDivElement).style.boxShadow = "0 0 0 0 rgba(83,74,183,0)"; }}
+                    >
+                      <PlayCircle className="h-5 w-5 text-[#AFA9EC]" />
+                      <div>
+                        <p className="text-[12px] font-bold text-white">{t("competition.aiOnly", "AI-Generated Only")}</p>
+                        <p className="text-[10px] text-white/70">{t("competition.aiOnlySub")}</p>
                       </div>
-                    ))}
-                  </div>
-                </FadeIn>
+                    </div>
+                  </FadeIn>
+                  <FadeIn delay={200}>
+                    <div
+                      className="group flex w-52 items-center gap-3 rounded-xl border border-white/10 bg-[#080618]/70 px-3 py-2.5 backdrop-blur-xl transition-all duration-300 hover:scale-[1.02]"
+                      style={{
+                        boxShadow: "0 0 0 0 rgba(83,74,183,0)",
+                      }}
+                      onMouseEnter={(e) => { (e.currentTarget as HTMLDivElement).style.boxShadow = "0 0 16px rgba(127,119,221,0.2), inset 0 0 12px rgba(83,74,183,0.08)"; }}
+                      onMouseLeave={(e) => { (e.currentTarget as HTMLDivElement).style.boxShadow = "0 0 0 0 rgba(83,74,183,0)"; }}
+                    >
+                      <Calendar className="h-5 w-5 text-[#AFA9EC]" />
+                      <div>
+                        <p className="text-[12px] font-bold text-white">{t("competition.noSubmitLimit", "Unlimited Submissions")}</p>
+                        <p className="text-[10px] text-white/70">{t("competition.noSubmitLimitSub")}</p>
+                      </div>
+                    </div>
+                  </FadeIn>
+                  <FadeIn delay={250}>
+                    <div
+                      className="group flex w-52 items-center gap-3 rounded-xl border border-white/10 bg-[#080618]/70 px-3 py-2.5 backdrop-blur-xl transition-all duration-300 hover:scale-[1.02]"
+                      style={{
+                        boxShadow: "0 0 0 0 rgba(83,74,183,0)",
+                      }}
+                      onMouseEnter={(e) => { (e.currentTarget as HTMLDivElement).style.boxShadow = "0 0 16px rgba(127,119,221,0.2), inset 0 0 12px rgba(83,74,183,0.08)"; }}
+                      onMouseLeave={(e) => { (e.currentTarget as HTMLDivElement).style.boxShadow = "0 0 0 0 rgba(83,74,183,0)"; }}
+                    >
+                      <Users className="h-5 w-5 text-[#AFA9EC]" />
+                      <div>
+                        <p className="text-[12px] font-bold text-white">{t("competition.openWorldwide", "Open Worldwide")}</p>
+                        <p className="text-[10px] text-white/70">{t("competition.openWorldwideSub")}</p>
+                      </div>
+                    </div>
+                  </FadeIn>
+                </div>
               </div>
 
-              {/* Right side pills */}
-              <div className="hidden sm:flex flex-col items-end gap-3">
-                <FadeIn delay={150}>
-                  <div className="flex items-center gap-2 rounded-full border border-[#7F77DD]/40 bg-[#0f0d24]/80 px-4 py-2 backdrop-blur-md">
-                    <span className="text-[13px] font-semibold text-[#AFA9EC]">
-                      <span className="text-[17px]">🎬</span> {t("competition.aiOnly", "AI-Generated Only")}
-                    </span>
-                  </div>
-                </FadeIn>
-                <FadeIn delay={200}>
-                  <div className="flex items-center gap-2 rounded-full border border-[#FFD700]/40 bg-[#0f0d24]/80 px-4 py-2 backdrop-blur-md">
-                    <span className="text-[13px] font-semibold text-[#FFD700]/80">
-                      <span className="text-[17px]">🏆</span> {t("competition.winUpTo", "Win up to")} {totalPrizeLabel}
-                    </span>
-                  </div>
-                </FadeIn>
-                <FadeIn delay={250}>
-                  <div className="flex items-center gap-2 rounded-full border border-white/20 bg-[#0f0d24]/80 px-4 py-2 backdrop-blur-md">
-                    <span className="text-[13px] font-semibold text-white/50">
-                      <span className="text-[17px]">🌍</span> {t("competition.openWorldwide", "Open Worldwide")}
-                    </span>
-                  </div>
-                </FadeIn>
-              </div>
+              {/* Stats box — full width below */}
+              <FadeIn delay={200}>
+                <div
+                  className="relative flex overflow-hidden mt-4"
+                  style={{
+                    background: "rgba(8,6,24,0.4)",
+                    border: "1px solid rgba(255,255,255,0.1)",
+                    width: "60%",
+                    borderRadius: "20px",
+                    backdropFilter: "blur(12px)",
+                    boxShadow: "0 0 16px rgba(83,74,183,0.06), inset 0 1px 0 rgba(255,255,255,0.05)",
+                  }}
+                >
+                  {/* 상단 라인 글로우 */}
+                  <div
+                    className="pointer-events-none absolute left-0 right-0 top-0 h-px"
+                    style={{
+                      background: "linear-gradient(90deg, transparent, rgba(127,119,221,0.45), transparent)",
+                    }}
+                  />
+                  {/* 움직이는 shimmer */}
+                  <div
+                    className="pointer-events-none absolute inset-y-0 w-1/3"
+                    style={{
+                      background: "linear-gradient(90deg, transparent, rgba(127,119,221,0.04), transparent)",
+                      animation: "spotlightShimmer 4s ease-in-out infinite",
+                    }}
+                  />
+                  {/* 배경 글로우 */}
+                  <div
+                    className="pointer-events-none absolute inset-0"
+                    style={{
+                      background: "radial-gradient(ellipse at 20% 50%, rgba(83,74,183,0.06) 0%, transparent 60%), radial-gradient(ellipse at 80% 50%, rgba(255,215,0,0.04) 0%, transparent 60%)",
+                    }}
+                  />
+                  {[
+                    { Icon: PlayCircle, color: "#AFA9EC", value: activeCount.toString(), label: t("competition.activeCompetitionsLabel") },
+                    { Icon: Calendar, color: "#AFA9EC", value: upcomingCount.toString(), label: t("competition.upcomingCompetitionsLabel") },
+                    { Icon: Trophy, color: "#AFA9EC", value: totalPrizeLabel, label: t("competition.totalPrizes", "Total Prizes") },
+                    {
+                      Icon: Users,
+                      color: "#AFA9EC",
+                      value: totalParticipants >= 1000 ? `${(totalParticipants / 1000).toFixed(1)}K+` : `${totalParticipants}+`,
+                      label: t("competition.participants", "Participants"),
+                    },
+                  ].map((stat, idx, arr) => (
+                    <div
+                      key={stat.label}
+                      className="group/stat relative flex flex-1 items-center gap-3.5 px-5 py-5 transition-all duration-300"
+                      style={{
+                        borderRight: idx < arr.length - 1 ? "1px solid rgba(127,119,221,0.08)" : "none",
+                      }}
+                      onMouseEnter={(e) => {
+                        (e.currentTarget as HTMLDivElement).style.background = "linear-gradient(180deg, rgba(175,169,236,0.08) 0%, transparent 100%)";
+                      }}
+                      onMouseLeave={(e) => {
+                        (e.currentTarget as HTMLDivElement).style.background = "transparent";
+                      }}
+                    >
+                      {/* 아이콘 박스 */}
+                      <div
+                        className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl transition-all duration-300 group-hover/stat:scale-110"
+                        style={{
+                          background: "linear-gradient(135deg, rgba(175,169,236,0.18) 0%, rgba(175,169,236,0.08) 100%)",
+                          border: "1px solid rgba(255,255,255,0.1)",
+                          boxShadow: "0 0 12px rgba(127,119,221,0.14), inset 0 1px 0 rgba(255,255,255,0.08)",
+                        }}
+                      >
+                        <stat.Icon
+                          size={18}
+                          color={stat.color}
+                          style={{ filter: "drop-shadow(0 0 4px rgba(175,169,236,0.55))" }}
+                        />
+                      </div>
+
+                      {/* 값 + 라벨 */}
+                      <div className="flex min-w-0 flex-col gap-0.5">
+                        <p
+                          className="font-black leading-none tabular-nums tracking-tight truncate"
+                          style={{
+                            fontSize: stat.value.length > 6 ? "16px" : stat.value.length > 4 ? "18px" : "20px",
+                            backgroundImage: `linear-gradient(180deg, #ffffff 0%, ${stat.color} 100%)`,
+                            WebkitBackgroundClip: "text",
+                            WebkitTextFillColor: "transparent",
+                            backgroundClip: "text",
+                            letterSpacing: "-0.02em",
+                          }}
+                        >
+                          {stat.value}
+                        </p>
+                        <p
+                          className="text-[10px] font-bold uppercase tracking-[0.15em] text-white/45"
+                        >
+                          {stat.label}
+                        </p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </FadeIn>
             </div>
           </div>
         </div>
@@ -167,7 +331,8 @@ export function CompetitionHero({
 
       {/* Seamless bottom/page fade */}
       <div
-        className="absolute bottom-0 left-0 right-0 h-56 z-20 pointer-events-none bg-gradient-to-b from-transparent via-[#080618]/60 to-[#080618]"
+        className="absolute bottom-0 left-0 right-0 h-32 z-20 pointer-events-none"
+        style={{ background: "linear-gradient(to bottom, transparent, #06040f)" }}
       />
 
       {/* Left/right side fades */}
@@ -176,8 +341,117 @@ export function CompetitionHero({
       />
 
       <div
-        className="absolute top-0 right-0 z-10 pointer-events-none h-full w-32 bg-gradient-to-l from-[#080618] to-transparent"
+        className="absolute top-0 right-0 z-10 pointer-events-none h-full w-32 bg-gradient-to-l from-[#06040f] to-transparent"
       />
+      {/* 상단 페이드 */}
+      <div
+        className="absolute top-0 left-0 right-0 z-10 pointer-events-none"
+        style={{
+          height: "120px",
+          background: "linear-gradient(to bottom, rgba(6,4,15,0.95) 0%, rgba(6,4,15,0.4) 50%, transparent 100%)",
+        }}
+      />
+
+      {/* 공모전 규칙 팝업 */}
+      {rulesOpen && (
+        <div
+          className="fixed inset-0 z-[200] flex items-center justify-center p-6"
+          style={{ background: "rgba(0,0,0,0.7)", backdropFilter: "blur(8px)" }}
+          onClick={() => setRulesOpen(false)}
+        >
+          <div
+            className="relative w-full max-w-2xl max-h-[80vh] overflow-y-auto rounded-2xl p-8"
+            style={{
+              background: "linear-gradient(160deg, rgba(22,16,42,0.98) 0%, rgba(10,8,24,0.99) 100%)",
+              border: "1px solid rgba(127,119,221,0.25)",
+              boxShadow: "0 0 60px rgba(83,74,183,0.2), 0 24px 80px rgba(0,0,0,0.6)",
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* 닫기 버튼 */}
+            <button
+              type="button"
+              onClick={() => setRulesOpen(false)}
+              className="absolute right-4 top-4 flex h-8 w-8 items-center justify-center rounded-full text-white/40 transition hover:bg-white/10 hover:text-white"
+            >
+              <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={2}>
+                <path d="M18 6 6 18M6 6l12 12" strokeLinecap="round" />
+              </svg>
+            </button>
+
+            {/* 헤더 */}
+            <div className="mb-6">
+              <div
+                className="mb-3 inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-[11px] font-bold uppercase tracking-[0.15em]"
+                style={{
+                  background: "linear-gradient(135deg, rgba(127,119,221,0.3) 0%, rgba(83,74,183,0.15) 100%)",
+                  border: "1px solid rgba(175,169,236,0.3)",
+                  color: "#D5D1FF",
+                }}
+              >
+                <span>✦</span> Genova
+              </div>
+              <h2
+                className="text-2xl font-black text-white bg-clip-text"
+                style={{
+                  backgroundImage: "linear-gradient(125deg, #ffffff 0%, #e8e4ff 50%, #AFA9EC 100%)",
+                  WebkitBackgroundClip: "text",
+                  WebkitTextFillColor: "transparent",
+                }}
+              >
+                {t("competition.rulesModalTitle")}
+              </h2>
+              <p className="mt-1 text-[13px] text-white/40">{t("competition.rulesModalSubtitle")}</p>
+            </div>
+
+            {/* 규칙 목록 */}
+            <div className="space-y-4">
+              {[
+                { num: "01", title: t("competition.rules.r1.title"), desc: t("competition.rules.r1.desc") },
+                { num: "02", title: t("competition.rules.r2.title"), desc: t("competition.rules.r2.desc") },
+                { num: "03", title: t("competition.rules.r3.title"), desc: t("competition.rules.r3.desc") },
+                { num: "04", title: t("competition.rules.r4.title"), desc: t("competition.rules.r4.desc") },
+                { num: "05", title: t("competition.rules.r5.title"), desc: t("competition.rules.r5.desc") },
+                { num: "06", title: t("competition.rules.r6.title"), desc: t("competition.rules.r6.desc") },
+                { num: "07", title: t("competition.rules.r7.title"), desc: t("competition.rules.r7.desc") },
+                { num: "08", title: t("competition.rules.r8.title"), desc: t("competition.rules.r8.desc") },
+              ].map((rule) => (
+                <div
+                  key={rule.num}
+                  className="flex gap-4 rounded-xl p-4"
+                  style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)" }}
+                >
+                  <span
+                    className="shrink-0 text-[11px] font-black"
+                    style={{ color: "rgba(127,119,221,0.6)", fontVariantNumeric: "tabular-nums" }}
+                  >
+                    {rule.num}
+                  </span>
+                  <div>
+                    <p className="mb-1 text-[13px] font-bold text-white">{rule.title}</p>
+                    <p className="text-[12px] leading-relaxed text-white/50">{rule.desc}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* 하단 */}
+            <div className="mt-6 flex justify-end">
+              <button
+                type="button"
+                onClick={() => setRulesOpen(false)}
+                className="rounded-xl px-6 py-2.5 text-[13px] font-bold text-white transition hover:scale-[1.02]"
+                style={{
+                  background: "linear-gradient(135deg, rgba(107,95,212,0.85) 0%, rgba(83,74,183,0.75) 100%)",
+                  border: "1px solid rgba(175,169,236,0.3)",
+                }}
+              >
+                {t("common.confirm")}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

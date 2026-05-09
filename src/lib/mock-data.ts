@@ -269,7 +269,7 @@ export function filterMockProfilesBySearch(q: string): MockSearchProfile[] {
 }
 
 export function filterMockVideosByGenre(genreKey: MainGenreKey): Video[] {
-  return MOCK_VIDEOS.filter((v) => v.genre === genreKey);
+  return MOCK_VIDEOS.filter((v) => v.genre === genreKey || (v.additionalGenres ?? []).includes(genreKey));
 }
 
 export function filterMockVideosByGenreAndSub(genreKey: MainGenreKey, subGenre: string | null): Video[] {

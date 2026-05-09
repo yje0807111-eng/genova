@@ -3,11 +3,12 @@
 import { useRouter } from "next/navigation";
 import { useRef, useState, type ChangeEvent, type FormEvent } from "react";
 import { updateCompetitionAction } from "@/app/actions/admin";
+import { adminTokens } from "@/lib/admin-styles";
 import { getBrowserSupabaseClient } from "@/lib/supabase/browser";
+import { cn } from "@/lib/utils/cn";
 
 const inp =
-  "w-full rounded-xl border border-white/[0.12] bg-[#0d0b20] px-3 py-2 text-xs text-white outline-none placeholder:text-white/20 focus:border-[#7F77DD]/60";
-const lbl = "mb-1 block text-[10px] text-white/40";
+  "w-full rounded-xl border border-white/[0.12] bg-[#0d0b20] px-3 py-2 text-[13px] text-white outline-none placeholder:text-white/20 focus:border-[#7F77DD]/60";
 const sectionBg = { background: "linear-gradient(135deg, rgba(20,17,50,0.98) 0%, rgba(10,8,28,0.99) 100%)" } as const;
 
 export function EditCompetitionForm({ competition }: { competition: any }) {
@@ -20,6 +21,7 @@ export function EditCompetitionForm({ competition }: { competition: any }) {
     title_ko: competition.title_ko ?? competition.title ?? "",
     title_en: competition.title_en ?? "",
     title_ja: competition.title_ja ?? "",
+    description: competition.description ?? "",
     genre: competition.genre ?? "All",
     status: competition.status ?? "Open",
     deadline: competition.deadline ?? "",
@@ -45,6 +47,15 @@ export function EditCompetitionForm({ competition }: { competition: any }) {
     announcement_ko: competition.announcement_ko ?? competition.announcement ?? "",
     announcement_en: competition.announcement_en ?? "",
     announcement_ja: competition.announcement_ja ?? "",
+    concept_ko: competition.concept_ko ?? competition.concept ?? "",
+    concept_en: competition.concept_en ?? "",
+    concept_ja: competition.concept_ja ?? "",
+    start_date: competition.start_date ?? "",
+    prize_grand: competition.prize_grand ?? "",
+    prize_excellence: competition.prize_excellence ?? "",
+    prize_merit: competition.prize_merit ?? "",
+    prize_audience: competition.prize_audience ?? "",
+    prize_audience_count: competition.prize_audience_count ?? 1,
     templateUrl: competition.template_url ?? "",
     exchange_rate_usd_krw: competition.exchange_rate_usd_krw ?? 1350,
     exchange_rate_usd_jpy: competition.exchange_rate_usd_jpy ?? 148,
@@ -106,6 +117,12 @@ export function EditCompetitionForm({ competition }: { competition: any }) {
     setLoading(true);
     setMessage(null);
     try {
+      console.log("Submitting form:", {
+        concept_ko: form.concept_ko,
+        concept_en: form.concept_en,
+        rules_ko: form.rules_ko,
+        rules_en: form.rules_en,
+      });
       const res = await updateCompetitionAction(competition.id, form);
       setMessage(res.ok ? "저장되었습니다." : res.message ?? "실패했습니다.");
       if (res.ok) router.refresh();
@@ -185,7 +202,7 @@ export function EditCompetitionForm({ competition }: { competition: any }) {
                       ))}
                     </div>
 
-                    <label className={lbl}>
+                    <label className={adminTokens.inputLabel}>
                       제목 {langTab === "ko" ? "(한국어)" : langTab === "en" ? "(영어)" : "(일본어)"}
                     </label>
                     <input
@@ -203,7 +220,32 @@ export function EditCompetitionForm({ competition }: { competition: any }) {
                       }
                     />
 
-                    <label className={`${lbl} mt-2`}>총 상금</label>
+                    <label className={cn(adminTokens.inputLabel, "mt-2")}>서브제목</label>
+                    <input
+                      value={form.description}
+                      onChange={(e) => setForm((p) => ({ ...p, description: e.target.value }))}
+                      className={inp}
+                      placeholder="예: AI 영상 창작자를 위한 글로벌 공모전"
+                    />
+
+                    <label className={cn(adminTokens.inputLabel, "mt-2")}>
+                      공모전 소개 {langTab === "ko" ? "(한국어)" : langTab === "en" ? "(영어)" : "(일본어)"}
+                    </label>
+                    <textarea
+                      value={form[`concept_${langTab}` as "concept_ko" | "concept_en" | "concept_ja"]}
+                      onChange={(e) => setForm((p) => ({ ...p, [`concept_${langTab}`]: e.target.value } as typeof p))}
+                      rows={4}
+                      className={inp + " resize-none"}
+                      placeholder={
+                        langTab === "ko"
+                          ? "공모전의 주제, 방향성, 창작 의도를 설명하세요..."
+                          : langTab === "en"
+                            ? "Describe the theme, direction, and creative intent..."
+                            : "テーマ、方向性、創作意図を説明してください..."
+                      }
+                    />
+
+                    <label className={cn(adminTokens.inputLabel, "mt-2")}>총 상금</label>
                     <div className="flex gap-1.5">
                       <div className="flex gap-1">
                         {(["KRW", "USD", "JPY"] as const).map((c) => (
@@ -264,7 +306,7 @@ export function EditCompetitionForm({ competition }: { competition: any }) {
                       </p>
                       <div className="space-y-2">
                         <div>
-                          <label className={lbl}>기준 통화</label>
+                          <label className={adminTokens.inputLabel}>기준 통화</label>
                           <select
                             value={form.base_currency}
                             onChange={(e) => setForm((p) => ({ ...p, base_currency: e.target.value }))}
@@ -277,7 +319,7 @@ export function EditCompetitionForm({ competition }: { competition: any }) {
                         </div>
                         <div className="grid grid-cols-2 gap-2">
                           <div>
-                            <label className={lbl}>1 USD = ? KRW</label>
+                            <label className={adminTokens.inputLabel}>1 USD = ? KRW</label>
                             <input
                               type="number"
                               value={form.exchange_rate_usd_krw}
@@ -289,7 +331,7 @@ export function EditCompetitionForm({ competition }: { competition: any }) {
                             />
                           </div>
                           <div>
-                            <label className={lbl}>1 USD = ? JPY</label>
+                            <label className={adminTokens.inputLabel}>1 USD = ? JPY</label>
                             <input
                               type="number"
                               value={form.exchange_rate_usd_jpy}
@@ -315,7 +357,7 @@ export function EditCompetitionForm({ competition }: { competition: any }) {
                   </div>
                   <div className="grid grid-cols-2 gap-2">
                     <div>
-                      <label className={lbl}>장르</label>
+                      <label className={adminTokens.inputLabel}>장르</label>
                       <select
                         value={form.genre}
                         onChange={(e) => setForm((p) => ({ ...p, genre: e.target.value }))}
@@ -330,7 +372,7 @@ export function EditCompetitionForm({ competition }: { competition: any }) {
                       </select>
                     </div>
                     <div>
-                      <label className={lbl}>상태</label>
+                      <label className={adminTokens.inputLabel}>상태</label>
                       <select
                         value={form.status}
                         onChange={(e) => setForm((p) => ({ ...p, status: e.target.value }))}
@@ -344,7 +386,16 @@ export function EditCompetitionForm({ competition }: { competition: any }) {
                     </div>
                   </div>
                   <div>
-                    <label className={lbl}>접수 마감일</label>
+                    <label className={adminTokens.inputLabel}>접수 시작일</label>
+                    <input
+                      type="datetime-local"
+                      value={isoToLocal(form.start_date)}
+                      onChange={(e) => setForm((p) => ({ ...p, start_date: new Date(e.target.value).toISOString() }))}
+                      className={inp}
+                    />
+                  </div>
+                  <div>
+                    <label className={adminTokens.inputLabel}>접수 마감일</label>
                     <input
                       type="datetime-local"
                       value={isoToLocal(form.deadline)}
@@ -353,7 +404,7 @@ export function EditCompetitionForm({ competition }: { competition: any }) {
                     />
                   </div>
                   <div>
-                    <label className={lbl}>투표 마감일</label>
+                    <label className={adminTokens.inputLabel}>투표 마감일</label>
                     <input
                       type="datetime-local"
                       value={isoToLocal(form.voteEnd)}
@@ -362,7 +413,7 @@ export function EditCompetitionForm({ competition }: { competition: any }) {
                     />
                   </div>
                   <div>
-                    <label className={lbl}>스폰서</label>
+                    <label className={adminTokens.inputLabel}>스폰서</label>
                     <input
                       value={form.sponsor}
                       onChange={(e) => setForm((p) => ({ ...p, sponsor: e.target.value }))}
@@ -378,7 +429,7 @@ export function EditCompetitionForm({ competition }: { competition: any }) {
                 <h2 className="mb-3 text-[10px] font-bold uppercase tracking-widest text-[#AFA9EC]">이미지</h2>
                 <div className="space-y-3">
                   <div>
-                    <label className={lbl}>공모전 썸네일</label>
+                    <label className={adminTokens.inputLabel}>공모전 썸네일</label>
                     {thumbnailPreview ? (
                       <div className="relative overflow-hidden rounded-xl border border-white/[0.08]">
                         <img src={thumbnailPreview} alt="" className="aspect-video w-full object-cover" />
@@ -417,7 +468,7 @@ export function EditCompetitionForm({ competition }: { competition: any }) {
                     )}
                   </div>
                   <div>
-                    <label className={lbl}>스폰서 로고</label>
+                    <label className={adminTokens.inputLabel}>스폰서 로고</label>
                     {sponsorLogoPreview ? (
                       <div className="relative overflow-hidden rounded-xl border border-white/[0.08] p-3">
                         <img src={sponsorLogoPreview} alt="" className="h-16 object-contain" />
@@ -463,7 +514,7 @@ export function EditCompetitionForm({ competition }: { competition: any }) {
                 <h2 className="mb-3 text-[10px] font-bold uppercase tracking-widest text-[#AFA9EC]">공지 및 템플릿</h2>
                 <div className="space-y-2">
                   <div>
-                    <label className={lbl}>
+                    <label className={adminTokens.inputLabel}>
                       공지사항 {langTab === "ko" ? "(한국어)" : langTab === "en" ? "(영어)" : "(일본어)"}
                     </label>
                     <textarea
@@ -483,7 +534,7 @@ export function EditCompetitionForm({ competition }: { competition: any }) {
                     />
                   </div>
                   <div>
-                    <label className={lbl}>템플릿 다운로드 URL</label>
+                    <label className={adminTokens.inputLabel}>템플릿 다운로드 URL</label>
                     <input
                       value={form.templateUrl}
                       onChange={(e) => setForm((p) => ({ ...p, templateUrl: e.target.value }))}
@@ -494,12 +545,178 @@ export function EditCompetitionForm({ competition }: { competition: any }) {
                 </div>
               </div>
 
+              {/* 상금 구성 */}
+              <div className="rounded-xl border border-white/[0.06] p-4" style={{ background: "rgba(255,255,255,0.02)" }}>
+                <h2 className="mb-3 text-[10px] font-bold uppercase tracking-widest text-[#AFA9EC]">상금 구성</h2>
+                
+                {/* 총상금 잔액 표시 */}
+                {(() => {
+                  const sym = priceCurrency === "KRW" ? "₩" : priceCurrency === "USD" ? "$" : "¥";
+                  const total = Number(prizeAmount) || 0;
+                  const allocated =
+                    (Number(form.prize_grand.replace(/[^0-9]/g, "")) || 0) +
+                    (Number(form.prize_excellence.replace(/[^0-9]/g, "")) || 0) +
+                    (Number(form.prize_merit.replace(/[^0-9]/g, "")) || 0) +
+                    ((Number(form.prize_audience.replace(/[^0-9]/g, "")) || 0) * (form.prize_audience_count || 1));
+                  const remaining = total - allocated;
+                  const isOver = remaining < 0;
+                  return (
+                    <div
+                      className="mb-4 rounded-xl p-3"
+                      style={{
+                        background: isOver ? "rgba(239,68,68,0.1)" : "rgba(83,74,183,0.1)",
+                        border: `1px solid ${isOver ? "rgba(239,68,68,0.3)" : "rgba(127,119,221,0.2)"}`,
+                      }}
+                    >
+                      <div className="flex items-center justify-between">
+                        <span className="text-[10px] text-white/40">총 상금</span>
+                        <span className="text-[13px] font-bold text-white">{sym}{total.toLocaleString()}</span>
+                      </div>
+                      <div className="flex items-center justify-between mt-1.5">
+                        <span className="text-[10px] text-white/40">배분됨</span>
+                        <span className="text-[12px] font-semibold text-white/60">{sym}{allocated.toLocaleString()}</span>
+                      </div>
+                      <div className="mt-1.5 h-px bg-white/10" />
+                      <div className="flex items-center justify-between mt-1.5">
+                        <span className="text-[10px] font-bold" style={{ color: isOver ? "#ef4444" : "#AFA9EC" }}>
+                          {isOver ? "⚠ 초과" : "남은 금액"}
+                        </span>
+                        <span
+                          className="text-[13px] font-extrabold"
+                          style={{ color: isOver ? "#ef4444" : remaining === 0 ? "#34d399" : "#AFA9EC" }}
+                        >
+                          {sym}{Math.abs(remaining).toLocaleString()}
+                          {remaining === 0 && " ✓"}
+                        </span>
+                      </div>
+                    </div>
+                  );
+                })()}
+
+                <div className="space-y-2">
+                  {[
+                    { key: "prize_grand", label: "🥇 대상" },
+                    { key: "prize_excellence", label: "🥈 우수상" },
+                    { key: "prize_merit", label: "🥉 장려상" },
+                  ].map((tier) => {
+                    const sym = priceCurrency === "KRW" ? "₩" : priceCurrency === "USD" ? "$" : "¥";
+                    const val = form[tier.key as "prize_grand" | "prize_excellence" | "prize_merit"];
+                    const num = Number(val.replace(/[^0-9]/g, "")) || 0;
+                    return (
+                      <div key={tier.key}>
+                        <label className={adminTokens.inputLabel}>{tier.label}</label>
+                        <div className="relative">
+                          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[11px] text-white/30">{sym}</span>
+                          <input
+                            type="number"
+                            value={val.replace(/[^0-9]/g, "")}
+                            onChange={(e) => {
+                              const n = e.target.value;
+                              const formatted = n ? `${sym}${Number(n).toLocaleString()}` : "";
+                              setForm((p) => ({ ...p, [tier.key]: formatted }));
+                            }}
+                            className={inp + " pl-7"}
+                            placeholder="0"
+                          />
+                        </div>
+                        {num > 0 && (
+                          <p className="mt-0.5 text-[10px] text-white/30">
+                            {sym}{num.toLocaleString()}
+                            {priceCurrency === "USD" && (
+                              <span className="ml-2">
+                                · ₩{(num * (form.exchange_rate_usd_krw || 1350)).toLocaleString()}
+                                · ¥{(num * (form.exchange_rate_usd_jpy || 148)).toLocaleString()}
+                              </span>
+                            )}
+                            {priceCurrency === "KRW" && (
+                              <span className="ml-2">
+                                · ${Math.round(num / (form.exchange_rate_usd_krw || 1350)).toLocaleString()}
+                              </span>
+                            )}
+                          </p>
+                        )}
+                      </div>
+                    );
+                  })}
+
+                  {/* 관객상 — 인원 수 설정 */}
+                  {(() => {
+                    const sym = priceCurrency === "KRW" ? "₩" : priceCurrency === "USD" ? "$" : "¥";
+                    const val = form.prize_audience;
+                    const num = Number(val.replace(/[^0-9]/g, "")) || 0;
+                    const count = form.prize_audience_count || 1;
+                    const total = num * count;
+                    return (
+                      <div>
+                        <label className={adminTokens.inputLabel}>🎖 관객상</label>
+                        <div className="flex items-center gap-2">
+                          <div className="relative" style={{ flex: "3" }}>
+                            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[11px] text-white/30">{sym}</span>
+                            <input
+                              type="number"
+                              value={val.replace(/[^0-9]/g, "")}
+                              onChange={(e) => {
+                                const n = e.target.value;
+                                const formatted = n ? `${sym}${Number(n).toLocaleString()}` : "";
+                                setForm((p) => ({ ...p, prize_audience: formatted }));
+                              }}
+                              className={inp + " pl-7"}
+                              placeholder="0"
+                            />
+                          </div>
+                          <span className="shrink-0 text-[11px] text-white/30">×</span>
+                          <div style={{ flex: "1" }}>
+                            <input
+                              type="number"
+                              min={1}
+                              max={100}
+                              value={count}
+                              onChange={(e) => setForm((p) => ({ ...p, prize_audience_count: Number(e.target.value) || 1 }))}
+                              className={inp + " text-center"}
+                              placeholder="1"
+                            />
+                          </div>
+                          <span className="shrink-0 text-[11px] text-white/30">명</span>
+                        </div>
+                        {num > 0 && (
+                          <p className="mt-0.5 text-[10px] text-white/30">
+                            1인당 {sym}{num.toLocaleString()} × {count}명 = <span className="text-[#AFA9EC]">{sym}{total.toLocaleString()}</span>
+                            {priceCurrency === "USD" && <span className="ml-2">· ₩{(total * (form.exchange_rate_usd_krw || 1350)).toLocaleString()}</span>}
+                          </p>
+                        )}
+                      </div>
+                    );
+                  })()}
+                </div>
+              </div>
+
               {/* 규칙 및 심사 */}
               <div className="rounded-xl border border-white/[0.06] p-4" style={{ background: "rgba(255,255,255,0.02)" }}>
                 <h2 className="mb-3 text-[10px] font-bold uppercase tracking-widest text-[#AFA9EC]">규칙 및 심사</h2>
                 <div className="space-y-2">
                   <div>
-                    <label className={lbl}>참가 자격 {langTab === "ko" ? "(한국어)" : langTab === "en" ? "(영어)" : "(일본어)"}</label>
+                    <label className={adminTokens.inputLabel}>
+                      주제 {langTab === "ko" ? "(한국어)" : langTab === "en" ? "(영어)" : "(일본어)"}
+                    </label>
+                    <p className="mb-1.5 text-[10px] text-white/25">각 주제를 줄바꿈(Enter)으로 구분하면 번호가 자동으로 붙습니다.</p>
+                    <textarea
+                      value={form[`rules_${langTab}` as "rules_ko" | "rules_en" | "rules_ja"]}
+                      onChange={(e) =>
+                        setForm((p) => ({ ...p, [`rules_${langTab}`]: e.target.value } as typeof p))
+                      }
+                      rows={6}
+                      className={inp + " resize-none"}
+                      placeholder={
+                        langTab === "ko"
+                          ? "예:\nAI가 인간을 대신할 수 없는 순간을 담아주세요.\n장르와 형식에 제한이 없습니다.\n90초 이내로 완성해주세요."
+                          : langTab === "en"
+                            ? "e.g.:\nCapture a moment AI cannot replace.\nNo genre or format restrictions.\nComplete within 90 seconds."
+                            : "例:\nAIが人間に代われない瞬間を表現してください。\nジャンルや形式に制限はありません。\n90秒以内に仕上げてください。"
+                      }
+                    />
+                  </div>
+                  <div>
+                    <label className={adminTokens.inputLabel}>참가 자격 {langTab === "ko" ? "(한국어)" : langTab === "en" ? "(영어)" : "(일본어)"}</label>
                     <textarea
                       value={form[`eligibility_${langTab}` as "eligibility_ko" | "eligibility_en" | "eligibility_ja"]}
                       onChange={(e) =>
@@ -517,7 +734,7 @@ export function EditCompetitionForm({ competition }: { competition: any }) {
                     />
                   </div>
                   <div>
-                    <label className={lbl}>출품 가이드라인 {langTab === "ko" ? "(한국어)" : langTab === "en" ? "(영어)" : "(일본어)"}</label>
+                    <label className={adminTokens.inputLabel}>출품 가이드라인 {langTab === "ko" ? "(한국어)" : langTab === "en" ? "(영어)" : "(일본어)"}</label>
                     <textarea
                       value={
                         form[
@@ -542,7 +759,7 @@ export function EditCompetitionForm({ competition }: { competition: any }) {
                     />
                   </div>
                   <div>
-                    <label className={lbl}>심사 방법 {langTab === "ko" ? "(한국어)" : langTab === "en" ? "(영어)" : "(일본어)"}</label>
+                    <label className={adminTokens.inputLabel}>심사 방법 {langTab === "ko" ? "(한국어)" : langTab === "en" ? "(영어)" : "(일본어)"}</label>
                     <textarea
                       value={
                         form[`judging_criteria_${langTab}` as "judging_criteria_ko" | "judging_criteria_en" | "judging_criteria_ja"]
@@ -562,7 +779,7 @@ export function EditCompetitionForm({ competition }: { competition: any }) {
                     />
                   </div>
                   <div>
-                    <label className={lbl}>규칙 {langTab === "ko" ? "(한국어)" : langTab === "en" ? "(영어)" : "(일본어)"}</label>
+                    <label className={adminTokens.inputLabel}>규칙 {langTab === "ko" ? "(한국어)" : langTab === "en" ? "(영어)" : "(일본어)"}</label>
                     <textarea
                       value={form[`rules_${langTab}` as "rules_ko" | "rules_en" | "rules_ja"]}
                       onChange={(e) =>

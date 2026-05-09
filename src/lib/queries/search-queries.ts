@@ -150,7 +150,10 @@ export async function fetchTrendingVideosByLikes(limit = 4): Promise<Video[]> {
     return fallbackTrending();
   }
 
-  const { data, error } = await supabase.from("videos").select("*, creators(*), profiles(display_name)").limit(400);
+  const { data, error } = await supabase
+    .from("videos")
+    .select("*, creators(*), profiles!videos_uploaded_by_fkey(display_name)")
+    .limit(400);
   if (error || !data?.length) {
     return fallbackTrending();
   }
@@ -219,8 +222,8 @@ async function collectVideoCandidates(q: string, cap = 220): Promise<Video[]> {
   const [baseRes, creatorsRes, profileRes] = await Promise.all([
     supabase
       .from("videos")
-      .select("*, creators(*), profiles(display_name)")
-      .or(`title.ilike.${like},genre.ilike.${like},sub_genre.ilike.${like},tags::text.ilike.${like}`)
+      .select("*, creators(*), profiles!videos_uploaded_by_fkey(display_name)")
+      .or(`title.ilike.${like},genre.ilike.${like},sub_genre.ilike.${like}`)
       .order("created_at", { ascending: false })
       .limit(cap),
     supabase.from("creators").select("id").ilike("name", like).limit(40),
@@ -231,6 +234,14 @@ async function collectVideoCandidates(q: string, cap = 220): Promise<Video[]> {
     return filterMockVideosBySearch(term).slice(0, cap);
   }
 
+  // tags 별도 검색 (배열 컬럼이라 .or() 안에서 캐스팅 안 됨)
+  const tagsRes = await supabase
+    .from("videos")
+    .select("*, creators(*), profiles!videos_uploaded_by_fkey(display_name)")
+    .contains("tags", [term.toLowerCase()])
+    .order("created_at", { ascending: false })
+    .limit(cap);
+
   const creatorIds = (creatorsRes.data ?? []).map((x: { id: string }) => x.id);
   const profileIds = (profileRes.data ?? []).map((x: { id: string }) => x.id);
 
@@ -238,7 +249,7 @@ async function collectVideoCandidates(q: string, cap = 220): Promise<Video[]> {
   if (creatorIds.length) {
     const { data } = await supabase
       .from("videos")
-      .select("*, creators(*), profiles(display_name)")
+      .select("*, creators(*), profiles!videos_uploaded_by_fkey(display_name)")
       .in("creator_id", creatorIds)
       .order("created_at", { ascending: false })
       .limit(cap);
@@ -247,7 +258,7 @@ async function collectVideoCandidates(q: string, cap = 220): Promise<Video[]> {
   if (profileIds.length) {
     const { data } = await supabase
       .from("videos")
-      .select("*, creators(*), profiles(display_name)")
+      .select("*, creators(*), profiles!videos_uploaded_by_fkey(display_name)")
       .in("uploaded_by", profileIds)
       .order("created_at", { ascending: false })
       .limit(cap);
@@ -256,6 +267,7 @@ async function collectVideoCandidates(q: string, cap = 220): Promise<Video[]> {
 
   const merged = [
     ...((baseRes.data ?? []) as Parameters<typeof mapVideo>[0][]),
+    ...((tagsRes.data ?? []) as Parameters<typeof mapVideo>[0][]),
     ...extras.flat(),
   ];
   const videos = dedupeVideos(merged);
@@ -489,7 +501,11 @@ export async function fetchVideosByGenre(
     return sortList(await buildFromMock());
   }
 
-  let query = supabase.from("videos").select("*").eq("genre", key).eq("visibility", "public");
+  let query = supabase
+    .from("videos")
+    .select("*")
+    .eq("visibility", "public")
+    .or(`genre.eq.${key},additional_genres.cs.{${key}}`);
   if (subGenre) query = query.eq("sub_genre", subGenre);
   const { data, error } = await query.limit(500);
 

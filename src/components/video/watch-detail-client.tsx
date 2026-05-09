@@ -8,6 +8,7 @@ import { formatGenreDisplay } from "@/lib/constants/genres";
 import { trackHashtagEvent } from "@/lib/hashtags/client-track";
 import { intlDateLocale } from "@/lib/i18n/browser-locale";
 import type { Video } from "@/lib/types";
+import { cn } from "@/lib/utils/cn";
 import { formatViewCountShort } from "@/lib/view-count";
 
 export function WatchVideoMetaRow({
@@ -71,7 +72,16 @@ export function WatchDescriptionInner({
             <Link
               key={tag}
               href={`/search?q=${encodeURIComponent(tag)}&tab=tags#search-tags-section`}
-              onClick={() => trackHashtagEvent(tag, "click")}
+              onClick={() => {
+                trackHashtagEvent(tag, "click");
+                setTimeout(() => {
+                  const el = document.getElementById("search-tags-section");
+                  if (el) {
+                    const top = el.getBoundingClientRect().top + window.scrollY - 80;
+                    window.scrollTo({ top, behavior: "smooth" });
+                  }
+                }, 400);
+              }}
               className="cursor-pointer text-[13px] text-[#7F77DD]/70 transition hover:text-[#7F77DD]"
             >
               #{tag}
@@ -130,52 +140,55 @@ function RecommendationCard({ item }: { item: Video }) {
   );
 }
 
+function WatchRecommendationSectionHeader({
+  title,
+  subtitle,
+  withTopBorder,
+}: {
+  title: string;
+  subtitle?: string;
+  withTopBorder?: boolean;
+}) {
+  return (
+    <div
+      className={cn(
+        "mb-6 flex items-end justify-between gap-4",
+        withTopBorder && "border-t border-white/[0.06] pt-6",
+      )}
+    >
+      <div className="flex min-w-0 items-center gap-3">
+        <span className="shrink-0 text-sm text-[#7F77DD]">✦</span>
+        <h2 className="text-[20px] font-black tracking-tight text-white">{title}</h2>
+        <span className="h-[2px] w-8 shrink-0 rounded-full bg-gradient-to-r from-[#7F77DD] to-transparent" />
+      </div>
+      {subtitle ? <p className="shrink-0 text-[12px] text-white/40">{subtitle}</p> : null}
+    </div>
+  );
+}
+
 export function WatchRecommendationsSections({
-  forYouVideos,
   sameGenreVideos,
   trendingVideos,
   mainGenre,
   subGenre,
 }: {
-  forYouVideos: Video[];
   sameGenreVideos: Video[];
   trendingVideos: Video[];
   mainGenre: string | null | undefined;
   subGenre?: string | null;
 }) {
-  const { locale, t } = useI18n();
+  const { t, locale } = useI18n();
   const genreTitle = formatGenreDisplay(mainGenre, subGenre, locale);
+  const genreSubtitle = t("watch.recommendGenreSubtitle", "{genre} 영상 더 보기").replace("{genre}", genreTitle);
 
   return (
     <div className="mt-8 space-y-10">
-      {forYouVideos.length > 0 ? (
-        <section>
-          <div className="mb-4 flex items-center gap-2">
-            <h2 className="text-[20px] font-bold text-white">{t("watch.forYouTitle")}</h2>
-            <span className="text-[12px] text-white/30">{t("watch.forYouSubtitle")}</span>
-          </div>
-          <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-5 xl:grid-cols-6">
-            {forYouVideos.map((item) => (
-              <RecommendationCard key={item.id} item={item} />
-            ))}
-          </div>
-        </section>
-      ) : null}
-
       {sameGenreVideos.length > 0 ? (
         <section>
-          <div className="mb-4 border-t border-white/[0.06] pt-6">
-            <h2 className="text-[20px] font-bold text-white">
-              {locale !== "en" ? (
-                t("watch.moreInGenre").replace("{genre}", genreTitle)
-              ) : (
-                <>
-                  {t("watch.moreInGenreLead")}{" "}
-                  <span className="text-[#7F77DD]">{genreTitle}</span>
-                </>
-              )}
-            </h2>
-          </div>
+          <WatchRecommendationSectionHeader
+            title={t("watch.recommendGenreTitle", "장르 더보기")}
+            subtitle={genreSubtitle}
+          />
           <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-5 xl:grid-cols-6">
             {sameGenreVideos.map((item) => (
               <RecommendationCard key={item.id} item={item} />
@@ -186,10 +199,11 @@ export function WatchRecommendationsSections({
 
       {trendingVideos.length > 0 ? (
         <section>
-          <div className="mb-4 flex items-center gap-2 border-t border-white/[0.06] pt-6">
-            <span className="text-lg">🔥</span>
-            <h2 className="text-[20px] font-bold text-white">{t("watch.trendingTitle")}</h2>
-          </div>
+          <WatchRecommendationSectionHeader
+            title={t("watch.trendingTitle")}
+            subtitle={t("watch.trendingSubtitle", "플랫폼 인기 영상")}
+            withTopBorder={sameGenreVideos.length > 0}
+          />
           <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-5 xl:grid-cols-6">
             {trendingVideos.map((item) => (
               <RecommendationCard key={item.id} item={item} />

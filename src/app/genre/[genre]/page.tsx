@@ -3,13 +3,12 @@ import { notFound } from "next/navigation";
 import {
   MAIN_GENRE_LABELS,
   MAIN_GENRES_WITH_SUB,
-  SUB_GENRE_KEYS,
-  SUB_GENRE_LABELS,
   formatGenreDisplay,
+  getSubGenreKeysForMain,
   normalizeMainGenreKey,
+  subGenreLabel,
   type MainGenreKey,
 } from "@/lib/constants/genres";
-import { genreCardGradient } from "@/lib/search-ui";
 import { fetchVideosByGenre, type GenrePageSort } from "@/lib/queries/search-queries";
 
 export const dynamic = "force-dynamic";
@@ -55,63 +54,102 @@ export default async function GenreExplorePage({
 
   const subCandidate = (sp.sub ?? "").trim();
   const showSubFilter = MAIN_GENRES_WITH_SUB.has(key);
-  const subValid =
-    subCandidate && (SUB_GENRE_KEYS as readonly string[]).includes(subCandidate) && showSubFilter ? subCandidate : null;
+  const subGenreKeys = getSubGenreKeysForMain(key);
+  const subValid = subCandidate && subGenreKeys.some((k) => k === subCandidate) && showSubFilter ? subCandidate : null;
 
   const videos = await fetchVideosByGenre(key, subValid, sort);
-  const gradient = genreCardGradient(key);
 
   return (
-    <div className="page-cinematic mx-auto max-w-6xl space-y-6 px-6 py-8 text-[#F8F7FF]">
-        <nav className="text-sm text-[#AFA9EC]">
-          <Link href="/search" className="hover:text-[#EEEDFE]">
-            Search
+    <div className="min-h-screen text-white">
+      {/* Hero header */}
+      <div className="relative overflow-hidden border-b border-white/[0.05]">
+        <div className="pointer-events-none absolute inset-0">
+          <div
+            className="absolute -left-20 top-0 h-[400px] w-[600px] rounded-full opacity-60"
+            style={{
+              background: "radial-gradient(ellipse, rgba(127,119,221,0.25) 0%, transparent 65%)",
+              filter: "blur(80px)",
+            }}
+          />
+          <div
+            className="absolute -right-20 top-10 h-[300px] w-[500px] rounded-full opacity-50"
+            style={{
+              background: "radial-gradient(circle, rgba(83,74,183,0.2) 0%, transparent 70%)",
+              filter: "blur(80px)",
+            }}
+          />
+        </div>
+        <div
+          className="pointer-events-none absolute bottom-0 left-0 right-0 h-px"
+          style={{
+            background: "linear-gradient(to right, transparent, rgba(127,119,221,0.4) 30%, rgba(175,169,236,0.25) 60%, transparent)",
+          }}
+        />
+        <div
+          className="pointer-events-none absolute inset-0 opacity-20"
+          style={{
+            backgroundImage: "radial-gradient(circle at 1px 1px, rgba(255,255,255,0.06) 1px, transparent 0)",
+            backgroundSize: "24px 24px",
+          }}
+        />
+        <div className="relative mx-auto max-w-[1600px] px-6 pt-12 pb-10 sm:px-10">
+          <Link
+            href="/search"
+            className="group mb-6 inline-flex items-center gap-2 text-[12px] font-semibold uppercase tracking-[0.15em] text-white/40 transition hover:text-white"
+          >
+            <span className="transition-transform group-hover:-translate-x-1">←</span>
+            Back to Discover
           </Link>
-          <span className="mx-2 text-white/30">/</span>
-          <span className="text-[#EEEDFE]">{MAIN_GENRE_LABELS[key]}</span>
-        </nav>
 
-        <header className={`relative overflow-hidden rounded-3xl bg-gradient-to-br ${gradient} px-8 py-9 shadow-lg ring-1 ring-white/10`}>
-          <div className="relative z-10 max-w-2xl space-y-2">
-            <p className="eyebrow !text-[#C8C3FF]">Genre</p>
-            <h1 className="page-title text-3xl">{MAIN_GENRE_LABELS[key]}</h1>
-            <p className="page-subtitle !text-[#E8E4FF]/90">{videos.length} films with curated genre filters and sorting.</p>
+          <p className="text-[10px] font-semibold uppercase tracking-[0.3em] text-white/30">
+            Genre
+          </p>
+          <div className="mt-3 flex items-baseline gap-4 flex-wrap">
+            <h1 className="bg-gradient-to-br from-white via-white to-[#AFA9EC] bg-clip-text pb-2 text-[64px] font-black tracking-[-0.04em] leading-[1.1] text-transparent sm:text-[80px]" style={{ animation: "search-pulse 4s ease-in-out infinite" }}>
+              {MAIN_GENRE_LABELS[key]}
+            </h1>
+            <span className="text-[16px] font-medium text-white/35">
+              {videos.length} {videos.length === 1 ? "film" : "films"}
+            </span>
           </div>
-        </header>
+        </div>
+      </div>
 
-        <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+      <div className="mx-auto max-w-[1600px] px-6 sm:px-10">
+        {/* Sort + Sub genre filters */}
+        <div className="sticky top-0 z-10 flex flex-wrap items-center justify-between gap-4 border-b border-white/[0.05] bg-[#080618]/80 py-5 backdrop-blur-xl">
           {showSubFilter ? (
-            <div className="space-y-2">
-              <p className="text-xs font-semibold uppercase tracking-wide text-[#7F77DD]">Sub Genre</p>
-              <div className="flex flex-wrap gap-1 border-b border-white/10">
-                <Link
-                  href={buildGenreHref(key, null, sort)}
-                  className={`tab-underline text-sm font-medium ${
-                    !subValid ? "border-b-[#7F77DD] text-[#EEEDFE]" : ""
-                  }`}
-                >
-                  All
-                </Link>
-                {(SUB_GENRE_KEYS as readonly string[])
-                  .filter((k) => k !== "other")
-                  .map((sk) => (
-                    <Link
-                      key={sk}
-                      href={buildGenreHref(key, sk, sort)}
-                      className={`tab-underline text-sm font-medium ${
-                        subValid === sk ? "border-b-[#7F77DD] text-[#EEEDFE]" : ""
-                      }`}
-                    >
-                      {SUB_GENRE_LABELS[sk as keyof typeof SUB_GENRE_LABELS]}
-                    </Link>
-                  ))}
-              </div>
+            <div className="flex items-center gap-7 overflow-x-auto pr-4">
+              <Link
+                href={buildGenreHref(key, null, sort)}
+                className={
+                  !subValid
+                    ? "relative whitespace-nowrap text-[13px] font-semibold text-white pb-1 after:absolute after:left-0 after:right-0 after:-bottom-[17px] after:h-[2px] after:bg-gradient-to-r after:from-white after:via-[#AFA9EC] after:to-[#7F77DD]"
+                    : "whitespace-nowrap text-[13px] font-medium text-white/35 transition hover:text-white/70"
+                }
+              >
+                All
+              </Link>
+              {subGenreKeys
+                .filter((k) => k !== "other")
+                .map((sk) => (
+                  <Link
+                    key={sk}
+                    href={buildGenreHref(key, sk, sort)}
+                    className={
+                      subValid === sk
+                        ? "relative whitespace-nowrap text-[13px] font-semibold text-white pb-1 after:absolute after:left-0 after:right-0 after:-bottom-[17px] after:h-[2px] after:bg-gradient-to-r after:from-white after:via-[#AFA9EC] after:to-[#7F77DD]"
+                        : "whitespace-nowrap text-[13px] font-medium text-white/35 transition hover:text-white/70"
+                    }
+                  >
+                    {subGenreLabel(sk)}
+                  </Link>
+                ))}
             </div>
           ) : (
             <div />
           )}
-
-          <div className="flex flex-wrap items-center gap-1 border-b border-white/10">
+          <div className="flex items-center gap-1.5 text-[11px]">
             {(
               [
                 ["latest", "Latest"],
@@ -122,9 +160,11 @@ export default async function GenreExplorePage({
               <Link
                 key={k}
                 href={buildGenreHref(key, subValid, k as GenrePageSort)}
-                className={`tab-underline text-sm font-medium ${
-                  sort === k ? "border-b-[#7F77DD] text-[#EEEDFE]" : ""
-                }`}
+                className={
+                  sort === k
+                    ? "rounded-full border border-[#7F77DD]/40 bg-[#534AB7]/20 px-3.5 py-1.5 font-bold text-[#AFA9EC]"
+                    : "rounded-full border border-white/[0.08] px-3.5 py-1.5 font-semibold text-white/40 transition hover:border-white/25 hover:text-white/80"
+                }
               >
                 {label}
               </Link>
@@ -132,37 +172,81 @@ export default async function GenreExplorePage({
           </div>
         </div>
 
-        {videos.length === 0 ? (
-          <p className="rounded-2xl border border-dashed border-white/20 bg-[#131028]/50 py-16 text-center text-[#AFA9EC]">
-            No films match these filters.
-          </p>
-        ) : (
-          <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            {videos.map((v) => (
-              <li key={v.id}>
+        <div className="space-y-14 py-10">
+          {videos.length === 0 ? (
+            <div className="py-24 text-center">
+              <div
+                className="mx-auto mb-5 flex h-14 w-14 items-center justify-center rounded-full"
+                style={{
+                  background: "rgba(83,74,183,0.15)",
+                  border: "1px solid rgba(127,119,221,0.2)",
+                }}
+              >
+                <span className="text-[20px] text-[#7F77DD]/70">✦</span>
+              </div>
+              <p className="text-[16px] font-bold text-white/70">
+                No films match these filters
+              </p>
+              <p className="mt-1.5 text-[12px] text-white/35">Try a different sub-genre or sort</p>
+              <div className="mt-7 flex flex-wrap justify-center gap-2">
+                {(["film", "animation", "music", "daily", "art"] as const)
+                  .filter((g) => g !== key)
+                  .map((g) => (
+                    <Link
+                      key={g}
+                      href={`/genre/${g}`}
+                      className="group inline-flex items-center gap-1.5 rounded-full border border-white/[0.08] bg-white/[0.02] px-4 py-1.5 text-[12px] font-semibold text-white/60 transition hover:-translate-y-0.5 hover:border-[#7F77DD]/40 hover:text-white"
+                    >
+                      <span className="text-[#7F77DD]/60 group-hover:text-[#AFA9EC]">✦</span>
+                      <span className="capitalize">{g}</span>
+                    </Link>
+                  ))}
+              </div>
+            </div>
+          ) : (
+            <div className="grid grid-cols-2 gap-x-4 gap-y-8 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
+              {videos.map((v, i) => (
                 <Link
+                  key={v.id}
                   href={`/watch/${v.id}`}
-                  className="group block overflow-hidden rounded-xl border border-white/10 bg-[#1A1535]/90 transition hover:border-[#7F77DD]"
+                  className="group block"
+                  style={{
+                    animation: `fade-in-up 0.6s ease-out ${Math.min(i * 0.05, 0.6)}s both`,
+                  }}
                 >
-                  <div className="relative aspect-video overflow-hidden">
+                  <div
+                    className="relative w-full overflow-hidden rounded-md bg-white/[0.03] transition-all duration-500 group-hover:-translate-y-1 group-hover:shadow-[0_20px_60px_rgba(127,119,221,0.4)]"
+                    style={{ aspectRatio: "16/9" }}
+                  >
                     <img
                       src={v.thumbnailUrl}
                       alt=""
-                      className="h-full w-full object-cover transition duration-300 group-hover:scale-105"
+                      className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-[1.08]"
                     />
+                    <div
+                      className="absolute inset-0 opacity-0 transition-opacity duration-500 group-hover:opacity-100"
+                      style={{
+                        background: "linear-gradient(180deg, transparent 50%, rgba(83,74,183,0.3) 100%)",
+                      }}
+                    />
+                    <div className="absolute inset-0 ring-1 ring-inset ring-white/[0.06] transition duration-500 group-hover:ring-[#7F77DD]/50 rounded-md" />
                   </div>
-                  <div className="space-y-1 p-3">
-                    <p className="line-clamp-2 text-sm font-semibold text-[#EEEDFE]">{v.title}</p>
-                    <p className="text-[11px] text-[#AFA9EC]">{formatGenreDisplay(v.genre, v.subGenre)}</p>
-                    <p className="text-[11px] text-[#AFA9EC]">
-                      ♥ <span className="text-[#E8E4FF]">{v.likeCount ?? 0}</span>
-                    </p>
+                  <div className="mt-3 px-0.5">
+                    <h3 className="line-clamp-1 text-[13px] font-semibold text-white transition group-hover:text-[#AFA9EC]">
+                      {v.title}
+                    </h3>
+                    <div className="mt-1 flex items-center gap-2 text-[11px] text-white/35">
+                      <span>{formatGenreDisplay(v.genre, v.subGenre)}</span>
+                      <span className="text-white/15">·</span>
+                      <span>♥ {v.likeCount ?? 0}</span>
+                    </div>
                   </div>
                 </Link>
-              </li>
-            ))}
-          </ul>
-        )}
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
     </div>
   );
 }

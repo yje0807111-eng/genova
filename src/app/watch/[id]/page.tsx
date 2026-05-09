@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { cookies } from "next/headers";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { FollowButton } from "@/components/profile/follow-button";
 import { ProfileTextLink } from "@/components/links/profile-text-link";
 import { WatchMoreMenu } from "@/components/video/watch-more-menu";
@@ -20,7 +20,6 @@ import { attachEngagementToVideos } from "@/lib/queries/engagement-queries";
 import { incrementVideoViewCount } from "@/lib/queries/video-views";
 import {
   fetchCreatorById,
-  fetchForYouSameGenreVideos,
   fetchRelatedVideos,
   fetchSeriesEpisodesForVideo,
   fetchVideoById,
@@ -31,6 +30,7 @@ import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { WatchTracker } from "@/components/video/watch-tracker";
 import { WatchDesktopFlexRow } from "@/components/video/watch-comments-panel";
 import { MuxPlayerClient } from "@/components/video/mux-player-client";
+import { getVideoProgress } from "@/app/actions/video-progress";
 
 export default async function WatchDetailPage({
   params,
@@ -39,10 +39,14 @@ export default async function WatchDetailPage({
 }) {
   const { id } = await params;
   let video = await fetchVideoById(id);
-  if (!video) notFound();
+  if (!video) {
+    redirect("/?notice=video-removed");
+  }
 
-  await incrementVideoViewCount(id);
-  video = { ...video, viewCount: (video.viewCount ?? 0) + 1 };
+  const didIncrementView = await incrementVideoViewCount(id);
+  if (didIncrementView) {
+    video = { ...video, viewCount: (video.viewCount ?? 0) + 1 };
+  }
 
   const supabase = await createServerSupabaseClient();
   const { data: userData } = supabase ? await supabase.auth.getUser() : { data: { user: null } };
@@ -50,6 +54,7 @@ export default async function WatchDetailPage({
 
   const [vWithE] = await attachEngagementToVideos([video]);
   video = vWithE;
+  const progress = await getVideoProgress(video.id);
 
   const cookieStore = await cookies();
   const watchedCookie = cookieStore.get("genova_watched")?.value;
@@ -57,11 +62,27 @@ export default async function WatchDetailPage({
 
   const rawRelated = await fetchRelatedVideos(video.id, 20);
   const watchedSet = new Set([...cookieWatched, video.id]);
-  const related = rawRelated.filter((v) => !watchedSet.has(v.id)).slice(0, 8);
 
-  const [creator, forYouVideos, seriesNavRaw, comments, uploaderProfile, isFollowing] = await Promise.all([
+  let related = rawRelated.filter((v) => !watchedSet.has(v.id));
+
+  if (related.length < 8) {
+    const existingIds = new Set(related.map((v) => v.id));
+    existingIds.add(video.id);
+    const fallback = rawRelated.filter((v) => !existingIds.has(v.id));
+    related = [...related, ...fallback].slice(0, 8);
+  }
+
+  related = related.slice(0, 8);
+
+  console.log("[RELATED_FINAL]", {
+    raw: rawRelated.length,
+    cookieWatched: cookieWatched.length,
+    unwatched: rawRelated.filter((v) => !watchedSet.has(v.id)).length,
+    final: related.length,
+  });
+
+  const [creator, seriesNavRaw, comments, uploaderProfile, isFollowing] = await Promise.all([
     video.creatorId ? fetchCreatorById(video.creatorId) : Promise.resolve(null),
-    fetchForYouSameGenreVideos(video.id, video.genre, 8),
     fetchSeriesEpisodesForVideo(video),
     fetchCommentsForVideo(video.id),
     video.uploadedBy ? fetchProfileById(video.uploadedBy) : Promise.resolve(null),
@@ -73,23 +94,31 @@ export default async function WatchDetailPage({
     ? await supabase
         .from("videos")
         .select("*, creators(*)")
+        .eq("visibility", "public")
         .eq("genre", video.genre)
         .neq("id", video.id)
         .order("view_count", { ascending: false })
-        .limit(10)
+        .limit(12)
     : { data: [] };
+  console.log("[SAMEGENRE_DEBUG]", sameGenreRaw?.length ?? 0);
 
   const { data: trendingRaw } = supabase
     ? await supabase
         .from("videos")
         .select("*, creators(*)")
+        .eq("visibility", "public")
         .neq("id", video.id)
         .order("view_count", { ascending: false })
-        .limit(10)
+        .limit(24)
     : { data: [] };
+  console.log("[TRENDING_DEBUG]", trendingRaw?.length ?? 0);
 
   const sameGenreVideos = (sameGenreRaw ?? []).map((v) => mapVideo(v));
-  const trendingVideos = (trendingRaw ?? []).map((v) => mapVideo(v));
+  const sameGenreIds = new Set(sameGenreVideos.map((v) => v.id));
+  const trendingVideos = (trendingRaw ?? [])
+    .map((v) => mapVideo(v))
+    .filter((v) => !sameGenreIds.has(v.id))
+    .slice(0, 12);
 
   const displaySeriesNav = seriesNav;
 
@@ -125,6 +154,9 @@ export default async function WatchDetailPage({
                   playbackId={video.muxPlaybackId}
                   title={video.title}
                   nextVideoId={related[0]?.id ?? null}
+                  userId={user?.id ?? null}
+                  videoId={video.id}
+                  initialProgressSeconds={progress?.progressSeconds ?? 0}
                 />
               )}
             </div>
@@ -149,7 +181,7 @@ export default async function WatchDetailPage({
                   savedByMe={video.savedByMe ?? false}
                   saveCount={video.saveCount ?? 0}
                 />
-                <ShareButton title={video.title} />
+                <ShareButton title={video.title} videoId={video.id} thumbnailUrl={video.thumbnailUrl} />
                 <WatchMoreMenu videoId={video.id} />
               </div>
             </div>
@@ -218,7 +250,6 @@ export default async function WatchDetailPage({
       />
 
       <WatchRecommendationsSections
-        forYouVideos={forYouVideos}
         sameGenreVideos={sameGenreVideos}
         trendingVideos={trendingVideos}
         mainGenre={video.genre}

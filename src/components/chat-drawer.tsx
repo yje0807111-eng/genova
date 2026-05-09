@@ -1,8 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { Camera, Info, Paperclip, Phone, Search, Send, Smile, X } from "lucide-react";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { Camera, Info, Paperclip, Phone, Pin, Search, Send, Smile, X } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { followUserAction, unfollowUserAction } from "@/app/actions/profile";
 import { useI18n } from "@/components/genova/language-provider";
 import { getBrowserSupabaseClient } from "@/lib/supabase/browser";
 import { cn } from "@/lib/utils/cn";
@@ -23,6 +24,8 @@ type FollowingUser = {
   watchCount: number;
   hasNewVideo: boolean;
   newVideoTitle?: string;
+  /** Most recent public video title (for subtitle) */
+  latestVideoTitle?: string;
   lastActive?: string;
 };
 
@@ -32,6 +35,60 @@ type DiscoverUser = {
   avatarUrl: string | null;
   latestVideoTitle?: string;
 };
+
+function startOfDayMs(d: Date) {
+  return new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();
+}
+
+/** Conversation list timestamps: 방금 / N분 전 / clock today / 어제 / weekday / date */
+function formatChatRelativeTime(iso: string, locale: string): string {
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return "";
+  const now = new Date();
+  const diffMs = now.getTime() - d.getTime();
+  const minutes = Math.floor(diffMs / 60000);
+
+  const sodNow = startOfDayMs(now);
+  const sodMsg = startOfDayMs(d);
+  const dayDiff = Math.round((sodNow - sodMsg) / 86400000);
+
+  if (minutes < 1) {
+    if (locale === "ko") return "방금";
+    if (locale === "ja") return "たった今";
+    return "Just now";
+  }
+  if (minutes < 60) {
+    if (locale === "ko") return `${minutes}분 전`;
+    if (locale === "ja") return `${minutes}分前`;
+    return `${minutes}m ago`;
+  }
+
+  if (dayDiff === 0) {
+    return d.toLocaleTimeString(locale === "ko" ? "ko-KR" : locale === "ja" ? "ja-JP" : "en-US", {
+      hour: "numeric",
+      minute: "2-digit",
+      hour12: locale === "en",
+    });
+  }
+
+  if (dayDiff === 1) {
+    if (locale === "ko") return "어제";
+    if (locale === "ja") return "昨日";
+    return "Yesterday";
+  }
+
+  if (dayDiff > 1 && dayDiff < 7) {
+    return d.toLocaleDateString(locale === "ko" ? "ko-KR" : locale === "ja" ? "ja-JP" : "en-US", {
+      weekday: "long",
+    });
+  }
+
+  return d.toLocaleDateString(locale === "ko" ? "ko-KR" : locale === "ja" ? "ja-JP" : "en-US", {
+    year: d.getFullYear() !== now.getFullYear() ? "numeric" : undefined,
+    month: "numeric",
+    day: "numeric",
+  });
+}
 
 function getInitials(name: string): string {
   const parts = name.trim().split(/\s+/);
@@ -61,7 +118,7 @@ export function ChatDrawer({
   initialTarget?: ChatTarget | null;
   onUnreadChange?: (count: number) => void;
 }) {
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
   const [activeTab, setActiveTab] = useState<"messages" | "following">("messages");
   const [activeTarget, setActiveTarget] = useState<ChatTarget | null>(null);
   const [messages, setMessages] = useState<{
@@ -73,7 +130,9 @@ export function ChatDrawer({
     replyToId: string | null;
     replyToContent: string | null;
     isDeleted: boolean;
+    sharedVideoId: string | null;
   }[]>([]);
+  const [sharedVideos, setSharedVideos] = useState<Record<string, { id: string; title: string; thumbnailUrl: string | null }>>({});
   const [replyTarget, setReplyTarget] = useState<{
     id: string;
     content: string;
@@ -103,7 +162,21 @@ export function ChatDrawer({
   const [followingUsers, setFollowingUsers] = useState<FollowingUser[]>([]);
   const [discoverUsers, setDiscoverUsers] = useState<DiscoverUser[]>([]);
   const [followingLoading, setFollowingLoading] = useState(false);
+  const [followingTabVersion, setFollowingTabVersion] = useState(0);
   const totalUnreadCount = conversations.filter((c) => c.unreadCount > 0).length;
+
+  const bumpFollowingTab = () => setFollowingTabVersion((v) => v + 1);
+
+  const handleDiscoverFollow = async (userId: string) => {
+    const res = await followUserAction(userId);
+    if (res.ok === true) bumpFollowingTab();
+  };
+
+  const handleFollowingUnfollow = async (userId: string) => {
+    if (!window.confirm(t("profile.unfollowConfirmBody"))) return;
+    const res = await unfollowUserAction(userId);
+    if (res.ok === true) bumpFollowingTab();
+  };
 
   const togglePin = (userId: string) => {
     setPinnedUserIds((prev) => {
@@ -306,13 +379,6 @@ export function ChatDrawer({
     return () => { void supabase.removeChannel(channel); };
   }, [currentUserId]);
 
-  const statusLabel = useMemo(() => {
-    if (!activeTarget?.status) return "";
-    if (activeTarget.status === "online") return t("chat.statusOnline");
-    if (activeTarget.status === "away") return t("chat.statusAway");
-    return t("chat.statusOffline");
-  }, [activeTarget?.status, t]);
-
   useEffect(() => {
     if (activeTab !== "following" || !currentUserId) return;
     const supabase = getBrowserSupabaseClient();
@@ -322,7 +388,6 @@ export function ChatDrawer({
 
     const load = async () => {
       try {
-        console.log("currentUserId:", currentUserId);
         const { data: follows } = await supabase
           .from("follows")
           .select("*")
@@ -348,9 +413,13 @@ export function ChatDrawer({
             .order("created_at", { ascending: false });
 
           const watchCountMap: Record<string, number> = {};
+          const latestTitleMap: Record<string, string> = {};
           for (const vid of videos ?? []) {
+            const uid = vid.uploaded_by as string;
+            if (!latestTitleMap[uid] && (vid.title as string)?.trim()) {
+              latestTitleMap[uid] = vid.title as string;
+            }
             if (watchedVideoIds.includes(vid.id as string)) {
-              const uid = vid.uploaded_by as string;
               watchCountMap[uid] = (watchCountMap[uid] ?? 0) + 1;
             }
           }
@@ -372,6 +441,7 @@ export function ChatDrawer({
               watchCount: watchCountMap[p.id as string] ?? 0,
               hasNewVideo: Boolean(newVideoMap[p.id as string]),
               newVideoTitle: newVideoMap[p.id as string],
+              latestVideoTitle: latestTitleMap[p.id as string],
             }))
             .sort((a, b) => b.watchCount - a.watchCount);
 
@@ -418,7 +488,7 @@ export function ChatDrawer({
     };
 
     void load();
-  }, [activeTab, currentUserId]);
+  }, [activeTab, currentUserId, followingTabVersion]);
 
   useEffect(() => {
     if (!activeTarget || !currentUserId) return;
@@ -429,24 +499,44 @@ export function ChatDrawer({
     const load = async () => {
       const { data } = await supabase
         .from("messages")
-        .select("id, sender_id, receiver_id, content, created_at, likes, reply_to_id, reply_to_content, is_deleted")
+        .select("id, sender_id, receiver_id, content, created_at, likes, reply_to_id, reply_to_content, is_deleted, shared_video_id")
         .or(
           `and(sender_id.eq.${currentUserId},receiver_id.eq.${activeTarget.userId}),and(sender_id.eq.${activeTarget.userId},receiver_id.eq.${currentUserId})`,
         )
         .order("created_at", { ascending: true });
 
-      setMessages(
-        (data ?? []).map((m) => ({
-          id: m.id as string,
-          senderId: m.sender_id as string,
-          content: m.content as string,
-          createdAt: m.created_at as string,
-          likes: (m.likes as string[]) ?? [],
-          replyToId: (m.reply_to_id as string) ?? null,
-          replyToContent: (m.reply_to_content as string) ?? null,
-          isDeleted: (m.is_deleted as boolean) ?? false,
-        })),
-      );
+      const mapped = (data ?? []).map((m) => ({
+        id: m.id as string,
+        senderId: m.sender_id as string,
+        content: m.content as string,
+        createdAt: m.created_at as string,
+        likes: (m.likes as string[]) ?? [],
+        replyToId: (m.reply_to_id as string) ?? null,
+        replyToContent: (m.reply_to_content as string) ?? null,
+        isDeleted: (m.is_deleted as boolean) ?? false,
+        sharedVideoId: (m.shared_video_id as string) ?? null,
+      }));
+      setMessages(mapped);
+
+      // Fetch shared video metadata
+      const videoIds = [...new Set(mapped.map((m) => m.sharedVideoId).filter((id): id is string => Boolean(id)))];
+      if (videoIds.length > 0) {
+        const { data: vids } = await supabase
+          .from("videos")
+          .select("id, title, thumbnail_url")
+          .in("id", videoIds);
+        const map: Record<string, { id: string; title: string; thumbnailUrl: string | null }> = {};
+        for (const v of vids ?? []) {
+          map[v.id as string] = {
+            id: v.id as string,
+            title: v.title as string,
+            thumbnailUrl: (v.thumbnail_url as string) ?? null,
+          };
+        }
+        setSharedVideos(map);
+      } else {
+        setSharedVideos({});
+      }
 
       // 읽음 처리
       await supabase
@@ -479,8 +569,10 @@ export function ChatDrawer({
             reply_to_id: string | null;
             reply_to_content: string | null;
             is_deleted: boolean;
+            shared_video_id?: string | null;
           };
           if (m.sender_id !== activeTarget.userId) return;
+          const sharedVideoId = m.shared_video_id ?? null;
           setMessages((prev) => [
             ...prev,
             {
@@ -492,8 +584,30 @@ export function ChatDrawer({
               replyToId: m.reply_to_id ?? null,
               replyToContent: m.reply_to_content ?? null,
               isDeleted: m.is_deleted ?? false,
+              sharedVideoId,
             },
           ]);
+          if (sharedVideoId) {
+            void (async () => {
+              const sb = getBrowserSupabaseClient();
+              if (!sb) return;
+              const { data: v } = await sb
+                .from("videos")
+                .select("id, title, thumbnail_url")
+                .eq("id", sharedVideoId)
+                .maybeSingle();
+              if (v) {
+                setSharedVideos((prev) => ({
+                  ...prev,
+                  [v.id as string]: {
+                    id: v.id as string,
+                    title: v.title as string,
+                    thumbnailUrl: (v.thumbnail_url as string) ?? null,
+                  },
+                }));
+              }
+            })();
+          }
         },
       )
       .on(
@@ -590,6 +704,7 @@ export function ChatDrawer({
           replyToId: reply?.id ?? null,
           replyToContent: reply?.content ?? null,
           isDeleted: false,
+          sharedVideoId: (data as { shared_video_id?: string | null }).shared_video_id ?? null,
         },
       ]);
     }
@@ -623,47 +738,122 @@ export function ChatDrawer({
               >
                 ←
               </button>
-              <div className="relative h-9 w-9 shrink-0 overflow-hidden rounded-2xl bg-[#26215C]">
-                {activeTarget?.avatarUrl ? (
-                  <img src={activeTarget.avatarUrl} alt="" className="h-full w-full object-cover" />
-                ) : (
-                  <div className="flex h-full w-full items-center justify-center text-sm font-bold text-white/60">
-                    {activeTarget?.displayName.slice(0, 1).toUpperCase()}
+              <Link
+                href={`/profile/${activeTarget?.userId}`}
+                className="group flex min-w-0 items-center gap-3"
+              >
+                <div className="relative shrink-0">
+                  <div className="h-9 w-9 overflow-hidden rounded-full bg-[#26215C] ring-1 ring-white/10 transition group-hover:ring-[#7F77DD]/40">
+                    {activeTarget?.avatarUrl ? (
+                      <img src={activeTarget.avatarUrl} alt="" className="h-full w-full object-cover" />
+                    ) : (
+                      <div className="flex h-full w-full items-center justify-center text-sm font-bold text-white/60">
+                        {activeTarget?.displayName.slice(0, 1).toUpperCase()}
+                      </div>
+                    )}
                   </div>
-                )}
-              </div>
-              <div className="min-w-0">
-                <p className="truncate text-sm font-bold text-white">{activeTarget?.displayName}</p>
-                <p className="text-[10px] text-white/30">{statusLabel || "Genova Member"}</p>
-              </div>
+                  <span
+                    className={cn(
+                      "absolute -bottom-0.5 -right-0.5 h-2.5 w-2.5 rounded-full ring-2 ring-[#080618]",
+                      activeTarget?.status === "online"
+                        ? "bg-emerald-400"
+                        : activeTarget?.status === "away"
+                          ? "bg-amber-400"
+                          : "bg-white/20",
+                    )}
+                  />
+                </div>
+                <div className="min-w-0">
+                  <p className="truncate text-[14px] font-bold leading-tight text-white transition group-hover:text-[#AFA9EC]">
+                    {activeTarget?.displayName}
+                  </p>
+                  <p className="mt-0.5 flex items-center gap-1 text-[10px] text-white/40">
+                    <span
+                      className={cn(
+                        "h-1 w-1 rounded-full",
+                        activeTarget?.status === "online" ? "bg-emerald-400" : "bg-white/30",
+                      )}
+                    />
+                    {activeTarget?.status === "online"
+                      ? "Active now"
+                      : activeTarget?.status === "away"
+                        ? "Away"
+                        : "Genova Member"}
+                  </p>
+                </div>
+              </Link>
             </div>
-            <div className="flex items-center gap-1 text-white/25">
-              <button type="button" className="rounded-xl p-1.5 transition hover:bg-white/[0.05] hover:text-white/60">
-                <Info className="h-4 w-4" />
+            <div className="flex items-center gap-1 text-white/30">
+              <button
+                type="button"
+                className="flex h-8 w-8 items-center justify-center rounded-full transition hover:bg-white/[0.06] hover:text-white"
+                aria-label="Conversation info"
+              >
+                <Info className="h-[18px] w-[18px]" />
               </button>
             </div>
           </div>
 
-          <div className="sidebar-scroll min-h-0 flex-1 space-y-3 overflow-y-auto px-4 py-3">
+          <div className="sidebar-scroll min-h-0 flex-1 space-y-3 overflow-y-auto overscroll-contain px-5 py-4">
             {messages.length === 0 && (
-              <div className="flex h-full flex-col items-center justify-center py-12 text-center">
-                <p className="text-sm text-white/30">No messages yet</p>
-                <p className="mt-1 text-xs text-white/20">Say hello to {activeTarget.displayName}!</p>
+              <div className="flex h-full flex-col items-center justify-center px-6 py-12 text-center">
+                <div
+                  className="mb-3 flex h-12 w-12 items-center justify-center rounded-full"
+                  style={{
+                    background: "rgba(83,74,183,0.12)",
+                    border: "1px solid rgba(127,119,221,0.18)",
+                  }}
+                >
+                  <svg viewBox="0 0 24 24" className="h-5 w-5 text-[#7F77DD]/60" fill="none" stroke="currentColor" strokeWidth={1.8}>
+                    <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                </div>
+                <p className="text-[13px] font-semibold text-white/60">대화를 시작해보세요</p>
+                <p className="mt-1 text-[11px] leading-relaxed text-white/30">
+                  {activeTarget.displayName}님에게 첫 메시지를 보내보세요
+                </p>
               </div>
             )}
-            {messages.map((m) => {
+            {messages.map((m, idx) => {
               const isMine = m.senderId === currentUserId;
+              const prev = messages[idx - 1];
+              const next = messages[idx + 1];
+              const FIVE_MIN = 5 * 60 * 1000;
+
+              const prevSame =
+                prev &&
+                prev.senderId === m.senderId &&
+                new Date(m.createdAt).getTime() - new Date(prev.createdAt).getTime() < FIVE_MIN;
+              const nextSame =
+                next &&
+                next.senderId === m.senderId &&
+                new Date(next.createdAt).getTime() - new Date(m.createdAt).getTime() < FIVE_MIN;
+
+              const isGroupStart = !prevSame;
+              const isGroupEnd = !nextSame;
+
               return (
-                <div key={m.id} className={`group flex ${isMine ? "justify-end" : "justify-start"}`}>
+                <div
+                  key={m.id}
+                  className={cn(
+                    "group flex",
+                    isMine ? "justify-end" : "justify-start",
+                    isGroupStart ? "mt-3" : "mt-0.5",
+                  )}
+                >
                   {!isMine && (
-                    <div className="mr-2 h-6 w-6 shrink-0 self-end overflow-hidden rounded-full bg-[#26215C]">
-                      {activeTarget.avatarUrl ? (
-                        <img src={activeTarget.avatarUrl} alt="" className="h-full w-full object-cover" />
-                      ) : (
-                        <div className="flex h-full w-full items-center justify-center text-[9px] font-bold text-white/60">
-                          {activeTarget.displayName.slice(0, 1).toUpperCase()}
+                    <div className="mr-2 h-6 w-6 shrink-0 self-end">
+                      {isGroupEnd ? (
+                        <div className="h-6 w-6 overflow-hidden rounded-full bg-[#26215C]">
+                          {activeTarget.avatarUrl ? (
+                            <img src={activeTarget.avatarUrl} alt="" className="h-full w-full object-cover" />
+                          ) : (
+                            <div className="flex h-full w-full items-center justify-center text-[9px] font-bold text-white/60">
+                              {activeTarget.displayName.slice(0, 1).toUpperCase()}
+                            </div>
+                          )}
                         </div>
-                      )}
+                      ) : null}
                     </div>
                   )}
                   <div className={`flex max-w-[75%] flex-col gap-0.5 ${isMine ? "items-end" : "items-start"}`}>
@@ -677,36 +867,48 @@ export function ChatDrawer({
                     )}
                     <div className="relative">
                       <div
-                        className="rounded-2xl px-3 py-2 text-sm"
+                        className="px-3 py-2 text-sm"
                         style={{
                           background: m.isDeleted
-                            ? "rgba(255,255,255,0.03)"
+                            ? "rgba(255,255,255,0.04)"
                             : isMine
-                              ? "linear-gradient(135deg, #534AB7 0%, #7B6FE8 100%)"
+                              ? "linear-gradient(135deg, #534AB7 0%, #6B5FD4 100%)"
                               : "rgba(255,255,255,0.06)",
-                          borderRadius: isMine ? "16px 16px 4px 16px" : "16px 16px 16px 4px",
-                          border: m.isDeleted ? "1px dashed rgba(255,255,255,0.1)" : "none",
+                          color: m.isDeleted ? "rgba(255,255,255,0.4)" : "white",
+                          borderRadius: "16px",
                         }}
                       >
                         {m.isDeleted ? (
-                          <span className="flex items-center gap-1.5 text-[12px] italic text-white/30">
-                            <svg viewBox="0 0 24 24" className="h-3 w-3" fill="none" stroke="currentColor" strokeWidth={2}>
-                              <polyline points="3 6 5 6 21 6" />
-                              <path d="M19 6l-1 14H6L5 6" />
-                              <path d="M10 11v6M14 11v6" />
-                              <path d="M9 6V4h6v2" />
-                            </svg>
-                            삭제된 메시지입니다.
-                          </span>
+                          <span className="italic">삭제된 메시지</span>
                         ) : (
-                          m.content
+                          <>
+                            {m.sharedVideoId && sharedVideos[m.sharedVideoId] && (
+                              <Link
+                                href={`/watch/${m.sharedVideoId}`}
+                                className="mb-2 block overflow-hidden rounded-lg border border-white/10 bg-black/20 transition hover:border-white/30"
+                              >
+                                {sharedVideos[m.sharedVideoId].thumbnailUrl && (
+                                  <div className="relative w-full overflow-hidden" style={{ aspectRatio: "16/9" }}>
+                                    <img
+                                      src={sharedVideos[m.sharedVideoId].thumbnailUrl ?? ""}
+                                      alt=""
+                                      className="h-full w-full object-cover"
+                                    />
+                                  </div>
+                                )}
+                                <p className="line-clamp-1 px-2 py-1.5 text-[11px] font-semibold text-white/90">
+                                  🎬 {sharedVideos[m.sharedVideoId].title}
+                                </p>
+                              </Link>
+                            )}
+                            {m.content && <span>{m.content}</span>}
+                          </>
                         )}
                       </div>
                       {!m.isDeleted && (
                         <div
                           className={cn(
-                            "absolute top-1/2 flex -translate-y-1/2 items-center gap-1 opacity-0 transition-opacity group-hover:opacity-100",
-                            isMine ? "-left-20" : "-right-20",
+                            "absolute -top-3 right-2 z-10 flex items-center gap-0.5 rounded-full border border-white/[0.08] bg-[#0a0820]/95 px-1 py-0.5 opacity-0 shadow-lg shadow-black/40 backdrop-blur-md transition-opacity group-hover:opacity-100",
                           )}
                         >
                           <button
@@ -748,9 +950,11 @@ export function ChatDrawer({
                         <span className="text-[10px] text-white/50">{m.likes.length}</span>
                       </div>
                     )}
-                    <span className="text-[10px] text-white/25">
-                      {new Date(m.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
-                    </span>
+                    {isGroupEnd && (
+                      <span className="text-[10px] text-white/25">
+                        {new Date(m.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                      </span>
+                    )}
                   </div>
                 </div>
               );
@@ -759,27 +963,52 @@ export function ChatDrawer({
           </div>
 
           <div
-            className="flex-shrink-0 px-3 py-3"
+            className="flex-shrink-0 px-4 pb-4 pt-3"
             style={{ borderTop: "1px solid rgba(127,119,221,0.1)" }}
           >
             {replyTarget && (
               <div
                 className="mb-2 flex items-center gap-2 rounded-xl px-3 py-2"
-                style={{ background: "rgba(83,74,183,0.15)", border: "1px solid rgba(127,119,221,0.2)" }}
+                style={{
+                  background: "rgba(83,74,183,0.12)",
+                  border: "1px solid rgba(127,119,221,0.2)",
+                  boxShadow: "0 4px 16px rgba(83,74,183,0.08)",
+                }}
               >
+                <div className="h-8 w-[2px] shrink-0 rounded-full bg-[#7F77DD]/60" />
                 <div className="min-w-0 flex-1">
-                  <p className="text-[10px] font-semibold text-[#7F77DD]">↩ {replyTarget.senderName}에게 답장</p>
-                  <p className="truncate text-[11px] text-white/40">{replyTarget.content}</p>
+                  <p className="text-[10px] font-semibold uppercase tracking-wider text-[#7F77DD]">
+                    {replyTarget.senderName}에게 답장
+                  </p>
+                  <p className="mt-0.5 truncate text-[11px] text-white/50">{replyTarget.content}</p>
                 </div>
-                <button type="button" onClick={() => setReplyTarget(null)} className="text-white/30 hover:text-white/60">
-                  <X className="h-3 w-3" />
+                <button
+                  type="button"
+                  onClick={() => setReplyTarget(null)}
+                  className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-white/40 transition hover:bg-white/[0.08] hover:text-white"
+                >
+                  <X className="h-3.5 w-3.5" />
                 </button>
               </div>
             )}
             <div
-              className="flex items-center gap-2 rounded-2xl px-3 py-2"
+              className="flex items-center gap-1.5 rounded-2xl px-2.5 py-2 transition focus-within:border-[#7F77DD]/40 focus-within:bg-white/[0.05]"
               style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.06)" }}
             >
+              <button
+                type="button"
+                className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg text-white/40 transition hover:bg-white/[0.06] hover:text-white/70"
+                aria-label="첨부"
+              >
+                <Paperclip className="h-4 w-4" />
+              </button>
+              <button
+                type="button"
+                className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg text-white/40 transition hover:bg-white/[0.06] hover:text-white/70"
+                aria-label="이모지"
+              >
+                <Smile className="h-4 w-4" />
+              </button>
               <input
                 value={msgInput}
                 onChange={(e) => setMsgInput(e.target.value)}
@@ -790,7 +1019,7 @@ export function ChatDrawer({
                   }
                 }}
                 placeholder={t("chat.msgPlaceholder")}
-                className="flex-1 bg-transparent text-sm text-white outline-none placeholder:text-white/25"
+                className="flex-1 bg-transparent px-1 text-sm text-white outline-none placeholder:text-white/40"
               />
               <button
                 type="button"
@@ -799,6 +1028,7 @@ export function ChatDrawer({
                 className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl transition disabled:opacity-30"
                 style={{
                   background: msgInput.trim() ? "linear-gradient(135deg, #534AB7 0%, #7B6FE8 100%)" : "rgba(255,255,255,0.06)",
+                  boxShadow: msgInput.trim() ? "0 4px 16px rgba(83,74,183,0.4)" : "none",
                 }}
               >
                 <Send className="h-3.5 w-3.5 text-white" />
@@ -860,46 +1090,59 @@ export function ChatDrawer({
         </>
       ) : (
         <>
-          <div className="px-4 py-4" style={{ borderBottom: "1px solid rgba(127,119,221,0.1)" }}>
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#7F77DD]/50">Genova</p>
-                <p className="text-base font-black text-white">{t("chat.connect")}</p>
-              </div>
-              <button
-                type="button"
-                onClick={onClose}
-                className="flex h-8 w-8 items-center justify-center rounded-full text-white/30 transition hover:bg-white/[0.05] hover:text-white/70"
-              >
-                <X className="h-4 w-4" />
-              </button>
+          <div className="flex items-center justify-between border-b border-white/[0.06] px-5 py-4">
+            <div className="flex items-center gap-2">
+              <h2 className="text-[16px] font-bold text-white">
+                {activeTab === "messages" ? t("chat.messages") : t("chat.connect")}
+              </h2>
+              {activeTab === "messages" && totalUnreadCount > 0 && (
+                <span className="flex h-5 min-w-[20px] items-center justify-center rounded-full bg-[#7F77DD] px-1.5 text-[10px] font-bold text-white">
+                  {totalUnreadCount}
+                </span>
+              )}
             </div>
+            <button
+              type="button"
+              onClick={onClose}
+              className="rounded-md p-1 text-white/40 transition hover:bg-white/[0.06] hover:text-white"
+              aria-label={t("common.close")}
+            >
+              <X size={16} />
+            </button>
           </div>
 
-          <div className="flex gap-1 px-4 pb-3">
+          <div className="flex gap-6 border-b border-white/[0.04] px-5">
             <button
               type="button"
               onClick={() => setActiveTab("messages")}
-              className="flex-1 rounded-xl py-2 text-[12px] font-semibold transition"
-              style={{
-                background: activeTab === "messages" ? "rgba(83,74,183,0.3)" : "transparent",
-                color: activeTab === "messages" ? "#AFA9EC" : "rgba(255,255,255,0.3)",
-                border: activeTab === "messages" ? "1px solid rgba(127,119,221,0.3)" : "1px solid transparent",
-              }}
+              className={cn(
+                "relative py-3 text-[13px] font-semibold transition",
+                activeTab === "messages" ? "text-white" : "text-white/40 hover:text-white/60",
+              )}
             >
-              Messages
+              {t("chat.messages")}
+              {activeTab === "messages" && (
+                <span
+                  className="absolute -bottom-px left-0 right-0 h-[2px] rounded-full"
+                  style={{ background: "linear-gradient(90deg, #7F77DD 0%, #AFA9EC 100%)" }}
+                />
+              )}
             </button>
             <button
               type="button"
               onClick={() => setActiveTab("following")}
-              className="flex-1 rounded-xl py-2 text-[12px] font-semibold transition"
-              style={{
-                background: activeTab === "following" ? "rgba(83,74,183,0.3)" : "transparent",
-                color: activeTab === "following" ? "#AFA9EC" : "rgba(255,255,255,0.3)",
-                border: activeTab === "following" ? "1px solid rgba(127,119,221,0.3)" : "1px solid transparent",
-              }}
+              className={cn(
+                "relative py-3 text-[13px] font-semibold transition",
+                activeTab === "following" ? "text-white" : "text-white/40 hover:text-white/60",
+              )}
             >
               {t("chat.following")}
+              {activeTab === "following" && (
+                <span
+                  className="absolute -bottom-px left-0 right-0 h-[2px] rounded-full"
+                  style={{ background: "linear-gradient(90deg, #7F77DD 0%, #AFA9EC 100%)" }}
+                />
+              )}
             </button>
           </div>
 
@@ -920,11 +1163,11 @@ export function ChatDrawer({
           </div>
 
           {activeTab === "messages" ? (
-            <div className="sidebar-scroll flex-1 overflow-y-auto px-4 pb-4">
+            <div className="sidebar-scroll flex-1 overflow-y-auto pb-4">
               {convsLoading ? (
                 <p className="py-8 text-center text-xs text-white/30">Loading...</p>
               ) : conversations.length === 0 ? (
-                <div className="flex flex-col items-center justify-center py-16 text-center">
+                <div className="flex flex-col items-center justify-center px-5 py-16 text-center">
                   <div
                     className="mb-4 flex h-14 w-14 items-center justify-center rounded-full"
                     style={{ background: "rgba(83,74,183,0.15)", border: "1px solid rgba(127,119,221,0.2)" }}
@@ -937,7 +1180,7 @@ export function ChatDrawer({
                   <p className="mt-1 text-xs text-white/25">Messages from creators will appear here.</p>
                 </div>
               ) : (
-                <div className="space-y-1">
+                <div>
                   {conversations
                     .filter((c) => !searchQuery || c.displayName.toLowerCase().includes(searchQuery.toLowerCase()))
                     .sort((a, b) => {
@@ -947,80 +1190,88 @@ export function ChatDrawer({
                       return new Date(b.lastTime).getTime() - new Date(a.lastTime).getTime();
                     })
                     .map((conv) => (
-                      <div key={conv.userId} className="group relative">
+                      <div key={conv.userId} className="group relative border-b border-white/[0.04]">
                         <button
                           type="button"
-                          onClick={() => setActiveTarget({
-                            userId: conv.userId,
-                            displayName: conv.displayName,
-                            avatarUrl: conv.avatarUrl ?? undefined,
-                          })}
-                          className="flex w-full items-center gap-3 rounded-2xl px-3 py-2.5 text-left transition"
-                          style={{
-                            background: conv.unreadCount > 0
-                              ? "rgba(83,74,183,0.12)"
-                              : "transparent",
-                            border: pinnedUserIds.includes(conv.userId)
-                              ? "1px solid rgba(127,119,221,0.2)"
-                              : "1px solid transparent",
-                          }}
-                          onMouseEnter={(e) => { e.currentTarget.style.background = conv.unreadCount > 0 ? "rgba(83,74,183,0.18)" : "rgba(255,255,255,0.03)"; }}
-                          onMouseLeave={(e) => { e.currentTarget.style.background = conv.unreadCount > 0 ? "rgba(83,74,183,0.12)" : "transparent"; }}
+                          onClick={() =>
+                            setActiveTarget({
+                              userId: conv.userId,
+                              displayName: conv.displayName,
+                              avatarUrl: conv.avatarUrl ?? undefined,
+                            })
+                          }
+                          className={cn(
+                            "flex w-full cursor-pointer items-start gap-3 p-3 text-left transition hover:bg-white/[0.02]",
+                            pinnedUserIds.includes(conv.userId) && "bg-white/[0.02]",
+                          )}
                         >
-                          <div className="relative h-10 w-10 shrink-0">
-                            <div
-                              className="h-full w-full overflow-hidden rounded-2xl bg-[#26215C]"
-                              style={{ boxShadow: conv.unreadCount > 0 ? "0 0 0 2px rgba(83,74,183,0.5)" : "none" }}
-                            >
-                              {conv.avatarUrl ? (
-                                <img src={conv.avatarUrl} alt="" className="h-full w-full object-cover" />
-                              ) : (
-                                <div className="flex h-full w-full items-center justify-center text-xs font-bold text-white/60">
-                                  {conv.displayName.slice(0, 1).toUpperCase()}
-                                </div>
-                              )}
-                            </div>
-                            {conv.unreadCount > 0 && (
-                              <span
-                                className="absolute -right-1 -top-1 z-10 flex h-5 w-5 items-center justify-center rounded-full text-[9px] font-bold text-white"
-                                style={{ background: "linear-gradient(135deg, #ef4444 0%, #dc2626 100%)", boxShadow: "0 2px 8px rgba(239,68,68,0.5)" }}
-                              >
-                                {conv.unreadCount > 9 ? "9+" : conv.unreadCount}
-                              </span>
+                          <div className="relative shrink-0">
+                            {conv.avatarUrl ? (
+                              <img src={conv.avatarUrl} alt="" className="h-11 w-11 rounded-full object-cover ring-1 ring-white/[0.06]" />
+                            ) : (
+                              <div className="flex h-11 w-11 items-center justify-center rounded-full bg-[#26215C] text-sm font-bold text-white/70 ring-1 ring-white/[0.06]">
+                                {conv.displayName.slice(0, 1).toUpperCase()}
+                              </div>
                             )}
+                            {conv.unreadCount > 0 ? (
+                              <span
+                                className="absolute -right-0.5 -top-0.5 h-3 w-3 rounded-full bg-[#7F77DD] ring-2 ring-[#080618]"
+                                style={{ boxShadow: "0 0 8px rgba(127,119,221,0.6)" }}
+                              />
+                            ) : null}
                           </div>
                           <div className="min-w-0 flex-1">
-                            <div className="flex items-center justify-between gap-1">
-                              <p className={`text-[13px] font-bold ${conv.unreadCount > 0 ? "text-white" : "text-white/60"}`}>
-                                {pinnedUserIds.includes(conv.userId) && <span className="mr-1 text-[10px] text-[#7F77DD]">📌</span>}
-                                {conv.displayName}
+                            <div className="flex items-center justify-between gap-2">
+                              <p
+                                className={cn(
+                                  "flex items-center gap-1 truncate text-[13.5px] leading-tight",
+                                  conv.unreadCount > 0 ? "font-bold text-white" : "font-semibold text-white/90",
+                                )}
+                              >
+                                {pinnedUserIds.includes(conv.userId) && (
+                                  <Pin className="h-3 w-3 shrink-0 fill-[#7F77DD] text-[#7F77DD]" />
+                                )}
+                                <span className="truncate">{conv.displayName}</span>
                               </p>
-                              <span className="shrink-0 text-[10px] text-white/30">
-                                {conv.lastTime ? (() => {
-                                  const d = new Date(conv.lastTime);
-                                  const now = new Date();
-                                  const diff = now.getTime() - d.getTime();
-                                  if (diff < 60 * 1000) return "방금";
-                                  if (diff < 60 * 60 * 1000) return `${Math.floor(diff / 60000)}분 전`;
-                                  if (diff < 24 * 60 * 60 * 1000) return `${Math.floor(diff / 3600000)}시간 전`;
-                                  return `${d.getMonth() + 1}.${d.getDate()}`;
-                                })() : ""}
+                              <span
+                                className={cn(
+                                  "shrink-0 text-[10px]",
+                                  conv.unreadCount > 0 ? "font-semibold text-[#AFA9EC]" : "text-white/35",
+                                )}
+                              >
+                                {conv.lastTime ? formatChatRelativeTime(conv.lastTime, locale) : ""}
                               </span>
                             </div>
-                            <p className={`mt-0.5 truncate text-[12px] ${conv.unreadCount > 0 ? "font-semibold text-white/70" : "text-white/30"}`}>
-                              {conv.lastMessage || "No messages"}
+                            <p
+                              className={cn(
+                                "mt-1 truncate text-[12px]",
+                                conv.unreadCount > 0 ? "font-medium text-white/70" : "text-white/45",
+                              )}
+                            >
+                              {conv.lastMessage || t("chat.lastMessageEmpty", "No messages")}
                             </p>
                           </div>
                         </button>
                         <button
                           type="button"
-                          onClick={() => togglePin(conv.userId)}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            togglePin(conv.userId);
+                          }}
                           className={cn(
-                            "absolute right-3 top-1/2 -translate-y-1/2 shrink-0 rounded-full p-1 text-[10px] transition opacity-0 group-hover:opacity-100",
-                            pinnedUserIds.includes(conv.userId) ? "text-[#7F77DD]" : "text-white/20 hover:text-white/50"
+                            "absolute bottom-2 right-2 flex h-6 w-6 shrink-0 items-center justify-center rounded-full transition",
+                            pinnedUserIds.includes(conv.userId)
+                              ? "bg-[#7F77DD]/15 text-[#AFA9EC] opacity-100"
+                              : "text-white/30 opacity-0 hover:bg-white/[0.06] hover:text-white/70 group-hover:opacity-100",
                           )}
+                          aria-label="고정"
                         >
-                          📌
+                          <Pin
+                            className={cn(
+                              "h-3.5 w-3.5",
+                              pinnedUserIds.includes(conv.userId) && "fill-current",
+                            )}
+                          />
                         </button>
                       </div>
                     ))}
@@ -1028,96 +1279,111 @@ export function ChatDrawer({
               )}
             </div>
           ) : activeTab === "following" ? (
-            <div className="sidebar-scroll flex-1 overflow-y-auto px-4 pb-4">
+            <div className="sidebar-scroll flex-1 overflow-y-auto pb-4">
               {followingLoading ? (
-                <p className="py-8 text-center text-xs text-[var(--muted-foreground)]">{t("chat.loading")}</p>
+                <p className="py-8 text-center text-xs text-white/40">{t("chat.loading")}</p>
               ) : (
                 <>
-                  <p className="mb-3 text-xs font-semibold tracking-widest text-white/30">{t("chat.sectionFollowing")}</p>
+                  <div className="flex items-center gap-2 px-5 pb-2 pt-5">
+                    <span className="h-[2px] w-4 rounded-full bg-gradient-to-r from-[#7F77DD]/60 to-transparent" />
+                    <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/55">
+                      {t("chat.sectionFollowing")}
+                    </p>
+                  </div>
                   {followingUsers.length === 0 ? (
-                    <p className="mb-6 text-xs text-[var(--muted-foreground)]">{t("chat.noFollowing")}</p>
+                    <div className="px-5 py-6 text-center">
+                      <p className="text-[12px] text-white/40">{t("chat.noFollowing")}</p>
+                    </div>
                   ) : (
-                    <div className="mb-6 space-y-1.5">
+                    <div className="space-y-0">
                       {followingUsers.map((user) => (
-                        <Link
-                          key={user.id}
-                          href={`/profile/${user.id}`}
-                          className="flex items-center gap-3 rounded-lg px-3 py-2.5 transition hover:bg-white/5"
-                        >
-                          <div className="relative shrink-0">
-                            {user.avatarUrl ? (
-                              <img
-                                src={user.avatarUrl}
-                                alt=""
+                        <div key={user.id} className="flex items-center gap-3 px-5 py-2.5 transition hover:bg-white/[0.02]">
+                          <Link href={`/profile/${user.id}`} className="flex min-w-0 flex-1 items-center gap-3">
+                            <div className="relative shrink-0">
+                              {user.avatarUrl ? (
+                                <img
+                                  src={user.avatarUrl}
+                                  alt=""
+                                  className={cn(
+                                    "h-9 w-9 rounded-full object-cover",
+                                    user.hasNewVideo ? "ring-2 ring-[#8b5cf6] ring-offset-1 ring-offset-[#080618]" : "",
+                                  )}
+                                />
+                              ) : (
+                                <div
+                                  className={cn(
+                                    "flex h-9 w-9 items-center justify-center rounded-full bg-[#534AB7] text-xs font-semibold text-white",
+                                    user.hasNewVideo ? "ring-2 ring-[#8b5cf6] ring-offset-1 ring-offset-[#080618]" : "",
+                                  )}
+                                >
+                                  {(user.displayName ?? "U").slice(0, 2).toUpperCase()}
+                                </div>
+                              )}
+                              {user.hasNewVideo ? (
+                                <span className="absolute -right-0.5 -top-0.5 flex h-3 w-3 items-center justify-center rounded-full bg-[#8b5cf6] text-[7px] font-bold text-white">
+                                  N
+                                </span>
+                              ) : null}
+                            </div>
+                            <div className="min-w-0 flex-1">
+                              <p className="truncate text-[13px] font-semibold text-white">{user.displayName ?? t("chat.unknownUser")}</p>
+                              <p
                                 className={cn(
-                                  "h-9 w-9 rounded-full object-cover",
-                                  user.hasNewVideo ? "ring-2 ring-[#8b5cf6] ring-offset-1 ring-offset-[var(--sidebar)]" : ""
-                                )}
-                              />
-                            ) : (
-                              <div
-                                className={cn(
-                                  "flex h-9 w-9 items-center justify-center rounded-full bg-[#534AB7] text-xs font-semibold text-white",
-                                  user.hasNewVideo ? "ring-2 ring-[#8b5cf6] ring-offset-1 ring-offset-[var(--sidebar)]" : ""
+                                  "truncate text-[11px]",
+                                  user.latestVideoTitle?.trim() ? "text-white/45" : "italic text-white/25",
                                 )}
                               >
-                                {(user.displayName ?? "U").slice(0, 2).toUpperCase()}
-                              </div>
-                            )}
-                            {user.hasNewVideo && (
-                              <span className="absolute -right-0.5 -top-0.5 flex h-3 w-3 items-center justify-center rounded-full bg-[#8b5cf6] text-[7px] font-bold text-white">
-                                N
-                              </span>
-                            )}
-                          </div>
-                          <div className="min-w-0 flex-1">
-                            <p className="truncate text-sm font-medium text-white">
-                              {user.displayName ?? t("chat.unknownUser")}
-                            </p>
-                            {user.hasNewVideo ? (
-                              <p className="truncate text-xs text-[#8b5cf6]">🎬 {user.newVideoTitle}</p>
-                            ) : (
-                              <p className="truncate text-xs text-[var(--muted-foreground)]">
-                                {user.watchCount > 0
-                                  ? t("chat.watchedVideos").replace("{n}", String(user.watchCount))
-                                  : t("chat.noRecentActivity")}
+                                {user.latestVideoTitle?.trim() ? user.latestVideoTitle : t("chat.noVideosYet")}
                               </p>
-                            )}
-                          </div>
-                        </Link>
+                            </div>
+                          </Link>
+                          <button
+                            type="button"
+                            onClick={() => void handleFollowingUnfollow(user.id)}
+                            className="shrink-0 rounded-full border border-white/[0.12] bg-transparent px-3 py-1 text-[11px] font-semibold text-white/70 transition hover:border-red-400/40 hover:bg-red-500/10 hover:text-red-300"
+                          >
+                            {t("profile.following")}
+                          </button>
+                        </div>
                       ))}
                     </div>
                   )}
 
-                  <div className="mb-3 border-t border-white/[0.06]" />
-                  <p className="mb-3 text-xs font-semibold tracking-widest text-white/30">{t("chat.sectionDiscover")}</p>
-                  <div className="space-y-1.5">
+                  <div className="mt-3 flex items-center gap-2 border-t border-white/[0.04] px-5 pb-2 pt-5">
+                    <span className="h-[2px] w-4 rounded-full bg-gradient-to-r from-[#7F77DD]/60 to-transparent" />
+                    <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/55">
+                      {t("chat.sectionDiscover")}
+                    </p>
+                  </div>
+                  <div>
                     {discoverUsers.map((user) => (
-                      <div key={user.id} className="flex items-center gap-3 rounded-lg px-3 py-2.5 transition hover:bg-white/5">
-                        <Link href={`/profile/${user.id}`} className="relative shrink-0">
+                      <div key={user.id} className="flex items-center gap-3 px-5 py-2.5 transition hover:bg-white/[0.02]">
+                        <Link href={`/profile/${user.id}`} className="flex min-w-0 flex-1 items-center gap-3">
                           {user.avatarUrl ? (
-                            <img src={user.avatarUrl} alt="" className="h-9 w-9 rounded-full object-cover" />
+                            <img src={user.avatarUrl} alt="" className="h-9 w-9 shrink-0 rounded-full object-cover" />
                           ) : (
-                            <div className="flex h-9 w-9 items-center justify-center rounded-full bg-[#534AB7] text-xs font-semibold text-white">
+                            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#534AB7] text-xs font-semibold text-white">
                               {(user.displayName ?? "U").slice(0, 2).toUpperCase()}
                             </div>
                           )}
-                        </Link>
-                        <Link href={`/profile/${user.id}`} className="min-w-0 flex-1">
-                          <p className="truncate text-sm font-medium text-white">
-                            {user.displayName ?? t("chat.unknownUser")}
-                          </p>
-                          {user.latestVideoTitle ? (
-                            <p className="truncate text-xs text-[#8b5cf6]">🎬 {user.latestVideoTitle}</p>
-                          ) : (
-                            <p className="truncate text-xs text-[var(--muted-foreground)]">{t("chat.noVideosYet")}</p>
-                          )}
+                          <div className="min-w-0 flex-1">
+                            <p className="truncate text-[13px] font-semibold text-white">{user.displayName ?? t("chat.unknownUser")}</p>
+                            <p
+                              className={cn(
+                                "truncate text-[11px]",
+                                user.latestVideoTitle?.trim() ? "text-white/45" : "italic text-white/25",
+                              )}
+                            >
+                              {user.latestVideoTitle?.trim() ? user.latestVideoTitle : t("chat.noVideosYet")}
+                            </p>
+                          </div>
                         </Link>
                         <button
                           type="button"
-                          className="shrink-0 rounded-full border border-[#8b5cf6]/40 px-2.5 py-1 text-[10px] font-medium text-[#8b5cf6] transition hover:bg-[#8b5cf6]/10"
+                          onClick={() => void handleDiscoverFollow(user.id)}
+                          className="shrink-0 rounded-full border border-[#7F77DD]/40 bg-transparent px-3 py-1 text-[11px] font-semibold text-[#AFA9EC] transition hover:border-[#7F77DD] hover:bg-[#7F77DD]/15 hover:text-white"
                         >
-                          {t("chat.follow")}
+                          {t("profile.follow")}
                         </button>
                       </div>
                     ))}

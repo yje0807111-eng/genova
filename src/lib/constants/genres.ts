@@ -130,44 +130,201 @@ export function normalizeMainGenreKey(raw: string | null | undefined): MainGenre
 }
 
 export const SUB_GENRE_KEYS = [
-  "romance",
-  "sf",
-  "action",
-  "comedy",
-  "thriller",
-  "horror",
-  "drama",
-  "fantasy",
-  "mystery",
+  "short_film",
+  "feature",
+  "series",
+  "documentary",
+  "animation",
+  "mv",
+  "feed_drama",
+  "feed_romance",
+  "feed_thriller",
+  "feed_horror",
+  "feed_sci_fi",
+  "feed_action",
+  "feed_comedy",
+  "feed_fantasy",
+  "feed_cinematic_emotional",
+  "feed_soundscape",
+  "feed_daily_life",
+  "feed_travel",
+  "feed_food",
+  "feed_pets_animals",
+  "feed_sports",
+  "feed_tutorial",
+  "feed_landscape_nature",
+  "feed_city_architecture",
+  "feed_shocking_viral",
+  "feed_dynamic_speed",
+  "feed_funny_meme",
+  "feed_gaming",
+  "feed_fashion_beauty",
+  "experimental_art",
+  "feed_cyberpunk",
+  "feed_asmr_healing",
+  "feed_twist",
+  "commercial_brand",
   "other",
 ] as const;
 
 export type SubGenreKey = (typeof SUB_GENRE_KEYS)[number];
 
 export const SUB_GENRE_LABELS: Record<SubGenreKey, string> = {
-  romance: "Romance",
-  sf: "Sci-Fi",
-  action: "Action",
-  comedy: "Comedy",
-  thriller: "Thriller",
-  horror: "Horror",
-  drama: "Drama",
-  fantasy: "Fantasy",
-  mystery: "Mystery",
+  short_film: "Short Film",
+  feature: "Feature Film",
+  series: "Series",
+  documentary: "Documentary",
+  animation: "Animation",
+  mv: "Music Video",
+  feed_drama: "Drama",
+  feed_romance: "Romance",
+  feed_thriller: "Thriller",
+  feed_horror: "Horror",
+  feed_sci_fi: "Sci-Fi",
+  feed_action: "Action",
+  feed_comedy: "Comedy",
+  feed_fantasy: "Fantasy",
+  feed_cinematic_emotional: "Cinematic/Emotional",
+  feed_soundscape: "Soundscape",
+  feed_daily_life: "Daily Life",
+  feed_travel: "Travel",
+  feed_food: "Food",
+  feed_pets_animals: "Pets/Animals",
+  feed_sports: "Sports",
+  feed_tutorial: "Tutorial",
+  feed_landscape_nature: "Landscape/Nature",
+  feed_city_architecture: "City/Architecture",
+  feed_shocking_viral: "Shocking/Viral",
+  feed_dynamic_speed: "Dynamic/Speed",
+  feed_funny_meme: "Funny/Meme",
+  feed_gaming: "Gaming",
+  feed_fashion_beauty: "Fashion/Beauty",
+  experimental_art: "Art/Experimental",
+  feed_cyberpunk: "Cyberpunk",
+  feed_asmr_healing: "ASMR/Healing",
+  feed_twist: "Twist",
+  commercial_brand: "Commercial/Brand",
   other: "Other",
 };
 
-export const MAIN_GENRES_WITH_SUB: ReadonlySet<MainGenreKey> = new Set(["film", "animation"]);
+export const SUB_GENRE_OPTIONS_BY_MAIN: Record<MainGenreKey, SubGenreKey[]> = {
+  film: [
+    "short_film",
+    "feature",
+    "series",
+    "documentary",
+    "feed_drama",
+    "feed_romance",
+    "feed_thriller",
+    "feed_horror",
+    "feed_sci_fi",
+    "feed_action",
+    "feed_comedy",
+    "feed_fantasy",
+    "feed_cinematic_emotional",
+  ],
+  animation: [
+    "animation",
+    "feed_fantasy",
+    "feed_action",
+    "feed_comedy",
+    "feed_sci_fi",
+    "feed_cyberpunk",
+  ],
+  music: ["mv", "feed_soundscape"],
+  daily: [
+    "feed_daily_life",
+    "feed_travel",
+    "feed_food",
+    "feed_pets_animals",
+    "feed_sports",
+    "feed_tutorial",
+    "feed_landscape_nature",
+    "feed_city_architecture",
+    "feed_shocking_viral",
+    "feed_dynamic_speed",
+    "feed_funny_meme",
+    "feed_gaming",
+    "feed_fashion_beauty",
+  ],
+  art: [
+    "experimental_art",
+    "feed_cyberpunk",
+    "feed_fantasy",
+    "feed_asmr_healing",
+    "feed_twist",
+    "commercial_brand",
+  ],
+};
+
+export const MAIN_GENRES_WITH_SUB: ReadonlySet<MainGenreKey> = new Set(MAIN_GENRE_KEYS);
+
+const SUB_GENRE_I18N_KEY_MAP: Partial<Record<SubGenreKey, string>> = {
+  short_film: "genre.shortFilm",
+  documentary: "genre.documentary",
+  animation: "genre.animation",
+  mv: "genre.musicVideo",
+  feed_landscape_nature: "genre.feed_landscape_nature",
+  feed_city_architecture: "genre.feed_city_architecture",
+  feed_drama: "genre.feed_drama",
+  feed_comedy: "genre.feed_comedy",
+  feed_romance: "genre.feed_romance",
+  feed_sci_fi: "genre.feed_sci_fi",
+  feed_action: "genre.feed_action",
+  feed_horror: "genre.feed_horror",
+  feed_cyberpunk: "genre.feed_cyberpunk",
+  feed_fantasy: "genre.feed_fantasy",
+  feed_cinematic_emotional: "genre.feed_cinematic_emotional",
+  feed_soundscape: "genre.feed_soundscape",
+  feed_shocking_viral: "genre.feed_shocking_viral",
+  feed_dynamic_speed: "genre.feed_dynamic_speed",
+  feed_funny_meme: "genre.feed_funny_meme",
+  feed_twist: "genre.feed_twist",
+  feed_asmr_healing: "genre.feed_asmr_healing",
+  feed_tutorial: "genre.feed_tutorial",
+  feed_daily_life: "genre.feed_daily_life",
+  feed_travel: "genre.feed_travel",
+  feed_food: "genre.feed_food",
+  feed_pets_animals: "genre.feed_pets_animals",
+  feed_sports: "genre.feed_sports",
+  feed_gaming: "genre.feed_gaming",
+  feed_fashion_beauty: "genre.feed_fashion_beauty",
+};
+
+function humanizeSubGenreKey(key: string): string {
+  return key
+    .replace(/^feed_/, "")
+    .replace(/_/g, " ")
+    .replace(/\b\w/g, (c) => c.toUpperCase());
+}
 
 export function subGenreLabel(key: string | null | undefined, locale?: Locale): string {
   if (!key) return "";
   if ((SUB_GENRE_KEYS as readonly string[]).includes(key)) {
     const sk = key as SubGenreKey;
-    const i18nKey = `genre.sub.${sk}`;
-    if (locale && locale !== "en") return translate(locale, i18nKey, SUB_GENRE_LABELS[sk]);
-    return SUB_GENRE_LABELS[sk];
+    const i18nKey = SUB_GENRE_I18N_KEY_MAP[sk] ?? `genre.sub.${sk}`;
+    return translate(locale ?? "en", i18nKey, SUB_GENRE_LABELS[sk] ?? humanizeSubGenreKey(sk));
   }
-  return key;
+  return humanizeSubGenreKey(key);
+}
+
+export function getSubGenreKeysForMain(mainKey: string | null | undefined): SubGenreKey[] {
+  const normalized = normalizeToMainGenre(mainKey);
+  if (!normalized) return [];
+  return SUB_GENRE_OPTIONS_BY_MAIN[normalized] ?? [];
+}
+
+export function getSubGenreOptions(mainKey: string | null | undefined, locale?: Locale): { value: SubGenreKey; label: string }[] {
+  return getSubGenreKeysForMain(mainKey).map((k) => ({ value: k, label: subGenreLabel(k, locale) }));
+}
+
+export function defaultSubGenreForMain(mainKey: string | null | undefined): SubGenreKey | null {
+  return getSubGenreKeysForMain(mainKey)[0] ?? null;
+}
+
+export function isValidSubGenre(mainKey: string | null | undefined, subKey: string | null | undefined): boolean {
+  if (!subKey) return false;
+  return getSubGenreKeysForMain(mainKey).includes(subKey as SubGenreKey);
 }
 
 export function formatGenreDisplay(

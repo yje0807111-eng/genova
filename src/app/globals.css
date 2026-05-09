@@ -1,7 +1,7 @@
 @import "tailwindcss";
 
 :root {
-  --background: #0a0814;
+  --background: #080614;
   --foreground: #f4f2ff;
   --card: #12101f;
   --card-foreground: #f4f2ff;
@@ -66,7 +66,7 @@ html {
 
 body {
   min-height: 100%;
-  background-color: var(--background);
+  background-color: #080614;
   color: var(--foreground);
   font-family: var(--font-sans);
   font-size: 15px;
@@ -442,4 +442,24 @@ body {
     rgba(127, 119, 221, 0.25) 100%
   );
   box-shadow: 0 0 12px rgba(83, 74, 183, 0.2);
+}
+
+@keyframes fade-in-up {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in-up {
+  animation: fade-in-up 0.6s ease-out;
+}
+
+@keyframes search-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.92; }
 }
