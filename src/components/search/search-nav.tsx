@@ -35,6 +35,7 @@ function SearchSkeleton() {
 }
 
 export function SearchNav() {
+  const { t } = useI18n();
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
