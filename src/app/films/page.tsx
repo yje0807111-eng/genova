@@ -74,7 +74,7 @@ export default async function FilmsPage() {
     .map((row) => {
       const rawVideo = row.video as Record<string, unknown> | null;
       if (!rawVideo) return null;
-      const video = mapVideo(rawVideo);
+      const video = mapVideo(rawVideo as Parameters<typeof mapVideo>[0]);
       return {
         video,
         progressSeconds: row.progressSeconds,
