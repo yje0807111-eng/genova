@@ -1052,7 +1052,6 @@ const en: Messages = {
   "upload.submitCta": "Upload Film →",
   "upload.vimeoUrlOptional": "Video source (Mux)",
   "upload.editSaveCta": "Save changes →",
-  "upload.tagsInputHint": "Add with comma (,) or Enter",
   "upload.recentVideoTags": "Recent video tags",
   "upload.favoriteTags": "Favorite tags",
   "upload.favoriteTagsHint": "Save tags with the ★ button on each tag",

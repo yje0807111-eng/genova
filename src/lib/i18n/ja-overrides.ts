@@ -919,7 +919,6 @@ export const jaOverrides: Record<string, string> = {
   "competition.rules.r8.desc": "ルール違反が確認された場合、受賞は取り消され、該当作品は削除されることがあります。",
   "search.hashtagSearching": "現在ハッシュタグ検索中:",
   "search.clearHashtagSearchAria": "ハッシュタグ検索を解除",
-  "upload.tagsInputHint": "カンマ(,)またはEnterで追加",
   "upload.recentVideoTags": "最近の動画タグ",
   "upload.favoriteTags": "お気に入りタグ",
   "upload.favoriteTagsHint": "タグ上の★ボタンで保存できます",

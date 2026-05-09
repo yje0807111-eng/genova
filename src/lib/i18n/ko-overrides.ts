@@ -1052,7 +1052,6 @@ export const koOverrides: Record<string, string> = {
   "competition.rules.r8.desc": "규칙 위반이 확인된 경우, 수상이 취소되고 해당 출품작은 삭제될 수 있습니다.",
   "search.hashtagSearching": "현재 해시태그 검색 중:",
   "search.clearHashtagSearchAria": "해시태그 검색 해제",
-  "upload.tagsInputHint": "쉼표(,) 또는 Enter로 추가",
   "upload.recentVideoTags": "이전 영상 태그",
   "upload.favoriteTags": "즐겨찾기 태그",
   "upload.favoriteTagsHint": "태그 위에 ★ 버튼으로 저장하세요",
