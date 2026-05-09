@@ -706,7 +706,7 @@ export function FilmsPageClient({
                   <VideoRow
                     title={t("films.top10All", "TOP 10")}
                     videos={[...filteredVideos]
-                      .sort((a, b) => (b.views ?? 0) - (a.views ?? 0))
+                      .sort((a, b) => (b.likeCount ?? 0) - (a.likeCount ?? 0))
                       .slice(0, 10)}
                   />
                 </AnimateIn>
