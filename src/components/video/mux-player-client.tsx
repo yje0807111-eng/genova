@@ -1,8 +1,8 @@
 "use client";
 
-import MuxPlayer from "@mux/mux-player-react";
+import MuxPlayer, { type MuxPlayerRefAttributes } from "@mux/mux-player-react";
 import { useRouter } from "next/navigation";
-import { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { saveVideoProgress } from "@/app/actions/video-progress";
 
 export function MuxPlayerClient({
@@ -51,7 +51,7 @@ export function MuxPlayerClient({
 
   return (
     <MuxPlayer
-      ref={playerRef}
+      ref={playerRef as React.Ref<MuxPlayerRefAttributes>}
       playbackId={playbackId}
       envKey={process.env.NEXT_PUBLIC_MUX_ENV_KEY}
       streamType="on-demand"
