@@ -5,22 +5,22 @@ import { createServerSupabaseClient } from "@/lib/supabase/server";
 
 function parsePrizeToUSD(prizeInfo: string): number {
   if (!prizeInfo) return 0;
-  // 달러
+  // USD
   const usdMatch = prizeInfo.match(/\$([0-9,]+)/);
   if (usdMatch) return parseInt(usdMatch[1].replace(/,/g, ""));
-  // 만원 → USD (1350 기준)
+  // KRW (만원) → USD @ ~1350 KRW/USD
   const wonMatch = prizeInfo.match(/([0-9,]+)만원/);
   if (wonMatch) {
     const krw = parseInt(wonMatch[1].replace(/,/g, "")) * 10000;
     return Math.round(krw / 1350);
   }
-  // 원 단위
+  // KRW (원)
   const krwMatch = prizeInfo.match(/([0-9,]+)원/);
   if (krwMatch) {
     const krw = parseInt(krwMatch[1].replace(/,/g, ""));
     return Math.round(krw / 1350);
   }
-  // ₩ 단위
+  // KRW (₩)
   const wonSymbolMatch = prizeInfo.match(/₩([0-9,]+)/);
   if (wonSymbolMatch) {
     const krw = parseInt(wonSymbolMatch[1].replace(/,/g, ""));
@@ -41,7 +41,7 @@ export default async function CompetitionPage() {
     (c) => !["Open", "접수중", "결선 진행중", "In Review", "Voting", "Upcoming", "예정"].includes(c.status),
   );
 
-  // 총상금 — 종료되지 않은 공모전만 합산, 달러로 통일
+  // Total prize pool: non-ended competitions only, normalized to USD
   const totalPrizeUSD = competitions
     .filter((c) => !["Closed", "종료", "마감"].includes(c.status))
     .reduce((sum, c) => sum + parsePrizeToUSD(c.prize_info), 0);
@@ -52,7 +52,7 @@ export default async function CompetitionPage() {
       ? `$${totalPrizeUSD}+`
       : "TBA";
 
-  // 총 참가자 수
+  // Total participant count (competition uploads)
   const { count: totalParticipants } = supabase
     ? await supabase
       .from("videos")
@@ -61,7 +61,7 @@ export default async function CompetitionPage() {
       .eq("visibility", "public")
     : { count: 0 };
 
-  // 공모전별 참여자 수 (unique uploaded_by)
+  // Per-competition participant counts (unique uploaded_by)
   const participantCountMap: Record<string, number> = {};
   if (supabase) {
     const { data: submittedVideos } = await supabase

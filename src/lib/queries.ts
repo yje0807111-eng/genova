@@ -128,6 +128,41 @@ export async function fetchCurrentCompetition(): Promise<Competition | null> {
   return data ? mapCompetition(data) : null;
 }
 
+export async function fetchActiveCompetitions(limit = 2): Promise<Competition[]> {
+  const supabase = await createServerSupabaseClient();
+  if (!supabase) return [];
+
+  // site_settings의 featured 우선
+  const { data: settings } = await supabase
+    .from("site_settings")
+    .select("value")
+    .eq("key", "home_featured_competition_id")
+    .maybeSingle();
+  const featuredId = settings?.value as string | null;
+
+  const { data } = await supabase
+    .from("competitions")
+    .select("*")
+    .in("status", ["Open", "접수중", "In Review", "Voting"])
+    .order("deadline", { ascending: true })
+    .limit(limit);
+
+  if (!data || data.length === 0) return [];
+
+  const mapped = data.map((row) => mapCompetition(row));
+
+  // featured를 맨 앞으로
+  if (featuredId) {
+    const idx = mapped.findIndex((c) => c.id === featuredId);
+    if (idx > 0) {
+      const [featured] = mapped.splice(idx, 1);
+      mapped.unshift(featured);
+    }
+  }
+
+  return mapped.slice(0, limit);
+}
+
 export async function fetchVideoById(id: string): Promise<Video | null> {
   const supabase = await createServerSupabaseClient();
   if (!supabase) return null;

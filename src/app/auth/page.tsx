@@ -6,7 +6,7 @@ import { AuthForm } from "@/components/auth-form";
 import { cn } from "@/lib/utils/cn";
 
 export default function AuthPage() {
-  const { locale, setLocale } = useI18n();
+  const { locale, setLocale, t } = useI18n();
 
   return (
     <div className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden px-4 py-12">
@@ -20,6 +20,13 @@ export default function AuthPage() {
         }}
       />
 
+      <Link
+        href="/"
+        className="group absolute left-6 top-6 z-10 inline-flex items-center gap-1.5 rounded-full border border-white/[0.08] bg-white/[0.02] px-4 py-2 text-[12px] font-semibold text-white/60 backdrop-blur-md transition hover:border-white/20 hover:bg-white/[0.05] hover:text-white"
+      >
+        {t("auth.browseExplore")}
+        <span className="transition-transform group-hover:translate-x-0.5">→</span>
+      </Link>
       <div className="absolute right-6 top-6 z-10">
         <div className="flex gap-1 rounded-full border border-white/[0.08] bg-white/[0.02] p-1 backdrop-blur-md">
           {(["en", "ko", "ja"] as const).map((lang) => (
@@ -50,15 +57,15 @@ export default function AuthPage() {
         <AuthForm />
 
         <p className="mt-8 text-center text-[11px] text-white/30">
-          By continuing, you agree to Genova&apos;s{" "}
+          {t("auth.agreementPrefix")}
           <Link href="/terms" className="text-white/50 underline transition hover:text-white/70">
-            Terms of Service
-          </Link>{" "}
-          and{" "}
-          <Link href="/privacy" className="text-white/50 underline transition hover:text-white/70">
-            Privacy Policy
+            {t("footer.terms")}
           </Link>
-          .
+          {t("auth.agreementMiddle")}
+          <Link href="/privacy" className="text-white/50 underline transition hover:text-white/70">
+            {t("footer.privacy")}
+          </Link>
+          {t("auth.agreementSuffix")}
         </p>
       </div>
     </div>

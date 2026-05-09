@@ -43,7 +43,7 @@ function filmsHeroDeadlineBadge(deadlineIso: string | null): { dDayLabel: string
   if (Number.isNaN(end.getTime())) return { dDayLabel: null, ended: false };
   const diffDays = Math.round((startOfDayMs(end) - startOfDayMs(new Date())) / 86400000);
   if (diffDays > 0) return { dDayLabel: `D-${diffDays}`, ended: false };
-  if (diffDays === 0) return { dDayLabel: "D-Day", ended: false };
+  if (diffDays === 0) return { dDayLabel: "D-DAY", ended: false };
   return { dDayLabel: null, ended: true };
 }
 
@@ -58,7 +58,7 @@ export type FilmsHeroAwardSlot = {
   rank: FilmsHeroAwardSlotRank;
   /** i18n key for tier label (e.g. 대상 / Grand Prize) */
   labelKey: string;
-  eyebrow: string;
+  eyebrowKey: string;
   Icon: LucideIcon;
   color: string;
   colorDark: string;
@@ -111,7 +111,7 @@ function HeroBanner({
       {
         rank: "grand",
         labelKey: "films.heroTierGrand",
-        eyebrow: "GRAND",
+        eyebrowKey: "competition.detail.prizeEyebrowGrand",
         Icon: Trophy,
         color: "#F5D182",
         colorDark: "#C8963E",
@@ -120,7 +120,7 @@ function HeroBanner({
       {
         rank: "excellence",
         labelKey: "films.heroTierExcellence",
-        eyebrow: "EXCELLENCE",
+        eyebrowKey: "competition.detail.prizeEyebrowExcellence",
         Icon: Award,
         color: "rgba(255,255,255,0.9)",
         colorDark: "rgba(192,192,192,0.6)",
@@ -131,7 +131,7 @@ function HeroBanner({
       {
         rank: "merit",
         labelKey: "films.heroTierMerit",
-        eyebrow: "MERIT",
+        eyebrowKey: "films.slotEyebrowMerit",
         Icon: Medal,
         color: "#CD7F32",
         colorDark: "#A66A3D",
@@ -140,7 +140,7 @@ function HeroBanner({
       {
         rank: "audience",
         labelKey: "films.heroTierAudience",
-        eyebrow: "AUDIENCE",
+        eyebrowKey: "films.slotEyebrowAudience",
         Icon: Star,
         color: "#AFA9EC",
         colorDark: "#7F77DD",
@@ -305,7 +305,7 @@ function HeroBanner({
                   <div className="flex items-start justify-between gap-2">
                     <TierIcon size={20} style={{ color: slot.color }} strokeWidth={1.75} />
                     {!video ? (
-                      <span className="text-[9px] font-mono text-white/30">COMING SOON</span>
+                      <span className="text-[9px] font-mono text-white/30">{t("films.heroComingSoonBadge")}</span>
                     ) : null}
                   </div>
 
@@ -314,7 +314,7 @@ function HeroBanner({
                       className="mb-1 text-[10px] font-black uppercase tracking-[0.22em]"
                       style={{ color: slot.color }}
                     >
-                      {slot.eyebrow}
+                      {t(slot.eyebrowKey)}
                     </p>
                     <p className="text-[18px] font-bold text-white">{t(slot.labelKey)}</p>
 
@@ -764,20 +764,20 @@ export function FilmsPageClient({
                 <div className="mb-1.5 flex items-center gap-1.5">
                   <span className="text-[10px] text-[#7F77DD]">✦</span>
                   <p className="text-[10px] font-black uppercase tracking-[0.22em]" style={{ color: "#7F77DD", opacity: 0.75 }}>
-                    Series
+                    {t("films.seriesSectionTitle")}
                   </p>
                 </div>
                 <h2 className="text-[26px] font-black tracking-tight text-white" style={{ letterSpacing: "-0.02em" }}>
-                  시리즈
+                  {t("films.seriesSectionTitle")}
                 </h2>
               </div>
               <span className="shrink-0 rounded-full border border-white/[0.08] bg-white/[0.04] px-3 py-1 text-[11px] font-bold text-white/60">
-                Coming Soon
+                {t("films.seriesComingSoonTag")}
               </span>
             </div>
             <div className="rounded-2xl border border-white/[0.06] bg-white/[0.02] py-20 text-center">
-              <p className="text-[14px] font-semibold text-white/50">시리즈 콘텐츠 준비 중</p>
-              <p className="mt-1 text-[12px] text-white/30">곧 다양한 시리즈 작품을 만나보실 수 있습니다.</p>
+              <p className="text-[14px] font-semibold text-white/50">{t("films.seriesEmptyTitle")}</p>
+              <p className="mt-1 text-[12px] text-white/30">{t("films.seriesEmptyHint")}</p>
             </div>
           </section>
         </AnimateIn>

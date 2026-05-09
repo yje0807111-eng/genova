@@ -696,7 +696,7 @@ export function GenreSidebar({
               className="mt-1 flex w-full items-center gap-2 rounded-lg px-3 py-2.5 text-xs text-white/25 transition hover:bg-white/5 hover:text-white/60"
             >
               <LogOut className="h-3.5 w-3.5 shrink-0" />
-              <span>Log out</span>
+              <span>{t("profile.logoutTitle")}</span>
             </button>
           ) : (
             <Link
@@ -704,7 +704,7 @@ export function GenreSidebar({
               className="mt-1 flex w-full items-center gap-2 rounded-lg px-3 py-2.5 text-xs text-white/25 transition hover:bg-white/5 hover:text-white/60"
             >
               <LogOut className="h-3.5 w-3.5 shrink-0 rotate-180" />
-              <span>Log in</span>
+              <span>{t("common.signIn")}</span>
             </Link>
           ))}
       </div>
@@ -718,15 +718,15 @@ export function GenreSidebar({
             boxShadow: "0 0 0 1px rgba(127,119,221,0.1), 0 40px 80px rgba(0,0,0,0.6)",
           }}
         >
-          <h2 className="text-lg font-black text-white">Log out?</h2>
-          <p className="mt-1 text-sm text-white/40">Are you sure you want to log out of Genova?</p>
+          <h2 className="text-lg font-black text-white">{t("profile.logoutTitle")}</h2>
+          <p className="mt-1 text-sm text-white/40">{t("profile.logoutConfirm")}</p>
           <div className="mt-5 flex gap-3">
             <button
               type="button"
               onClick={() => setShowLogoutModal(false)}
               className="flex-1 rounded-xl border border-white/[0.08] py-2.5 text-sm font-semibold text-white/50 transition hover:border-white/20 hover:text-white"
             >
-              Cancel
+              {t("common.cancel")}
             </button>
             <button
               type="button"
@@ -737,7 +737,7 @@ export function GenreSidebar({
                 boxShadow: "0 4px 16px rgba(220,38,38,0.3)",
               }}
             >
-              Log out
+              {t("profile.logoutAction")}
             </button>
           </div>
         </div>

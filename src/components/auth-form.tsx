@@ -11,6 +11,31 @@ type SignupStep = "credentials" | "otp";
 
 const emptyDigits = () => ["", "", "", "", "", ""];
 
+/** Map Supabase messages to i18n keys; return null to show the raw message. */
+function mapAuthErrorKey(message: string): string | null {
+  const m = message.trim();
+  const rules: [RegExp, string][] = [
+    [/invalid login credentials/i, "auth.error.invalidCredentials"],
+    [/invalid email|email address is invalid|valid email/i, "auth.error.invalidEmailFormat"],
+    [/email.*not.*confirm/i, "auth.error.emailNotConfirmed"],
+    [/user already registered/i, "auth.error.userAlreadyRegistered"],
+    [/already been registered/i, "auth.error.userAlreadyRegistered"],
+    [/signup.*not allowed/i, "auth.error.signupDisabled"],
+    [/rate limit|too many requests|once every \d+/i, "auth.error.rateLimited"],
+    [/network|fetch failed|failed to fetch/i, "auth.error.network"],
+    [/otp.*expired|token.*expired|expired/i, "auth.error.otpExpired"],
+    [/invalid otp|invalid token|token has expired/i, "auth.error.invalidOtp"],
+    [/email link is invalid/i, "auth.error.invalidEmailLink"],
+  ];
+  for (const [re, key] of rules) {
+    if (re.test(m)) return key;
+  }
+  if (/Supabase environment variables are not configured/i.test(m)) {
+    return "auth.error.serverConfig";
+  }
+  return null;
+}
+
 /**
  * Sign-up flow: verify email ownership via OTP, then attach password after verification.
  */
@@ -67,16 +92,20 @@ export function AuthForm() {
 
     const supabase = getBrowserSupabaseClient();
     if (!supabase) {
-      setError("Supabase environment variables are not configured.");
+      setError(t("auth.error.serverConfig"));
       return;
     }
     const trimmed = email.trim();
     if (!trimmed) {
-      setError("Please enter your email.");
+      setError(t("auth.error.enterEmail"));
+      return;
+    }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmed)) {
+      setError(t("auth.error.invalidEmailFormat"));
       return;
     }
     if (signupPassword.length < 6) {
-      setError("Password must be at least 6 characters.");
+      setError(t("auth.error.passwordMinLength"));
       return;
     }
 
@@ -89,11 +118,12 @@ export function AuthForm() {
         },
       });
       if (otpError) {
-        setError(otpError.message);
+        const key = mapAuthErrorKey(otpError.message);
+        setError(key ? t(key) : otpError.message);
         return;
       }
       setEmail(trimmed);
-      setMessage("Verification code sent to your email.");
+      setMessage(t("auth.message.otpSent").replace("{email}", trimmed));
       setSignupStep("otp");
       setDigits(emptyDigits());
       setResendCooldown(60);
@@ -110,13 +140,13 @@ export function AuthForm() {
 
     const code = otpCode.replace(/\D/g, "");
     if (code.length !== 6) {
-      setError("Please enter the 6-digit verification code.");
+      setError(t("auth.error.enterSixDigitCode"));
       return;
     }
 
     const supabase = getBrowserSupabaseClient();
     if (!supabase) {
-      setError("Supabase environment variables are not configured.");
+      setError(t("auth.error.serverConfig"));
       return;
     }
 
@@ -129,15 +159,21 @@ export function AuthForm() {
         type: "email",
       });
       if (verifyError) {
-        setError(verifyError.message);
+        const key = mapAuthErrorKey(verifyError.message);
+        setError(key ? t(key) : verifyError.message);
         return;
       }
       // OTP 확인 후 비밀번호 설정
       const { error: passwordError } = await supabase.auth.updateUser({
         password: signupPassword,
       });
-      if (passwordError && !passwordError.message.includes("different from the old password")) {
-        setError(passwordError.message);
+      if (
+        passwordError &&
+        !passwordError.message.includes("different from the old password") &&
+        !passwordError.message.includes("이전 비밀번호")
+      ) {
+        const key = mapAuthErrorKey(passwordError.message);
+        setError(key ? t(key) : passwordError.message);
         return;
       }
       router.refresh();
@@ -154,18 +190,25 @@ export function AuthForm() {
 
     const supabase = getBrowserSupabaseClient();
     if (!supabase) {
-      setError("Supabase environment variables are not configured.");
+      setError(t("auth.error.serverConfig"));
+      return;
+    }
+
+    const loginEmail = email.trim();
+    if (loginEmail && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(loginEmail)) {
+      setError(t("auth.error.invalidEmailFormat"));
       return;
     }
 
     setLoading(true);
     try {
       const { error: signInError } = await supabase.auth.signInWithPassword({
-        email: email.trim(),
+        email: loginEmail,
         password,
       });
       if (signInError) {
-        setError(signInError.message);
+        const key = mapAuthErrorKey(signInError.message);
+        setError(key ? t(key) : signInError.message);
         return;
       }
       router.refresh();
@@ -187,7 +230,10 @@ export function AuthForm() {
           redirectTo: `${window.location.origin}/auth/callback`,
         },
       });
-      if (error) setError(error.message);
+      if (error) {
+        const key = mapAuthErrorKey(error.message);
+        setError(key ? t(key) : error.message);
+      }
     } finally {
       setLoading(false);
     }
@@ -455,7 +501,7 @@ export function AuthForm() {
               onClick={() => void sendOtp()}
               className="text-sm font-medium text-[#7F77DD] underline decoration-[#7F77DD]/50 transition hover:decoration-[#7F77DD] disabled:cursor-not-allowed disabled:opacity-50"
             >
-              {resendCooldown > 0 ? `Resend (${resendCooldown}s)` : t("auth.resendCode", "Resend Code")}
+              {resendCooldown > 0 ? t("auth.otpResendSeconds").replace("{n}", String(resendCooldown)) : t("auth.resendCode", "Resend Code")}
             </button>
           </div>
         </form>

@@ -94,21 +94,21 @@ export function SearchPageBody({
         />
         <div className="relative mx-auto max-w-[1600px] px-6 pt-12 pb-10 sm:px-10">
           <p className="text-[10px] font-semibold uppercase tracking-[0.3em] text-white/30">
-            Search
+            {t("search.heroTitleSearch")}
           </p>
           <div className="mt-3 flex items-baseline gap-4 flex-wrap">
             <h1 className="bg-gradient-to-br from-white via-white to-[#AFA9EC] bg-clip-text pb-2 text-[64px] font-black tracking-[-0.04em] leading-[1.1] text-transparent sm:text-[80px]" style={{ animation: "search-pulse 4s ease-in-out infinite" }}>
-              {q || "Discover"}
+              {q || t("search.heroTitleExplore")}
             </h1>
             {!empty && (
               <span className="text-[16px] font-medium text-white/35">
-                {totalResultCount} {totalResultCount === 1 ? "result" : "results"}
+                {t("search.heroResultCount").replace("{n}", String(totalResultCount))}
               </span>
             )}
           </div>
           {empty && (
             <p className="mt-3 text-[14px] text-white/40">
-              Type to search films, creators, and tags.
+              {t("search.heroHint")}
             </p>
           )}
 
@@ -136,12 +136,12 @@ export function SearchPageBody({
             <AnimateIn delay={0.1}>
               <div>
                 <p className="mb-2 text-[10px] font-semibold uppercase tracking-[0.2em] text-[#7F77DD]/70">
-                  ✦ Discover
+                  ✦ {t("search.genreExploreEyebrow")}
                 </p>
                 <h2 className="text-[28px] font-bold tracking-[-0.02em] text-white">
-                  Browse by Genre
+                  {t("search.genreExploreTitle")}
                 </h2>
-                <p className="mt-1 text-[13px] text-white/35">5 curated genres of AI cinema</p>
+                <p className="mt-1 text-[13px] text-white/35">{t("search.genreExploreSub")}</p>
                 <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
                   {([
                     { slug: "film", label: "Film", grad: "from-[#7F77DD]/20 via-[#534AB7]/10 to-transparent" },
@@ -178,7 +178,7 @@ export function SearchPageBody({
                           {label}
                         </p>
                         <span className="mt-2 inline-block text-[11px] font-medium uppercase tracking-wider text-white/30 transition group-hover:text-[#AFA9EC]/70">
-                          Explore →
+                          {t("search.viewMoreArrow")}
                         </span>
                       </div>
                     </Link>

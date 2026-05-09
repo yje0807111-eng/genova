@@ -157,7 +157,10 @@ export function VideoCard({
         <p className="mt-1 text-xs text-white/50">
           {creator}
           {showViews && typeof video.viewCount === "number" ? (
-            <span className="text-white/40"> · 조회 {video.viewCount.toLocaleString()}</span>
+            <span className="text-white/40">
+              {" "}
+              · {video.viewCount.toLocaleString()} {t("video.viewsDot")}
+            </span>
           ) : null}
         </p>
       </div>

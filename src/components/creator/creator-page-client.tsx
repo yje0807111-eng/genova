@@ -193,9 +193,9 @@ export function CreatorPageClient({
             <div className="mt-1 flex items-center gap-2 text-sm text-muted-foreground">
               <span>@{handle || "creator"}</span>
               <span>·</span>
-              <span>{followersCount} {t("profile.followers", "followers")}</span>
+              <span>{t("creator.followersCount").replace("{n}", String(followersCount))}</span>
               <span>·</span>
-              <span>{works.length} {t("profile.videos", "videos")}</span>
+              <span>{t("creator.videosCount").replace("{n}", String(works.length))}</span>
             </div>
             {creator.bio ? <p className="mt-1 whitespace-pre-wrap text-base text-foreground">{creator.bio}</p> : null}
             {toolsLine ? <p className="mt-0.5 text-xs text-muted-foreground/40">{toolsLine}</p> : null}
@@ -393,7 +393,7 @@ export function CreatorPageClient({
                 )}
               >
                 <Trophy className="h-4 w-4" />
-                {t("nav.competition", "Competition")}
+                {t("profile.tabCompetition")}
               </button>
             </div>
             <div className="flex shrink-0 items-center">
@@ -491,7 +491,7 @@ export function CreatorPageClient({
                   <div className="mt-2 px-0.5">
                     <p className="typo-card-title line-clamp-1 text-foreground transition group-hover:text-primary">{video.title}</p>
                     <p className="typo-card-meta mt-0.5 text-muted-foreground">
-                      {views} {t("feed.views", "views")} · {when}
+                      {t("creator.viewsWhen").replace("{views}", views).replace("{when}", when)}
                     </p>
                   </div>
                 </Link>

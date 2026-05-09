@@ -184,6 +184,7 @@ function SelectedVideoUploader({
   status: "idle" | "uploading" | "processing" | "ready";
   duration: number | null;
 }) {
+  const { t } = useI18n();
   const [progress, setProgress] = useState(0);
   const [started, setStarted] = useState(false);
 
@@ -235,7 +236,7 @@ function SelectedVideoUploader({
               style={{ width: `${progress}%`, background: "linear-gradient(90deg, #534AB7, #7B6FE8)" }}
             />
           </div>
-          <p className="text-[11px] text-[#AFA9EC]">Uploading... {progress}%</p>
+          <p className="text-[11px] text-[#AFA9EC]">{t("upload.uploadProgress").replace("{n}", String(progress))}</p>
         </div>
       )}
 
@@ -244,7 +245,7 @@ function SelectedVideoUploader({
           <div className="h-1.5 w-full overflow-hidden rounded-full bg-white/[0.06]">
             <div className="h-full w-full animate-pulse rounded-full" style={{ background: "linear-gradient(90deg, #534AB7, #7B6FE8)" }} />
           </div>
-          <p className="text-[11px] text-amber-400">Processing...</p>
+          <p className="text-[11px] text-amber-400">{t("upload.processingShort")}</p>
         </div>
       )}
 
@@ -857,8 +858,8 @@ export function UploadVideoForm({
               >
                 <path d="M12 16v-8m0 0-3 3m3-3 3 3M4 17h16" strokeLinecap="round" strokeLinejoin="round" />
               </svg>
-              <p className="text-xl font-bold text-white">Drop here</p>
-              <p className="mt-2 text-sm text-white/40">Video → Video Source · Image → Thumbnail</p>
+              <p className="text-xl font-bold text-white">{t("upload.dropHere")}</p>
+              <p className="mt-2 text-sm text-white/40">{t("upload.dropHint")}</p>
             </div>
           </div>
         )}
@@ -968,9 +969,9 @@ export function UploadVideoForm({
             >
               <span className="text-sm text-[#7F77DD]">✦</span>
               <div className="flex-1">
-                <p className="text-sm font-semibold text-white">공모전 출품 모드</p>
+                <p className="text-sm font-semibold text-white">{t("upload.competitionModeTitle")}</p>
                 <p className="mt-0.5 text-xs text-white/60">
-                  이 영상은 선택된 공모전에 출품됩니다. 변경하려면 공모전 페이지로 돌아가세요.
+                  {t("upload.competitionModeHint")}
                 </p>
               </div>
             </div>
@@ -1796,7 +1797,7 @@ export function UploadVideoForm({
                 {/* 런타임 (자동 인식, 읽기 전용) */}
                 {(detectedDurationSeconds > 0 || (muxDuration && muxDuration > 0)) && (
                   <div className="rounded-lg border border-white/10 bg-white/[0.04] p-3 text-sm">
-                    <span className="text-white/40">영상 길이</span>{" "}
+                    <span className="text-white/40">{t("upload.runtimeVideoLength")}</span>{" "}
                     <span className="font-mono font-semibold text-white">
                       {(() => {
                         const seconds = detectedDurationSeconds || Math.round(muxDuration ?? 0);
@@ -1940,9 +1941,9 @@ export function UploadVideoForm({
                     <div className="flex items-center gap-3 rounded-lg border border-[#7F77DD]/30 bg-[#7F77DD]/[0.06] p-4">
                       <span className="text-sm text-[#7F77DD]">✦</span>
                       <div className="flex-1">
-                        <p className="text-sm font-semibold text-white">공모전 출품 모드</p>
+                        <p className="text-sm font-semibold text-white">{t("upload.competitionModeTitle")}</p>
                         <p className="mt-0.5 text-xs text-white/60">
-                          이 영상은 선택된 공모전에 출품됩니다. 변경하려면 공모전 페이지로 돌아가세요.
+                          {t("upload.competitionModeHint")}
                         </p>
                       </div>
                     </div>
@@ -1978,12 +1979,12 @@ export function UploadVideoForm({
                     {isCompetitionLocked ? (
                       <div className="rounded-lg border border-white/10 bg-white/[0.04] p-4">
                         <p className="mb-2 text-[10px] uppercase tracking-[0.2em] text-white/40">
-                          출품 공모전
+                          {t("upload.competitionSelectLabel")}
                         </p>
                         <p className="text-sm font-semibold text-white">
-                          {competitions.find((c) => c.id === competitionId)?.title ?? competitions.find((c) => c.id === competitionIdFromUrl)?.title ?? "공모전"}
+                          {competitions.find((c) => c.id === competitionId)?.title ?? competitions.find((c) => c.id === competitionIdFromUrl)?.title ?? t("nav.competition")}
                         </p>
-                        <p className="mt-1 text-xs text-white/50">공모전 페이지에서 선택된 항목으로 고정됩니다.</p>
+                        <p className="mt-1 text-xs text-white/50">{t("upload.competitionLockedFromPage")}</p>
                       </div>
                     ) : competitions.length > 0 ? (
                       <CustomSelect

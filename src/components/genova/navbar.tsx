@@ -9,6 +9,7 @@ import { useI18n } from "@/components/genova/language-provider";
 import { getBrowserSupabaseClient } from "@/lib/supabase/browser";
 
 function SearchBar() {
+  const { t } = useI18n();
   const router = useRouter();
   const [query, setQuery] = useState("");
   const [focused, setFocused] = useState(false);
@@ -111,7 +112,7 @@ function SearchBar() {
               if (e.key === "Enter" && query.trim()) handleSearch(query);
               if (e.key === "Escape") setFocused(false);
             }}
-            placeholder="Search AI films..."
+            placeholder={t("common.searchAiFilms", "Search AI films...")}
             className="min-w-0 flex-1 border-0 bg-transparent text-sm font-normal tracking-[-0.01em] text-white outline-none ring-0 placeholder:text-white/38 focus:ring-0"
           />
           {query && (
@@ -143,13 +144,13 @@ function SearchBar() {
               <>
         {suggestVideos.length === 0 && suggestProfiles.length === 0 && suggestTags.length === 0 && (
           <div className="px-4 py-6 text-center">
-            <p className="text-[12px] text-white/40">"{query}"에 대한 결과가 없습니다</p>
-            <p className="mt-1 text-[10px] text-white/25">다른 키워드로 검색해보세요</p>
+            <p className="text-[12px] text-white/40">{t("search.noResultsLine", "No results for \"{q}\"").replace("{q}", query)}</p>
+            <p className="mt-1 text-[10px] text-white/25">{t("search.navbarTryOther")}</p>
           </div>
         )}
                 {suggestVideos.length > 0 && (
                   <>
-                    <p className="px-4 pb-1 pt-2 text-[10px] font-bold uppercase tracking-widest text-[#AFA9EC]/70">✦ FILMS</p>
+                    <p className="px-4 pb-1 pt-2 text-[10px] font-bold uppercase tracking-widest text-[#AFA9EC]/70">✦ {t("search.sectionFilms")}</p>
                     {suggestVideos.map((v) => (
                       <button
                         key={v.id}
@@ -173,7 +174,7 @@ function SearchBar() {
                 )}
                 {suggestProfiles.length > 0 && (
                   <>
-                    <p className="px-4 pb-1 pt-2 text-[10px] font-bold uppercase tracking-widest text-[#AFA9EC]/70">✦ CREATORS</p>
+                    <p className="px-4 pb-1 pt-2 text-[10px] font-bold uppercase tracking-widest text-[#AFA9EC]/70">✦ {t("search.sectionCreators")}</p>
                     {suggestProfiles.map((p) => (
                       <button
                         key={p.id}
@@ -197,7 +198,7 @@ function SearchBar() {
                 )}
                 {suggestTags.length > 0 && (
                   <>
-                    <p className="px-4 pb-1 pt-2 text-[10px] font-bold uppercase tracking-widest text-[#AFA9EC]/70">✦ TAGS</p>
+                    <p className="px-4 pb-1 pt-2 text-[10px] font-bold uppercase tracking-widest text-[#AFA9EC]/70">✦ {t("search.sectionTags")}</p>
                     <div className="flex flex-wrap gap-2 px-4 pb-2 pt-1">
                       {suggestTags.map((tag) => (
                         <button
@@ -218,7 +219,7 @@ function SearchBar() {
                     onClick={() => handleSearch(query)}
             className="flex w-full items-center justify-between rounded-lg px-3 py-2 text-[12px] font-semibold text-[#AFA9EC] transition hover:bg-[#7F77DD]/10 hover:text-white"
                   >
-            <span>"<span className="text-white">{query}</span>" 전체 결과 보기</span>
+            <span>{t("search.navbarViewAllFor").replace("{q}", query)}</span>
             <span className="transition-transform group-hover:translate-x-1">→</span>
                   </button>
                 </div>
@@ -226,7 +227,7 @@ function SearchBar() {
             ) : (
               <>
                 <div className="flex items-center justify-between px-4 pb-1 pt-2">
-                  <p className="text-[10px] font-bold uppercase tracking-widest text-white/25">Recent</p>
+                  <p className="text-[10px] font-bold uppercase tracking-widest text-white/25">{t("search.navbarRecent")}</p>
                   <button
                     type="button"
                     onClick={() => {
@@ -235,7 +236,7 @@ function SearchBar() {
                     }}
                     className="text-[10px] text-white/25 transition hover:text-white/50"
                   >
-                    Clear all
+                    {t("notifications.deleteAll")}
                   </button>
                 </div>
                 {recentSearches.map((s) => (
@@ -265,7 +266,7 @@ function SearchBar() {
                 {suggestTags.length > 0 && (
                   <>
                     <div className="mt-1 border-t border-white/[0.06] px-4 pb-1 pt-2">
-                      <p className="text-[10px] font-bold uppercase tracking-widest text-[#AFA9EC]/70">✦ TAGS</p>
+                      <p className="text-[10px] font-bold uppercase tracking-widest text-[#AFA9EC]/70">✦ {t("search.sectionTags")}</p>
                     </div>
                     <div className="flex flex-wrap gap-2 px-4 pb-2 pt-1">
                       {suggestTags.map((tag) => (
@@ -454,13 +455,13 @@ export function Navbar() {
     if (Number.isNaN(d.getTime())) return "";
     const diffMs = Date.now() - d.getTime();
     const mins = Math.floor(diffMs / 60000);
-    if (mins < 1) return "방금";
-    if (mins < 60) return `${mins}분 전`;
+    if (mins < 1) return t("notifications.justNow");
+    if (mins < 60) return t("notifications.timeAgo", "{n} ago").replace("{n}", `${mins}m`);
     const hours = Math.floor(mins / 60);
-    if (hours < 24) return `${hours}시간 전`;
+    if (hours < 24) return t("notifications.timeAgo", "{n} ago").replace("{n}", `${hours}h`);
     const days = Math.floor(hours / 24);
-    if (days < 7) return `${days}일 전`;
-    return d.toLocaleDateString("ko-KR", { month: "numeric", day: "numeric" });
+    if (days < 7) return t("notifications.timeAgo", "{n} ago").replace("{n}", `${days}d`);
+    return d.toLocaleDateString(undefined, { month: "numeric", day: "numeric" });
   };
 
   return (
@@ -522,7 +523,7 @@ export function Navbar() {
                   >
                     <div className="flex items-center justify-between border-b border-white/[0.06] px-4 py-3">
                       <div className="flex items-center gap-2">
-                        <p className="text-[13px] font-bold text-white">알림</p>
+                        <p className="text-[13px] font-bold text-white">{t("notifications.title")}</p>
                         {popupUnreadCount > 0 && (
                           <span
                             className="flex h-5 min-w-[20px] items-center justify-center rounded-full bg-[#7F77DD] px-1.5 text-[10px] font-bold text-white"
@@ -542,7 +543,7 @@ export function Navbar() {
                             }}
                             className="text-[10px] text-white/40 transition hover:text-white/70"
                           >
-                            모두 읽음
+                            {t("notifications.markAllRead")}
                           </button>
                         )}
                         {notifications.length > 0 && (
@@ -558,7 +559,7 @@ export function Navbar() {
                             }}
                             className="text-[10px] text-white/40 transition hover:text-red-400"
                           >
-                            전체 삭제
+                            {t("notifications.deleteAll")}
                           </button>
                         )}
                         <button
@@ -575,7 +576,7 @@ export function Navbar() {
                       {notifications.length === 0 ? (
                         <div className="flex flex-col items-center justify-center py-10 text-center">
                           <Bell className="mb-3 h-8 w-8 text-white/15" />
-                          <p className="text-sm text-white/30">알림이 없습니다</p>
+                          <p className="text-sm text-white/30">{t("notifications.empty")}</p>
                         </div>
                       ) : (
                         notifications.map((n) => {
@@ -668,7 +669,7 @@ export function Navbar() {
                         onClick={() => setShowNotifications(false)}
                         className="block text-center text-[11px] text-white/40 transition hover:text-white/70"
                       >
-                        전체 알림 보기 →
+                        {t("notifications.viewAllNotifications")}
                       </Link>
                     </div>
                   </div>

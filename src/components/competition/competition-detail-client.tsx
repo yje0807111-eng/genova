@@ -174,10 +174,20 @@ export function CompetitionDetailClient({ competition, videos, featuredVideos }:
   const voteEndLabel = new Date(competition.vote_end).toLocaleDateString(dateLocale, { year: "numeric", month: "long", day: "numeric" });
 
   const prizeItems = [
-    { label: "대상", value: competition.prize_grand, icon: "🥇", glowColor: "rgba(255,215,0,0.3)", borderColor: "rgba(255,215,0,0.25)", bgColor: "rgba(255,215,0,0.06)" },
-    { label: "최우수상", value: competition.prize_excellence, icon: "🥈", glowColor: "rgba(192,192,192,0.3)", borderColor: "rgba(192,192,192,0.2)", bgColor: "rgba(192,192,192,0.04)" },
-    { label: "우수상", value: competition.prize_merit, icon: "🥉", glowColor: "rgba(205,127,50,0.3)", borderColor: "rgba(205,127,50,0.2)", bgColor: "rgba(205,127,50,0.04)" },
-    { label: `장려상${(competition.prize_audience_count ?? 1) > 1 ? ` ×${competition.prize_audience_count}` : ""}`, value: competition.prize_audience, icon: "🎖", glowColor: "rgba(127,119,221,0.3)", borderColor: "rgba(127,119,221,0.25)", bgColor: "rgba(83,74,183,0.08)" },
+    { label: t("films.mockAwardGrand"), value: competition.prize_grand, icon: "🥇", glowColor: "rgba(255,215,0,0.3)", borderColor: "rgba(255,215,0,0.25)", bgColor: "rgba(255,215,0,0.06)" },
+    { label: t("films.mockAwardExcellence"), value: competition.prize_excellence, icon: "🥈", glowColor: "rgba(192,192,192,0.3)", borderColor: "rgba(192,192,192,0.2)", bgColor: "rgba(192,192,192,0.04)" },
+    { label: t("films.mockAwardMerit"), value: competition.prize_merit, icon: "🥉", glowColor: "rgba(205,127,50,0.3)", borderColor: "rgba(205,127,50,0.2)", bgColor: "rgba(205,127,50,0.04)" },
+    {
+      label:
+        (competition.prize_audience_count ?? 1) > 1
+          ? t("competition.detail.prizeAudienceTimes").replace("{n}", String(competition.prize_audience_count ?? 1))
+          : t("films.mockAwardAudience"),
+      value: competition.prize_audience,
+      icon: "🎖",
+      glowColor: "rgba(127,119,221,0.3)",
+      borderColor: "rgba(127,119,221,0.25)",
+      bgColor: "rgba(83,74,183,0.08)",
+    },
   ];
 
   return (
@@ -200,7 +210,7 @@ export function CompetitionDetailClient({ competition, videos, featuredVideos }:
         {/* back */}
         <Link href="/competition" className="absolute left-8 top-20 z-20 flex items-center gap-2 rounded-lg border border-white/15 bg-black/30 px-3 py-1.5 text-[12px] text-white/60 backdrop-blur-sm transition hover:border-white/30 hover:text-white">
           <ChevronLeft size={14} />
-          공모전 목록
+          {t("competition.detail.backToAll")}
         </Link>
 
         {/* content */}
@@ -213,7 +223,7 @@ export function CompetitionDetailClient({ competition, videos, featuredVideos }:
               "text-white/35"
             }`}>
               <span className={`${isOpen ? "text-emerald-400/90" : isUpcoming ? "text-sky-300/70" : "text-white/35"}`}>●</span>
-              {isOpen ? "모집 중" : isUpcoming ? "예정" : "종료"}
+              {isOpen ? t("competition.detail.heroStatusRecruiting") : isUpcoming ? t("competition.detail.heroStatusUpcoming") : t("competition.detail.heroStatusClosed")}
             </span>
             {competition.sponsor && (
               <span className="text-[10px] uppercase tracking-[0.2em] text-[#AFA9EC]">
@@ -247,7 +257,7 @@ export function CompetitionDetailClient({ competition, videos, featuredVideos }:
             </div>
             <div className="flex items-center gap-1.5">
               <Calendar size={13} />
-              <span>마감 {deadlineLabel}</span>
+              <span>{t("competition.detail.deadlineOn").replace("{date}", deadlineLabel)}</span>
             </div>
             {d > 0 && isOpen && (
               <div className="flex items-center gap-1.5">
@@ -271,7 +281,7 @@ export function CompetitionDetailClient({ competition, videos, featuredVideos }:
                 onMouseLeave={(e) => { (e.currentTarget as HTMLAnchorElement).style.boxShadow = "none"; }}
               >
                 <Upload size={15} />
-                출품하기
+                {t("competition.detail.submitEntryCta")}
               </Link>
             )}
             <button
@@ -282,7 +292,7 @@ export function CompetitionDetailClient({ competition, videos, featuredVideos }:
               onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.background = "rgba(255,255,255,0.1)"; }}
               onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.background = "rgba(255,255,255,0.05)"; }}
             >
-              출품작 보기 →
+              {t("competition.detail.viewEntriesCta")}
             </button>
           </div>
         </div>
@@ -293,10 +303,10 @@ export function CompetitionDetailClient({ competition, videos, featuredVideos }:
         <div className="mx-auto max-w-[1400px] px-8">
           <div className="flex">
             {[
-              { key: "overview", label: "개요" },
-              { key: "judging", label: "심사 및 시상" },
-              { key: "faq", label: "문의" },
-              { key: "entries", label: `출품작 (${videos.length})` },
+              { key: "overview", label: t("competition.detail.tabOverview") },
+              { key: "judging", label: t("competition.detail.tabJudging") },
+              { key: "faq", label: t("competition.detail.tabSupport") },
+              { key: "entries", label: t("competition.detail.tabEntriesCount").replace("{n}", String(videos.length)) },
             ].map((tab) => (
               <button
                 key={tab.key}
@@ -400,7 +410,7 @@ export function CompetitionDetailClient({ competition, videos, featuredVideos }:
                         WebkitTextFillColor: "transparent",
                         backgroundClip: "text",
                       }}
-                    >Contest Overview</p>
+                    >{t("competition.detail.overviewEyebrow")}</p>
                   </div>
 
                   {/* 제목 */}
@@ -411,7 +421,7 @@ export function CompetitionDetailClient({ competition, videos, featuredVideos }:
                       letterSpacing: "0.01em",
                     }}
                   >
-                    공모전 소개
+                    {t("competition.detail.introTitle")}
                   </h2>
 
                     {/* 본문 */}
@@ -431,7 +441,7 @@ export function CompetitionDetailClient({ competition, videos, featuredVideos }:
                         ))}
                       </div>
                     ) : (
-                      <p className="text-[14px] text-white/25">소개 내용이 없습니다.</p>
+                      <p className="text-[14px] text-white/25">{t("competition.detail.noConcept")}</p>
                     )}
                   </div>
                 </div>
@@ -441,33 +451,33 @@ export function CompetitionDetailClient({ competition, videos, featuredVideos }:
               <div className="relative h-full overflow-hidden rounded-2xl border border-white/10 bg-[#080618]/40 p-5 backdrop-blur-xl" style={{ boxShadow: "0 0 30px rgba(83,74,183,0.08), inset 0 1px 0 rgba(255,255,255,0.05)" }}>
                 <div className="pointer-events-none absolute top-0 left-0 right-0 h-px" style={{ background: "linear-gradient(to right, transparent, rgba(127,119,221,0.5) 30%, rgba(175,169,236,0.3) 60%, transparent)" }} />
                 <div className="pointer-events-none absolute right-0 bottom-0 w-40 h-40 rounded-full" style={{ background: "radial-gradient(circle, rgba(83,74,183,0.1) 0%, transparent 70%)", filter: "blur(40px)" }} />
-                <h2 className="mb-4 text-[16px] font-bold text-white">참가 규칙</h2>
+                <h2 className="mb-4 text-[16px] font-bold text-white">{t("competition.detail.rulesSidebarTitle")}</h2>
                 <div className="divide-y divide-white/[0.05]">
                   {[
                     {
                       icon: <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={1.5}><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" strokeLinecap="round"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" strokeLinecap="round"/></svg>,
-                      label: "참가 자격",
-                      value: getText(competition.eligibility_ko, competition.eligibility_en, competition.eligibility_ja, competition.eligibility ?? "") || "제한 없음",
+                      label: t("competition.detail.ruleFieldEligibility"),
+                      value: getText(competition.eligibility_ko, competition.eligibility_en, competition.eligibility_ja, competition.eligibility ?? "") || t("competition.detail.ruleFallbackUnlimited"),
                     },
                     {
                       icon: <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={1.5}><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4" strokeLinecap="round"/></svg>,
-                      label: "출품 형식",
-                      value: getText(competition.submission_guidelines_ko, competition.submission_guidelines_en, competition.submission_guidelines_ja, competition.submission_guidelines ?? "") || "AI 생성 영상",
+                      label: t("competition.detail.ruleFieldFormat"),
+                      value: getText(competition.submission_guidelines_ko, competition.submission_guidelines_en, competition.submission_guidelines_ja, competition.submission_guidelines ?? "") || t("competition.detail.ruleFallbackAiVideo"),
                     },
                     {
                       icon: <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={1.5}><path d="M9 12h6M9 16h6M9 8h6M5 3h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z"/></svg>,
-                      label: "출품 수",
-                      value: "제한 없음",
+                      label: t("competition.detail.ruleFieldCount"),
+                      value: t("competition.detail.ruleFallbackUnlimited"),
                     },
                     {
                       icon: <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={1.5}><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" strokeLinecap="round"/></svg>,
-                      label: "참가 지역",
-                      value: "전 세계",
+                      label: t("competition.detail.ruleFieldRegion"),
+                      value: t("competition.detail.worldwide"),
                     },
                     {
                       icon: <Star size={16} />,
-                      label: "심사 방법",
-                      value: getText(competition.judging_criteria_ko, competition.judging_criteria_en, competition.judging_criteria_ja, competition.judging_criteria ?? "") || "심사위원 + 시청자 투표",
+                      label: t("competition.detail.ruleFieldJudgingShort"),
+                      value: getText(competition.judging_criteria_ko, competition.judging_criteria_en, competition.judging_criteria_ja, competition.judging_criteria ?? "") || t("competition.detail.ruleFallbackJudging"),
                     },
                   ].map((item) => (
                     <div key={item.label} className="flex gap-2.5 py-2">
@@ -499,7 +509,7 @@ export function CompetitionDetailClient({ competition, videos, featuredVideos }:
               <div className="py-8 border-t border-white/[0.06]">
                 <div className="mb-3 flex items-center gap-2">
                   <span className="text-[10px] text-[#7F77DD]">✦</span>
-                  <h2 className="text-[18px] font-bold text-white">주제</h2>
+                  <h2 className="text-[18px] font-bold text-white">{t("competition.detail.topicRulesTitle")}</h2>
                 </div>
                 <div className="space-y-0 divide-y divide-white/[0.05]">
                   {rules.map((rule, i) => (
@@ -525,11 +535,11 @@ export function CompetitionDetailClient({ competition, videos, featuredVideos }:
               <div className="mb-7 flex items-end justify-between gap-4">
                 <div className="flex items-center gap-3">
                   <span className="text-sm text-[#7F77DD]">✦</span>
-                  <h2 className="text-[22px] font-black tracking-tight text-white">상금 구성</h2>
+                  <h2 className="text-[22px] font-black tracking-tight text-white">{t("competition.detail.prizeBreakdownHeading")}</h2>
                   <span className="h-[2px] w-8 rounded-full bg-gradient-to-r from-[#7F77DD] to-transparent" />
                 </div>
                 <div className="flex items-center gap-3 rounded-xl border border-white/10 bg-white/[0.04] px-4 py-2 backdrop-blur-md">
-                  <span className="text-[10px] font-black uppercase tracking-wider text-white/40">Total</span>
+                  <span className="text-[10px] font-black uppercase tracking-wider text-white/40">{t("competition.detail.prizeTotalWord")}</span>
                   <span className="h-3 w-px bg-white/15" />
                   <span
                     className="text-[20px] font-black tabular-nums leading-none"
@@ -549,8 +559,8 @@ export function CompetitionDetailClient({ competition, videos, featuredVideos }:
                 {[
                   {
                     rank: "01",
-                    eyebrow: "Grand Prize",
-                    label: "대상",
+                    eyebrow: t("competition.detail.prizeEyebrowGrand"),
+                    label: t("films.mockAwardGrand"),
                     value: competition.prize_grand,
                     Icon: Trophy,
                     isHero: true,
@@ -568,8 +578,8 @@ export function CompetitionDetailClient({ competition, videos, featuredVideos }:
                   },
                   {
                     rank: "02",
-                    eyebrow: "Excellence",
-                    label: "최우수상",
+                    eyebrow: t("competition.detail.prizeEyebrowExcellence"),
+                    label: t("films.mockAwardExcellence"),
                     value: competition.prize_excellence,
                     Icon: Award,
                     isHero: false,
@@ -585,8 +595,8 @@ export function CompetitionDetailClient({ competition, videos, featuredVideos }:
                   },
                   {
                     rank: "03",
-                    eyebrow: "Merit",
-                    label: "우수상",
+                    eyebrow: t("competition.detail.prizeEyebrowMerit"),
+                    label: t("films.mockAwardMerit"),
                     value: competition.prize_merit,
                     Icon: Medal,
                     isHero: false,
@@ -602,10 +612,13 @@ export function CompetitionDetailClient({ competition, videos, featuredVideos }:
                   },
                   {
                     rank: "04",
-                    eyebrow: "Honorable",
-                    label: `장려상${(competition.prize_audience_count ?? 1) > 1 ? ` × ${competition.prize_audience_count}` : ""}`,
+                    eyebrow: t("competition.detail.prizeEyebrowAudience"),
+                    label:
+                      (competition.prize_audience_count ?? 1) > 1
+                        ? t("competition.detail.prizeAudienceTimes").replace("{n}", String(competition.prize_audience_count ?? 1))
+                        : t("films.mockAwardAudience"),
                     value: competition.prize_audience,
-                    suffix: (competition.prize_audience_count ?? 1) > 1 ? "/ each" : undefined,
+                    suffix: (competition.prize_audience_count ?? 1) > 1 ? t("competition.detail.prizePerPerson") : undefined,
                     Icon: Star,
                     isHero: false,
                     accent: "#AFA9EC",
@@ -728,12 +741,12 @@ export function CompetitionDetailClient({ competition, videos, featuredVideos }:
               <div className="mb-8 flex items-end justify-between">
                 <div className="flex items-center gap-3">
                   <span className="text-sm text-[#7F77DD]">✦</span>
-                  <h2 className="text-[22px] font-black tracking-tight text-white">주요 일정</h2>
+                  <h2 className="text-[22px] font-black tracking-tight text-white">{t("competition.detail.scheduleHeading")}</h2>
                   <span className="h-[2px] w-8 rounded-full bg-gradient-to-r from-[#7F77DD] to-transparent" />
                 </div>
                 {d > 0 && isOpen && (
                   <div className="text-right">
-                    <p className="text-[10px] font-medium uppercase tracking-[0.2em] text-white/40">CLOSING IN</p>
+                    <p className="text-[10px] font-medium uppercase tracking-[0.2em] text-white/40">{t("competition.detail.untilDeadline")}</p>
                     <p className="text-2xl font-bold leading-none tabular-nums text-[#7F77DD]">
                       D-{d}
                     </p>
@@ -743,11 +756,11 @@ export function CompetitionDetailClient({ competition, videos, featuredVideos }:
 
               {(() => {
                 const stages = [
-                  { label: "접수 시작", date: null, done: true, active: false },
-                  { label: "접수 마감", date: deadlineLabel, done: isClosed, active: isOpen },
-                  { label: "심사", date: null, done: false, active: false },
-                  { label: "투표 마감", date: voteEndLabel, done: false, active: false },
-                  { label: "시상식", date: null, done: false, active: false },
+                  { label: t("competition.detail.stageOpen"), date: null, done: true, active: false },
+                  { label: t("competition.detail.stageClose"), date: deadlineLabel, done: isClosed, active: isOpen },
+                  { label: t("competition.detail.stageReview"), date: null, done: false, active: false },
+                  { label: t("competition.detail.stageVoteEnd"), date: voteEndLabel, done: false, active: false },
+                  { label: t("competition.detail.stageCeremony"), date: null, done: false, active: false },
                 ];
                 const activeIdx = stages.findIndex((s) => s.active);
                 const lastDoneIdx = stages.map((s) => s.done).lastIndexOf(true);
@@ -844,7 +857,7 @@ export function CompetitionDetailClient({ competition, videos, featuredVideos }:
                                   color: isNow ? "#AFA9EC" : isPast ? "rgba(175,169,236,0.85)" : "rgba(255,255,255,0.5)",
                                 }}
                               >
-                                Step {String(idx + 1).padStart(2, "0")}
+                                {t("competition.detail.stageStep").replace("{n}", String(idx + 1).padStart(2, "0"))}
                               </p>
 
                               {/* Label */}
@@ -864,7 +877,7 @@ export function CompetitionDetailClient({ competition, videos, featuredVideos }:
                                   color: stage.date ? (isNow ? "#AFA9EC" : isPast ? "rgba(255,255,255,0.7)" : "rgba(255,255,255,0.5)") : "rgba(255,255,255,0.3)",
                                 }}
                               >
-                                {stage.date ?? "TBD"}
+                                {stage.date ?? t("competition.detail.dateTbd")}
                               </p>
 
                               {/* 진행 중 뱃지 */}
@@ -872,14 +885,14 @@ export function CompetitionDetailClient({ competition, videos, featuredVideos }:
                                 <div className="mt-2.5 flex justify-center">
                                   <span className="inline-flex items-center gap-1 text-[10px] font-black uppercase tracking-wider text-emerald-400">
                                     <span className="text-emerald-400 animate-pulse">●</span>
-                                    Live
+                                    {t("competition.detail.badgeActive")}
                                   </span>
                                 </div>
                               )}
                               {isPast && !isNow && (
                                 <div className="mt-2.5 flex justify-center">
                                   <span className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-black uppercase tracking-wider" style={{ color: "rgba(175,169,236,0.8)" }}>
-                                    ✓ Done
+                                    {t("competition.detail.badgeDone")}
                                   </span>
                                 </div>
                               )}
@@ -908,31 +921,31 @@ export function CompetitionDetailClient({ competition, videos, featuredVideos }:
                 <div className="pointer-events-none absolute top-0 left-0 right-0 h-px" style={{ background: "linear-gradient(to right, transparent, rgba(127,119,221,0.45) 30%, rgba(175,169,236,0.25) 60%, transparent)" }} />
                 <div className="mb-6 flex items-center gap-3">
                   <span className="text-sm text-[#7F77DD]">✦</span>
-                  <h2 className="text-[22px] font-black tracking-tight text-white">심사 방법</h2>
+                  <h2 className="text-[22px] font-black tracking-tight text-white">{t("competition.detail.judgingTitle")}</h2>
                   <span className="h-[2px] w-8 rounded-full bg-gradient-to-r from-[#7F77DD] to-transparent" />
                 </div>
 
                 <div className="grid gap-3">
                   {[
                     {
-                      step: "STEP 01",
-                      title: "1차 심사 — 운영진 사전 검토",
-                      desc: "출품 규정 준수 여부 및 기본 완성도를 검토합니다.",
+                      step: t("competition.detail.judgingStepLabel01"),
+                      title: t("competition.detail.judgingRound1Title"),
+                      desc: t("competition.detail.judgingRound1Desc"),
                     },
                     {
-                      step: "STEP 02",
-                      title: "2차 심사 — 심사위원 평가 (100%)",
+                      step: t("competition.detail.judgingStepLabel02"),
+                      title: t("competition.detail.judgingRound2Title"),
                       desc: getText(
                         competition.judging_criteria_ko,
                         competition.judging_criteria_en,
                         competition.judging_criteria_ja,
                         competition.judging_criteria ?? "",
-                      ) || "심사 기준 정보가 아직 등록되지 않았습니다.",
+                      ) || t("competition.detail.judgingCriteriaMissing"),
                     },
                     {
-                      step: "STEP 03",
-                      title: "최종 발표",
-                      desc: `최종 결과는 투표 마감일(${voteEndLabel}) 이후 공개됩니다.`,
+                      step: t("competition.detail.judgingStepLabel03"),
+                      title: t("competition.detail.judgingFinalTitle"),
+                      desc: t("competition.detail.judgingFinalDesc").replace("{date}", voteEndLabel),
                     },
                   ].map((item) => (
                     <div key={item.step} className="space-y-2 rounded-xl border border-white/10 bg-[#080618]/40 p-5 backdrop-blur-xl">
@@ -947,10 +960,10 @@ export function CompetitionDetailClient({ competition, videos, featuredVideos }:
                   <p className="mb-3 text-[10px] uppercase tracking-[0.2em] text-[#7F77DD]">EVALUATION WEIGHTS</p>
                   <div className="space-y-3">
                     {[
-                      { label: "창의성", weight: 35 },
-                      { label: "기술 완성도", weight: 25 },
-                      { label: "스토리텔링", weight: 25 },
-                      { label: "임팩트", weight: 15 },
+                      { label: t("competition.detail.weightCreativity"), weight: 35 },
+                      { label: t("competition.detail.weightTechnical"), weight: 25 },
+                      { label: t("competition.detail.weightStory"), weight: 25 },
+                      { label: t("competition.detail.weightImpact"), weight: 15 },
                     ].map((metric) => (
                       <div key={metric.label}>
                         <div className="mb-1 flex items-center justify-between text-xs text-white/65">
@@ -972,11 +985,11 @@ export function CompetitionDetailClient({ competition, videos, featuredVideos }:
                 </div>
 
                 <div className="mt-6 rounded-xl border border-white/10 bg-[#080618]/40 p-5 backdrop-blur-xl">
-                  <p className="mb-3 text-[10px] uppercase tracking-[0.2em] text-[#7F77DD]">JUDGING SCHEDULE</p>
+                  <p className="mb-3 text-[10px] uppercase tracking-[0.2em] text-[#7F77DD]">{t("competition.detail.judgingScheduleBlockTitle")}</p>
                   <div className="space-y-2 text-sm text-white/70">
-                    <p>1차 심사 기간 · 접수 시작 ~ {deadlineLabel}</p>
-                    <p>2차 심사 기간 · 마감 이후 ~ {voteEndLabel}</p>
-                    <p>결과 발표 · {voteEndLabel} 이후</p>
+                    <p>{t("competition.detail.judgingScheduleLine1").replace("{date}", deadlineLabel)}</p>
+                    <p>{t("competition.detail.judgingScheduleLine2").replace("{date}", voteEndLabel)}</p>
+                    <p>{t("competition.detail.judgingScheduleLine3").replace("{date}", voteEndLabel)}</p>
                   </div>
                 </div>
               </div>
@@ -987,7 +1000,7 @@ export function CompetitionDetailClient({ competition, videos, featuredVideos }:
                 className="relative overflow-hidden rounded-xl border border-white/10 bg-[#080618]/40 p-5 backdrop-blur-xl lg:sticky lg:top-24"
                 style={{ boxShadow: "0 0 24px rgba(83,74,183,0.08), inset 0 1px 0 rgba(255,255,255,0.05)" }}
               >
-                <h2 className="mb-4 text-[18px] font-bold text-white">상금 구성</h2>
+                <h2 className="mb-4 text-[18px] font-bold text-white">{t("competition.detail.sidebarPrizeHeading")}</h2>
                 <div className="mb-4 rounded-lg border border-white/10 bg-white/[0.04] px-3 py-2">
                   <p className="text-[10px] uppercase tracking-[0.2em] text-white/40">TOTAL</p>
                   <p className="text-2xl font-bold text-[#F5D182]">{prizeDisplay}</p>
@@ -1026,7 +1039,7 @@ export function CompetitionDetailClient({ competition, videos, featuredVideos }:
           <div className="max-w-2xl space-y-5">
             {(competition.announcement_ko || competition.announcement_en || competition.announcement_ja || competition.announcement) && (
               <div className="rounded-2xl p-6" style={{ background: "linear-gradient(135deg, rgba(83,74,183,0.15) 0%, rgba(40,35,100,0.1) 100%)", border: "1px solid rgba(127,119,221,0.2)" }}>
-                <h2 className="mb-3 text-[18px] font-bold text-white">공지사항</h2>
+                <h2 className="mb-3 text-[18px] font-bold text-white">{t("competition.detail.announcementsTitle")}</h2>
                 <p className="text-[13px] leading-relaxed text-white/60 whitespace-pre-wrap">
                   {getText(competition.announcement_ko, competition.announcement_en, competition.announcement_ja, competition.announcement ?? "")}
                 </p>
@@ -1036,16 +1049,16 @@ export function CompetitionDetailClient({ competition, videos, featuredVideos }:
             <div>
               <div className="mb-6 flex items-center gap-3">
                 <span className="text-sm text-[#7F77DD]">✦</span>
-                <h2 className="text-[22px] font-black tracking-tight text-white">자주 묻는 질문</h2>
+                <h2 className="text-[22px] font-black tracking-tight text-white">{t("competition.detail.faqHeading")}</h2>
                 <span className="h-[2px] w-8 rounded-full bg-gradient-to-r from-[#7F77DD] to-transparent" />
               </div>
               <div className="space-y-2">
                 {[
-                  { q: "AI 영상이 아닌 영상도 출품할 수 있나요?", a: "아니요. Genova는 AI로 제작된 영상만 출품 가능합니다. 출품 시 사용한 AI 툴을 반드시 태그해야 합니다." },
-                  { q: "출품 수 제한이 있나요?", a: "제한 없이 여러 작품을 출품할 수 있습니다. 단, 각 영상은 독립적인 작품이어야 합니다." },
-                  { q: "수상 결과는 언제 발표되나요?", a: "투표 마감 후 심사위원 심사를 거쳐 결과가 발표됩니다. 정확한 일정은 공지사항을 확인해주세요." },
-                  { q: "저작권은 누구에게 있나요?", a: "출품작의 저작권은 창작자에게 귀속됩니다. Genova는 플랫폼 내 홍보 목적으로만 작품을 사용합니다." },
-                  { q: "상금은 어떻게 지급되나요?", a: "수상자 확인 후 개별 연락을 통해 지급 방식을 안내드립니다." },
+                  { q: t("competition.detail.faq1Q"), a: t("competition.detail.faq1A") },
+                  { q: t("competition.detail.faq2Q"), a: t("competition.detail.faq2A") },
+                  { q: t("competition.detail.faq3Q"), a: t("competition.detail.faq3A") },
+                  { q: t("competition.detail.faq4Q"), a: t("competition.detail.faq4A") },
+                  { q: t("competition.detail.faq5Q"), a: t("competition.detail.faq5A") },
                 ].map((item, i) => (
                   <div
                     key={i}
@@ -1065,8 +1078,8 @@ export function CompetitionDetailClient({ competition, videos, featuredVideos }:
             </div>
 
             <div className="rounded-xl border border-white/10 bg-[#080618]/40 p-5 text-center backdrop-blur-xl">
-              <p className="mb-1.5 text-sm font-semibold text-white/60">더 궁금한 점이 있으신가요?</p>
-              <p className="mb-4 text-xs text-white/40">공식 이메일로 문의해주세요.</p>
+              <p className="mb-1.5 text-sm font-semibold text-white/60">{t("competition.detail.faqContactLead")}</p>
+              <p className="mb-4 text-xs text-white/40">{t("competition.detail.faqContactHint")}</p>
               <a
                 href="mailto:contact@genova.tv"
                 className="inline-flex items-center gap-2 rounded-lg border border-white/10 bg-white/5 px-5 py-2 text-[13px] font-medium text-white/90 backdrop-blur-md transition-colors hover:bg-white/10"
@@ -1084,7 +1097,7 @@ export function CompetitionDetailClient({ competition, videos, featuredVideos }:
               <div>
                 <div className="mb-6 flex items-center gap-3">
                   <span className="text-[#7F77DD] text-sm">✦</span>
-                  <h2 className="text-[22px] font-black tracking-tight text-white">추천 작품</h2>
+                  <h2 className="text-[22px] font-black tracking-tight text-white">{t("competition.detail.entriesFeaturedTitle")}</h2>
                   <span className="text-[15px] font-normal text-white/30">({featuredVideos.length})</span>
                   <span className="h-[2px] w-8 rounded-full bg-gradient-to-r from-[#7F77DD] to-transparent" />
                 </div>
@@ -1111,7 +1124,7 @@ export function CompetitionDetailClient({ competition, videos, featuredVideos }:
                           }}
                         >
                           <Star size={9} className="fill-[#AFA9EC] text-[#AFA9EC]" />
-                          <span className="text-[9px] font-black uppercase tracking-wider text-[#AFA9EC]">추천</span>
+                          <span className="text-[9px] font-black uppercase tracking-wider text-[#AFA9EC]">{t("competition.detail.badgeFeatured")}</span>
                         </span>
                       </div>
 
@@ -1137,16 +1150,16 @@ export function CompetitionDetailClient({ competition, videos, featuredVideos }:
               <div className="mb-6 flex items-center justify-between">
                 <div className="flex items-center gap-3">
                   <span className="text-sm text-[#7F77DD]">✦</span>
-                  <h2 className="text-[22px] font-black tracking-tight text-white">출품작</h2>
+                  <h2 className="text-[22px] font-black tracking-tight text-white">{t("competition.detail.entriesAllTitle")}</h2>
                   <span className="text-[15px] font-normal text-white/30">({sortedVideos.length})</span>
                   <span className="h-[2px] w-8 rounded-full bg-gradient-to-r from-[#7F77DD] to-transparent" />
                 </div>
                 <div className="flex items-center gap-3">
                   <div className="flex gap-1">
                     {[
-                      { key: "views", label: "인기순" },
-                      { key: "newest", label: "최신순" },
-                      { key: "award", label: "수상작" },
+                      { key: "views", label: t("competition.detail.entriesSortPopular") },
+                      { key: "newest", label: t("competition.detail.entriesSortNewest") },
+                      { key: "award", label: t("competition.detail.entriesSortAward") },
                     ].map((s) => (
                       <button
                         key={s.key}
@@ -1193,12 +1206,12 @@ export function CompetitionDetailClient({ competition, videos, featuredVideos }:
                   <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full border border-white/10 bg-white/5">
                     <Upload size={24} className="text-white/20" />
                   </div>
-                  <h3 className="text-lg font-semibold text-white/50">아직 출품작이 없습니다</h3>
-                  <p className="mt-2 text-sm text-white/30">첫 번째 출품자가 되어보세요!</p>
+                  <h3 className="text-lg font-semibold text-white/50">{t("competition.detail.entriesEmptyTitle")}</h3>
+                  <p className="mt-2 text-sm text-white/30">{t("competition.detail.entriesEmptyHint")}</p>
                   {isOpen && (
                     <Link href="/upload" className="mt-6 flex items-center gap-2 rounded-xl px-6 py-2.5 text-sm font-bold text-white transition hover:scale-[1.02]" style={{ background: "linear-gradient(135deg, #534AB7 0%, #7B6FE4 100%)" }}>
                       <Upload size={14} />
-                      지금 출품하기
+                      {t("competition.detail.entriesEmptyCta")}
                     </Link>
                   )}
                 </div>
@@ -1250,7 +1263,14 @@ export function CompetitionDetailClient({ competition, videos, featuredVideos }:
                       </div>
                       <div className="min-w-0 flex-1">
                         <h3 className="line-clamp-1 text-[14px] font-semibold text-white">{video.title}</h3>
-                        <p className="text-[12px] text-white/35">{video.view_count ? `${video.view_count >= 1000 ? (video.view_count / 1000).toFixed(1) + "K" : video.view_count} 조회` : "조회수 없음"}</p>
+                        <p className="text-[12px] text-white/35">
+                          {video.view_count
+                            ? t("competition.detail.listViews").replace(
+                                "{n}",
+                                video.view_count >= 1000 ? `${(video.view_count / 1000).toFixed(1)}K` : String(video.view_count),
+                              )
+                            : t("competition.detail.listNoViews")}
+                        </p>
                       </div>
                       {video.award && (
                         <span className="flex items-center gap-1 rounded-full border border-yellow-500/30 bg-yellow-500/10 px-3 py-1 text-[11px] font-bold text-yellow-400">

@@ -15,7 +15,8 @@ import { SiteFooter } from "@/components/site-shell";
 function LayoutChrome({ children }: { children: ReactNode }) {
   const { t } = useI18n();
   const pathname = usePathname();
-  const isBareAuthPage = pathname === "/auth" || pathname === "/login";
+  const isBareShellPage =
+    pathname === "/auth" || pathname === "/login" || pathname === "/landing";
   const { selectedGenre, setSelectedGenre } = useGenreFilter();
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [chatOpen, setChatOpen] = useState(false);
@@ -42,7 +43,7 @@ function LayoutChrome({ children }: { children: ReactNode }) {
     };
   }, []);
 
-  if (isBareAuthPage) {
+  if (isBareShellPage) {
     return (
       <>
         <ClientDocumentMeta />

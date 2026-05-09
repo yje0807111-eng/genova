@@ -60,6 +60,7 @@ type CompetitionRow = {
   prize_info_ja?: string | null;
   sponsor: string;
   is_featured?: boolean | null;
+  thumbnail_url?: string | null;
 };
 
 export function mapCreator(row: CreatorRow): Creator {
@@ -139,5 +140,6 @@ export function mapCompetition(row: CompetitionRow): Competition {
     prizeInfoJa: row.prize_info_ja ?? null,
     sponsor: row.sponsor,
     isFeatured: Boolean(row.is_featured),
+    thumbnailUrl: row.thumbnail_url ?? null,
   };
 }

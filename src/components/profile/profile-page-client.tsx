@@ -94,8 +94,9 @@ function SocialLinks({
   tiktokUrl: string | null;
   vimeoUrl: string | null;
 }) {
+  const { t } = useI18n();
   const links = [
-    { href: websiteUrl, label: "Website", icon: <Globe className="h-4 w-4" /> },
+    { href: websiteUrl, label: t("profile.socialWebsite"), icon: <Globe className="h-4 w-4" /> },
     { href: twitterUrl, label: "X", icon: <X className="h-4 w-4" /> },
     { href: instagramUrl, label: "Instagram", icon: <Instagram className="h-4 w-4" /> },
     { href: youtubeUrl, label: "YouTube", icon: <Youtube className="h-4 w-4" /> },
@@ -451,13 +452,13 @@ export function GenovaProfileClient({
   const getCount = (type: ProfileAwardBadge["awardType"], tier: ProfileAwardBadge["awardTier"]) =>
     awardBadges.filter((a) => a.awardType === type && a.awardTier === tier).length;
   const achievementItems = [
-    { id: "weekly-gold", awardType: "weekly" as const, awardTier: "gold" as const, count: getCount("weekly", "gold"), tooltip: "Genre Award · 1st" },
-    { id: "weekly-silver", awardType: "weekly" as const, awardTier: "silver" as const, count: getCount("weekly", "silver"), tooltip: "Genre Award · 2nd" },
-    { id: "weekly-bronze", awardType: "weekly" as const, awardTier: "bronze" as const, count: getCount("weekly", "bronze"), tooltip: "Genre Award · 3rd" },
-    { id: "competition-1", awardType: "competition" as const, awardTier: "1" as const, count: getCount("competition", "1"), tooltip: "Competition · Grand Prize" },
-    { id: "competition-2", awardType: "competition" as const, awardTier: "2" as const, count: getCount("competition", "2"), tooltip: "Competition · Runner-up" },
-    { id: "competition-3", awardType: "competition" as const, awardTier: "3" as const, count: getCount("competition", "3"), tooltip: "Competition · 3rd Place" },
-    { id: "competition-4-10", awardType: "competition" as const, awardTier: "4-10" as const, count: getCount("competition", "4-10"), tooltip: "Competition · Top 10" },
+    { id: "weekly-gold", awardType: "weekly" as const, awardTier: "gold" as const, count: getCount("weekly", "gold"), tooltip: t("profile.tooltipGenreFirst") },
+    { id: "weekly-silver", awardType: "weekly" as const, awardTier: "silver" as const, count: getCount("weekly", "silver"), tooltip: t("profile.tooltipGenreSecond") },
+    { id: "weekly-bronze", awardType: "weekly" as const, awardTier: "bronze" as const, count: getCount("weekly", "bronze"), tooltip: t("profile.tooltipGenreThird") },
+    { id: "competition-1", awardType: "competition" as const, awardTier: "1" as const, count: getCount("competition", "1"), tooltip: t("profile.tooltipCompetitionGrandPrize") },
+    { id: "competition-2", awardType: "competition" as const, awardTier: "2" as const, count: getCount("competition", "2"), tooltip: t("profile.tooltipCompetitionRunnerUp") },
+    { id: "competition-3", awardType: "competition" as const, awardTier: "3" as const, count: getCount("competition", "3"), tooltip: t("profile.tooltipCompetitionThird") },
+    { id: "competition-4-10", awardType: "competition" as const, awardTier: "4-10" as const, count: getCount("competition", "4-10"), tooltip: t("profile.tooltipCompetitionTop10") },
   ].filter((item) => item.count > 0);
   const sortedAwards = useMemo(() => {
     const order: Record<string, number> = {
@@ -686,7 +687,7 @@ export function GenovaProfileClient({
                 <div className="mt-6 space-y-5 border-t border-white/[0.06] pt-6">
                   {headerToolsLine ? (
                     <div>
-                      <p className="mb-1.5 text-[10px] font-medium uppercase tracking-widest text-white/40">AI Tools</p>
+                      <p className="mb-1.5 text-[10px] font-medium uppercase tracking-widest text-white/40">{t("profile.aiToolsSectionLabel")}</p>
                       <div className="flex flex-wrap gap-1.5">
                         {headerToolsLine.split(" · ").map((tool) => (
                           <span
@@ -728,7 +729,7 @@ export function GenovaProfileClient({
                   <p className="text-xs uppercase tracking-wider text-white/50">
                     {t("profile.achievements", "Achievements")}
                   </p>
-                  <span className="text-xs text-white/40">{visibleAwards.length} earned</span>
+                  <span className="text-xs text-white/40">{t("profile.awardsEarnedCount").replace("{n}", String(visibleAwards.length))}</span>
                 </div>
                 <div className="grid grid-cols-4 gap-3">
                   {visibleAwards.map((item) => (
@@ -815,9 +816,9 @@ export function GenovaProfileClient({
                     }}
                     className="appearance-none rounded-lg border border-white/[0.08] bg-white/[0.02] px-3 py-2 pr-9 text-sm text-white/80 outline-none transition hover:border-white/15 focus:border-[#7F77DD]/40"
                   >
-                    <option value="Newest">Newest</option>
-                    <option value="Oldest">Oldest</option>
-                    <option value="Most Viewed">Most viewed</option>
+                    <option value="Newest">{t("profile.sortNewest")}</option>
+                    <option value="Oldest">{t("profile.sortOldest")}</option>
+                    <option value="Most Viewed">{t("profile.sortMostViewed")}</option>
                   </select>
                   <ChevronDown className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-white/40" />
                 </div>
@@ -933,7 +934,7 @@ export function GenovaProfileClient({
                     }}
                     className="rounded-md bg-primary px-3 py-1 text-xs font-medium text-white transition hover:bg-primary/90"
                   >
-                    {bulkSaving ? t("settings.saving", "Saving…") : selectedVideoIds.length > 0 ? `${t("profile.apply", "Apply")} (${selectedVideoIds.length})` : "OK"}
+                    {bulkSaving ? t("settings.saving", "Saving…") : selectedVideoIds.length > 0 ? `${t("profile.apply", "Apply")} (${selectedVideoIds.length})` : t("profile.bulkConfirm")}
                   </button>
                   <button
                     type="button"
