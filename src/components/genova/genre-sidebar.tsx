@@ -289,7 +289,7 @@ export function GenreSidebar({
         )}
       >
         <img
-          src="/genova-logo.png"
+          src="/genova-play1.png"
           alt="Genova"
           className={cn(
             "shrink-0 object-contain transition-all duration-300 [filter:drop-shadow(0_0_12px_rgba(127,119,221,0.35))] group-hover:[filter:drop-shadow(0_0_18px_rgba(127,119,221,0.52))]",

@@ -85,7 +85,7 @@ export function SiteHeader() {
       <div className="mx-auto grid h-14 w-full grid-cols-[1fr_auto_1fr] items-center gap-4 px-6">
         <div className="flex min-w-0 items-center gap-5">
         <Link href="/" className="flex min-w-0 items-center gap-3 transition hover:brightness-110">
-          <Image src="/genova-logo.png" alt="Genova symbol" width={28} height={28} className="h-7 w-7 shrink-0" />
+          <Image src="/genova-play1.png" alt="Genova symbol" width={28} height={28} className="h-7 w-7 shrink-0" />
           <span className="flex min-w-0 items-baseline gap-1.5 text-[18px] font-bold tracking-wide text-white">
             <span>
               Genova
