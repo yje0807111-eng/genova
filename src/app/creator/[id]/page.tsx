@@ -76,6 +76,18 @@ export default async function CreatorPage({
         followingUsers={followingUsers}
         activityVideos={worksWithEng.slice(0, 5)}
         awardBadges={awardBadges}
+        mainGenre={null}
+        country={null}
+        availableForCollab={false}
+        tagline={null}
+        pronouns={null}
+        websiteUrl={null}
+        twitterUrl={null}
+        instagramUrl={null}
+        youtubeUrl={null}
+        tiktokUrl={null}
+        vimeoUrl={null}
+        competitionVideos={[]}
       />
     </div>
   );
