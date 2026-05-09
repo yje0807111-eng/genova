@@ -103,7 +103,9 @@ export function NotificationsList({ items: initialItems }: { items: AppNotificat
       {/* 헤더 */}
       <div className="mb-5 flex items-center justify-between border-b border-white/[0.06] pb-4">
         <div>
-          <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-[#7F77DD]/60">Inbox</p>
+          <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-[#7F77DD]/60">
+            {t("notifications.inboxEyebrow")}
+          </p>
           <h1 className="mt-0.5 text-xl font-black tracking-tight text-white">
             {t("notifications.title", "Notifications")}
             {unreadCount > 0 && (
@@ -172,14 +174,14 @@ export function NotificationsList({ items: initialItems }: { items: AppNotificat
           </div>
           <p className="text-base font-bold text-white/50">
             {filter === "unread"
-              ? "읽지 않은 알림이 없습니다"
+              ? t("notifications.emptyUnreadList")
               : filter === "read"
                 ? t("notifications.emptyRead", "No read notifications")
                 : t("notifications.empty", "No notifications yet.")}
           </p>
           <p className="mt-1 text-sm text-white/25">
             {filter === "unread"
-              ? "모두 확인하셨습니다 ✓"
+              ? t("notifications.unreadAllCaughtUp")
               : t("notifications.emptyHint", "Likes, comments, and follows will appear here.")}
           </p>
         </div>

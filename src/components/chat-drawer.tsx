@@ -40,8 +40,12 @@ function startOfDayMs(d: Date) {
   return new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();
 }
 
-/** Conversation list timestamps: 방금 / N분 전 / clock today / 어제 / weekday / date */
-function formatChatRelativeTime(iso: string, locale: string): string {
+/** Conversation list timestamps — labels via i18n; clock/weekday via Intl */
+function formatChatRelativeTime(
+  iso: string,
+  locale: string,
+  t: (key: string, fallback?: string) => string,
+): string {
   const d = new Date(iso);
   if (Number.isNaN(d.getTime())) return "";
   const now = new Date();
@@ -53,14 +57,10 @@ function formatChatRelativeTime(iso: string, locale: string): string {
   const dayDiff = Math.round((sodNow - sodMsg) / 86400000);
 
   if (minutes < 1) {
-    if (locale === "ko") return "방금";
-    if (locale === "ja") return "たった今";
-    return "Just now";
+    return t("chat.timeJustNow");
   }
   if (minutes < 60) {
-    if (locale === "ko") return `${minutes}분 전`;
-    if (locale === "ja") return `${minutes}分前`;
-    return `${minutes}m ago`;
+    return t("chat.timeMinutesAgo").replace("{n}", String(minutes));
   }
 
   if (dayDiff === 0) {
@@ -72,9 +72,7 @@ function formatChatRelativeTime(iso: string, locale: string): string {
   }
 
   if (dayDiff === 1) {
-    if (locale === "ko") return "어제";
-    if (locale === "ja") return "昨日";
-    return "Yesterday";
+    return t("chat.yesterday");
   }
 
   if (dayDiff > 1 && dayDiff < 7) {
@@ -621,8 +619,9 @@ export function ChatDrawer({
         (payload) => {
           const m = payload.new as { id: string; is_deleted: boolean; content: string };
           if (m.is_deleted) {
+            const deletedText = t("chat.deletedMessageDbContent");
             setMessages((prev) =>
-              prev.map((msg) => (msg.id === m.id ? { ...msg, isDeleted: true, content: "삭제된 메시지입니다." } : msg))
+              prev.map((msg) => (msg.id === m.id ? { ...msg, isDeleted: true, content: deletedText } : msg))
             );
           }
         },
@@ -632,7 +631,7 @@ export function ChatDrawer({
     return () => {
       void supabase.removeChannel(channel);
     };
-  }, [activeTarget, currentUserId]);
+  }, [activeTarget, currentUserId, t]);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -657,13 +656,14 @@ export function ChatDrawer({
   const deleteMessage = async (messageId: string) => {
     const supabase = getBrowserSupabaseClient();
     if (!supabase) return;
+    const deletedText = t("chat.deletedMessageDbContent");
     await supabase
       .from("messages")
-      .update({ is_deleted: true, content: "삭제된 메시지입니다." })
+      .update({ is_deleted: true, content: deletedText })
       .eq("id", messageId)
       .eq("sender_id", currentUserId ?? "");
     setMessages((prev) =>
-      prev.map((m) => (m.id === messageId ? { ...m, isDeleted: true, content: "삭제된 메시지입니다." } : m))
+      prev.map((m) => (m.id === messageId ? { ...m, isDeleted: true, content: deletedText } : m))
     );
   };
 
@@ -808,9 +808,9 @@ export function ChatDrawer({
                     <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z" strokeLinecap="round" strokeLinejoin="round" />
                   </svg>
                 </div>
-                <p className="text-[13px] font-semibold text-white/60">대화를 시작해보세요</p>
+                <p className="text-[13px] font-semibold text-white/60">{t("chat.emptyStateTitle")}</p>
                 <p className="mt-1 text-[11px] leading-relaxed text-white/30">
-                  {activeTarget.displayName}님에게 첫 메시지를 보내보세요
+                  {t("chat.emptyStateSubtitle").replace("{name}", activeTarget.displayName)}
                 </p>
               </div>
             )}
@@ -879,7 +879,7 @@ export function ChatDrawer({
                         }}
                       >
                         {m.isDeleted ? (
-                          <span className="italic">삭제된 메시지</span>
+                          <span className="italic">{t("chat.messageDeletedShort")}</span>
                         ) : (
                           <>
                             {m.sharedVideoId && sharedVideos[m.sharedVideoId] && (
@@ -924,7 +924,7 @@ export function ChatDrawer({
                               setReplyTarget({
                                 id: m.id,
                                 content: m.content,
-                                senderName: isMine ? "나" : activeTarget.displayName,
+                                senderName: isMine ? t("chat.selfLabel") : activeTarget.displayName,
                               })
                             }
                             className="flex h-6 w-6 items-center justify-center rounded-full bg-white/[0.08] text-[10px] transition hover:bg-white/[0.15]"
@@ -936,7 +936,7 @@ export function ChatDrawer({
                               type="button"
                               onClick={() => setDeleteTargetId(m.id)}
                               className="flex h-6 w-6 items-center justify-center rounded-full bg-white/[0.08] text-[11px] transition hover:bg-red-500/20 hover:text-red-400"
-                              title="삭제"
+                              title={t("chat.deleteTooltip")}
                             >
                               🗑
                             </button>
@@ -978,7 +978,7 @@ export function ChatDrawer({
                 <div className="h-8 w-[2px] shrink-0 rounded-full bg-[#7F77DD]/60" />
                 <div className="min-w-0 flex-1">
                   <p className="text-[10px] font-semibold uppercase tracking-wider text-[#7F77DD]">
-                    {replyTarget.senderName}에게 답장
+                    {t("chat.replyToLabel").replace("{name}", replyTarget.senderName)}
                   </p>
                   <p className="mt-0.5 truncate text-[11px] text-white/50">{replyTarget.content}</p>
                 </div>
@@ -998,14 +998,14 @@ export function ChatDrawer({
               <button
                 type="button"
                 className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg text-white/40 transition hover:bg-white/[0.06] hover:text-white/70"
-                aria-label="첨부"
+                aria-label={t("chat.attachAria")}
               >
                 <Paperclip className="h-4 w-4" />
               </button>
               <button
                 type="button"
                 className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg text-white/40 transition hover:bg-white/[0.06] hover:text-white/70"
-                aria-label="이모지"
+                aria-label={t("chat.emojiAria")}
               >
                 <Smile className="h-4 w-4" />
               </button>
@@ -1055,17 +1055,16 @@ export function ChatDrawer({
                     <path d="M9 6V4h6v2" />
                   </svg>
                 </div>
-                <h2 className="text-center text-sm font-black text-white">메시지 삭제</h2>
-                <p className="mt-1 text-center text-xs text-white/40">
-                  이 메시지를 삭제하시겠습니까?<br />상대방 화면에서도 삭제됩니다.
-                </p>
+                <h2 className="text-center text-sm font-black text-white">{t("chat.deleteModalTitle")}</h2>
+                <p className="mt-1 text-center text-xs text-white/40">{t("chat.deleteModalLead")}</p>
+                <p className="mt-1 text-center text-xs text-white/40">{t("chat.deleteModalNote")}</p>
                 <div className="mt-4 flex gap-2">
                   <button
                     type="button"
                     onClick={() => setDeleteTargetId(null)}
                     className="flex-1 rounded-xl border border-white/[0.08] py-2 text-xs font-semibold text-white/50 transition hover:border-white/20 hover:text-white"
                   >
-                    취소
+                    {t("common.cancel")}
                   </button>
                   <button
                     type="button"
@@ -1081,7 +1080,7 @@ export function ChatDrawer({
                       boxShadow: "0 4px 16px rgba(220,38,38,0.3)",
                     }}
                   >
-                    삭제
+                    {t("profile.delete")}
                   </button>
                 </div>
               </div>
@@ -1165,7 +1164,7 @@ export function ChatDrawer({
           {activeTab === "messages" ? (
             <div className="sidebar-scroll flex-1 overflow-y-auto pb-4">
               {convsLoading ? (
-                <p className="py-8 text-center text-xs text-white/30">Loading...</p>
+                <p className="py-8 text-center text-xs text-white/30">{t("chat.loading")}</p>
               ) : conversations.length === 0 ? (
                 <div className="flex flex-col items-center justify-center px-5 py-16 text-center">
                   <div
@@ -1176,8 +1175,8 @@ export function ChatDrawer({
                       <path d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" strokeLinecap="round" strokeLinejoin="round" />
                     </svg>
                   </div>
-                  <p className="text-sm font-bold text-white/50">No messages yet</p>
-                  <p className="mt-1 text-xs text-white/25">Messages from creators will appear here.</p>
+                  <p className="text-sm font-bold text-white/50">{t("chat.conversationsEmptyTitle")}</p>
+                  <p className="mt-1 text-xs text-white/25">{t("chat.conversationsEmptyHint")}</p>
                 </div>
               ) : (
                 <div>
@@ -1239,7 +1238,7 @@ export function ChatDrawer({
                                   conv.unreadCount > 0 ? "font-semibold text-[#AFA9EC]" : "text-white/35",
                                 )}
                               >
-                                {conv.lastTime ? formatChatRelativeTime(conv.lastTime, locale) : ""}
+                                {conv.lastTime ? formatChatRelativeTime(conv.lastTime, locale, t) : ""}
                               </span>
                             </div>
                             <p
@@ -1264,7 +1263,7 @@ export function ChatDrawer({
                               ? "bg-[#7F77DD]/15 text-[#AFA9EC] opacity-100"
                               : "text-white/30 opacity-0 hover:bg-white/[0.06] hover:text-white/70 group-hover:opacity-100",
                           )}
-                          aria-label="고정"
+                          aria-label={t("chat.pinAria")}
                         >
                           <Pin
                             className={cn(

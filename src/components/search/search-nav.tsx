@@ -10,6 +10,7 @@ import { EXPLORE_GENRE_KEYS } from "@/lib/search-ui";
 import type { SearchGenreMatch, SearchProfile } from "@/lib/queries/search-queries";
 import type { Video } from "@/lib/types";
 import { HighlightText } from "@/components/ui/highlight-text";
+import { useI18n } from "@/components/genova/language-provider";
 
 type SuggestResponse = {
   videos: Video[];
@@ -237,7 +238,7 @@ export function SearchNav() {
                         closeSearch();
                       }
                     }}
-                    placeholder="Title, tags, creators, genre..."
+                    placeholder={t("search.overlayPlaceholder")}
                     className="w-full rounded-2xl border border-white/[0.12] bg-[#0d0b20] py-5 pl-6 pr-28 text-2xl text-white outline-none transition placeholder:text-white/20 focus:border-[#7F77DD]/60 focus:ring-2 focus:ring-[#534AB7]/30"
                   />
                   <button

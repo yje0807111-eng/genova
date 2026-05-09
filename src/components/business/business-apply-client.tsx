@@ -5,6 +5,7 @@ import { useState } from "react";
 import { ArrowLeft, CheckCircle2, Sparkles } from "lucide-react";
 import { AnimateIn } from "@/components/animate-in";
 import { submitBusinessInquiryAction } from "@/app/actions/business";
+import { useI18n } from "@/components/genova/language-provider";
 
 const COUNTRY_CODES = [
   { code: "+1", country: "US", label: "🇺🇸 +1" },
@@ -17,15 +18,16 @@ const COUNTRY_CODES = [
   { code: "+81", country: "JP", label: "🇯🇵 +81" },
 ];
 
-const BUDGET_OPTIONS = [
-  { value: "under_1m", label: "100만원 이하" },
-  { value: "1m_5m", label: "100 - 500만원" },
-  { value: "5m_10m", label: "500 - 1,000만원" },
-  { value: "over_10m", label: "1,000만원 이상" },
-  { value: "tbd", label: "협의 후 결정" },
-];
+const BUDGET_OPTION_DEFS = [
+  { value: "under_1m", tKey: "business.budgetUnder1m" },
+  { value: "1m_5m", tKey: "business.budget1m5m" },
+  { value: "5m_10m", tKey: "business.budget5m10m" },
+  { value: "over_10m", tKey: "business.budgetOver10m" },
+  { value: "tbd", tKey: "business.budgetTbd" },
+] as const;
 
 export function BusinessApplyClient() {
+  const { t } = useI18n();
   const [type, setType] = useState<"individual" | "business">("business");
   const [contactName, setContactName] = useState("");
   const [companyName, setCompanyName] = useState("");
@@ -202,7 +204,7 @@ export function BusinessApplyClient() {
                     type="text"
                     value={contactName}
                     onChange={(e) => setContactName(e.target.value)}
-                    placeholder="홍길동"
+                    placeholder={t("business.placeholderContactName")}
                     className="w-full rounded-lg border border-white/[0.08] bg-white/[0.02] px-3 py-2.5 text-[13px] text-white outline-none transition placeholder:text-white/30 focus:border-[#7F77DD]/50"
                   />
                 </Field>
@@ -212,7 +214,7 @@ export function BusinessApplyClient() {
                       type="text"
                       value={companyName}
                       onChange={(e) => setCompanyName(e.target.value)}
-                      placeholder="(주)제노바"
+                      placeholder={t("business.placeholderCompany")}
                       className="w-full rounded-lg border border-white/[0.08] bg-white/[0.02] px-3 py-2.5 text-[13px] text-white outline-none transition placeholder:text-white/30 focus:border-[#7F77DD]/50"
                     />
                   </Field>
@@ -246,7 +248,7 @@ export function BusinessApplyClient() {
                       type="tel"
                       value={phoneNumber}
                       onChange={(e) => setPhoneNumber(e.target.value)}
-                      placeholder="555 123 4567"
+                      placeholder={t("business.placeholderPhoneSample")}
                       className="min-w-0 flex-1 rounded-lg border border-white/[0.08] bg-white/[0.02] px-3 py-2.5 text-[13px] text-white outline-none transition placeholder:text-white/30 focus:border-[#7F77DD]/50"
                     />
                   </div>
@@ -258,7 +260,7 @@ export function BusinessApplyClient() {
                 <textarea
                   value={productDescription}
                   onChange={(e) => setProductDescription(e.target.value)}
-                  placeholder="공모전을 통해 홍보하고 싶은 제품이나 서비스를 간단히 소개해주세요."
+                  placeholder={t("business.placeholderProduct")}
                   rows={3}
                   className="w-full resize-none rounded-lg border border-white/[0.08] bg-white/[0.02] px-3 py-2.5 text-[13px] text-white outline-none transition placeholder:text-white/30 focus:border-[#7F77DD]/50"
                 />
@@ -268,7 +270,7 @@ export function BusinessApplyClient() {
                 <textarea
                   value={competitionConcept}
                   onChange={(e) => setCompetitionConcept(e.target.value)}
-                  placeholder="어떤 방향의 영상을 받고 싶으신가요? (예: 제품 광고, 브랜드 스토리, 기업 PR 등)"
+                  placeholder={t("business.placeholderConcept")}
                   rows={3}
                   className="w-full resize-none rounded-lg border border-white/[0.08] bg-white/[0.02] px-3 py-2.5 text-[13px] text-white outline-none transition placeholder:text-white/30 focus:border-[#7F77DD]/50"
                 />
@@ -277,7 +279,7 @@ export function BusinessApplyClient() {
               {/* Budget */}
               <Field label="예상 예산">
                 <div className="grid grid-cols-2 gap-2 md:grid-cols-3">
-                  {BUDGET_OPTIONS.map((opt) => (
+                  {BUDGET_OPTION_DEFS.map((opt) => (
                     <button
                       key={opt.value}
                       type="button"
@@ -288,7 +290,7 @@ export function BusinessApplyClient() {
                           : "border-white/[0.08] bg-white/[0.02] text-white/50 hover:border-white/20 hover:text-white"
                       }`}
                     >
-                      {opt.label}
+                      {t(opt.tKey)}
                     </button>
                   ))}
                 </div>
@@ -299,7 +301,7 @@ export function BusinessApplyClient() {
                   type="text"
                   value={desiredTimeline}
                   onChange={(e) => setDesiredTimeline(e.target.value)}
-                  placeholder="예: 2026년 6월 오픈 희망"
+                  placeholder={t("business.placeholderTimeline")}
                   className="w-full rounded-lg border border-white/[0.08] bg-white/[0.02] px-3 py-2.5 text-[13px] text-white outline-none transition placeholder:text-white/30 focus:border-[#7F77DD]/50"
                 />
               </Field>
@@ -308,7 +310,7 @@ export function BusinessApplyClient() {
                 <textarea
                   value={notes}
                   onChange={(e) => setNotes(e.target.value)}
-                  placeholder="기타 문의사항이나 요청사항을 자유롭게 작성해주세요."
+                  placeholder={t("business.placeholderNotes")}
                   rows={4}
                   className="w-full resize-none rounded-lg border border-white/[0.08] bg-white/[0.02] px-3 py-2.5 text-[13px] text-white outline-none transition placeholder:text-white/30 focus:border-[#7F77DD]/50"
                 />

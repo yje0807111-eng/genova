@@ -3,6 +3,7 @@
 import { useRef, useState } from "react";
 import { getBrowserSupabaseClient } from "@/lib/supabase/browser";
 import { updateProfileAction } from "@/app/actions/profile";
+import { useI18n } from "@/components/genova/language-provider";
 
 type Props = {
   userId: string;
@@ -12,6 +13,7 @@ type Props = {
 };
 
 export function ProfileAvatarUpload({ userId, avatarUrl, displayName, editable }: Props) {
+  const { t } = useI18n();
   const inputRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
   const [preview, setPreview] = useState<string | null>(avatarUrl);
@@ -24,17 +26,17 @@ export function ProfileAvatarUpload({ userId, avatarUrl, displayName, editable }
     const file = e.target.files?.[0];
     if (!file || !editable) return;
     if (!file.type.startsWith("image/")) {
-      alert("Only image files can be uploaded.");
+      alert(t("profile.avatarOnlyImages"));
       return;
     }
     if (file.size > 4 * 1024 * 1024) {
-      alert("Please select an image up to 4MB.");
+      alert(t("profile.avatarMaxSize"));
       return;
     }
 
     const supabase = getBrowserSupabaseClient();
     if (!supabase) {
-      alert("Please check your Supabase configuration.");
+      alert(t("profile.avatarConfigError"));
       return;
     }
 
@@ -72,7 +74,9 @@ export function ProfileAvatarUpload({ userId, avatarUrl, displayName, editable }
         </div>
       )}
       {uploading && (
-        <span className="absolute inset-0 flex items-center justify-center bg-black/50 text-xs text-white">Uploading...</span>
+        <span className="absolute inset-0 flex items-center justify-center bg-black/50 text-xs text-white">
+          {t("profile.avatarUploading")}
+        </span>
       )}
     </>
   );

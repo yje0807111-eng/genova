@@ -450,7 +450,7 @@ export function EditVideoForm({ userId, video, competitions }: Props) {
   };
 
   const handleDelete = async () => {
-    const confirmed = confirm("정말로 이 영상을 삭제하시겠습니까?\n\n이 작업은 되돌릴 수 없습니다.");
+    const confirmed = confirm(t("upload.deleteVideoConfirm"));
     if (!confirmed) return;
 
     setDeleting(true);
@@ -462,7 +462,7 @@ export function EditVideoForm({ userId, video, competitions }: Props) {
         router.refresh();
         return;
       }
-      setError(result.message || "삭제 실패");
+      setError(result.message || t("upload.deleteFailed"));
     } finally {
       setDeleting(false);
     }
@@ -1153,18 +1153,16 @@ export function EditVideoForm({ userId, video, competitions }: Props) {
           <div className="mt-12 rounded-xl border border-red-500/20 bg-red-500/[0.03] p-5">
             <div className="mb-2 flex items-center gap-2">
               <span className="text-sm text-red-400">⚠</span>
-              <p className="text-sm font-bold uppercase tracking-wider text-red-400">위험 구역</p>
+              <p className="text-sm font-bold uppercase tracking-wider text-red-400">{t("upload.dangerZoneTitle")}</p>
             </div>
-            <p className="mb-4 text-xs text-white/50">
-              영상을 삭제하면 복구할 수 없습니다. 모든 댓글, 좋아요, 시청 기록이 함께 삭제됩니다.
-            </p>
+            <p className="mb-4 text-xs text-white/50">{t("upload.deleteVideoWarningBody")}</p>
             <button
               type="button"
               onClick={() => void handleDelete()}
               disabled={deleting}
               className="rounded-lg border border-red-500/30 bg-red-500/10 px-4 py-2 text-sm font-semibold text-red-400 transition hover:bg-red-500/20 disabled:cursor-not-allowed disabled:opacity-50"
             >
-              {deleting ? "삭제 중..." : "영상 삭제"}
+              {deleting ? t("upload.deletingVideo") : t("upload.deleteVideoButton")}
             </button>
           </div>
         </div>

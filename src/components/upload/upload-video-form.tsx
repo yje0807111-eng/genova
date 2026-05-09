@@ -1138,7 +1138,7 @@ export function UploadVideoForm({
               <div className="mb-3 border-b border-[#7F77DD]/15 pb-2">
                 <div className="flex items-center gap-2">
                   <h2 className="text-[11px] font-bold uppercase tracking-[0.2em] text-[#7F77DD]">
-                    Hero Backdrop
+                    {t("upload.heroBackdropHeading")}
                   </h2>
                   <span
                     className="rounded-full px-1.5 py-0.5 text-[8px] font-black uppercase tracking-[0.15em]"
@@ -1148,12 +1148,14 @@ export function UploadVideoForm({
                       border: "1px solid rgba(255,255,255,0.06)",
                     }}
                   >
-                    Optional
+                    {t("upload.optionalMark")}
                   </span>
                 </div>
                 <p className="mt-1.5 text-[10px] text-white/30 leading-relaxed">
-                  ✦ 16:9 wide cinematic shot · <span className="text-white/50 font-semibold">no text recommended</span><br />
-                  Used when your film is featured in the homepage hero. If empty, the thumbnail is used.
+                  {t("upload.backdropHintIntro")}
+                  <span className="font-semibold text-white/50">{t("upload.backdropNoTextRecommended")}</span>
+                  <br />
+                  {t("upload.backdropHeroUsageHint")}
                 </p>
               </div>
               {!backdropPreview ? (
@@ -1173,7 +1175,7 @@ export function UploadVideoForm({
                     <rect x="3" y="3" width="18" height="18" rx="2" strokeLinecap="round" />
                     <circle cx="9" cy="9" r="1.5" />
                   </svg>
-                  <p className="text-[11px] font-medium text-white/35">Upload cinematic backdrop</p>
+                  <p className="text-[11px] font-medium text-white/35">{t("upload.uploadCinematicBackdrop")}</p>
                 </button>
               ) : (
                 <div className="relative overflow-hidden rounded-xl border border-white/[0.08]">
@@ -1196,7 +1198,7 @@ export function UploadVideoForm({
                     }}
                     className="absolute right-2 top-12 rounded-lg bg-black/70 px-3 py-1.5 text-xs font-semibold text-red-300 backdrop-blur-sm transition hover:bg-black/90"
                   >
-                    Remove
+                    {t("upload.backdropRemove")}
                   </button>
                 </div>
               )}

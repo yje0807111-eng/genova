@@ -110,7 +110,7 @@ export function WatchMoreMenu({ videoId }: { videoId: string }) {
                   rows={4}
                   maxLength={1000}
                   className="w-full resize-none rounded-lg border border-white/10 bg-[#0f0d24] px-3 py-2 text-sm text-white outline-none"
-                  placeholder="Describe what happened..."
+                  placeholder={t("watch.reportDetailPlaceholder")}
                 />
               </div>
             </div>
