@@ -18,8 +18,35 @@ const syne = Syne({
 });
 
 export const metadata: Metadata = {
-  title: "Genova | The Home of AI Filmmakers",
-  description: "The Home of AI Filmmakers",
+  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || "https://genovafilm.com"),
+  title: {
+    default: "Genova | The Home of AI Filmmakers",
+    template: "%s | Genova",
+  },
+  description:
+    "Discover, watch, and share AI-generated films from creators around the world. Genova is the streaming platform built for the next generation of AI filmmakers.",
+  openGraph: {
+    title: "Genova | The Home of AI Filmmakers",
+    description: "Discover, watch, and share AI-generated films from creators around the world.",
+    url: "https://genovafilm.com",
+    siteName: "Genova",
+    images: [
+      {
+        url: "/og-image.png",
+        width: 1200,
+        height: 630,
+        alt: "Genova - The Home of AI Filmmakers",
+      },
+    ],
+    locale: "en_US",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Genova | The Home of AI Filmmakers",
+    description: "Discover, watch, and share AI-generated films from creators around the world.",
+    images: ["/og-image.png"],
+  },
   icons: {
     icon: "/genova-logo.png",
     shortcut: "/genova-logo.png",
