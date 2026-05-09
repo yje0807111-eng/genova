@@ -1322,10 +1322,10 @@ export function GenovaProfileClient({
                       }}
                     />
                     <span className="flex h-8 w-8 items-center justify-center rounded-full border border-white/10 bg-white/5">
-                      {renderAwardIcon(award as Parameters<typeof renderAwardIcon>[0])}
+                      {renderAwardIcon(award as unknown as Parameters<typeof renderAwardIcon>[0])}
                     </span>
                     <span className="text-sm text-foreground">
-                      {awardLabel(award as Parameters<typeof awardLabel>[0])}
+                      {awardLabel(award as unknown as Parameters<typeof awardLabel>[0])}
                     </span>
                   </label>
                 );
