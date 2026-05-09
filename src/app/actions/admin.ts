@@ -359,7 +359,7 @@ export async function getCompetitionVideosAction(competitionId: string): Promise
     is_competition_featured: Boolean(v.is_competition_featured),
     award: (v.award as string | null) ?? null,
     visibility: (v.visibility as "public" | "private") ?? "public",
-    profiles: (v.profiles as CompetitionSubmissionVideo["profiles"]) ?? null,
+    profiles: (Array.isArray(v.profiles) ? v.profiles[0] : v.profiles) as CompetitionSubmissionVideo["profiles"] ?? null,
   }));
 }
 
