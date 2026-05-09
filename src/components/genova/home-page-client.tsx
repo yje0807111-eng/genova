@@ -585,7 +585,7 @@ function WhatsWorking({ videos }: { videos: Video[] }) {
     const genre = (video.genre ?? "").toLowerCase();
     const subGenre = (video.subGenre ?? "").toLowerCase();
     const tags = (video.tags ?? []).map((tag) => tag.toLowerCase());
-    const normalized = normalizeToMainGenre(video.genre ?? "").toLowerCase();
+    const normalized = (normalizeToMainGenre(video.genre ?? "") ?? "").toLowerCase();
     const corpus = [genre, subGenre, normalized, ...tags].join(" ");
 
     if (selectedGenre === "film") return corpus.includes("film");
