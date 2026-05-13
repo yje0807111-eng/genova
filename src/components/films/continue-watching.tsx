@@ -196,7 +196,7 @@ export function ContinueWatching({
               isHovered ? "opacity-100" : "opacity-0"
             )}
             style={{
-              background: "linear-gradient(to right, rgba(10,10,10,0.85) 0%, rgba(10,10,10,0.4) 60%, transparent 100%)"
+              background: "var(--gradient-row-fade-l)"
             }}
           >
             <ChevronLeft
@@ -221,7 +221,7 @@ export function ContinueWatching({
               isHovered ? "opacity-100" : "opacity-0"
             )}
             style={{
-              background: "linear-gradient(to left, rgba(10,10,10,0.85) 0%, rgba(10,10,10,0.4) 60%, transparent 100%)"
+              background: "var(--gradient-row-fade-r)"
             }}
           >
             <ChevronRight
