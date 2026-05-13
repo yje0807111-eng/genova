@@ -182,7 +182,7 @@ function CompetitionTableRow({ c, idx, participantCount }: { c: Competition; idx
     >
       <div
         className="pointer-events-none absolute inset-0 z-0 opacity-0 transition-opacity duration-200 group-hover:opacity-100"
-        style={{ background: "linear-gradient(to bottom, rgba(83,74,183,0.06) 0%, rgba(83,74,183,0.03) 100%)" }}
+        style={{ background: "linear-gradient(to bottom, var(--tint-accent-06) 0%, rgba(83,74,183,0.03) 100%)" }}
       />
       <div className="relative z-10 h-[85px] w-44 shrink-0 overflow-hidden rounded-md">
         {thumb ? (
@@ -393,7 +393,7 @@ export function CompetitionListClient({
                     className="flex w-full items-center justify-between rounded-lg px-3 py-2 text-left text-[12px] transition-all duration-150"
                     style={{
                       color: sortMode === s.key ? "white" : "rgba(255,255,255,0.45)",
-                      background: sortMode === s.key ? "rgba(83,74,183,0.25)" : "transparent",
+                      background: sortMode === s.key ? "var(--tint-accent-25)" : "transparent",
                     }}
                     onMouseEnter={(e) => {
                       if (sortMode !== s.key) e.currentTarget.style.background = "rgba(255,255,255,0.04)";
@@ -449,7 +449,7 @@ export function CompetitionListClient({
         className="relative mt-12 overflow-hidden rounded-3xl border border-white/[0.1] p-10 backdrop-blur-xl"
         style={{
           background:
-            "linear-gradient(135deg, var(--tint-purple-12) 0%, rgba(83,74,183,0.06) 50%, rgba(10,10,10,0.6) 100%)",
+            "linear-gradient(135deg, var(--tint-purple-12) 0%, var(--tint-accent-06) 50%, rgba(10,10,10,0.6) 100%)",
           boxShadow: "inset 0 1px 0 rgba(255,255,255,0.08), 0 8px 32px rgba(0,0,0,0.3)",
         }}
       >

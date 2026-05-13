@@ -207,7 +207,7 @@ export function SearchNav() {
                   className="pointer-events-auto flex h-full max-h-[92dvh] min-h-0 w-full max-w-6xl flex-col overflow-hidden rounded-2xl border border-white/[0.08] shadow-2xl"
                   style={{
                     background: "linear-gradient(135deg, rgba(15,13,36,0.99) 0%, rgba(10,10,10,1) 100%)",
-                    boxShadow: "0 0 0 1px rgba(127,119,221,0.08), 0 40px 80px rgba(0,0,0,0.8)",
+                    boxShadow: "0 0 0 1px var(--tint-purple-08), 0 40px 80px rgba(0,0,0,0.8)",
                   }}
                   role="dialog"
                   aria-modal="true"

@@ -62,13 +62,16 @@
   --border-white-15: rgba(255 255 255 / 0.15);
 
   /* Tint — accent-core 채우기 */
+  --tint-accent-06: rgba(83 74 183 / 0.06);
   --tint-accent-08: rgba(83 74 183 / 0.08);
   --tint-accent-12: rgba(83 74 183 / 0.12);
   --tint-accent-15: rgba(83 74 183 / 0.15);
   --tint-accent-20: rgba(83 74 183 / 0.20);
+  --tint-accent-25: rgba(83 74 183 / 0.25);
   --tint-accent-30: rgba(83 74 183 / 0.30);
 
   /* Tint — accent-primary alpha (rgba(127,119,221,...) — same rgb as --border-* family) */
+  --tint-purple-08: rgba(127 119 221 / 0.08);
   --tint-purple-12: rgba(127 119 221 / 0.12);
 
   /* System */
@@ -239,13 +242,16 @@
   --color-line-white-15: var(--border-white-15);
 
   /* Tints (bg-* fills) — accent-core 알파 */
+  --color-tint-06: var(--tint-accent-06);
   --color-tint-08: var(--tint-accent-08);
   --color-tint-12: var(--tint-accent-12);
   --color-tint-15: var(--tint-accent-15);
   --color-tint-20: var(--tint-accent-20);
+  --color-tint-25: var(--tint-accent-25);
   --color-tint-30: var(--tint-accent-30);
 
   /* Tint — accent-primary (primary rgb family) */
+  --color-tint-purple-08: var(--tint-purple-08);
   --color-tint-purple-12: var(--tint-purple-12);
 
   /* Danger system (gradient stops) */

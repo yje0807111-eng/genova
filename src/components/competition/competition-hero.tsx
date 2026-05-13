@@ -235,7 +235,7 @@ export function CompetitionHero({
                     width: "60%",
                     borderRadius: "20px",
                     backdropFilter: "blur(12px)",
-                    boxShadow: "0 0 16px rgba(83,74,183,0.06), inset 0 1px 0 rgba(255,255,255,0.05)",
+                    boxShadow: "0 0 16px var(--tint-accent-06), inset 0 1px 0 rgba(255,255,255,0.05)",
                   }}
                 >
                   {/* 상단 라인 글로우 */}
@@ -257,7 +257,7 @@ export function CompetitionHero({
                   <div
                     className="pointer-events-none absolute inset-0"
                     style={{
-                      background: "radial-gradient(ellipse at 20% 50%, rgba(83,74,183,0.06) 0%, transparent 60%), radial-gradient(ellipse at 80% 50%, rgba(255,215,0,0.04) 0%, transparent 60%)",
+                      background: "radial-gradient(ellipse at 20% 50%, var(--tint-accent-06) 0%, transparent 60%), radial-gradient(ellipse at 80% 50%, rgba(255,215,0,0.04) 0%, transparent 60%)",
                     }}
                   />
                   {[
@@ -275,7 +275,7 @@ export function CompetitionHero({
                       key={stat.label}
                       className="group/stat relative flex flex-1 items-center gap-3.5 px-5 py-5 transition-all duration-300"
                       style={{
-                        borderRight: idx < arr.length - 1 ? "1px solid rgba(127,119,221,0.08)" : "none",
+                        borderRight: idx < arr.length - 1 ? "1px solid var(--tint-purple-08)" : "none",
                       }}
                       onMouseEnter={(e) => {
                         (e.currentTarget as HTMLDivElement).style.background = "linear-gradient(180deg, rgba(175,169,236,0.08) 0%, transparent 100%)";

@@ -139,7 +139,7 @@ function SearchBar() {
             className="absolute left-0 right-0 top-full z-50 mt-2 overflow-hidden rounded-2xl border border-white/[0.08] py-2"
             style={{
               background: "linear-gradient(135deg, rgba(15,13,36,0.99) 0%, rgba(10,10,10,1) 100%)",
-              boxShadow: "0 8px 32px rgba(0,0,0,0.6), 0 0 0 1px rgba(127,119,221,0.08)",
+              boxShadow: "0 8px 32px rgba(0,0,0,0.6), 0 0 0 1px var(--tint-purple-08)",
             }}
           >
             {query.trim() ? (

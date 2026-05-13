@@ -40,7 +40,7 @@ export function UploadCTA() {
           style={{
             background: "linear-gradient(135deg, rgba(107,95,212,0.95) 0%, rgba(83,74,183,0.85) 50%, rgba(63,54,163,0.75) 100%)",
             border: "1px solid rgba(175,169,236,0.4)",
-            boxShadow: "0 4px 16px rgba(83,74,183,0.4), 0 0 24px rgba(83,74,183,0.25), inset 0 1px 0 rgba(255,255,255,0.15)",
+            boxShadow: "0 4px 16px rgba(83,74,183,0.4), 0 0 24px var(--tint-accent-25), inset 0 1px 0 rgba(255,255,255,0.15)",
           }}
         >
           <Upload className="h-4 w-4 transition-transform duration-300 group-hover:-translate-y-0.5" />

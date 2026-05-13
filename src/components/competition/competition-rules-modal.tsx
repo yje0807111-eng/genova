@@ -49,7 +49,7 @@ export function CompetitionRulesModal({ open, onClose }: Props) {
           <div
             className="mb-3 inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-[11px] font-bold uppercase tracking-[0.15em]"
             style={{
-              background: "linear-gradient(135deg, var(--tint-purple-12) 0%, rgba(83,74,183,0.06) 100%)",
+              background: "linear-gradient(135deg, var(--tint-purple-12) 0%, var(--tint-accent-06) 100%)",
               border: "1px solid rgba(127,119,221,0.2)",
               color: "#AFA9EC",
             }}

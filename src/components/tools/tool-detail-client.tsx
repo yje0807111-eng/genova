@@ -176,7 +176,7 @@ export function ToolDetailClient({
             className="mt-12 grid grid-cols-3 gap-4 rounded-2xl border border-white/[0.1] p-6 backdrop-blur-xl"
             style={{
               background:
-                "linear-gradient(135deg, rgba(127,119,221,0.08) 0%, rgba(83,74,183,0.04) 50%, rgba(10,10,10,0.6) 100%)",
+                "linear-gradient(135deg, var(--tint-purple-08) 0%, rgba(83,74,183,0.04) 50%, rgba(10,10,10,0.6) 100%)",
               boxShadow:
                 "inset 0 1px 0 rgba(255,255,255,0.06), 0 8px 32px rgba(0,0,0,0.3)",
             }}
@@ -242,7 +242,7 @@ export function ToolDetailClient({
                   className="group relative flex flex-col gap-3 overflow-hidden rounded-2xl border border-white/[0.1] p-4 backdrop-blur-xl transition-all duration-300 hover:-translate-y-1 hover:border-[#7F77DD]/30 hover:shadow-[0_0_32px_rgba(127,119,221,0.25)]"
                   style={{
                     background:
-                      "linear-gradient(135deg, rgba(127,119,221,0.08) 0%, rgba(83,74,183,0.04) 50%, rgba(10,10,10,0.6) 100%)",
+                      "linear-gradient(135deg, var(--tint-purple-08) 0%, rgba(83,74,183,0.04) 50%, rgba(10,10,10,0.6) 100%)",
                     boxShadow:
                       "inset 0 1px 0 rgba(255,255,255,0.06), 0 4px 16px rgba(0,0,0,0.2)",
                   }}

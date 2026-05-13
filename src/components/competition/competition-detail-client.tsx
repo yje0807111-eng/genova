@@ -749,7 +749,7 @@ export function CompetitionDetailClient({ competition, videos, featuredVideos }:
                     accentDark: "#7F77DD",
                     cardBg: "linear-gradient(155deg, rgba(127,119,221,0.1) 0%, rgba(20,15,40,0.6) 60%, rgba(15,10,30,0.5) 100%)",
                     cardBorder: "rgba(127,119,221,0.22)",
-                    cardShadow: "0 0 24px rgba(127,119,221,0.08)",
+                    cardShadow: "0 0 24px var(--tint-purple-08)",
                     glowColor: "rgba(127,119,221,0.16)",
                     iconBg: "var(--tint-purple-12)",
                     iconBorder: "rgba(127,119,221,0.25)",
