@@ -393,6 +393,31 @@ body {
   line-height: 1.25;
 }
 
+.typo-hero-title {
+  font-family: var(--font-sans);
+  font-size: clamp(2.25rem, 4vw, 4.5rem);
+  font-weight: 900;
+  line-height: 1.02;
+  letter-spacing: -0.025em;
+  padding-bottom: 0.1em;
+  /* Gradient text effect (white -> light purple) */
+  background-image: var(--gradient-text-hero);
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+  text-shadow: 0 4px 30px rgba(0 0 0 / 0.4);
+}
+
+.typo-section-title {
+  font-family: var(--font-sans);
+  font-size: 1.625rem; /* 26px */
+  font-weight: 900;
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+  color: var(--text-primary);
+}
+
 .ui-badge-genre {
   font-family: var(--font-sans);
   font-size: 0.625rem;
