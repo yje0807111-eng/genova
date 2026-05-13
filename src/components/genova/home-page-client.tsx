@@ -93,8 +93,8 @@ function HeroSaveButton({ videoId }: { videoId: string }) {
         disabled={pending}
         className="flex h-10 w-10 items-center justify-center rounded-full border transition hover:bg-white/20 disabled:opacity-50"
         style={{
-          borderColor: saved ? "rgba(127,119,221,0.6)" : "rgba(255,255,255,0.3)",
-          background: saved ? "rgba(83,74,183,0.3)" : "rgba(255,255,255,0.1)",
+          borderColor: saved ? "var(--border-active)" : "rgba(255 255 255 / 0.3)",
+          background: saved ? "var(--tint-accent-30)" : "var(--border-white-10)",
           backdropFilter: "blur(8px)",
           color: "white",
         }}
@@ -167,7 +167,7 @@ function HeroBanner({ videos, allVideos }: { videos: Video[]; allVideos: Video[]
         className="h-full w-full object-cover"
         style={{
           opacity: fadeVisible ? 1 : 0,
-          transition: "opacity 0.4s ease-in-out",
+          transition: "opacity var(--duration-fade) var(--ease-standard)",
           filter: "brightness(1.15)",
         }}
       />
@@ -191,12 +191,12 @@ function HeroBanner({ videos, allVideos }: { videos: Video[]; allVideos: Video[]
         className="absolute inset-0 z-[6] flex items-center"
         style={{
           opacity: fadeVisible ? 1 : 0,
-          transition: "opacity 0.4s ease-in-out",
+          transition: "opacity var(--duration-fade) var(--ease-standard)",
         }}
       >
         <div
   className="max-w-3xl pt-16 relative z-[2]"
-          style={{ paddingLeft: "calc(240px - 8rem)" }}
+          style={{ paddingLeft: "calc(var(--sidebar-width) - 8rem)" }}
         >
           {/* 1. 추천 배지 */}
           <div className="mb-4 inline-flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.2em] text-[#AFA9EC]">
@@ -205,20 +205,7 @@ function HeroBanner({ videos, allVideos }: { videos: Video[]; allVideos: Video[]
           </div>
 
           {/* 2. 제목 */}
-          <h2
-            className="line-clamp-2 font-black tracking-tight pr-4"
-            style={{
-              fontSize: "clamp(2.25rem, 4vw, 4.5rem)",
-              lineHeight: "1.02",
-              backgroundImage: "linear-gradient(180deg, #ffffff 0%, #ffffff 60%, rgba(220,215,255,0.85) 100%)",
-              WebkitBackgroundClip: "text",
-              WebkitTextFillColor: "transparent",
-              backgroundClip: "text",
-              textShadow: "0 4px 30px rgba(0,0,0,0.4)",
-              letterSpacing: "-0.025em",
-              paddingBottom: "0.1em",
-            }}
-          >
+          <h2 className="line-clamp-2 typo-hero-title pr-4">
             {video.title}
           </h2>
 
@@ -228,8 +215,8 @@ function HeroBanner({ videos, allVideos }: { videos: Video[]; allVideos: Video[]
               <span
                 className="rounded-md px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.15em] text-white/75"
                 style={{
-                  background: "rgba(127,119,221,0.12)",
-                  border: "1px solid rgba(127,119,221,0.25)",
+                  background: "rgba(127 119 221 / 0.12)",
+                  border: "1px solid var(--border-strong)",
                 }}
               >
                 {genre}
@@ -252,12 +239,7 @@ function HeroBanner({ videos, allVideos }: { videos: Video[]; allVideos: Video[]
           <div className="mt-7 flex items-center gap-3">
             <a
               href={"/watch/" + video.id}
-              className="group flex items-center gap-2.5 rounded-lg px-10 py-3 text-[15px] font-bold text-white transition-all duration-300 hover:scale-[1.03]"
-              style={{
-                background: "linear-gradient(135deg, rgba(107,95,212,0.85) 0%, rgba(83,74,183,0.75) 50%, rgba(63,54,163,0.65) 100%)",
-                border: "1px solid rgba(175,169,236,0.35)",
-                boxShadow: "inset 0 1px 0 rgba(255,255,255,0.12), 0 2px 8px rgba(83,74,183,0.2)",
-              }}
+              className="btn-primary group flex items-center gap-2.5 rounded-lg px-10 py-3 text-[15px] font-bold transition-all duration-300 hover:scale-[1.03]"
             >
               <Play size={17} fill="white" className="transition-transform duration-300 group-hover:scale-110" />
               {t("films.play", "Play")}
@@ -265,12 +247,7 @@ function HeroBanner({ videos, allVideos }: { videos: Video[]; allVideos: Video[]
             <button
               type="button"
               onClick={() => window.dispatchEvent(new CustomEvent("open-hero-info", { detail: { videoId: video.id } }))}
-              className="flex items-center gap-2 rounded-lg px-7 py-3 text-[14px] font-semibold text-white/85 transition-all duration-300 hover:text-white"
-              style={{
-                background: "rgba(255,255,255,0.06)",
-                border: "1px solid rgba(255,255,255,0.15)",
-                backdropFilter: "blur(8px)",
-              }}
+              className="btn-tertiary flex items-center gap-2 rounded-lg px-7 py-3 text-[14px] font-semibold transition-all duration-300 hover:text-white"
             >
               <svg viewBox="0 0 24 24" className="h-[16px] w-[16px]" fill="none" stroke="currentColor" strokeWidth="2">
                 <circle cx="12" cy="12" r="10"/>
@@ -439,7 +416,7 @@ function GenreTop10Row({ videos, genre }: { videos: Video[]; genre: string }) {
               transform: animating
                 ? dir === "right" ? "translateX(-100%)" : "translateX(100%)"
                 : "translateX(0)",
-              transition: animating ? "transform 0.35s ease-in-out" : "none",
+              transition: animating ? "transform var(--duration-slow) var(--ease-standard)" : "none",
             }}
             className="grid grid-cols-2 gap-4 lg:grid-cols-4"
           >
@@ -502,13 +479,12 @@ function GenreTop10Row({ videos, genre }: { videos: Video[]; genre: string }) {
             disabled={animating}
             className={cn(
               "absolute -left-10 top-0 z-[100] h-full w-10",
-              "flex items-center justify-center",
+              "flex items-center justify-center bg-transparent",
               "transition-opacity duration-200",
               "text-white/70 hover:text-white",
               isHovered ? "opacity-100" : "opacity-0",
               "disabled:cursor-not-allowed disabled:opacity-30",
             )}
-            style={{ background: "none" }}
           >
             <ChevronLeft size={28} strokeWidth={1.5} />
           </button>
@@ -522,13 +498,12 @@ function GenreTop10Row({ videos, genre }: { videos: Video[]; genre: string }) {
             disabled={animating}
             className={cn(
               "absolute -right-10 top-0 z-[100] h-full w-10",
-              "flex items-center justify-center",
+              "flex items-center justify-center bg-transparent",
               "transition-opacity duration-200",
               "text-white/70 hover:text-white",
               isHovered ? "opacity-100" : "opacity-0",
               "disabled:cursor-not-allowed disabled:opacity-30",
             )}
-            style={{ background: "none" }}
           >
             <ChevronRight size={28} strokeWidth={1.5} />
           </button>
@@ -561,10 +536,7 @@ function SectionHeader({
             {eyebrow}
           </p>
         </div>
-        <h2
-          className="text-[26px] font-black tracking-tight text-white"
-          style={{ letterSpacing: "-0.02em" }}
-        >
+        <h2 className="typo-section-title">
           {title}
         </h2>
       </div>
@@ -720,7 +692,7 @@ function PaginatedGrid({
         <div
           style={{
             transform: animating ? (dir === "right" ? "translateX(-100%)" : "translateX(100%)") : "translateX(0)",
-            transition: animating ? "transform 0.35s ease-in-out" : "none",
+            transition: animating ? "transform var(--duration-slow) var(--ease-standard)" : "none",
           }}
         >
           {children(page)}
@@ -746,13 +718,10 @@ function PaginatedGrid({
           disabled={animating}
           className={cn(
             "absolute -left-10 top-0 z-[100] h-full w-10",
-            "flex items-center justify-center",
+            "flex items-center justify-center bg-transparent",
             "transition-opacity duration-200 group/arrow",
             isHovered ? "opacity-100" : "opacity-0",
           )}
-          style={{
-            background: "none",
-          }}
         >
           <ChevronLeft
             size={28}
@@ -769,13 +738,10 @@ function PaginatedGrid({
           disabled={animating}
           className={cn(
             "absolute -right-10 top-0 z-[100] h-full w-10",
-            "flex items-center justify-center",
+            "flex items-center justify-center bg-transparent",
             "transition-opacity duration-200 group/arrow",
             isHovered ? "opacity-100" : "opacity-0",
           )}
-          style={{
-            background: "none",
-          }}
         >
           <ChevronRight
             size={28}
@@ -891,7 +857,7 @@ function SpotlightMoreMenu({ creator }: { creator: SpotlightCreator }) {
         type="button"
         onClick={() => setOpen((v) => !v)}
       className="flex h-8 w-8 items-center justify-center rounded-lg text-white/30 transition hover:bg-white/[0.06] hover:text-white/55"
-        style={{ border: "1px solid rgba(255,255,255,0.06)" }}
+        style={{ border: "1px solid var(--border-white-06)" }}
       >
         <svg viewBox="0 0 24 24" className="h-4 w-4" fill="currentColor">
           <circle cx="5" cy="12" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="19" cy="12" r="1.5"/>
@@ -902,9 +868,9 @@ function SpotlightMoreMenu({ creator }: { creator: SpotlightCreator }) {
         <div
           className="absolute right-0 top-10 z-50 w-56 overflow-hidden rounded-xl p-3"
           style={{
-            background: "linear-gradient(160deg, rgba(22,14,42,0.99) 0%, rgba(10,6,22,1) 100%)",
-            border: "1px solid rgba(83,74,183,0.25)",
-            boxShadow: "0 8px 32px rgba(0,0,0,0.6), 0 0 0 1px rgba(127,119,221,0.08)",
+            background: "var(--gradient-dropdown)",
+            border: "1px solid rgba(83 74 183 / 0.25)",
+            boxShadow: "var(--shadow-dropdown)",
           }}
         >
           <Link
@@ -928,7 +894,7 @@ function SpotlightMoreMenu({ creator }: { creator: SpotlightCreator }) {
                   <span
                     key={tool}
                     className="rounded-md px-2 py-0.5 text-[10px] text-white/50"
-                    style={{ background: "rgba(83,74,183,0.15)", border: "1px solid rgba(83,74,183,0.2)" }}
+                    style={{ background: "rgba(83 74 183 / 0.15)", border: "1px solid var(--tint-accent-20)" }}
                   >
                     {tool}
                   </span>
@@ -1207,7 +1173,7 @@ export function HomePageClient(props: HomePageClientProps) {
                       <div
                         className="absolute inset-0"
                         style={{
-                          background: "linear-gradient(180deg, transparent 50%, rgba(0,0,0,0.85) 100%)",
+                          background: "var(--gradient-card-overlay)",
                         }}
                       />
                       <div className="absolute inset-x-0 bottom-0 p-3">
