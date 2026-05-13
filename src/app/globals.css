@@ -147,26 +147,26 @@
   --card-foreground: #f4f2ff;
   --popover: #1a1a1a;
   --popover-foreground: #f4f2ff;
-  --primary: #9d7dff;
+  --primary: var(--accent-core);
   --primary-foreground: #ffffff;
   --secondary: #1a1a1a;
   --secondary-foreground: #ebe8ff;
   --muted: #1a1a1a;
   --muted-foreground: #a59ecc;
-  --accent: #8b5cf6;
+  --accent: var(--accent-primary);
   --accent-foreground: #ffffff;
   --border: rgba(255, 255, 255, 0.06);
   --input: #1a1a1a;
-  --ring: #9d7dff;
+  --ring: var(--accent-core);
   --radius: 0.625rem;
   --sidebar: #0a0a0a;
   --sidebar-foreground: #f8f8fc;
-  --sidebar-primary: #9d7dff;
+  --sidebar-primary: var(--accent-core);
   --sidebar-primary-foreground: #ffffff;
   --sidebar-accent: #1a1a1a;
   --sidebar-accent-foreground: #f8f8fc;
   --sidebar-border: rgba(255, 255, 255, 0.06);
-  --sidebar-ring: #9d7dff;
+  --sidebar-ring: var(--accent-core);
 }
 
 @theme inline {
