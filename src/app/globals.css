@@ -1,6 +1,134 @@
 @import "tailwindcss";
 
 :root {
+  /* ============================================================
+     LAYER 1 — SCALE
+     Raw color values. Components MUST NOT reference directly.
+     Use Layer 2/3 semantic tokens below.
+     ============================================================ */
+
+  /* Purple — 7-step brand scale (CLAUDE.md aligned) */
+  --purple-50:  #EEEDFE;   /* ⚠️ 사용 금지 / 향후 확장 예약 */
+  --purple-100: #AFA9EC;   /* → --accent-light */
+  --purple-200: #7F77DD;   /* → --accent-primary */
+  --purple-300: #534AB7;   /* → --accent-core */
+  --purple-400: #3C3489;   /* ⚠️ 사용 금지 / 향후 확장 예약 */
+  --purple-500: #26215C;   /* ⚠️ 사용 금지 / 향후 확장 예약 */
+  --purple-600: #1A1640;   /* 사이드바 그라데이션 끝 근처 */
+
+  /* Neutral */
+  --neutral-0:    #F8F7FF;   /* 브랜드 화이트 */
+  --neutral-950:  #0a0a0a;   /* 페이지 베이스 (~50%) */
+  --neutral-1000: #080618;   /* fade only — CLAUDE.md 명시 */
+
+  /* Sidebar tints (통일 검토 중, 현재 시각 보존) */
+  --sidebar-tint-top: #160E2A;
+  --sidebar-tint-mid: #100B22;
+  --sidebar-tint-low: #0B081A;
+
+  /* System */
+  --red-600: #dc2626;
+  --red-500: #ef4444;
+
+  /* ============================================================
+     LAYER 2 — SEMANTIC
+     Components SHOULD use these tokens.
+     ============================================================ */
+
+  /* Background */
+  --bg-base:    var(--neutral-950);
+  --bg-fade:    var(--neutral-1000);
+  --bg-sidebar: var(--sidebar-tint-top);
+
+  /* Accent (역할 분리 — CLAUDE.md 결정) */
+  --accent-primary: var(--purple-200);   /* 가시 액센트 */
+  --accent-core:    var(--purple-300);   /* 글로우/섀도우 */
+  --accent-light:   var(--purple-100);   /* 텍스트/그라데이션 */
+
+  /* Text — 5 levels */
+  --text-primary:   var(--neutral-0);
+  --text-secondary: rgba(255 255 255 / 0.85);
+  --text-tertiary:  rgba(255 255 255 / 0.65);
+  --text-muted:     rgba(255 255 255 / 0.40);
+  --text-disabled:  rgba(255 255 255 / 0.25);
+
+  /* Border — purple alpha */
+  --border-subtle:   rgba(127 119 221 / 0.12);
+  --border-default:  rgba(127 119 221 / 0.18);
+  --border-strong:   rgba(127 119 221 / 0.25);
+  --border-emphasis: rgba(127 119 221 / 0.35);
+  --border-active:   rgba(127 119 221 / 0.60);
+
+  /* Border — white alpha (글래스 chrome) */
+  --border-white-04: rgba(255 255 255 / 0.04);
+  --border-white-08: rgba(255 255 255 / 0.08);
+  --border-white-15: rgba(255 255 255 / 0.15);
+
+  /* Tint — accent-core 채우기 */
+  --tint-accent-08: rgba(83 74 183 / 0.08);
+  --tint-accent-12: rgba(83 74 183 / 0.12);
+  --tint-accent-20: rgba(83 74 183 / 0.20);
+  --tint-accent-30: rgba(83 74 183 / 0.30);
+
+  /* System */
+  --danger-from: var(--red-600);
+  --danger-to:   var(--red-500);
+
+  /* ============================================================
+     LAYER 3 — COMPOSITE
+     Pre-built patterns for radius, shadow, gradient, motion, z-index.
+     ============================================================ */
+
+  /* Radius — `--radius-card` 는 기존 @theme inline 의 --radius-lg 와 충돌 회피용 명명 */
+  --radius-sm:   6px;
+  --radius-md:   8px;
+  --radius-card: 12px;
+  --radius-xl:   16px;
+  --radius-pill: 9999px;
+
+  /* Shadow / Glow */
+  --shadow-card:       0 0 30px rgba(83 74 183 / 0.08), inset 0 1px 0 rgba(127 119 221 / 0.15);
+  --shadow-card-hover: 0 0 18px rgba(83 74 183 / 0.28);
+  --shadow-cta:        inset 0 1px 0 rgba(255 255 255 / 0.12), 0 2px 8px rgba(83 74 183 / 0.2);
+  --shadow-cta-strong: 0 12px 40px -14px rgba(83 74 183 / 0.55);
+  --shadow-glow-sm:    0 0 12px rgba(83 74 183 / 0.2);
+  --shadow-glow-md:    0 0 18px rgba(83 74 183 / 0.28);
+  --shadow-glow-lg:    0 0 30px rgba(83 74 183 / 0.35);
+  --glow-text:         0 0 8px rgba(175 169 236 / 0.8);
+
+  /* Gradient */
+  --gradient-text-hero:    linear-gradient(180deg, #ffffff 0%, #ffffff 60%, rgba(220 215 255 / 0.85) 100%);
+  --gradient-text-brand:   linear-gradient(135deg, #ffffff 0%, var(--accent-light) 100%);
+  --gradient-cta-primary:  linear-gradient(135deg, rgba(107 95 212 / 0.85) 0%, rgba(83 74 183 / 0.75) 50%, rgba(63 54 163 / 0.65) 100%);
+  --gradient-card-bg:      linear-gradient(160deg, rgba(16 12 32 / 0.92) 0%, rgba(8 6 20 / 0.96) 100%);
+  --gradient-badge-purple: linear-gradient(135deg, rgba(127 119 221 / 0.35) 0%, rgba(83 74 183 / 0.20) 50%, rgba(43 34 143 / 0.10) 100%);
+  --gradient-sidebar:      linear-gradient(180deg, rgba(22 14 42 / 0.99) 0%, rgba(16 11 34 / 1) 30%, rgba(11 8 26 / 1) 65%, var(--bg-base) 100%);
+  --gradient-section-end:  linear-gradient(to top, var(--bg-base) 0%, rgba(10 10 10 / 0.8) 40%, transparent 100%);
+  --gradient-danger:       linear-gradient(135deg, var(--danger-from) 0%, var(--danger-to) 100%);
+
+  /* Motion */
+  --duration-fast:         200ms;   /* hover */
+  --duration-base:         300ms;   /* card hover */
+  --duration-slow:         350ms;   /* carousel slide */
+  --duration-fade:         400ms;   /* hero fade */
+  --duration-auto-advance: 6000ms;  /* hero auto-advance */
+  --ease-standard:         ease-in-out;
+
+  /* Z-index */
+  --z-base:         0;
+  --z-content:      1;
+  --z-hero-fade:    5;
+  --z-hero-content: 6;
+  --z-overlay:      10;
+  --z-dropdown:     50;
+  --z-tabnav:       60;
+  --z-arrow:        100;
+  --z-modal:        200;
+
+  /* ============================================================
+     LEGACY shadcn tokens — out-of-scope this round
+     별도 라운드에서 새 토큰과 매핑/정리 예정
+     ============================================================ */
   --background: #080614;
   --foreground: #f4f2ff;
   --card: #12101f;
