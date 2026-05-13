@@ -181,9 +181,9 @@ function HeroBanner({ videos, allVideos }: { videos: Video[]; allVideos: Video[]
         }}
       />
       {/* 상단 페이드 — 배경과 자연스럽게 */}
-      <div className="absolute left-0 right-0 top-0 h-16" style={{ background: "linear-gradient(to bottom, rgba(8,6,20,0.95) 0%, rgba(8,6,20,0.5) 35%, transparent 100%)" }} />
+      <div className="absolute left-0 right-0 top-0 h-16" style={{ background: "var(--gradient-hero-top-fade)" }} />
       {/* 하단 페이드 */}
-      <div className="absolute inset-0" style={{ background: "linear-gradient(to top, rgba(8,6,20,0.95) 0%, rgba(8,6,20,0.5) 20%, transparent 50%)" }} />
+      <div className="absolute inset-0" style={{ background: "var(--gradient-hero-bottom-fade)" }} />
       {/* 오른쪽 페이드 */}
       <div className="absolute bottom-0 right-0 top-0 w-32 opacity-50" style={{ background: "linear-gradient(to left, rgba(8,6,20,0.35) 0%, transparent 100%)" }} />
 
