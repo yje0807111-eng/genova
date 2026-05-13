@@ -68,7 +68,7 @@ export function CompetitionBanner({ deadlineIso }: { deadlineIso: string | null 
   }, [endMs]);
 
   return (
-    <div className="group/comp relative overflow-hidden rounded-xl border border-white/[0.06] bg-[#1a1a1a] transition-[border-color,box-shadow] duration-300 hover:border-white/[0.12] hover:shadow-[0_0_28px_rgba(127,119,221,0.18)]">
+    <div className="group/comp relative overflow-hidden rounded-xl border border-white/[0.06] bg-[#1a1a1a] transition-[border-color,box-shadow] duration-300 hover:border-white/[0.12] hover:shadow-[0_0_28px_var(--border-default)]">
       <div className="relative px-8 py-3">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
           <div className="min-w-0 flex items-center gap-3">

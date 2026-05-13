@@ -803,7 +803,7 @@ export function UploadVideoForm({
                     className="flex flex-1 items-center gap-3 rounded-xl px-3 py-2.5 transition-all duration-300"
                     style={{
                       background: active
-                        ? "linear-gradient(135deg, rgba(127,119,221,0.18) 0%, rgba(83,74,183,0.08) 100%)"
+                        ? "linear-gradient(135deg, var(--border-default) 0%, rgba(83,74,183,0.08) 100%)"
                         : done
                           ? "rgba(127,119,221,0.06)"
                           : "var(--border-white-02)",
@@ -813,7 +813,7 @@ export function UploadVideoForm({
                           ? "1px solid rgba(127,119,221,0.2)"
                           : "1px solid rgba(255,255,255,0.06)",
                       cursor: done ? "pointer" : active ? "default" : "not-allowed",
-                      boxShadow: active ? "0 0 16px rgba(127,119,221,0.18)" : "none",
+                      boxShadow: active ? "0 0 16px var(--border-default)" : "none",
                     }}
                   >
                     <div

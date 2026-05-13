@@ -209,7 +209,7 @@ export function LandingClient({
           <div
             className="absolute inset-0 opacity-30"
             style={{
-              backgroundImage: "radial-gradient(circle at 1px 1px, rgba(127,119,221,0.18) 1px, transparent 0)",
+              backgroundImage: "radial-gradient(circle at 1px 1px, var(--border-default) 1px, transparent 0)",
               backgroundSize: "32px 32px",
             }}
           />
@@ -227,7 +227,7 @@ export function LandingClient({
           <div
             className="absolute -left-20 top-10 h-[500px] w-[700px] rounded-full"
             style={{
-              background: "radial-gradient(ellipse, rgba(127,119,221,0.18) 0%, transparent 65%)",
+              background: "radial-gradient(ellipse, var(--border-default) 0%, transparent 65%)",
               filter: "blur(100px)",
               animation: "search-pulse 6s ease-in-out infinite",
             }}
@@ -309,7 +309,7 @@ export function LandingClient({
             <div
               className="pointer-events-none absolute -inset-10 -z-10"
               style={{
-                background: "radial-gradient(ellipse at center, rgba(127,119,221,0.18) 0%, transparent 60%)",
+                background: "radial-gradient(ellipse at center, var(--border-default) 0%, transparent 60%)",
                 filter: "blur(60px)",
               }}
             />
@@ -536,7 +536,7 @@ export function LandingClient({
       {/* Bottom CTA */}
       <section className="border-t border-white/[0.06] py-12">
         <div className="mx-auto max-w-[1600px] px-6 sm:px-10">
-          <div className="group/cta relative overflow-hidden rounded-2xl border border-white/[0.06] bg-[#1a1a1a] p-8 transition-[border-color,box-shadow] duration-300 hover:border-white/[0.12] hover:shadow-[0_0_32px_rgba(127,119,221,0.18)] sm:p-10">
+          <div className="group/cta relative overflow-hidden rounded-2xl border border-white/[0.06] bg-[#1a1a1a] p-8 transition-[border-color,box-shadow] duration-300 hover:border-white/[0.12] hover:shadow-[0_0_32px_var(--border-default)] sm:p-10">
             <div
               className="pointer-events-none absolute -right-20 top-0 h-72 w-72 rounded-full opacity-0 transition-opacity duration-500 group-hover/cta:opacity-100"
               style={{

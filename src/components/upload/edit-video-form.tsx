@@ -531,7 +531,7 @@ export function EditVideoForm({ userId, video, competitions }: Props) {
                     className="flex flex-1 items-center gap-3 rounded-xl px-3 py-2.5 transition-all duration-300"
                     style={{
                       background: active
-                        ? "linear-gradient(135deg, rgba(127,119,221,0.18) 0%, rgba(83,74,183,0.08) 100%)"
+                        ? "linear-gradient(135deg, var(--border-default) 0%, rgba(83,74,183,0.08) 100%)"
                         : done
                           ? "rgba(127,119,221,0.06)"
                           : "var(--border-white-02)",

@@ -80,7 +80,7 @@ export function HomeSearchPanel() {
               <div
                 className="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-300 group-hover:opacity-100"
                 style={{
-                  background: "radial-gradient(ellipse 80% 60% at 50% 0%, rgba(127,119,221,0.18) 0%, transparent 65%)",
+                  background: "radial-gradient(ellipse 80% 60% at 50% 0%, var(--border-default) 0%, transparent 65%)",
                 }}
               />
               <Icon

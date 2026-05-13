@@ -779,7 +779,7 @@ export function ChatDrawer({
                   className="mb-3 flex h-12 w-12 items-center justify-center rounded-full"
                   style={{
                     background: "rgba(83,74,183,0.12)",
-                    border: "1px solid rgba(127,119,221,0.18)",
+                    border: "1px solid var(--border-default)",
                   }}
                 >
                   <svg viewBox="0 0 24 24" className="h-5 w-5 text-[#7F77DD]/60" fill="none" stroke="currentColor" strokeWidth={1.8}>
