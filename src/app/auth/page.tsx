@@ -22,7 +22,7 @@ export default function AuthPage() {
 
       <Link
         href="/"
-        className="group absolute left-6 top-6 z-10 inline-flex items-center gap-1.5 rounded-full border border-white/[0.08] bg-white/[0.02] px-4 py-2 text-[12px] font-semibold text-white/60 backdrop-blur-md transition hover:border-white/20 hover:bg-white/[0.05] hover:text-white"
+        className="group absolute left-6 top-6 z-10 inline-flex items-center gap-1.5 rounded-full border border-white/[0.08] bg-white/[0.02] px-4 py-2 text-[12px] font-semibold text-white/55 backdrop-blur-md transition hover:border-white/20 hover:bg-white/[0.05] hover:text-white"
       >
         {t("auth.browseExplore")}
         <span className="transition-transform group-hover:translate-x-0.5">→</span>
@@ -36,7 +36,7 @@ export default function AuthPage() {
               onClick={() => setLocale(lang)}
               className={cn(
                 "h-7 rounded-full px-3 text-[11px] font-semibold transition",
-                locale === lang ? "bg-white/10 text-white" : "text-white/40 hover:text-white/70",
+                locale === lang ? "bg-white/10 text-white" : "text-white/35 hover:text-white/70",
               )}
             >
               {lang === "en" ? "EN" : lang === "ko" ? "KO" : "JA"}

@@ -5,9 +5,11 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import type { User } from "@supabase/supabase-js";
 import { getBrowserSupabaseClient } from "@/lib/supabase/browser";
+import { useUploadModal } from "@/components/upload/upload-modal-context";
 
 export function AuthNav({ compact = false }: { compact?: boolean }) {
   const router = useRouter();
+  const { open: openUploadModal } = useUploadModal();
   const [user, setUser] = useState<User | null | undefined>(undefined);
   const [unread, setUnread] = useState(0);
 
@@ -68,12 +70,13 @@ export function AuthNav({ compact = false }: { compact?: boolean }) {
     if (compact) {
       return (
         <div className="flex items-center gap-1.5">
-          <Link
-            href="/upload"
+          <button
+            type="button"
+            onClick={() => openUploadModal()}
             className="btn-primary px-[14px] py-[6px] text-[13px] font-semibold leading-none tracking-wide"
           >
             Upload
-          </Link>
+          </button>
           <Link
             href="/notifications"
             className="relative rounded-[2px] p-2 text-[rgba(255,255,255,0.7)] transition hover:bg-white/10 hover:text-white"
@@ -105,12 +108,13 @@ export function AuthNav({ compact = false }: { compact?: boolean }) {
     }
     return (
       <div className="flex flex-wrap items-center justify-end gap-1.5 sm:gap-3">
-        <Link
-          href="/upload"
+        <button
+          type="button"
+          onClick={() => openUploadModal()}
           className="rounded-full bg-gradient-to-br from-[#534AB7] to-[#7F77DD] px-3 py-1.5 text-[10px] font-semibold text-[#EEEDFE] shadow-[0_0_14px_rgba(83,74,183,0.35)] transition hover:brightness-110 hover:shadow-[0_0_18px_rgba(127,119,221,0.5)] sm:py-2 sm:text-xs"
         >
           Upload
-        </Link>
+        </button>
         <Link
           href="/notifications"
           className="relative rounded-full p-2 text-[#EEEDFE] transition hover:bg-white/10"

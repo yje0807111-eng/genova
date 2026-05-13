@@ -28,7 +28,7 @@ export async function sendBusinessInquiryNotification(input: {
   const subject = `[Genova] 새 비즈니스 문의 - ${input.contactName}${input.companyName ? ` (${input.companyName})` : ""}`;
 
   const html = `
-    <div style="font-family: -apple-system, sans-serif; max-width: 600px; margin: 0 auto; padding: 24px; background: #080618; color: #fff;">
+    <div style="font-family: -apple-system, sans-serif; max-width: 600px; margin: 0 auto; padding: 24px; background: #0a0a0a; color: #fff;">
       <div style="border-left: 3px solid #7F77DD; padding-left: 16px; margin-bottom: 24px;">
         <p style="margin: 0; font-size: 11px; color: #AFA9EC; text-transform: uppercase; letter-spacing: 0.2em; font-weight: 700;">New Inquiry</p>
         <h1 style="margin: 4px 0 0; font-size: 24px;">새 비즈니스 문의</h1>

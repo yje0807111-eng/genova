@@ -267,7 +267,7 @@ export function AuthForm() {
     }
   };
 
-  const fieldLabel = "mb-1.5 block text-[11px] font-medium text-white/60";
+  const fieldLabel = "mb-1.5 block text-[11px] font-medium text-white/55";
   const fieldInput =
     "h-11 w-full rounded-lg border border-white/[0.08] bg-white/[0.02] px-4 text-[14px] text-white placeholder:text-white/30 transition focus:border-[#7F77DD]/50 focus:outline-none";
   const primaryBtn =
@@ -291,7 +291,7 @@ export function AuthForm() {
           onClick={() => switchMode("login")}
           className={cn(
             "-mb-px flex-1 border-b-2 pb-3 text-[13px] font-semibold transition",
-            mode === "login" ? "border-white text-white" : "border-transparent text-white/40 hover:text-white/70",
+            mode === "login" ? "border-white text-white" : "border-transparent text-white/35 hover:text-white/70",
           )}
         >
           {t("auth.signIn", "Sign In")}
@@ -301,7 +301,7 @@ export function AuthForm() {
           onClick={() => switchMode("signup")}
           className={cn(
             "-mb-px flex-1 border-b-2 pb-3 text-[13px] font-semibold transition",
-            mode === "signup" ? "border-white text-white" : "border-transparent text-white/40 hover:text-white/70",
+            mode === "signup" ? "border-white text-white" : "border-transparent text-white/35 hover:text-white/70",
           )}
         >
           {t("auth.signUp", "Sign Up")}
@@ -413,7 +413,7 @@ export function AuthForm() {
               placeholder={t("auth.passwordPlaceholder", "6+ characters")}
             />
           </div>
-          <p className="text-[11px] text-white/40">{t("auth.otpHint", "A 6-digit code will be sent to your email.")}</p>
+          <p className="text-[11px] text-white/35">{t("auth.otpHint", "A 6-digit code will be sent to your email.")}</p>
           {error && <p className="text-sm text-red-300">{error}</p>}
           {message && <p className="text-sm text-emerald-300">{message}</p>}
           <button type="button" disabled={loading} onClick={() => void sendOtp()} className={primaryBtn}>
