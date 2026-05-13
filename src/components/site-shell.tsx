@@ -78,8 +78,8 @@ export function SiteHeader() {
       style={{ opacity: 1, animation: "none" }}
       className={`sticky top-0 z-50 h-14 border-b border-[rgba(255,255,255,0.06)] backdrop-blur-[20px] transition-all duration-300 ${
         scrolled
-          ? "bg-[rgba(8,6,24,0.85)]"
-          : "bg-gradient-to-b from-[rgba(8,6,24,0.95)] to-transparent border-transparent"
+          ? "bg-[rgba(10,10,10,0.85)]"
+          : "bg-gradient-to-b from-[rgba(10,10,10,0.95)] to-transparent border-transparent"
       }`}
     >
       <div className="mx-auto grid h-14 w-full grid-cols-[1fr_auto_1fr] items-center gap-4 px-6">
@@ -93,7 +93,7 @@ export function SiteHeader() {
           </span>
         </Link>
         <nav className="hidden items-center gap-4 md:flex">
-            <NavItem href="/films" label={t("nav.films", "Films")} active={pathname.startsWith("/films")} />
+            <NavItem href="/?tab=films" label={t("nav.films", "Films")} active={pathname === "/" || pathname.startsWith("/films")} />
             <NavItem href="/shorts" label={t("nav.shorts", "Shorts")} active={pathname.startsWith("/shorts")} />
             <NavItem href="/competition" label={t("nav.competition", "Competition")} active={pathname.startsWith("/competition")} />
             <NavItem href="/creator/c1" label={t("nav.creators", "Creators")} active={pathname.startsWith("/creator")} />
@@ -156,10 +156,10 @@ export function SiteHeader() {
       </div>
       {mobileOpen ? (
         <div
-          className="border-t border-white/10 bg-[rgba(8,6,24,0.95)] px-4 py-3 md:hidden"
+          className="border-t border-white/10 bg-[rgba(10,10,10,0.95)] px-4 py-3 md:hidden"
         >
           <nav className="flex flex-col gap-3">
-            <NavItem href="/films" label={t("nav.films", "Films")} active={pathname.startsWith("/films")} />
+            <NavItem href="/?tab=films" label={t("nav.films", "Films")} active={pathname === "/" || pathname.startsWith("/films")} />
             <NavItem href="/shorts" label={t("nav.shorts", "Shorts")} active={pathname.startsWith("/shorts")} />
             <NavItem href="/competition" label={t("nav.competition", "Competition")} active={pathname.startsWith("/competition")} />
             <NavItem href="/creator/c1" label={t("nav.creators", "Creators")} active={pathname.startsWith("/creator")} />
@@ -201,62 +201,34 @@ export function SiteFooter() {
   }
 
   return (
-    <footer className="relative mt-0 overflow-hidden bg-[#030211]">
-      <div className="section-blob left-1/2 -top-64 -translate-x-1/2 opacity-50" />
-      <div className="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 opacity-[0.03]">
-        <Image src="/genova-logo.png" alt="" width={288} height={288} className="h-72 w-72" aria-hidden />
-      </div>
-      <div className="section-content mx-auto max-w-6xl space-y-6 px-6 py-8 text-sm text-[#AFA9EC]">
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex items-center gap-2 text-[#EEEDFE]">
-            <Image src="/genova-logo.png" alt="Genova symbol" width={36} height={36} className="h-9 w-9" />
-            <span className="font-display text-[18px] font-bold tracking-[-0.05em] text-[#ebe8ff]">Genova</span>
-          </div>
-          <p className="text-sm text-[#AFA9EC]">{t("footer.tagline", "The Home of AI Filmmakers")}</p>
+    <footer className="border-t border-white/[0.05] px-6 py-6 sm:px-8">
+      <div className="mx-auto flex max-w-[1600px] flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex flex-wrap items-center gap-x-5 gap-y-2 text-[11px]">
+          <span className="font-black text-white">Genova</span>
+          <Link href="/?tab=films" className="text-white/45 transition hover:text-white/80">{t("nav.films", "Films")}</Link>
+          <Link href="/competition" className="text-white/45 transition hover:text-white/80">{t("nav.competition", "Competition")}</Link>
+          <Link href="/business" className="text-white/45 transition hover:text-white/80">{t("nav.business", "공모전 열기")}</Link>
+          <Link href="#" className="text-white/45 transition hover:text-white/80">{t("footer.terms", "Terms of Service")}</Link>
+          <Link href="#" className="text-white/45 transition hover:text-white/80">{t("footer.privacy", "Privacy Policy")}</Link>
         </div>
-        <div className="flex flex-wrap gap-5 text-sm">
-          <Link href="/films" className="hover:text-[#EEEDFE]">{t("nav.films", "Films")}</Link>
-          <Link href="/competition" className="hover:text-[#EEEDFE]">{t("nav.competition", "Competition")}</Link>
-            <Link href="/business" className="hover:text-[#EEEDFE]">{t("nav.business", "공모전 열기")}</Link>
-          <Link href="/creator/c1" className="hover:text-[#EEEDFE]">{t("nav.creators", "Creators")}</Link>
-          <Link href="#" className="hover:text-[#EEEDFE]">{t("footer.terms", "Terms of Service")}</Link>
-          <Link href="#" className="hover:text-[#EEEDFE]">{t("footer.privacy", "Privacy Policy")}</Link>
-        </div>
-        <div className="flex flex-col gap-3 border-t border-white/10 pt-4 sm:flex-row sm:items-center sm:justify-between">
-          <p className="text-xs text-[#8F89CD]">© 2026 Genova</p>
-          <div className="flex items-center gap-3 text-[#AFA9EC]">
-            <Link
-              href="https://www.youtube.com"
-              target="_blank"
-              rel="noreferrer"
-              aria-label="YouTube"
-              className="rounded-full border border-white/15 p-1.5 transition hover:border-[#7F77DD]/55 hover:text-[#EEEDFE]"
-            >
-              <svg className="h-4 w-4" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
+
+        <div className="flex items-center gap-4 text-[11px] text-white/30">
+          <span>© 2026 Genova</span>
+          <div className="flex items-center gap-2.5">
+            <Link href="https://www.youtube.com" target="_blank" rel="noreferrer" aria-label="YouTube" className="text-white/30 transition hover:text-white/60">
+              <svg className="h-3.5 w-3.5" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
                 <path d="M23.5 6.2a3 3 0 0 0-2.1-2.1C19.5 3.5 12 3.5 12 3.5s-7.5 0-9.4.6A3 3 0 0 0 .5 6.2 31 31 0 0 0 0 12a31 31 0 0 0 .5 5.8 3 3 0 0 0 2.1 2.1c1.9.6 9.4.6 9.4.6s7.5 0 9.4-.6a3 3 0 0 0 2.1-2.1A31 31 0 0 0 24 12a31 31 0 0 0-.5-5.8M9.6 15.6V8.4l6.2 3.6z" />
               </svg>
             </Link>
-            <Link
-              href="https://www.instagram.com"
-              target="_blank"
-              rel="noreferrer"
-              aria-label="Instagram"
-              className="rounded-full border border-white/15 p-1.5 transition hover:border-[#7F77DD]/55 hover:text-[#EEEDFE]"
-            >
-              <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden>
+            <Link href="https://www.instagram.com" target="_blank" rel="noreferrer" aria-label="Instagram" className="text-white/30 transition hover:text-white/60">
+              <svg className="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden>
                 <rect x="3.5" y="3.5" width="17" height="17" rx="5" />
                 <circle cx="12" cy="12" r="4.2" />
                 <circle cx="17.3" cy="6.7" r="1" fill="currentColor" stroke="none" />
               </svg>
             </Link>
-            <Link
-              href="https://x.com"
-              target="_blank"
-              rel="noreferrer"
-              aria-label="X"
-              className="rounded-full border border-white/15 p-1.5 transition hover:border-[#7F77DD]/55 hover:text-[#EEEDFE]"
-            >
-              <svg className="h-4 w-4" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
+            <Link href="https://x.com" target="_blank" rel="noreferrer" aria-label="X" className="text-white/30 transition hover:text-white/60">
+              <svg className="h-3.5 w-3.5" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
                 <path d="M18.9 2H22l-6.7 7.7L23.2 22h-6.2l-4.9-6.5L6.5 22H3.4l7.2-8.2L1.1 2h6.4l4.4 5.9zm-1.1 18h1.7L6.6 3.9H4.7z" />
               </svg>
             </Link>

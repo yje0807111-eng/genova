@@ -1,27 +1,33 @@
 "use client";
 
-import React, { useEffect, useMemo, useRef, useState, useTransition } from "react";
-import { ChevronLeft, ChevronRight, Film, Play, RefreshCw } from "lucide-react";
+import React, { useCallback, useEffect, useMemo, useRef, useState, useTransition } from "react";
+import { ChevronLeft, ChevronRight, Film, Heart, Play, RefreshCw } from "lucide-react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import type { Competition } from "@/lib/types";
 import type { Video } from "@/lib/types";
 import { useI18n } from "@/components/genova/language-provider";
 import { useGenreFilter } from "@/components/genova/genre-filter-context";
-import { UploadCTA } from "./upload-cta";
 import { AnimateIn } from "@/components/animate-in";
+import { HomeGenreCarousel } from "@/components/genova/home-genre-carousel";
 import { VideoCardFromVideo } from "@/components/genova/video-card";
-import { VideoCard } from "@/components/video/video-card";
+import { VideoCard, parseRuntimeToSeconds } from "@/components/video/video-card";
 import { HeroInfoModal } from "@/components/genova/hero-info-modal";
 import { cn } from "@/lib/utils/cn";
 import { mainGenreLabel, normalizeToMainGenre } from "@/lib/constants/genres";
-import { formatPrizeWithConversion } from "@/lib/utils/format-prize";
 import type { GenreFilter } from "@/lib/genova-genre";
+import { HomeCompetitionBanner } from "@/components/genova/home-competition-banner";
+import { HomeTabNav } from "@/components/genova/home-tab-nav";
+import type { MainTab, SubGenre, SortKey } from "@/components/genova/home-tab-nav";
+import { AwardsGallery } from "@/components/genova/awards-gallery";
 import { followUserAction, unfollowUserAction } from "@/app/actions/profile";
 import { toggleSaveAction } from "@/app/actions/engagement";
-import { TOOL_CATEGORY } from "@/lib/constants/tool-category";
 
-export { TOOL_CATEGORY };
+function formatRuntimeDisplay(seconds: number): string {
+  const m = Math.floor(seconds / 60);
+  const s = seconds % 60;
+  return `${m}:${s.toString().padStart(2, "0")}`;
+}
 
 function UnifiedGrid({ videos }: { videos: Video[] }) {
   const { t } = useI18n();
@@ -170,8 +176,8 @@ function HeroBanner({ videos, allVideos }: { videos: Video[]; allVideos: Video[]
         className="absolute inset-0"
         style={{
           background: hasBackdrop
-            ? "linear-gradient(to right, rgba(8,6,24,0.95) 0%, rgba(8,6,24,0.7) 30%, rgba(8,6,24,0) 60%)"
-            : "linear-gradient(to right, rgba(8,6,24,0.98) 0%, rgba(8,6,24,0.8) 30%, rgba(8,6,24,0) 60%)",
+            ? "linear-gradient(to right, rgba(10,10,10,0.95) 0%, rgba(10,10,10,0.7) 30%, rgba(10,10,10,0) 60%)"
+            : "linear-gradient(to right, rgba(10,10,10,0.98) 0%, rgba(10,10,10,0.8) 30%, rgba(10,10,10,0) 60%)",
         }}
       />
       {/* 상단 페이드 — 배경과 자연스럽게 */}
@@ -230,8 +236,8 @@ function HeroBanner({ videos, allVideos }: { videos: Video[]; allVideos: Video[]
               </span>
             )}
             <span className="h-3 w-px bg-white/20" />
-            <span className="flex items-center gap-1.5 text-white/60">
-              <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/40">Director</span>
+            <span className="flex items-center gap-1.5 text-white/55">
+              <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/35">Director</span>
               <span className="font-semibold text-white/85">{creator}</span>
             </span>
           </div>
@@ -281,12 +287,12 @@ function HeroBanner({ videos, allVideos }: { videos: Video[]; allVideos: Video[]
             >
               {video.award && (
                 <div className="flex items-center gap-3 border-r border-white/10 px-5 py-3">
-                  <svg className="h-6 w-6 shrink-0 text-white/60" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                  <svg className="h-6 w-6 shrink-0 text-white/55" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
                     <path d="M8 21h8M12 17v4M17 3H7l-2 7c0 2.8 2.24 5 5 5s5-2.2 5-5l-2-7z"/>
                     <path d="M5 10H3a2 2 0 000 4h2M19 10h2a2 2 0 010 4h-2"/>
                   </svg>
                   <div>
-                    <p className="mb-0.5 text-[13px] leading-none text-white/40">{t("home.heroAwardLabel", "Award")}</p>
+                    <p className="mb-0.5 text-[13px] leading-none text-white/35">{t("home.heroAwardLabel", "Award")}</p>
                     <p className="text-[15px] font-semibold leading-none text-white">{video.award}</p>
                   </div>
                 </div>
@@ -296,7 +302,7 @@ function HeroBanner({ videos, allVideos }: { videos: Video[]; allVideos: Video[]
                   <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
                 </svg>
                 <div>
-                  <p className="mb-0.5 text-[13px] leading-none text-white/40">{t("home.heroRating", "Rating")}</p>
+                  <p className="mb-0.5 text-[13px] leading-none text-white/35">{t("home.heroRating", "Rating")}</p>
                   <p className="text-[15px] font-semibold leading-none text-white">{rating.toFixed(1)}</p>
                 </div>
               </div>
@@ -306,7 +312,7 @@ function HeroBanner({ videos, allVideos }: { videos: Video[]; allVideos: Video[]
                     <path d="M12 2c0 6-8 10-8 14a8 8 0 0016 0c0-4-8-8-8-14z"/>
                   </svg>
                   <div>
-                    <p className="mb-0.5 text-[13px] leading-none text-white/40">{t("home.heroTrending", "Trending")}</p>
+                    <p className="mb-0.5 text-[13px] leading-none text-white/35">{t("home.heroTrending", "Trending")}</p>
                     <p className="text-[15px] font-semibold leading-none text-white">
                       {trend === "New" && t("home.heroTrendNew", "New")}
                       {trend === "Hot" && t("home.heroTrendHot", "Hot")}
@@ -320,7 +326,7 @@ function HeroBanner({ videos, allVideos }: { videos: Video[]; allVideos: Video[]
         </div>
       </div>
       {/* 하단 배경과 자연스럽게 연결 */}
-      <div className="absolute bottom-0 left-0 right-0 h-[200px] z-[5] pointer-events-none bg-gradient-to-b from-transparent via-[#080618]/60 to-[#080618]" />
+      <div className="absolute bottom-0 left-0 right-0 h-[200px] z-[5] pointer-events-none bg-gradient-to-b from-transparent via-[#0a0a0a]/60 to-[#0a0a0a]" />
       {heroVideos.length > 1 && (
         <div className="absolute bottom-8 right-8 z-10 flex items-center gap-2">
           {heroVideos.map((_, i) => (
@@ -359,7 +365,7 @@ function RefreshButton({ onClick }: { onClick: () => void }) {
     <button
       type="button"
       onClick={handleClick}
-      className="flex h-8 w-8 items-center justify-center rounded-full border border-white/10 bg-white/5 text-white/40 transition hover:border-white/30 hover:bg-white/10 hover:text-white"
+      className="flex h-8 w-8 items-center justify-center rounded-full border border-white/10 bg-white/5 text-white/35 transition hover:border-white/30 hover:bg-white/10 hover:text-white"
     >
       <RefreshCw
         className={cn("h-3.5 w-3.5 transition-transform duration-500", spinning ? "rotate-180" : "")}
@@ -636,8 +642,8 @@ function WhatsWorking({ videos }: { videos: Video[] }) {
                       className={cn(
                         "h-8 cursor-pointer rounded-full px-4 text-xs font-medium tracking-wide transition-all duration-200",
                         active
-                          ? "bg-white text-[#080618]"
-                          : "border border-white/[0.08] bg-white/[0.04] text-white/60 hover:border-white/[0.15] hover:bg-white/[0.08] hover:text-white/80",
+                          ? "bg-white text-[#0a0a0a]"
+                          : "border border-white/[0.08] bg-white/[0.04] text-white/55 hover:border-white/[0.15] hover:bg-white/[0.08] hover:text-white/80",
                       )}
                     >
                       {filter.label}
@@ -667,244 +673,9 @@ function WhatsWorking({ videos }: { videos: Video[] }) {
       ) : (
         <div className="flex flex-col items-center justify-center py-12 text-center">
           <Film className="h-10 w-10 text-white/20" />
-          <p className="mt-3 text-sm text-white/40">{t("home.noVideosForGenre", "이 장르에는 아직 영상이 없어요")}</p>
+          <p className="mt-3 text-sm text-white/35">{t("home.noVideosForGenre", "이 장르에는 아직 영상이 없어요")}</p>
         </div>
       )}
-    </section>
-  );
-}
-
-const CATEGORY_LABEL: Record<string, { label: string; color: string }> = {
-  image: { label: "IMAGE", color: "text-pink-300/40 bg-pink-500/5 border-pink-500/10" },
-  video: { label: "VIDEO", color: "text-cyan-300/40 bg-cyan-500/5 border-cyan-500/10" },
-  audio: { label: "AUDIO", color: "text-amber-300/40 bg-amber-500/5 border-amber-500/10" },
-  text: { label: "TEXT", color: "text-emerald-300/40 bg-emerald-500/5 border-emerald-500/10" },
-};
-
-function AIToolCard({
-  tool,
-  count,
-  topVideo,
-  rank,
-  previewVideos,
-}: {
-  tool: string;
-  count: number;
-  topVideo: Video;
-  rank: number;
-  previewVideos: Video[];
-}) {
-  const category = TOOL_CATEGORY[tool];
-  const categoryInfo = category ? CATEGORY_LABEL[category] : null;
-  const initials = tool.slice(0, 2).toUpperCase();
-  const isTop1 = rank === 1;
-  const categoryDotClass =
-    category === "image"
-      ? "bg-pink-400"
-      : category === "video"
-        ? "bg-[#7F77DD]"
-        : category === "audio"
-          ? "bg-orange-400"
-          : "bg-emerald-300";
-  const categoryHoverClass =
-    category === "image"
-      ? "hover:border-pink-400/40 hover:shadow-[0_0_30px_rgba(244,114,182,0.25)]"
-      : category === "video"
-        ? "hover:border-[#7F77DD]/50 hover:shadow-[0_0_30px_rgba(127,119,221,0.25)]"
-        : category === "audio"
-          ? "hover:border-orange-400/40 hover:shadow-[0_0_30px_rgba(251,146,60,0.25)]"
-          : "hover:border-emerald-400/40 hover:shadow-[0_0_30px_rgba(52,211,153,0.2)]";
-  const rankClass =
-    rank === 1
-      ? "text-base font-bold text-[#F5D182] drop-shadow-[0_0_8px_rgba(245,209,130,0.4)]"
-      : rank === 2
-        ? "text-sm font-semibold text-white/80"
-        : rank === 3
-          ? "text-sm font-semibold text-white/70"
-          : "text-sm font-medium text-white/40";
-  const subtitle =
-    category === "image"
-      ? "AI Image Generation"
-      : category === "video"
-        ? "AI Video Generation"
-        : category === "audio"
-          ? "AI Audio Generation"
-          : "AI Creative Assistant";
-  const toolLower = tool.toLowerCase();
-  const iconBg = toolLower.includes("midjourney")
-    ? "bg-purple-500/30"
-    : toolLower.includes("kling")
-      ? "bg-cyan-500/30"
-      : toolLower.includes("elevenlabs")
-        ? "bg-zinc-500/30"
-        : toolLower.includes("runway")
-          ? "bg-green-500/30"
-          : toolLower.includes("udio")
-            ? "bg-pink-500/30"
-            : "bg-white/10";
-
-  return (
-    <Link
-      href={`/tools/${encodeURIComponent(tool)}`}
-      className={cn(
-        "group relative flex aspect-[3/4] flex-col overflow-hidden rounded-xl border border-t bg-gradient-to-b from-[#15102E]/90 to-[#0C0820]/90 p-5 backdrop-blur-xl shadow-[inset_0_1px_0_rgba(255,255,255,0.08),0_4px_24px_rgba(0,0,0,0.4)] transition-all duration-300 hover:scale-[1.02] hover:from-[#1A1438]/90 hover:to-[#100B26]/90",
-        isTop1 ? "border-white/[0.08] border-t-white/[0.15] shadow-[inset_0_1px_0_rgba(255,255,255,0.08),0_4px_24px_rgba(0,0,0,0.4),0_0_24px_rgba(245,209,130,0.08)]" : "border-white/[0.08] border-t-white/[0.15]",
-        categoryHoverClass,
-      )}
-    >
-      <span className={cn("absolute right-4 top-4 shrink-0 font-mono", rankClass)}>
-        {isTop1 ? <span className="mr-1 align-middle text-[10px] text-[#F5D182]/60">✦</span> : null}
-        #{rank}
-      </span>
-
-      <div className="flex-1">
-        <span className={cn("flex h-14 w-14 items-center justify-center rounded-2xl text-lg font-bold text-white shadow-[0_8px_24px_rgba(0,0,0,0.4)]", iconBg)}>
-          {initials}
-        </span>
-        <p className="mt-4 min-h-[3.5rem] pr-14 text-xl font-bold leading-tight text-white line-clamp-2">{tool}</p>
-        <p className="mt-1 line-clamp-1 text-xs text-white/50">{subtitle}</p>
-      </div>
-
-      <div className="mt-auto shrink-0 pt-2">
-        <div className="flex items-center gap-1.5">
-          {(() => {
-            const maxSlots = 4;
-            const hasExtra = count > maxSlots;
-            const thumbs = hasExtra ? previewVideos.slice(0, 3) : previewVideos.slice(0, maxSlots);
-            const filledSlots = hasExtra ? maxSlots : Math.max(maxSlots, thumbs.length);
-            const placeholders = Math.max(0, filledSlots - thumbs.length - (hasExtra ? 1 : 0));
-
-            return (
-              <>
-                {thumbs.map((video) =>
-                  video.thumbnailUrl ? (
-                    <div key={video.id} className="relative h-12 w-12 overflow-hidden rounded-md">
-                      <img
-                        src={video.thumbnailUrl}
-                        alt=""
-                        className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
-                        loading="lazy"
-                      />
-                      <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
-                    </div>
-                  ) : (
-                    <div
-                      key={video.id}
-                      className="flex h-12 w-12 items-center justify-center rounded-md bg-gradient-to-br from-[#7F77DD]/8 via-[#534AB7]/4 to-transparent text-2xl text-white/10 shadow-[inset_0_0_20px_rgba(0,0,0,0.3)]"
-                    >
-                      ✦
-                    </div>
-                  ),
-                )}
-                {hasExtra ? (
-                  <div className="flex h-12 w-12 items-center justify-center rounded-md bg-white/5 text-xs text-white/60">
-                    +{count - 3}
-                  </div>
-                ) : null}
-                {Array.from({ length: placeholders }).map((_, idx) => (
-                  <div
-                    key={`placeholder-${idx}`}
-                    className="flex h-12 w-12 items-center justify-center rounded-md bg-gradient-to-br from-[#7F77DD]/8 via-[#534AB7]/4 to-transparent text-2xl text-white/10 shadow-[inset_0_0_20px_rgba(0,0,0,0.3)]"
-                  >
-                    ✦
-                  </div>
-                ))}
-              </>
-            );
-          })()}
-        </div>
-
-        <div className="mt-3">
-          <p className="text-[11px] uppercase tracking-wider text-white/50">
-            <span className={cn("mr-1 inline-block h-1.5 w-1.5 rounded-full align-middle", categoryDotClass)} />
-            {categoryInfo?.label ?? "TEXT"} · {count} FILMS
-          </p>
-
-          <p className="flex max-h-0 items-center gap-1 overflow-hidden text-[11px] uppercase tracking-wider text-white/60 opacity-0 transition-all duration-300 group-hover:max-h-[24px] group-hover:opacity-100">
-            View films <span aria-hidden>→</span>
-          </p>
-        </div>
-      </div>
-    </Link>
-  );
-}
-
-function TrendingAITools({ videos }: { videos: Video[] }) {
-  const { t } = useI18n();
-
-  const trending = useMemo(() => {
-    type V = Video & { aiTools?: string[] | null };
-    const map = new Map<string, { count: number; topVideo: Video; topScore: number; previewVideos: Video[] }>();
-
-    (videos as V[]).forEach((video) => {
-      const tools = video.aiTools ?? [];
-      const score = (video.likeCount ?? 0) * 2 + (video.viewCount ?? 0) * 0.05;
-      tools.forEach((tool) => {
-        const existing = map.get(tool);
-        if (!existing) {
-          map.set(tool, {
-            count: 1,
-            topVideo: video,
-            topScore: score,
-            previewVideos: video.thumbnailUrl ? [video] : [],
-          });
-        } else {
-          existing.count += 1;
-          if (score > existing.topScore) {
-            existing.topVideo = video;
-            existing.topScore = score;
-          }
-          if (
-            video.thumbnailUrl &&
-            !existing.previewVideos.some((v) => v.id === video.id)
-          ) {
-            existing.previewVideos.push(video);
-          }
-        }
-      });
-    });
-
-    return Array.from(map.entries())
-      .map(([tool, data]) => ({
-        tool,
-        count: data.count,
-        topVideo: data.topVideo,
-        previewVideos: [...data.previewVideos]
-          .sort((a, b) => {
-            const viewDiff = (b.viewCount ?? 0) - (a.viewCount ?? 0);
-            if (viewDiff !== 0) return viewDiff;
-            return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
-          })
-          .slice(0, 4),
-      }))
-      .sort((a, b) => b.count - a.count)
-      .slice(0, 7);
-  }, [videos]);
-
-  if (trending.length === 0) return null;
-  return (
-    <section>
-      <SectionHeader
-        eyebrow="Trending"
-        title={t("home.trendingAITools", "AI Tools in Use")}
-        right={
-          <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-white/35">
-            {t("home.trendingAIToolsSub", "Most used this week")}
-          </p>
-        }
-      />
-      <div className="grid grid-cols-2 gap-2.5 md:grid-cols-4 xl:grid-cols-7">
-        {trending.map((item, idx) => (
-          <AIToolCard
-            key={item.tool}
-            tool={item.tool}
-            count={item.count}
-            topVideo={item.topVideo}
-            rank={idx + 1}
-            previewVideos={item.previewVideos}
-          />
-        ))}
-      </div>
     </section>
   );
 }
@@ -1017,230 +788,6 @@ function PaginatedGrid({
   );
 }
 
-type CompetitionWithThumb = Competition & { thumbnailUrl?: string | null };
-
-function CompetitionBanner({ competition }: { competition: Competition | null }) {
-  const { locale, t } = useI18n();
-  const [daysLeft, setDaysLeft] = useState<number | null>(null);
-
-  useEffect(() => {
-    if (!competition?.deadline) return;
-    const diff = new Date(competition.deadline).getTime() - Date.now();
-    setDaysLeft(Math.max(0, Math.ceil(diff / (1000 * 60 * 60 * 24))));
-  }, [competition?.deadline]);
-
-  const title = (() => {
-    if (!competition) return "Genova AI Film Competition";
-    if (locale === "ko") return competition.titleKo ?? competition.title ?? "Genova AI Film Competition";
-    if (locale === "ja") return competition.titleJa ?? competition.title ?? "Genova AI Film Competition";
-    return competition.titleEn ?? competition.title ?? "Genova AI Film Competition";
-  })();
-
-  const prizeDisplay = competition
-    ? formatPrizeWithConversion(
-        competition.prizeInfoKo ?? null,
-        competition.prizeInfoEn ?? null,
-        competition.prizeInfoJa ?? null,
-        competition.prizeInfo ?? "",
-        locale,
-        competition.currency ?? null,
-        competition.exchangeRateUsdKrw ?? 1350,
-        competition.exchangeRateUsdJpy ?? 148,
-      )
-    : "$3,000 in prizes";
-
-  const prizeDisplayFinal = (() => {
-    if (!competition) return "$3,000 in prizes";
-
-    const prizeRaw = competition.prizeInfo ?? "";
-    const krwRate = competition.exchangeRateUsdKrw ?? 1350;
-    const jpyRate = competition.exchangeRateUsdJpy ?? 148;
-
-    const usdMatch = prizeRaw.match(/\$([0-9,]+)/);
-    const krwMatch = prizeRaw.match(/₩([0-9,]+)|([0-9,]+)만원|([0-9,]+)원/);
-    const jpyMatch = prizeRaw.match(/¥([0-9,]+)/);
-
-    const usdAmount = usdMatch ? parseInt(usdMatch[1].replace(/,/g, "")) : null;
-    const krwAmount = krwMatch
-      ? krwMatch[1]
-        ? parseInt(krwMatch[1].replace(/,/g, ""))
-        : krwMatch[2]
-          ? parseInt(krwMatch[2].replace(/,/g, "")) * 10000
-          : krwMatch[3]
-            ? parseInt(krwMatch[3].replace(/,/g, ""))
-            : null
-      : null;
-    const jpyAmount = jpyMatch ? parseInt(jpyMatch[1].replace(/,/g, "")) : null;
-
-    const formatKrw = (krw: number) => {
-      if (krw >= 10000000) return `약 ₩${(krw / 10000000).toFixed(0)}천만`;
-      if (krw >= 1000000) return `약 ₩${(krw / 10000).toFixed(0)}만`;
-      return `약 ₩${krw.toLocaleString()}`;
-    };
-
-    const formatUsd = (usd: number) => `~$${usd.toLocaleString()}`;
-    const formatJpy = (jpy: number) => `약 ¥${jpy.toLocaleString()}`;
-    void formatJpy;
-
-    if (locale === "ko") {
-      if (krwAmount) return `₩${krwAmount.toLocaleString()}`;
-      if (usdAmount) return `$${usdAmount.toLocaleString()} (${formatKrw(usdAmount * krwRate)})`;
-      if (jpyAmount) return `¥${jpyAmount.toLocaleString()} (${formatKrw(jpyAmount / jpyRate * krwRate)})`;
-      return prizeRaw;
-    }
-
-    if (locale === "ja") {
-      if (jpyAmount) return `¥${jpyAmount.toLocaleString()}`;
-      if (usdAmount) return `$${usdAmount.toLocaleString()} (約¥${(usdAmount * jpyRate).toLocaleString()})`;
-      if (krwAmount) return `₩${krwAmount.toLocaleString()} (約¥${Math.round(krwAmount / krwRate * jpyRate).toLocaleString()})`;
-      return prizeRaw;
-    }
-
-    if (usdAmount) return `$${usdAmount.toLocaleString()}`;
-    if (krwAmount) return `₩${krwAmount.toLocaleString()} (${formatUsd(Math.round(krwAmount / krwRate))})`;
-    if (jpyAmount) return `¥${jpyAmount.toLocaleString()} (${formatUsd(Math.round(jpyAmount / jpyRate))})`;
-    return prizeRaw;
-  })();
-
-  const genreMap: Record<string, string> = {
-    "전체": "All Genres",
-    "단편영화": "Short Film",
-    "뮤직비디오": "Music Video",
-    "애니메이션": "Animation",
-    "다큐멘터리": "Documentary",
-    "공포": "Horror",
-    "SF": "Sci-Fi",
-    "액션": "Action",
-    "드라마": "Drama",
-    "short_film": "Short Film",
-    "mv": "Music Video",
-    "animation": "Animation",
-    "documentary": "Documentary",
-    "horror": "Horror",
-    "sci_fi": "Sci-Fi",
-    "action": "Action",
-    "drama": "Drama",
-  };
-
-  const genre = (() => {
-    if (!competition?.genre) return "All Genres";
-    if (locale === "ko") return competition.genre;
-    if (locale === "ja") {
-      const jaMap: Record<string, string> = {
-        "전체": "全ジャンル",
-        "단편영화": "短編映画",
-        "뮤직비디오": "ミュージックビデオ",
-        "애니메이션": "アニメーション",
-        "공포": "ホラー",
-      };
-      return jaMap[competition.genre] ?? genreMap[competition.genre] ?? competition.genre;
-    }
-    return genreMap[competition.genre] ?? competition.genre;
-  })();
-
-  const statusMap: Record<string, string> = {
-    "Open": "Now Open",
-    "접수중": "Now Open",
-    "In Review": "In Review",
-    "결선 진행중": "Finals",
-    "Voting": "Voting",
-    "Closed": "Closed",
-  };
-  const status = statusMap[competition?.status ?? ""] ?? competition?.status ?? "Now Open";
-  const thumbnailUrl = (competition as CompetitionWithThumb | null)?.thumbnailUrl ?? null;
-
-  const bgImage = thumbnailUrl ?? "/competition-banner-bg.png";
-
-  return (
-    <div
-      className="relative w-full overflow-hidden rounded-2xl border border-white/10 bg-[#080618]/40 backdrop-blur-xl transition-all duration-300 hover:border-white/20 hover:shadow-[0_0_40px_rgba(127,119,221,0.15)]"
-      style={{ minHeight: "88px" }}
-    >
-      {/* 배경 단순화 */}
-      <img src={bgImage} alt="" className="absolute inset-0 h-full w-full object-cover opacity-[0.12]" />
-      <div className="absolute inset-0 bg-[#080618]/40" />
-
-      {/* 콘텐츠 */}
-      <div className="relative z-10 flex items-center justify-between gap-6 px-8 py-6">
-        {/* 왼쪽 — 뱃지 + 타이틀 + 메타 (한 컬럼 좌측 정렬) */}
-        <div className="flex min-w-0 flex-1 items-center gap-5">
-          {/* NOW OPEN 뱃지 */}
-          <span className="shrink-0 inline-flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.2em] text-[#7F77DD]">
-            <span className="text-[#7F77DD]">•</span>
-            {["Open", "접수중", "In Review", "Voting"].includes(competition?.status ?? "")
-              ? t("competition.banner.nowOpen", "Now Open")
-              : ["Upcoming", "예정"].includes(competition?.status ?? "")
-                ? t("competition.statusUpcoming", "Upcoming")
-                : t("competition.statusClosed", "Closed")}
-          </span>
-
-          <div className="h-10 w-px shrink-0 bg-white/10" />
-
-          {/* 타이틀 + 메타 한 컬럼 */}
-          <div className="min-w-0 flex-1">
-            <div className="flex items-center gap-2">
-              <p className="text-[11px] uppercase tracking-[0.2em] text-white/40">{genre}</p>
-              <span className="h-3 w-px bg-white/15" />
-              <p className="text-[11px] uppercase tracking-[0.2em] text-white/40">
-                {t("competition.banner.featured", "Featured Contest")}
-              </p>
-            </div>
-            <h3 className="mt-1 truncate text-xl font-bold text-white">{title}</h3>
-            <div className="mt-1.5 flex items-center gap-3 text-[12px]">
-              <span className="flex items-center gap-1.5 font-bold text-white/85">
-                <svg className="h-3 w-3 text-[#AFA9EC]" viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
-                </svg>
-                <span
-                  style={{
-                    backgroundImage: "linear-gradient(135deg, #FFE9B0 0%, #FFD478 100%)",
-                    WebkitBackgroundClip: "text",
-                    WebkitTextFillColor: "transparent",
-                    backgroundClip: "text",
-                  }}
-                >
-                  {prizeDisplayFinal}
-                </span>
-              </span>
-              {daysLeft !== null && (
-                <>
-                  <span className="text-white/20">·</span>
-                  <span className="flex items-center gap-1.5 font-bold text-white/85">
-                    <svg className="h-3 w-3 text-[#AFA9EC]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                      <circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2" strokeLinecap="round"/>
-                    </svg>
-                    <span className="text-[#D5D1FF]">D-{daysLeft}</span>
-                  </span>
-                </>
-              )}
-            </div>
-          </div>
-        </div>
-
-        {/* 오른쪽 CTA */}
-        <div className="flex shrink-0 items-center gap-2.5">
-          <Link
-            href="/competition"
-            className="rounded-lg border border-white/10 bg-white/5 px-5 py-2.5 text-[13px] font-semibold text-white/70 transition hover:bg-white/10 hover:text-white"
-          >
-            {t("competition.banner.learnMore", "Learn More")}
-          </Link>
-          <Link
-            href={competition?.id ? `/competition/${competition.id}` : "/competition"}
-            className="rounded-lg px-5 py-2.5 text-[13px] font-bold text-white transition-all duration-300 hover:scale-[1.02]"
-            style={{
-              background: "linear-gradient(135deg, #534AB7 0%, #6B5FD4 100%)",
-              boxShadow: "0 4px 16px rgba(83,74,183,0.5), inset 0 1px 0 rgba(255,255,255,0.15)",
-            }}
-          >
-            {t("competition.banner.submitNow", "Submit Now →")}
-          </Link>
-        </div>
-      </div>
-    </div>
-  );
-}
-
 type SpotlightCreator = {
   uploadedBy: string;
   displayName: string;
@@ -1260,6 +807,13 @@ const SPOTLIGHT_BADGES = [
   { label: "Trendsetter", emoji: "⚡", color: "#ec4899", glow: "rgba(236,72,153,0.3)", border: "rgba(236,72,153,0.25)", bg: "rgba(236,72,153,0.05)" },
 ] as const;
 
+type HeroAwardVideos = {
+  grandPrize: Video | null;
+  excellence: Video | null;
+  merit: Video | null;
+  audience: Video | null;
+};
+
 type HomePageClientProps = {
   videosFromDb: Video[];
   /** Supabase competition deadline (ISO); null uses banner fallback timer */
@@ -1270,6 +824,13 @@ type HomePageClientProps = {
   followingVideos: Video[];
   becauseYouWatched: Video[];
   isLoggedIn: boolean;
+  heroAwardVideos?: HeroAwardVideos;
+  initialTab?: "recommended" | "films";
+  competitionStats: {
+    activeCount: number;
+    totalPrizeUSD: number;
+    participantCount: number;
+  };
 };
 
 function SpotlightFollowButton({ targetUserId, badgeColor = "#7F77DD" }: { targetUserId: string; badgeColor?: string }) {
@@ -1329,7 +890,7 @@ function SpotlightMoreMenu({ creator }: { creator: SpotlightCreator }) {
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
-      className="flex h-8 w-8 items-center justify-center rounded-lg text-white/30 transition hover:bg-white/[0.06] hover:text-white/60"
+      className="flex h-8 w-8 items-center justify-center rounded-lg text-white/30 transition hover:bg-white/[0.06] hover:text-white/55"
         style={{ border: "1px solid rgba(255,255,255,0.06)" }}
       >
         <svg viewBox="0 0 24 24" className="h-4 w-4" fill="currentColor">
@@ -1348,7 +909,7 @@ function SpotlightMoreMenu({ creator }: { creator: SpotlightCreator }) {
         >
           <Link
             href={`/profile/${creator.uploadedBy}`}
-            className="flex items-center gap-2 rounded-lg px-3 py-2 text-xs text-white/60 transition hover:bg-white/[0.05] hover:text-white"
+            className="flex items-center gap-2 rounded-lg px-3 py-2 text-xs text-white/55 transition hover:bg-white/[0.05] hover:text-white"
             onClick={() => setOpen(false)}
           >
             <svg viewBox="0 0 24 24" className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth="2">
@@ -1391,16 +952,72 @@ export function HomePageClient(props: HomePageClientProps) {
     followingVideos,
     becauseYouWatched,
     isLoggedIn,
+    heroAwardVideos,
+    initialTab,
+    competitionStats,
   } = props;
   const { t, locale } = useI18n();
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const { selectedGenre, setSelectedGenre } = useGenreFilter();
   const [selectedMood, setSelectedMood] = useState<string>("all");
+  const [activeMainTab, setActiveMainTab] = useState<MainTab>(initialTab ?? "recommended");
+  const [activeSubGenre, setActiveSubGenre] = useState<SubGenre>("all");
+  const [activeSort, setActiveSort] = useState<SortKey>("latest");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [hoveredId, setHoveredId] = useState<string | null>(null);
   const moodBarRef = useRef<HTMLDivElement>(null);
   const isFirstMount = useRef(true);
 
-  const videos = videosFromDb;
+  const [allVideos, setAllVideos] = useState<Video[]>(videosFromDb);
+  const [page, setPage] = useState(0);
+  const [hasMore, setHasMore] = useState(videosFromDb.length === 50);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const loadMoreRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    setAllVideos(videosFromDb);
+    setPage(0);
+    setHasMore(videosFromDb.length === 50);
+  }, [videosFromDb]);
+
+  const loadMore = useCallback(async () => {
+    if (!hasMore || isLoadingMore) return;
+    setIsLoadingMore(true);
+    try {
+      const nextPage = page + 1;
+      const res = await fetch(`/api/videos?page=${nextPage}`);
+      const data = await res.json();
+      if (data.videos?.length) {
+        setAllVideos((prev) => {
+          const existingIds = new Set(prev.map((v) => v.id));
+          const newOnly = (data.videos as Video[]).filter((v) => !existingIds.has(v.id));
+          return [...prev, ...newOnly];
+        });
+      }
+      setPage(nextPage);
+      setHasMore(data.hasMore ?? false);
+    } catch (err) {
+      console.error("Failed to load more videos:", err);
+    } finally {
+      setIsLoadingMore(false);
+    }
+  }, [page, hasMore, isLoadingMore]);
+
+  useEffect(() => {
+    const el = loadMoreRef.current;
+    if (!el || !hasMore) return;
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting) loadMore();
+      },
+      { rootMargin: "300px" },
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [loadMore, hasMore]);
+
+  const videos = allVideos;
   const newestVideos = useMemo(
     () => [...videos].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()),
     [videos]
@@ -1450,38 +1067,197 @@ export function HomePageClient(props: HomePageClientProps) {
     }
   }, [searchParams]);
 
+  const carouselSlides = useMemo(() => {
+    const GENRES: { key: "film" | "animation" | "music" | "art" | "daily"; label: string }[] = [
+      { key: "film", label: t("genre.bucketFilm", "Film") },
+      { key: "animation", label: t("genre.animation", "Animation") },
+      { key: "music", label: t("genre.bucketMusic", "Music") },
+      { key: "art", label: t("genre.bucketArt", "Art") },
+      { key: "daily", label: t("genre.bucketDaily", "Daily") },
+    ];
+
+    return GENRES.map((g) => {
+      const filtered = videos
+        .filter((v) => normalizeToMainGenre(v.genre) === g.key)
+        .sort((a, b) => (b.likeCount ?? 0) - (a.likeCount ?? 0))
+        .slice(0, 4)
+        .map((v) => {
+          const runtimeSec = parseRuntimeToSeconds(v.runtime);
+          return {
+            id: v.id,
+            title: v.title,
+            thumbnailUrl: v.thumbnailUrl ?? null,
+            creatorName: v.creatorName?.trim() || v.uploaderDisplayName?.trim() || null,
+            likeCount: v.likeCount ?? 0,
+            muxPlaybackId: v.muxPlaybackId ?? null,
+            runtime: runtimeSec > 0 ? runtimeSec : null,
+          };
+        });
+
+      return {
+        genreKey: g.key,
+        genreLabel: g.label,
+        videos: filtered,
+      };
+    });
+  }, [videos, t]);
+
+  const filteredVideos = useMemo(() => {
+    let result: Video[];
+
+    const sq = searchQuery.trim().toLowerCase();
+    if (sq) {
+      result = videos.filter(
+        (v) =>
+          v.title.toLowerCase().includes(sq) ||
+          (v.creatorName ?? "").toLowerCase().includes(sq) ||
+          (v.uploaderDisplayName ?? "").toLowerCase().includes(sq) ||
+          (v.tags ?? []).some((tag) => tag.toLowerCase().includes(sq)),
+      );
+    } else if (activeMainTab === "recommended") {
+      const base = [...videos];
+      if (activeSubGenre === "trending") {
+        result = base.sort((a, b) => (b.likeCount ?? 0) - (a.likeCount ?? 0));
+      } else if (activeSubGenre === "awards") {
+        result = base.filter((v) => v.isFinalist || v.award);
+      } else {
+        result = base.sort((a, b) => (b.likeCount ?? 0) - (a.likeCount ?? 0));
+      }
+    } else if (activeMainTab === "films") {
+      if (activeSubGenre === "all") {
+        result = [...videos];
+      } else {
+        result = videos.filter((v) => normalizeToMainGenre(v.genre) === activeSubGenre);
+      }
+    } else {
+      result = [...videos];
+    }
+
+    if (activeSort === "latest") {
+      result.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+    } else if (activeSort === "liked") {
+      result.sort((a, b) => (b.likeCount ?? 0) - (a.likeCount ?? 0));
+    } else if (activeSort === "viewed") {
+      result.sort((a, b) => (b.viewCount ?? 0) - (a.viewCount ?? 0));
+    }
+
+    return result;
+  }, [videos, activeMainTab, activeSubGenre, activeSort, searchQuery]);
+
   return (
     <div className="min-h-screen bg-background">
-      {/* Hero — full width */}
       <AnimateIn delay={0.05}>
-        <div className="-mt-16">
-          <HeroBanner videos={videos} allVideos={videos} />
-        </div>
+        <HomeCompetitionBanner competition={competition} stats={competitionStats} />
       </AnimateIn>
 
-      <div className="pt-1">
-        <div className="mx-auto max-w-[1500px] px-8">
-          <AnimateIn delay={0.07}>
-            <CompetitionBanner competition={competition} />
-          </AnimateIn>
-        </div>
-      </div>
+      <div data-content-start className="w-full space-y-2 px-6 pb-12 pt-4 sm:space-y-3 sm:px-8">
+        <AnimateIn delay={0.07}>
+          <HomeGenreCarousel slides={carouselSlides} />
+        </AnimateIn>
 
-      {/* Main content */}
-      <div className="px-8 pb-12 pt-2">
-        <div className="max-w-[1500px] mx-auto space-y-8">
-          <AnimateIn delay={0.06}>
-            <TrendingAITools videos={videos} />
-          </AnimateIn>
+        <AnimateIn delay={0.09} className="relative z-[60]">
+          <HomeTabNav
+            activeMainTab={activeMainTab}
+            activeSubGenre={activeSubGenre}
+            activeSort={activeSort}
+            searchQuery={searchQuery}
+            onMainTabChange={(tab) => {
+              setActiveMainTab(tab);
+              setActiveSubGenre("all");
+            }}
+            onSubGenreChange={setActiveSubGenre}
+            onSortChange={setActiveSort}
+            onSearchChange={setSearchQuery}
+          />
+        </AnimateIn>
 
-          <AnimateIn delay={0.08}>
-            <WhatsWorking videos={videos} />
-          </AnimateIn>
+        <AnimateIn delay={0.11} className="relative z-0">
+         <div className="min-h-[800px]">
+          {activeSubGenre === "awards" && activeMainTab === "recommended" ? (
+            <AwardsGallery
+              heroAwardVideos={heroAwardVideos ?? { grandPrize: null, excellence: null, merit: null, audience: null }}
+              competitionTitle={competition?.title
+                ? (locale === "ko" ? competition.titleKo : locale === "ja" ? competition.titleJa : competition.titleEn) ?? competition.title
+                : t("awards.gallery.title", "Award Winners")}
+            />
+          ) : filteredVideos.length > 0 ? (
+            <div className="relative z-0 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
+              {filteredVideos.map((v) => {
+                const creatorName =
+                  v.creatorName?.trim() || v.uploaderDisplayName?.trim() || "";
+                const runtimeSec = parseRuntimeToSeconds(v.runtime);
+                return (
+                  <Link
+                    key={v.id}
+                    href={`/watch/${v.id}`}
+                    className="group relative block overflow-hidden rounded-xl transition-all duration-300 hover:-translate-y-1"
+                    onMouseEnter={() => setHoveredId(v.id)}
+                    onMouseLeave={() => setHoveredId(null)}
+                  >
+                    <div className="relative aspect-[3/2] overflow-hidden bg-white/[0.02]">
+                      <img
+                        src={
+                          hoveredId === v.id && v.muxPlaybackId
+                            ? `https://image.mux.com/${v.muxPlaybackId}/animated.gif?width=640&fps=15`
+                            : v.thumbnailUrl || ""
+                        }
+                        alt={v.title}
+                        className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                      />
+                      <div
+                        className="absolute inset-0"
+                        style={{
+                          background: "linear-gradient(180deg, transparent 50%, rgba(0,0,0,0.85) 100%)",
+                        }}
+                      />
+                      <div className="absolute inset-x-0 bottom-0 p-3">
+                        <p className="line-clamp-1 text-[13px] font-bold text-white">{v.title}</p>
+                        <div className="mt-1 flex items-center gap-2 text-[11px] text-white/55">
+                          {creatorName && <span className="line-clamp-1">{creatorName}</span>}
+                          {runtimeSec > 0 && (
+                            <>
+                              <span>·</span>
+                              <span>{formatRuntimeDisplay(runtimeSec)}</span>
+                            </>
+                          )}
+                          {typeof v.likeCount === "number" && v.likeCount > 0 && (
+                            <>
+                              <span>·</span>
+                              <span className="flex items-center gap-0.5">
+                                <Heart size={10} className="fill-current" />
+                                {v.likeCount}
+                              </span>
+                            </>
+                          )}
+                        </div>
+                      </div>
+                      <div className="absolute inset-0 rounded-xl ring-1 ring-inset ring-white/[0.06] transition group-hover:ring-white/15" />
+                    </div>
+                  </Link>
+                );
+              })}
+            </div>
+          ) : (
+            <div className="flex min-h-[600px] flex-col items-center justify-center text-center">
+              <Film className="h-10 w-10 text-white/15" />
+              <p className="mt-3 text-sm text-white/35">
+                {searchQuery.trim()
+                  ? t("home.noSearchResults", "No search results")
+                  : t("home.noVideosForTab", "No videos to show yet")}
+              </p>
+            </div>
+          )}
+         </div>
+        </AnimateIn>
 
-          <AnimateIn delay={0.1}>
-            <UploadCTA />
-          </AnimateIn>
-        </div>
+        {hasMore && (
+          <div ref={loadMoreRef} className="flex justify-center py-8">
+            {isLoadingMore && (
+              <div className="text-[12px] text-white/40">{t("home.loadingMore", "Loading more...")}</div>
+            )}
+          </div>
+        )}
+
       </div>
 
       <HeroInfoModal videos={videos} />

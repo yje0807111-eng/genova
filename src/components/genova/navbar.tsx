@@ -6,7 +6,9 @@ import { useEffect, useRef, useState } from "react";
 import { Bell, Search, Upload, User, X } from "lucide-react";
 import { markAllNotificationsReadAction } from "@/app/actions/notifications";
 import { useI18n } from "@/components/genova/language-provider";
+import { useUploadModal } from "@/components/upload/upload-modal-context";
 import { getBrowserSupabaseClient } from "@/lib/supabase/browser";
+import { getNotificationLabel } from "@/lib/notifications-i18n";
 
 function SearchBar() {
   const { t } = useI18n();
@@ -99,9 +101,9 @@ function SearchBar() {
     <div ref={wrapperRef} className="relative flex min-w-0 flex-1 justify-center px-6">
       <div className="relative w-full max-w-[720px]">
         <div
-          className={`flex items-center gap-2 rounded-full border px-4 py-2 transition-colors duration-200 ${focused ? "border-[#7F77DD]/50 bg-[#080614]/80 backdrop-blur-xl" : "border-white/10 bg-[#080614]/70 backdrop-blur-xl"}`}
+          className={`flex items-center gap-2 rounded-full border px-4 py-2 transition-colors duration-200 ${focused ? "border-[#7F77DD]/50 bg-[#0a0a0a]/90 backdrop-blur-xl" : "border-white/10 bg-[#0a0a0a]/85 backdrop-blur-xl"}`}
         >
-          <Search className="h-4 w-4 shrink-0 text-white/40" aria-hidden />
+          <Search className="h-4 w-4 shrink-0 text-white/35" aria-hidden />
           <input
             ref={inputRef}
             type="text"
@@ -122,7 +124,7 @@ function SearchBar() {
                 setQuery("");
                 inputRef.current?.focus();
               }}
-              className="text-white/30 hover:text-white/60"
+              className="text-white/30 hover:text-white/55"
             >
               <svg viewBox="0 0 24 24" className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth={2}>
                 <path d="M18 6L6 18M6 6l12 12" strokeLinecap="round" />
@@ -136,7 +138,7 @@ function SearchBar() {
           <div
             className="absolute left-0 right-0 top-full z-50 mt-2 overflow-hidden rounded-2xl border border-white/[0.08] py-2"
             style={{
-              background: "linear-gradient(135deg, rgba(15,13,36,0.99) 0%, rgba(8,6,24,1) 100%)",
+              background: "linear-gradient(135deg, rgba(15,13,36,0.99) 0%, rgba(10,10,10,1) 100%)",
               boxShadow: "0 8px 32px rgba(0,0,0,0.6), 0 0 0 1px rgba(127,119,221,0.08)",
             }}
           >
@@ -144,7 +146,7 @@ function SearchBar() {
               <>
         {suggestVideos.length === 0 && suggestProfiles.length === 0 && suggestTags.length === 0 && (
           <div className="px-4 py-6 text-center">
-            <p className="text-[12px] text-white/40">{t("search.noResultsLine", "No results for \"{q}\"").replace("{q}", query)}</p>
+            <p className="text-[12px] text-white/35">{t("search.noResultsLine", "No results for \"{q}\"").replace("{q}", query)}</p>
             <p className="mt-1 text-[10px] text-white/25">{t("search.navbarTryOther")}</p>
           </div>
         )}
@@ -187,9 +189,7 @@ function SearchBar() {
                         className="flex w-full items-center gap-3 px-4 py-2.5 text-left text-sm transition hover:bg-white/[0.05]"
                       >
                         <div className="h-8 w-8 shrink-0 overflow-hidden rounded-full border border-white/10 bg-[#26215C]">
-                          {p.avatarUrl ? (
-                            <img src={p.avatarUrl} alt="" className="h-full w-full object-cover" />
-                          ) : null}
+                          <img src={p.avatarUrl || "/default-avatar.png"} alt="" className="h-full w-full object-cover" />
                         </div>
                         <span className="line-clamp-1 text-white/75">{p.displayName}</span>
                       </button>
@@ -294,6 +294,7 @@ function SearchBar() {
 export function Navbar() {
   const { t } = useI18n();
   const router = useRouter();
+  const { open: openUploadModal } = useUploadModal();
   const [userId, setUserId] = useState<string | null | undefined>(undefined);
   const [isAdmin, setIsAdmin] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
@@ -470,14 +471,9 @@ export function Navbar() {
           <SearchBar />
 
           <div className="flex shrink-0 items-center gap-3 pr-4">
-            <Link
-              href="/upload"
-              onClick={(e) => {
-                if (userId === null) {
-                  e.preventDefault();
-                  router.push("/auth");
-                }
-              }}
+            <button
+              type="button"
+              onClick={() => openUploadModal()}
               className="flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-bold text-white transition-all duration-300 hover:scale-[1.03]"
               style={{
                 background: "linear-gradient(135deg, rgba(107,95,212,0.85) 0%, rgba(83,74,183,0.75) 50%, rgba(63,54,163,0.65) 100%)",
@@ -487,7 +483,7 @@ export function Navbar() {
             >
               <Upload className="h-3.5 w-3.5" />
               <span className="hidden sm:inline">{t("nav.upload", "Upload")}</span>
-            </Link>
+            </button>
             {userId && (
               <div ref={notificationRef} className="relative">
                 <button
@@ -499,10 +495,10 @@ export function Navbar() {
                       setUnreadCount(0);
                     }
                   }}
-                  className="relative flex h-9 w-9 items-center justify-center rounded-full border border-white/10 bg-[#080614]/80 backdrop-blur-xl transition-all duration-200 hover:border-[#7F77DD]/40 hover:bg-[#0f0d24]/90"
+                  className="relative flex h-9 w-9 items-center justify-center rounded-full border border-white/10 bg-[#0a0a0a]/80 backdrop-blur-xl transition-all duration-200 hover:border-[#7F77DD]/40 hover:bg-[#1a1a1a]/90"
                   aria-label="Notifications"
                 >
-                  <Bell className="h-4 w-4 text-white/60" />
+                  <Bell className="h-4 w-4 text-white/55" />
                   {unreadCount > 0 && (
                     <span
                       className="absolute -right-0.5 -top-0.5 flex h-4 w-4 items-center justify-center rounded-full text-[9px] font-bold text-white"
@@ -515,11 +511,7 @@ export function Navbar() {
 
                 {showNotifications && (
                   <div
-                    className="absolute right-0 top-full z-[100] mt-2 w-80 overflow-hidden rounded-2xl border border-white/[0.08]"
-                    style={{
-                      background: "linear-gradient(135deg, rgba(20,17,50,0.99) 0%, rgba(10,8,28,1) 100%)",
-                      boxShadow: "0 8px 32px rgba(0,0,0,0.6), 0 0 0 1px rgba(127,119,221,0.08)",
-                    }}
+                    className="absolute right-0 top-full z-[100] mt-2 w-80 overflow-hidden rounded-2xl border border-white/[0.06] bg-[#0a0a0a] shadow-2xl"
                   >
                     <div className="flex items-center justify-between border-b border-white/[0.06] px-4 py-3">
                       <div className="flex items-center gap-2">
@@ -541,7 +533,7 @@ export function Navbar() {
                               setNotifications((prev) => prev.map((n) => ({ ...n, isRead: true })));
                               setUnreadCount(0);
                             }}
-                            className="text-[10px] text-white/40 transition hover:text-white/70"
+                            className="text-[10px] text-white/35 transition hover:text-white/70"
                           >
                             {t("notifications.markAllRead")}
                           </button>
@@ -557,7 +549,7 @@ export function Navbar() {
                               setNotifications([]);
                               setUnreadCount(0);
                             }}
-                            className="text-[10px] text-white/40 transition hover:text-red-400"
+                            className="text-[10px] text-white/35 transition hover:text-red-400"
                           >
                             {t("notifications.deleteAll")}
                           </button>
@@ -565,7 +557,7 @@ export function Navbar() {
                         <button
                           type="button"
                           onClick={() => setShowNotifications(false)}
-                          className="flex h-6 w-6 items-center justify-center rounded-full text-white/30 transition hover:bg-white/[0.05] hover:text-white/60"
+                          className="flex h-6 w-6 items-center justify-center rounded-full text-white/30 transition hover:bg-white/[0.05] hover:text-white/55"
                         >
                           <X className="h-3.5 w-3.5" />
                         </button>
@@ -582,7 +574,7 @@ export function Navbar() {
                         notifications.map((n) => {
                           const content = (
                             <div
-                              className={`flex cursor-pointer items-start gap-3 px-4 py-3 transition hover:bg-white/[0.04] ${!n.isRead ? "bg-[#534AB7]/10" : ""}`}
+                              className={`flex cursor-pointer items-start gap-3 px-4 py-3 transition hover:bg-white/[0.04] ${!n.isRead ? "bg-white/[0.03]" : "bg-transparent"}`}
                               onClick={async () => {
                                 if (!n.isRead) {
                                   const supabase = getBrowserSupabaseClient();
@@ -624,15 +616,22 @@ export function Navbar() {
                               </div>
 
                               <div className="min-w-0 flex-1">
-                                <div className="flex items-start justify-between gap-2">
-                                  <p className={`text-xs font-semibold ${n.isRead ? "text-white/50" : "text-white"}`}>{n.title}</p>
-                                  {n.createdAt && (
-                                    <span className="shrink-0 text-[10px] text-white/25">
-                                      {formatNotificationRelativeTime(n.createdAt)}
-                                    </span>
-                                  )}
-                                </div>
-                                {n.body && <p className="mt-0.5 text-[10px] text-white/30">{n.body}</p>}
+                                {(() => {
+                                  const label = getNotificationLabel(n, t);
+                                  return (
+                                    <>
+                                      <div className="flex items-start justify-between gap-2">
+                                        <p className={`text-xs font-semibold ${n.isRead ? "text-white/50" : "text-white"}`}>{label.title}</p>
+                                        {n.createdAt && (
+                                          <span className="shrink-0 text-[10px] text-white/35">
+                                            {formatNotificationRelativeTime(n.createdAt)}
+                                          </span>
+                                        )}
+                                      </div>
+                                      {label.body && <p className="mt-0.5 text-[10px] text-white/55">{label.body}</p>}
+                                    </>
+                                  );
+                                })()}
                               </div>
 
                               <div className="flex shrink-0 items-center gap-1 self-start pt-0.5">
@@ -667,7 +666,7 @@ export function Navbar() {
                       <Link
                         href="/notifications"
                         onClick={() => setShowNotifications(false)}
-                        className="block text-center text-[11px] text-white/40 transition hover:text-white/70"
+                        className="block text-center text-[11px] text-white/35 transition hover:text-white/70"
                       >
                         {t("notifications.viewAllNotifications")}
                       </Link>
@@ -686,18 +685,18 @@ export function Navbar() {
               <>
                 <Link
                   href={profileHref}
-                  className="flex h-9 w-9 items-center justify-center rounded-full border border-white/10 bg-[#080614]/80 backdrop-blur-xl transition-all duration-200 hover:border-[#7F77DD]/40 hover:bg-[#0f0d24]/90"
+                  className="flex h-9 w-9 items-center justify-center rounded-full border border-white/10 bg-[#0a0a0a]/80 backdrop-blur-xl transition-all duration-200 hover:border-[#7F77DD]/40 hover:bg-[#1a1a1a]/90"
                   aria-label={userId ? t("common.myProfile", "My profile") : t("common.signIn", "Sign in")}
                 >
-                  <User className="h-4 w-4 text-white/60" />
+                  <User className="h-4 w-4 text-white/55" />
                 </Link>
                 {isAdmin && (
                   <Link
                     href="/admin"
-                    className="flex h-9 w-9 items-center justify-center rounded-full border border-white/10 bg-[#080614]/80 backdrop-blur-xl transition-all duration-200 hover:border-[#7F77DD]/40 hover:bg-[#0f0d24]/90"
+                    className="flex h-9 w-9 items-center justify-center rounded-full border border-white/10 bg-[#0a0a0a]/80 backdrop-blur-xl transition-all duration-200 hover:border-[#7F77DD]/40 hover:bg-[#1a1a1a]/90"
                     aria-label="Admin"
                   >
-                    <svg viewBox="0 0 24 24" className="h-4 w-4 text-white/60" fill="none" stroke="currentColor" strokeWidth={2}>
+                    <svg viewBox="0 0 24 24" className="h-4 w-4 text-white/55" fill="none" stroke="currentColor" strokeWidth={2}>
                       <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" strokeLinecap="round" strokeLinejoin="round" />
                     </svg>
                   </Link>

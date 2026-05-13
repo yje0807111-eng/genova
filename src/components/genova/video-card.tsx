@@ -189,7 +189,7 @@ export function VideoCard({
             className="absolute inset-x-0 bottom-0 z-[1] transition-opacity duration-300 group-hover/card:opacity-0"
             style={{
               height: "45%",
-              background: "linear-gradient(to top, rgba(8,6,24,0.92) 0%, rgba(8,6,24,0.5) 50%, transparent 100%)",
+              background: "linear-gradient(to top, rgba(10,10,10,0.92) 0%, rgba(10,10,10,0.5) 50%, transparent 100%)",
             }}
           />
           {/* 장르 배지 — 기본 상태 */}
@@ -209,7 +209,7 @@ export function VideoCard({
           {/* 제목 + 조회수 — 기본 상태 */}
           <div className="absolute bottom-0 left-0 right-0 z-[2] px-3 pb-3 transition-opacity duration-300 group-hover/card:opacity-0">
             <h3 className="line-clamp-1 text-[14px] font-bold text-white">{title}</h3>
-            <p className="mt-0.5 text-[11px] text-white/40">{views} {t("feed.views", "views")}</p>
+            <p className="mt-0.5 text-[11px] text-white/35">{views} {t("feed.views", "views")}</p>
             {duration && (
               <div className="absolute bottom-3 right-3">
                 <span className="rounded bg-black/70 px-1.5 py-0.5 text-[10px] font-bold text-white backdrop-blur-sm">
@@ -223,7 +223,7 @@ export function VideoCard({
           <div
             className="absolute inset-0 z-[3] flex flex-col justify-between p-3 opacity-0 transition-opacity duration-300 group-hover/card:opacity-100"
             style={{
-              background: "linear-gradient(to top, rgba(8,6,24,0.97) 0%, rgba(8,6,24,0.7) 45%, rgba(8,6,24,0.15) 100%)",
+              background: "linear-gradient(to top, rgba(10,10,10,0.97) 0%, rgba(10,10,10,0.7) 45%, rgba(10,10,10,0.15) 100%)",
             }}
           >
             {/* 상단: 장르 배지 */}
@@ -268,7 +268,7 @@ export function VideoCard({
                 {avatar ? (
                   <img src={avatar} alt="" className="h-5 w-5 shrink-0 rounded-full object-cover border border-white/20" />
                 ) : (
-                  <div className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-[#26215C] border border-white/20 text-[8px] font-bold text-white/60">
+                  <div className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-[#26215C] border border-white/20 text-[8px] font-bold text-white/55">
                     {creator.slice(0, 1).toUpperCase()}
                   </div>
                 )}

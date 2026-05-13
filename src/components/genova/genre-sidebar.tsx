@@ -124,7 +124,7 @@ function GenreRow({
       <Icon
         className={cn(
           "relative z-[1] h-4 w-4 shrink-0",
-          selected ? "text-[#AFA9EC]" : "text-white/40",
+          selected ? "text-[#AFA9EC]" : "text-white/35",
         )}
         aria-hidden
       />
@@ -475,7 +475,7 @@ export function GenreSidebar({
                     <GenreIcon
                       className={cn(
                         "relative z-[1] h-4 w-4 shrink-0",
-                        activeSection === "genre-" + key ? "text-[#AFA9EC]" : "text-white/40",
+                        activeSection === "genre-" + key ? "text-[#AFA9EC]" : "text-white/35",
                       )}
                       aria-hidden
                     />
@@ -657,7 +657,7 @@ export function GenreSidebar({
                     }}
                     className="typo-sidebar-link flex items-center gap-3 rounded-lg px-3 py-2.5 text-white/72 transition-colors duration-200 hover:bg-white/5 hover:text-white"
                   >
-                    <span className="w-4 text-[11px] font-semibold text-white/40">{idx + 1}</span>
+                    <span className="w-4 text-[11px] font-semibold text-white/35">{idx + 1}</span>
                     <Hash className="h-3.5 w-3.5 shrink-0 text-[#7F77DD]/70" />
                     <span className="min-w-0 flex-1 truncate">#{item.tag}</span>
                   </Link>
@@ -675,7 +675,7 @@ export function GenreSidebar({
           type="button"
           onClick={onToggle}
           className={cn(
-            "flex w-full items-center justify-center rounded-md border border-white/20 bg-[#0f0d24]/80 py-1.5 text-white/70 backdrop-blur-sm transition hover:border-white/40 hover:bg-white/10 hover:text-white",
+            "flex w-full items-center justify-center rounded-md border border-white/20 bg-[#1a1a1a]/80 py-1.5 text-white/70 backdrop-blur-sm transition hover:border-white/40 hover:bg-white/10 hover:text-white",
           )}
           aria-label="Toggle sidebar"
         >
@@ -693,7 +693,7 @@ export function GenreSidebar({
             <button
               type="button"
               onClick={handleLogout}
-              className="mt-1 flex w-full items-center gap-2 rounded-lg px-3 py-2.5 text-xs text-white/25 transition hover:bg-white/5 hover:text-white/60"
+              className="mt-1 flex w-full items-center gap-2 rounded-lg px-3 py-2.5 text-xs text-white/25 transition hover:bg-white/5 hover:text-white/55"
             >
               <LogOut className="h-3.5 w-3.5 shrink-0" />
               <span>{t("profile.logoutTitle")}</span>
@@ -701,7 +701,7 @@ export function GenreSidebar({
           ) : (
             <Link
               href="/auth"
-              className="mt-1 flex w-full items-center gap-2 rounded-lg px-3 py-2.5 text-xs text-white/25 transition hover:bg-white/5 hover:text-white/60"
+              className="mt-1 flex w-full items-center gap-2 rounded-lg px-3 py-2.5 text-xs text-white/25 transition hover:bg-white/5 hover:text-white/55"
             >
               <LogOut className="h-3.5 w-3.5 shrink-0 rotate-180" />
               <span>{t("common.signIn")}</span>
@@ -719,7 +719,7 @@ export function GenreSidebar({
           }}
         >
           <h2 className="text-lg font-black text-white">{t("profile.logoutTitle")}</h2>
-          <p className="mt-1 text-sm text-white/40">{t("profile.logoutConfirm")}</p>
+          <p className="mt-1 text-sm text-white/35">{t("profile.logoutConfirm")}</p>
           <div className="mt-5 flex gap-3">
             <button
               type="button"
