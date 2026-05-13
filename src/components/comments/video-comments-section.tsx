@@ -2,7 +2,8 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect, useMemo, useRef, useState, useTransition } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, useTransition } from "react";
+import { Heart, MoreHorizontal, Pin, Trash2 } from "lucide-react";
 import { createCommentAction, deleteCommentAction, pinCommentAction, toggleCommentLikeAction } from "@/app/actions/comments";
 import type { VideoComment } from "@/lib/types";
 import { useI18n } from "@/components/genova/language-provider";
@@ -29,6 +30,65 @@ function TimeLabel({ iso }: { iso: string }) {
   }, []);
   if (!mounted) return null;
   return <>{formatUploadedRelative(iso, locale)}</>;
+}
+
+function CommentMenu({
+  onPin,
+  onDelete,
+  isPinned,
+}: {
+  onPin?: () => void;
+  onDelete: () => void;
+  isPinned?: boolean;
+}) {
+  const [open, setOpen] = useState(false);
+  const { t } = useI18n();
+  const menuRef = useRef<HTMLDivElement>(null);
+
+  const close = useCallback(() => setOpen(false), []);
+
+  useEffect(() => {
+    if (!open) return;
+    const handler = (e: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) close();
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, [open, close]);
+
+  return (
+    <div ref={menuRef} className="relative">
+      <button
+        type="button"
+        onClick={() => setOpen((prev) => !prev)}
+        className="rounded p-1 text-white/40 hover:bg-white/[0.06] hover:text-white/80"
+      >
+        <MoreHorizontal className="h-3.5 w-3.5" />
+      </button>
+      {open && (
+        <div className="absolute right-0 top-full z-10 mt-1 w-32 overflow-hidden rounded-lg border border-white/[0.08] bg-[#0a0a0a]/95 backdrop-blur-xl">
+          {onPin && (
+            <button
+              type="button"
+              onClick={() => { onPin(); setOpen(false); }}
+              className="flex w-full items-center gap-2 px-3 py-2 text-left text-[12px] text-white/80 transition hover:bg-white/[0.04]"
+            >
+              <Pin className="h-3 w-3" />
+              {isPinned ? t("comment.unpin", "핀 해제") : t("comment.pin", "핀 고정")}
+            </button>
+          )}
+          <button
+            type="button"
+            onClick={() => { onDelete(); setOpen(false); }}
+            className="flex w-full items-center gap-2 px-3 py-2 text-left text-[12px] text-red-400 transition hover:bg-red-500/[0.06]"
+          >
+            <Trash2 className="h-3 w-3" />
+            {t("comments.delete", "삭제")}
+          </button>
+        </div>
+      )}
+    </div>
+  );
 }
 
 function CommentBlock({
@@ -109,145 +169,118 @@ function CommentBlock({
     });
   };
 
+  const canManage = isOwner || isVideoOwner;
+
   return (
-    <div className={cn("py-3", depth > 0 ? "ml-8 border-l-2 border-white/5 pl-3" : "border-b border-white/5")}>
-      <div className="flex gap-3">
-        {/* Avatar */}
-        <div className="h-9 w-9 shrink-0 overflow-hidden rounded-full bg-[#26215C]">
-          {c.avatarUrl ? (
-            <Link href={`/profile/${c.userId}`}>
-              <img src={c.avatarUrl} alt="" className="h-full w-full object-cover" />
-            </Link>
-          ) : (
-            <Link
-              href={`/profile/${c.userId}`}
-              className="flex h-full w-full items-center justify-center text-xs font-bold text-white/60"
-            >
-              {(c.displayName ?? "U").slice(0, 1).toUpperCase()}
-            </Link>
-          )}
-        </div>
+    <div
+      className={cn(
+        "group relative flex gap-2.5 py-2.5",
+        depth > 0 ? "ml-8 border-l-2 border-white/5 pl-3" : "border-b border-white/5",
+      )}
+    >
+      {/* Avatar */}
+      <Link href={`/profile/${c.userId}`} className="h-7 w-7 shrink-0 overflow-hidden rounded-full bg-[#26215C]">
+        <img src={c.avatarUrl || "/default-avatar.png"} alt="" className="h-full w-full object-cover" />
+      </Link>
 
-        <div className="min-w-0 flex-1">
+      <div className="min-w-0 flex-1">
+        {/* Name + time + pin badge */}
+        <div className="flex items-center gap-1.5">
+          <Link href={`/profile/${c.userId}`} className="text-[12px] font-bold text-white hover:text-[#AFA9EC] transition">
+            {c.displayName ?? "User"}
+          </Link>
+          <span className="text-[10px] text-white/35">
+            <TimeLabel iso={c.createdAt} />
+          </span>
           {depth === 0 && pinned && (
-            <div className="mb-1 flex items-center gap-1 text-[10px] text-white/30">
-              <svg className="h-2.5 w-2.5" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M16 4a1 1 0 0 1 1 1v1h1a1 1 0 0 1 0 2h-.5l.5 5h.5a1 1 0 0 1 0 2h-5v4a1 1 0 0 1-2 0v-4H6a1 1 0 0 1 0-2h.5l.5-5H6a1 1 0 0 1 0-2h1V5a1 1 0 0 1 1-1h8z"/>
-              </svg>
-              Pinned
-            </div>
-          )}
-          {/* Name + time + delete */}
-          <div className="flex flex-wrap items-center gap-x-1.5 gap-y-0.5">
-            <Link href={`/profile/${c.userId}`} className="text-sm font-semibold text-white hover:underline">
-              {c.displayName ?? "User"}
-            </Link>
-            <span className="text-xs text-white/40">·</span>
-            <span className="text-xs text-white/40">
-              <TimeLabel iso={c.createdAt} />
+            <span className="flex items-center gap-0.5 text-[10px] text-[#AFA9EC]">
+              <Pin className="h-2.5 w-2.5" />
+              고정됨
             </span>
-            {isVideoOwner && depth === 0 && (
-              <>
-                <span className="text-xs text-white/40">·</span>
-                <button
-                  type="button"
-                  onClick={onPin}
-                  disabled={pending}
-                  className={cn(
-                    "text-xs transition",
-                    pinned ? "text-white/40" : "text-white/20 hover:text-white/40",
-                  )}
-                >
-                  {pinned ? "📌 핀 해제" : "📌 핀"}
-                </button>
-              </>
-            )}
-            {isOwner ? (
-              <>
-                <span className="text-xs text-white/40">·</span>
-                <button
-                  type="button"
-                  onClick={onDelete}
-                  disabled={pending}
-                  className="text-xs text-red-400/70 hover:text-red-300 transition"
-                >
-                  {t("comments.delete")}
-                </button>
-              </>
-            ) : null}
-          </div>
-
-          {/* Comment content */}
-          <p className="mt-1 text-sm leading-relaxed text-white/80 whitespace-pre-wrap">{c.content}</p>
-
-          {/* Actions: like + reply */}
-          <div className="mt-2 flex items-center gap-4">
-            <button
-              type="button"
-              onClick={onLike}
-              disabled={pending}
-              className={cn(
-                "flex items-center gap-1.5 text-xs transition",
-                liked ? "text-rose-400" : "text-white/60 hover:text-rose-300",
-              )}
-            >
-              <svg className="h-3.5 w-3.5" viewBox="0 0 24 24" fill={liked ? "currentColor" : "none"} stroke="currentColor" strokeWidth="2">
-                <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" strokeLinejoin="round"/>
-              </svg>
-              <span>{likeCount}</span>
-            </button>
-
-            {currentUserId && depth === 0 ? (
-              <button
-                type="button"
-                onClick={() => setReplyOpen((v) => !v)}
-                className="text-xs text-white/60 hover:text-[#7F77DD] transition"
-              >
-                {t("comments.reply")}
-              </button>
-            ) : null}
-          </div>
+          )}
         </div>
-      </div>
 
-      {/* Reply input */}
-      {replyOpen && currentUserId && depth === 0 && (
-        <div className="mt-2 flex items-center gap-2">
-          <input
-            value={replyText}
-            onChange={(e) => setReplyText(e.target.value)}
-            onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); void submitReply(); } }}
-            placeholder={t("comments.placeholderReply")}
-            className="flex-1 rounded-full border border-white/10 bg-[#0A0A18]/70 px-3 py-1.5 text-xs text-white outline-none focus:border-[#7F77DD]/50"
-          />
+        {/* Comment body */}
+        <p className="mt-0.5 text-[13px] leading-relaxed text-white/80 whitespace-pre-wrap">{c.content}</p>
+
+        {/* Action buttons */}
+        <div className="mt-1.5 flex items-center gap-3">
           <button
             type="button"
-            onClick={() => void submitReply()}
+            onClick={onLike}
             disabled={pending}
-            className="shrink-0 rounded-full bg-[#534AB7] px-3 py-1.5 text-xs font-medium text-white hover:bg-[#7F77DD] disabled:opacity-50 transition"
+            className={cn(
+              "flex items-center gap-1 text-[11px] transition",
+              liked ? "text-rose-400" : "text-white/45 hover:text-rose-300",
+            )}
           >
-            {t("comments.post")}
+            <Heart className="h-3 w-3" fill={liked ? "currentColor" : "none"} />
+            {likeCount > 0 && <span>{likeCount}</span>}
           </button>
+
+          {currentUserId && depth === 0 && (
+            <button
+              type="button"
+              onClick={() => setReplyOpen((v) => !v)}
+              className="text-[11px] text-white/45 hover:text-[#7F77DD] transition"
+            >
+              {t("comments.reply")}
+            </button>
+          )}
+        </div>
+
+        {/* Reply input */}
+        {replyOpen && currentUserId && depth === 0 && (
+          <div className="mt-2 flex items-center gap-2 rounded-lg border border-white/[0.06] bg-white/[0.02] p-1 transition focus-within:border-[#7F77DD]/40">
+            <input
+              type="text"
+              value={replyText}
+              onChange={(e) => setReplyText(e.target.value)}
+              onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); void submitReply(); } }}
+              placeholder={t("comment.replyPlaceholder", "답글 달기...")}
+              className="flex-1 bg-transparent px-2 text-[12px] text-white placeholder:text-white/30 outline-none"
+            />
+            <button
+              type="button"
+              onClick={() => void submitReply()}
+              disabled={pending || !replyText.trim()}
+              className="shrink-0 rounded-md bg-[#534AB7] px-2.5 py-1 text-[11px] font-bold text-white hover:bg-[#6b5fd4] disabled:opacity-50 transition"
+            >
+              {pending ? t("comment.submitting", "게시 중...") : t("comment.submit", "게시")}
+            </button>
+          </div>
+        )}
+
+        {/* Nested replies */}
+        {c.replies?.length ? (
+          <div className="mt-1 space-y-0">
+            {c.replies.map((r) => (
+              <CommentBlock
+                key={r.id}
+                c={r}
+                videoId={videoId}
+                currentUserId={currentUserId}
+                depth={depth + 1}
+                isVideoOwner={isVideoOwner}
+                onPinToggle={onPinToggle}
+              />
+            ))}
+          </div>
+        ) : null}
+      </div>
+
+      {/* Hover menu (owner / video-owner only) */}
+      {canManage && (
+        <div className="absolute right-0 top-2.5 opacity-0 transition group-hover:opacity-100">
+          <CommentMenu
+            onPin={isVideoOwner && depth === 0 ? onPin : undefined}
+            onDelete={onDelete}
+            isPinned={pinned}
+          />
         </div>
       )}
 
-      {/* Nested replies */}
-      {c.replies?.length ? (
-        <div className="mt-1 space-y-0">
-          {c.replies.map((r) => (
-            <CommentBlock
-              key={r.id}
-              c={r}
-              videoId={videoId}
-              currentUserId={currentUserId}
-              depth={depth + 1}
-              isVideoOwner={isVideoOwner}
-              onPinToggle={onPinToggle}
-            />
-          ))}
-        </div>
-      ) : null}
-
+      {/* Delete confirmation modal */}
       {showDeleteModal && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm">
           <div
@@ -258,7 +291,7 @@ function CommentBlock({
             }}
           >
             <h2 className="text-lg font-black text-white">댓글 삭제</h2>
-            <p className="mt-1 text-sm text-white/40">이 댓글을 삭제하시겠습니까? 되돌릴 수 없습니다.</p>
+            <p className="mt-1 text-sm text-white/35">이 댓글을 삭제하시겠습니까? 되돌릴 수 없습니다.</p>
             <div className="mt-5 flex gap-3">
               <button
                 type="button"
@@ -377,7 +410,7 @@ export function VideoCommentsSection({
       {/* Comments list first */}
       <div className="divide-y divide-white/5">
         {comments.length === 0 ? (
-          <p className="text-sm text-white/60">{t("comments.empty")}</p>
+          <p className="text-sm text-white/55">{t("comments.empty")}</p>
         ) : (
           sortedComments.map((c) => (
             <CommentBlock
@@ -396,25 +429,38 @@ export function VideoCommentsSection({
       {/* Input at the bottom */}
       {!hideInput ? (
         currentUserId ? (
-          <div className="mt-4 border-t border-white/10 pt-4 flex flex-col gap-2 sm:flex-row sm:items-end">
-            <textarea
-              value={text}
-              onChange={(e) => setText(e.target.value)}
-              rows={3}
-              placeholder={t("comments.placeholder")}
-              className="min-w-0 flex-1 rounded-lg border border-white/10 bg-[#0A0A18]/70 px-3 py-2 text-sm text-white outline-none focus:ring-1 focus:ring-[#7F77DD]"
-            />
-            <button
-              type="button"
-              onClick={() => void submit()}
-              disabled={pending}
-              className="shrink-0 rounded-lg bg-[#534AB7] px-4 py-2 text-sm font-semibold text-white hover:bg-[#7F77DD] disabled:opacity-50"
-            >
-              {t("comments.post")}
-            </button>
+          <div className="mt-4 border-t border-white/10 pt-4">
+            <div className="flex items-center gap-2 rounded-xl border border-white/[0.06] bg-white/[0.02] p-1.5 transition focus-within:border-[#7F77DD]/40 focus-within:bg-white/[0.04]">
+              <input
+                type="text"
+                value={text}
+                onChange={(e) => setText(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" && !e.shiftKey && text.trim()) {
+                    e.preventDefault();
+                    void submit();
+                  }
+                }}
+                placeholder={t("comment.placeholder", "댓글을 입력하세요...")}
+                className="flex-1 bg-transparent text-[13px] text-white placeholder:text-white/30 outline-none"
+              />
+              <button
+                type="button"
+                onClick={() => void submit()}
+                disabled={!text.trim() || pending}
+                className={cn(
+                  "shrink-0 rounded-lg px-3 py-1.5 text-[12px] font-bold transition",
+                  text.trim() && !pending
+                    ? "bg-[#534AB7] text-white hover:bg-[#6b5fd4]"
+                    : "bg-white/[0.04] text-white/30 cursor-not-allowed"
+                )}
+              >
+                {pending ? t("comment.submitting", "게시 중...") : t("comment.submit", "게시")}
+              </button>
+            </div>
           </div>
         ) : (
-          <p className="mt-4 border-t border-white/10 pt-4 text-sm text-white/60">
+          <p className="mt-4 border-t border-white/10 pt-4 text-sm text-white/55">
             <button type="button" onClick={() => router.push("/auth")} className="text-[#7F77DD] underline">
               {t("comments.signIn")}
             </button>
@@ -426,12 +472,6 @@ export function VideoCommentsSection({
   );
 }
 
-const EMOJIS = [
-  "😊","😂","🔥","❤️","👏","🎬","✨","🎥","🤩","😍",
-  "💯","🙌","👍","🎉","🌟","💫","😭","🥺","😎","🤔",
-  "💪","🎨","🎵","🚀","💡","👀","🤯","😮","🥳","🎞️",
-];
-
 export function CommentInput({
   videoId,
   currentUserId,
@@ -442,19 +482,7 @@ export function CommentInput({
   const { t } = useI18n();
   const router = useRouter();
   const [text, setText] = useState("");
-  const [showEmoji, setShowEmoji] = useState(false);
-  const emojiRef = useRef<HTMLDivElement>(null);
   const [pending, startTransition] = useTransition();
-
-  useEffect(() => {
-    const handler = (e: MouseEvent) => {
-      if (emojiRef.current && !emojiRef.current.contains(e.target as Node)) {
-        setShowEmoji(false);
-      }
-    };
-    document.addEventListener("mousedown", handler);
-    return () => document.removeEventListener("mousedown", handler);
-  }, []);
 
   const submit = () => {
     const body = text.trim();
@@ -472,7 +500,7 @@ export function CommentInput({
 
   if (!currentUserId) {
     return (
-      <p className="text-xs text-white/60">
+      <p className="text-xs text-white/55">
         <button type="button" onClick={() => router.push("/auth")} className="text-[#7F77DD] underline">
           {t("comments.signIn")}
         </button>
@@ -482,60 +510,32 @@ export function CommentInput({
   }
 
   return (
-    <div className="flex items-center gap-2">
-      <div ref={emojiRef} className="relative">
-        <button
-          type="button"
-          onClick={() => setShowEmoji((v) => !v)}
-          className="flex h-8 w-8 items-center justify-center rounded-full text-white/40 transition hover:bg-white/[0.05] hover:text-white/70"
-        >
-          😊
-        </button>
-        {showEmoji && (
-          <div
-            className="absolute bottom-10 left-0 z-50 w-[220px] rounded-2xl border border-white/[0.08] p-3"
-            style={{
-              background: "linear-gradient(135deg, rgba(20,17,50,0.99) 0%, rgba(10,8,28,1) 100%)",
-              boxShadow: "0 8px 32px rgba(0,0,0,0.6)",
-            }}
-          >
-            <div className="grid grid-cols-8 gap-1">
-              {EMOJIS.map((emoji) => (
-                <button
-                  key={emoji}
-                  type="button"
-                  onClick={() => {
-                    setText((prev) => prev + emoji);
-                    setShowEmoji(false);
-                  }}
-                  className="flex h-7 w-7 items-center justify-center rounded-lg text-base transition hover:bg-white/[0.08]"
-                >
-                  {emoji}
-                </button>
-              ))}
-            </div>
-          </div>
-        )}
-      </div>
+    <div className="flex items-center gap-2 rounded-xl border border-white/[0.06] bg-white/[0.02] p-1.5 transition focus-within:border-[#7F77DD]/40 focus-within:bg-white/[0.04]">
       <input
+        type="text"
         value={text}
         onChange={(e) => setText(e.target.value)}
         onKeyDown={(e) => {
-          if (e.key === "Enter" && !e.shiftKey) {
+          if (e.key === "Enter" && !e.shiftKey && text.trim()) {
             e.preventDefault();
             void submit();
           }
         }}
-        placeholder={t("comments.placeholderCompact")}
-        className="flex-1 rounded-full border border-white/10 bg-[#0A0A18]/70 px-4 py-2 text-sm text-white outline-none focus:border-[#7F77DD]/50 focus:ring-1 focus:ring-[#7F77DD]/30 placeholder:text-white/40"
+        placeholder={t("comment.placeholder", "댓글을 입력하세요...")}
+        className="flex-1 bg-transparent text-[13px] text-white placeholder:text-white/30 outline-none"
       />
       <button
         type="button"
         onClick={() => void submit()}
-        disabled={pending || !text.trim()}
-        className="shrink-0 rounded-full bg-[#534AB7] px-4 py-2 text-xs font-semibold text-white hover:bg-[#7F77DD] disabled:opacity-40 transition"
+        disabled={!text.trim() || pending}
+        className={cn(
+          "shrink-0 rounded-lg px-3 py-1.5 text-[12px] font-bold transition",
+          text.trim() && !pending
+            ? "bg-[#534AB7] text-white hover:bg-[#6b5fd4]"
+            : "bg-white/[0.04] text-white/30 cursor-not-allowed"
+        )}
       >
-        {t("comments.post")}
+        {pending ? t("comment.submitting", "게시 중...") : t("comment.submit", "게시")}
       </button>
     </div>
   );

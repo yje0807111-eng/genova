@@ -52,7 +52,7 @@ export function VideoLikeButton({ videoId, initialCount, initialLiked, compact, 
       disabled={pending}
       onClick={onClick}
       className={`inline-flex ${stacked ? "flex-col items-center gap-0.5" : "items-center gap-1.5"} rounded-lg border border-white/10 bg-white/5 px-3 py-1.5 text-sm transition hover:bg-white/10 hover:text-white disabled:opacity-50 ${
-        liked ? "border-rose-400/40 bg-rose-500/15 text-rose-300" : "text-white/60"
+        liked ? "border-rose-400/40 bg-rose-500/15 text-rose-300" : "text-white/55"
       } ${className ?? ""}`}
       aria-label={t("video.likesAria")}
     >

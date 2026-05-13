@@ -15,7 +15,7 @@ function formatDurationLabel(totalSeconds: number): string {
   return `${minutes}:${String(seconds).padStart(2, "0")}`;
 }
 
-function parseRuntimeToSeconds(runtime: string | null | undefined): number {
+export function parseRuntimeToSeconds(runtime: string | null | undefined): number {
   if (!runtime) return 0;
   const raw = runtime.trim();
   if (!raw) return 0;
@@ -80,7 +80,7 @@ export function VideoCard({
           <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-black/20" />
         </div>
       ) : (
-        <div className="absolute inset-0 bg-gradient-to-br from-[#1a1547] via-[#15102E] to-[#0f0d24] shadow-[inset_0_0_40px_rgba(0,0,0,0.3)]">
+        <div className="absolute inset-0 bg-gradient-to-br from-[#1a1547] via-[#15102E] to-[#1a1a1a] shadow-[inset_0_0_40px_rgba(0,0,0,0.3)]">
           <div className="absolute inset-0 flex items-center justify-center">
             <span className="text-5xl text-white/[0.08]">✦</span>
           </div>
@@ -92,7 +92,7 @@ export function VideoCard({
         <div
           className="flex h-14 w-14 items-center justify-center rounded-full"
           style={{
-            background: "rgba(8,6,24,0.7)",
+            background: "rgba(10,10,10,0.7)",
             border: "1px solid rgba(175,169,236,0.5)",
             backdropFilter: "blur(8px)",
             boxShadow: "0 0 24px rgba(127,119,221,0.5)",
@@ -120,7 +120,7 @@ export function VideoCard({
           <div
             className="flex items-center gap-1.5 rounded-full px-2.5 py-1"
             style={{
-              background: "rgba(8,6,24,0.65)",
+              background: "rgba(10,10,10,0.65)",
               backdropFilter: "blur(8px)",
               border: "1px solid rgba(255,255,255,0.12)",
             }}
@@ -137,7 +137,7 @@ export function VideoCard({
 
       {showDuration && durationSeconds > 0 ? (
         <div className="absolute bottom-3 right-3 z-20">
-          <span className="rounded border border-white/10 bg-[#080618]/90 px-2 py-0.5 text-[11px] font-mono font-semibold text-white shadow-[0_2px_8px_rgba(0,0,0,0.4)] backdrop-blur-md">
+          <span className="rounded border border-white/10 bg-[#0a0a0a]/90 px-2 py-0.5 text-[11px] font-mono font-semibold text-white shadow-[0_2px_8px_rgba(0,0,0,0.4)] backdrop-blur-md">
             {formatDurationLabel(durationSeconds)}
           </span>
         </div>
@@ -146,7 +146,7 @@ export function VideoCard({
       <div className="absolute bottom-0 left-0 right-0 z-10 bg-gradient-to-t from-black via-black/80 to-transparent p-4">
         {showMadeWith && aiTools.length > 0 ? (
           <div className="mb-2 max-h-0 translate-y-2 overflow-hidden opacity-0 transition-all duration-300 group-hover:max-h-[40px] group-hover:translate-y-0 group-hover:opacity-100">
-            <p className="mb-1 text-[10px] uppercase tracking-[0.2em] text-white/40">
+            <p className="mb-1 text-[10px] uppercase tracking-[0.2em] text-white/35">
               {t("home.madeWith", "Made With")}
             </p>
             <p className="line-clamp-1 text-xs text-white/70">{aiTools.slice(0, 3).join(" · ")}</p>
@@ -157,7 +157,7 @@ export function VideoCard({
         <p className="mt-1 text-xs text-white/50">
           {creator}
           {showViews && typeof video.viewCount === "number" ? (
-            <span className="text-white/40">
+            <span className="text-white/35">
               {" "}
               · {video.viewCount.toLocaleString()} {t("video.viewsDot")}
             </span>

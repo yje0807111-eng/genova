@@ -1,17 +1,11 @@
-import Link from "next/link";
 import { cookies } from "next/headers";
-import { notFound, redirect } from "next/navigation";
-import { FollowButton } from "@/components/profile/follow-button";
-import { ProfileTextLink } from "@/components/links/profile-text-link";
+import { redirect } from "next/navigation";
 import { WatchMoreMenu } from "@/components/video/watch-more-menu";
 import { ShareButton } from "@/components/video/share-modal";
-import { VideoEngagementBar } from "@/components/video/video-engagement-bar";
-import { CreatorFollowButton } from "@/components/video/creator-follow-button";
 import { SeriesEpisodesSlider } from "@/components/video/series-episodes-slider";
 import {
   WatchDescriptionInner,
   WatchRecommendationsSections,
-  WatchVideoMetaRow,
 } from "@/components/video/watch-detail-client";
 import { mapVideo } from "@/lib/mappers";
 import { hrefForVideoCreator } from "@/lib/creator-links";
@@ -25,7 +19,7 @@ import {
   fetchVideoById,
   type SeriesEpisodesNav,
 } from "@/lib/queries";
-import { fetchIsFollowing, fetchProfileById } from "@/lib/queries/profile-queries";
+import { fetchFollowCounts, fetchIsFollowing, fetchProfileById } from "@/lib/queries/profile-queries";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { WatchTracker } from "@/components/video/watch-tracker";
 import { WatchDesktopFlexRow } from "@/components/video/watch-comments-panel";
@@ -126,15 +120,34 @@ export default async function WatchDetailPage({
   const creatorHref = hrefForVideoCreator(video);
 
   const isVideoOwner = Boolean(user?.id && video.uploadedBy && user.id === video.uploadedBy);
-  const showFollow = Boolean(video.uploadedBy && user?.id && user.id !== video.uploadedBy);
-  const showFollowCreator = Boolean(video.creatorId && creator && user?.id);
 
   const hasCatalogCreator = Boolean(video.creatorId && creator);
   const displayName = hasCatalogCreator
     ? creator!.name
     : (video.uploaderDisplayName ?? uploaderProfile?.displayName ?? "Creator");
   const avatarUrl = hasCatalogCreator ? creator!.avatarUrl : uploaderProfile?.avatarUrl ?? null;
-  const bioOneLine = hasCatalogCreator ? creator!.bio : uploaderProfile?.bio ?? "";
+
+  let creatorVideoCount = 0;
+  let creatorFollowerCount = 0;
+  if (hasCatalogCreator && video.creatorId && supabase) {
+    const { count } = await supabase
+      .from("videos")
+      .select("id", { count: "exact", head: true })
+      .eq("creator_id", video.creatorId)
+      .eq("visibility", "public");
+    creatorVideoCount = count ?? 0;
+    creatorFollowerCount = creator!.followerCount ?? 0;
+  } else if (video.uploadedBy && supabase) {
+    const [vidCount, followCounts] = await Promise.all([
+      supabase.from("videos").select("id", { count: "exact", head: true })
+        .eq("uploaded_by", video.uploadedBy)
+        .eq("visibility", "public"),
+      fetchFollowCounts(video.uploadedBy),
+    ]);
+    creatorVideoCount = vidCount.count ?? 0;
+    creatorFollowerCount = followCounts.followers;
+  }
+
   const rawDescription = video.description?.trim() ? video.description.trim() : null;
   const displayTags = video.tags;
   const displayAiTools = video.aiTools;
@@ -145,87 +158,25 @@ export default async function WatchDetailPage({
     <div className="mx-auto max-w-[1680px] px-8 py-6 text-white">
       {/* Top row: main + unified sidebar (Up Next + tabs + comments) */}
       <WatchDesktopFlexRow
-        leftBeforeDescription={
+        playerSlot={
+          <div className="aspect-video overflow-hidden rounded-2xl border border-white/10 bg-black">
+            <WatchTracker videoId={video.id} />
+            {video.muxPlaybackId && (
+              <MuxPlayerClient
+                playbackId={video.muxPlaybackId}
+                title={video.title}
+                nextVideoId={related[0]?.id ?? null}
+                userId={user?.id ?? null}
+                videoId={video.id}
+                initialProgressSeconds={progress?.progressSeconds ?? 0}
+              />
+            )}
+          </div>
+        }
+        belowPlayerSlot={
           <>
-            <div className="aspect-video overflow-hidden rounded-2xl border border-white/10 bg-black">
-              <WatchTracker videoId={video.id} />
-              {video.muxPlaybackId && (
-                <MuxPlayerClient
-                  playbackId={video.muxPlaybackId}
-                  title={video.title}
-                  nextVideoId={related[0]?.id ?? null}
-                  userId={user?.id ?? null}
-                  videoId={video.id}
-                  initialProgressSeconds={progress?.progressSeconds ?? 0}
-                />
-              )}
-            </div>
-
-            <div className="mt-4 flex items-start justify-between gap-4">
-              <div className="min-w-0 flex-1">
-                <h1 className="text-2xl font-bold text-white sm:text-3xl">{video.title}</h1>
-                <WatchVideoMetaRow
-                  genre={video.genre}
-                  subGenre={video.subGenre}
-                  runtime={video.runtime}
-                  viewCount={video.viewCount ?? 0}
-                  createdAt={video.createdAt}
-                />
-              </div>
-
-              <div className="flex shrink-0 items-center gap-2">
-                <VideoEngagementBar
-                  videoId={video.id}
-                  likeCount={video.likeCount ?? 0}
-                  likedByMe={video.likedByMe ?? false}
-                  savedByMe={video.savedByMe ?? false}
-                  saveCount={video.saveCount ?? 0}
-                />
-                <ShareButton title={video.title} videoId={video.id} thumbnailUrl={video.thumbnailUrl} />
-                <WatchMoreMenu videoId={video.id} />
-              </div>
-            </div>
-
-            <div className="mt-4 flex items-center justify-between gap-3">
-              <div className="flex items-center gap-3">
-                {creatorHref ? (
-                  <Link href={creatorHref} className="h-10 w-10 shrink-0 overflow-hidden rounded-full border border-white/10 bg-[#26215C] transition hover:opacity-80">
-                    {avatarUrl ? (
-                      <img src={avatarUrl} alt="" className="h-full w-full object-cover" />
-                    ) : (
-                      <div className="flex h-full w-full items-center justify-center text-sm font-bold text-white/70">
-                        {displayName.slice(0, 1)}
-                      </div>
-                    )}
-                  </Link>
-                ) : (
-                  <div className="h-10 w-10 shrink-0 overflow-hidden rounded-full border border-white/10 bg-[#26215C]">
-                    {avatarUrl ? (
-                      <img src={avatarUrl} alt="" className="h-full w-full object-cover" />
-                    ) : (
-                      <div className="flex h-full w-full items-center justify-center text-sm font-bold text-white/70">
-                        {displayName.slice(0, 1)}
-                      </div>
-                    )}
-                  </div>
-                )}
-                <div>
-                  {creatorHref ? (
-                    <ProfileTextLink href={creatorHref} className="text-sm font-semibold text-white hover:underline">
-                      {displayName}
-                    </ProfileTextLink>
-                  ) : (
-                    <p className="text-sm font-semibold text-white">{displayName}</p>
-                  )}
-                  {bioOneLine ? <p className="text-xs text-white/50">{bioOneLine}</p> : null}
-                </div>
-              </div>
-              {showFollow ? (
-                <FollowButton targetUserId={video.uploadedBy!} initialFollowing={isFollowing} />
-              ) : showFollowCreator ? (
-                <CreatorFollowButton creatorName={displayName} />
-              ) : null}
-            </div>
+            <ShareButton title={video.title} videoId={video.id} thumbnailUrl={video.thumbnailUrl} />
+            <WatchMoreMenu videoId={video.id} />
           </>
         }
         descriptionInner={
@@ -247,13 +198,20 @@ export default async function WatchDetailPage({
         initialComments={displayComments}
         currentUserId={user?.id ?? null}
         isVideoOwner={isVideoOwner}
+        video={video}
+        creatorName={displayName}
+        creatorAvatarUrl={avatarUrl}
+        creatorHref={creatorHref}
+        creatorVideoCount={creatorVideoCount}
+        creatorFollowerCount={creatorFollowerCount}
+        creatorId={video.uploadedBy ?? video.creatorId ?? ""}
+        isFollowingCreator={isFollowing}
       />
 
       <WatchRecommendationsSections
         sameGenreVideos={sameGenreVideos}
         trendingVideos={trendingVideos}
-        mainGenre={video.genre}
-        subGenre={video.subGenre}
+        currentVideoId={video.id}
       />
     </div>
   );

@@ -20,7 +20,7 @@ export function AiToolsCollapsible({ tools }: { tools: string[] }) {
       </button>
 
       {open ? (
-        <p className="mt-1 text-sm text-white/40 leading-relaxed">
+        <p className="mt-1 text-sm text-white/35 leading-relaxed">
           {tools.map((tool, i) => (
             <span key={tool}>
               {tool}

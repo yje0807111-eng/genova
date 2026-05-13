@@ -77,7 +77,7 @@ function VideoCardStrip({ videos }: { videos: Video[] }) {
               key={item.id}
               href={"/watch/" + item.id}
               className={cn(
-                "group/card relative shrink-0 overflow-hidden rounded-xl bg-[#0f0d24] transition-all duration-300 hover:scale-[1.03] hover:shadow-[0_8px_24px_rgba(0,0,0,0.5)]",
+                "group/card relative shrink-0 overflow-hidden rounded-xl bg-[#1a1a1a] transition-all duration-300 hover:scale-[1.03] hover:shadow-[0_8px_24px_rgba(0,0,0,0.5)]",
                 arrowHovered ? "pointer-events-none" : "",
               )}
               style={{
@@ -93,13 +93,13 @@ function VideoCardStrip({ videos }: { videos: Video[] }) {
                     className="h-full w-full object-cover transition-transform duration-300 group-hover/card:scale-105"
                   />
                 ) : (
-                  <div className="h-full w-full bg-gradient-to-br from-[#1a1547] to-[#0f0d24]" />
+                  <div className="h-full w-full bg-gradient-to-br from-[#1a1547] to-[#1a1a1a]" />
                 )}
                 <div
                   className="absolute inset-0"
                   style={{
                     background:
-                      "linear-gradient(to top, rgba(8,6,24,1) 0%, rgba(8,6,24,0.8) 40%, rgba(8,6,24,0.3) 65%, transparent 100%)",
+                      "linear-gradient(to top, rgba(10,10,10,1) 0%, rgba(10,10,10,0.8) 40%, rgba(10,10,10,0.3) 65%, transparent 100%)",
                   }}
                 />
                 <div className="absolute right-2 top-2 flex items-center justify-center opacity-0 transition-opacity duration-150 group-hover/card:opacity-100">
@@ -147,7 +147,7 @@ function VideoCardStrip({ videos }: { videos: Video[] }) {
             isHovered ? "opacity-100" : "opacity-0",
           )}
           style={{
-            background: "linear-gradient(to right, rgba(8,6,24,0.85) 0%, rgba(8,6,24,0.4) 60%, transparent 100%)",
+            background: "linear-gradient(to right, rgba(10,10,10,0.85) 0%, rgba(10,10,10,0.4) 60%, transparent 100%)",
           }}
           aria-label="Scroll left"
         >
@@ -177,7 +177,7 @@ function VideoCardStrip({ videos }: { videos: Video[] }) {
             isHovered ? "opacity-100" : "opacity-0",
           )}
           style={{
-            background: "linear-gradient(to left, rgba(8,6,24,0.85) 0%, rgba(8,6,24,0.4) 60%, transparent 100%)",
+            background: "linear-gradient(to left, rgba(10,10,10,0.85) 0%, rgba(10,10,10,0.4) 60%, transparent 100%)",
           }}
           aria-label="Scroll right"
         >

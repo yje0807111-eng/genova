@@ -114,7 +114,7 @@ export function ShareButton({
         type="button"
         onClick={() => setOpen(true)}
         className={cn(
-          "inline-flex items-center gap-1.5 rounded-lg border border-white/10 bg-white/5 px-3 py-1.5 text-sm font-medium text-white/60 transition hover:bg-white/10 hover:text-white",
+          "inline-flex items-center gap-1.5 rounded-lg border border-white/10 bg-white/5 px-3 py-1.5 text-sm font-medium text-white/55 transition hover:bg-white/10 hover:text-white",
           className,
         )}
       >
@@ -172,7 +172,7 @@ export function ShareButton({
 
                 {/* Copy link */}
                 <div className="mb-4 flex items-center gap-2 rounded-lg border border-white/[0.08] bg-white/[0.02] px-3 py-2">
-                  <LinkIcon className="h-3.5 w-3.5 shrink-0 text-white/40" />
+                  <LinkIcon className="h-3.5 w-3.5 shrink-0 text-white/35" />
                   <span className="flex-1 truncate text-xs text-white/50">{url}</span>
                   <button
                     type="button"
@@ -240,7 +240,7 @@ export function ShareButton({
               <>
                 {/* Search bar */}
                 <div className="mb-3 flex items-center gap-2 rounded-lg border border-white/[0.08] bg-white/[0.02] px-3 py-2">
-                  <Search className="h-3.5 w-3.5 shrink-0 text-white/40" />
+                  <Search className="h-3.5 w-3.5 shrink-0 text-white/35" />
                   <input
                     type="text"
                     value={search}
@@ -266,11 +266,7 @@ export function ShareButton({
                           <li key={u.userId}>
                             <div className="flex items-center gap-3 rounded-lg p-2 transition hover:bg-white/[0.04]">
                               <div className="h-9 w-9 shrink-0 overflow-hidden rounded-full bg-white/[0.05]">
-                                {u.avatarUrl ? (
-                                  <img src={u.avatarUrl} alt="" className="h-full w-full object-cover" />
-                                ) : (
-                                  <div className="flex h-full w-full items-center justify-center text-xs text-white/40">?</div>
-                                )}
+                                <img src={u.avatarUrl || "/default-avatar.png"} alt="" className="h-full w-full object-cover" />
                               </div>
                               <p className="flex-1 min-w-0 truncate text-[13px] font-medium text-white">
                                 {u.displayName ?? "—"}

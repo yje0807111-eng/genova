@@ -64,7 +64,7 @@ export function SeriesEpisodesSlider({
     <section className="mt-4 rounded-xl border border-white/10 bg-[#0F0D1E] p-4">
       <div className="mb-3 flex items-center justify-between">
         <div>
-          <p className="text-[10px] font-semibold uppercase tracking-wider text-white/60">
+          <p className="text-[10px] font-semibold uppercase tracking-wider text-white/55">
             {t("series.sectionLabel")}
           </p>
           <p className="text-sm font-semibold text-white">{seriesTitle}</p>
@@ -72,7 +72,7 @@ export function SeriesEpisodesSlider({
         <button
           type="button"
           onClick={() => setShowAll(true)}
-          className="flex items-center gap-1 text-xs text-white/40 transition hover:text-purple-400"
+          className="flex items-center gap-1 text-xs text-white/35 transition hover:text-purple-400"
         >
           {t("series.viewAllEpisodes")}
         </button>
@@ -116,11 +116,11 @@ export function SeriesEpisodesSlider({
                 </div>
                 <div className="bg-[#0A0A18]/90 p-2">
                   <p className="line-clamp-1 text-xs font-semibold leading-snug text-white">{ep.title}</p>
-                  <p className="mt-0.5 text-[11px] text-white/40">
+                  <p className="mt-0.5 text-[11px] text-white/35">
                     {formatViewCountShort(ep.viewCount ?? 0)} {t("feed.views")} · {ep.runtime ?? ""}
                   </p>
                   {ep.description ? (
-                    <p className="mt-1 line-clamp-2 text-[11px] leading-snug text-white/40">
+                    <p className="mt-1 line-clamp-2 text-[11px] leading-snug text-white/35">
                       {ep.description}
                     </p>
                   ) : null}
@@ -162,13 +162,13 @@ export function SeriesEpisodesSlider({
             <div className="shrink-0 border-b border-white/10 px-6 py-5">
               <div className="flex items-start justify-between">
                 <div className="min-w-0 flex-1">
-                  <p className="text-[10px] font-semibold uppercase tracking-wider text-white/60">
+                  <p className="text-[10px] font-semibold uppercase tracking-wider text-white/55">
                     {t("series.sectionLabel")}
                   </p>
                   <h2 className="mt-0.5 text-xl font-bold text-white">{seriesTitle}</h2>
-                  <p className="mt-1 text-sm font-medium text-white/60">{t("series.genrePlaceholder")}</p>
+                  <p className="mt-1 text-sm font-medium text-white/55">{t("series.genrePlaceholder")}</p>
                   <p className="mt-2 text-sm leading-relaxed text-white/70">{t("series.modalBlurb")}</p>
-                  <p className="mt-3 text-xs text-white/40">
+                  <p className="mt-3 text-xs text-white/35">
                     {t("series.seasonEpisodesYear")
                       .replace("{season}", String(activeSeason))
                       .replace("{count}", String(modalEpisodes.length))
@@ -181,7 +181,7 @@ export function SeriesEpisodesSlider({
                 <button
                   type="button"
                   onClick={() => setShowAll(false)}
-                  className="ml-4 shrink-0 rounded-lg p-2 text-white/60 transition hover:bg-white/5 hover:text-white"
+                  className="ml-4 shrink-0 rounded-lg p-2 text-white/55 transition hover:bg-white/5 hover:text-white"
                 >
                   <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                     <path d="M18 6L6 18M6 6l12 12" strokeLinecap="round" />
@@ -199,7 +199,7 @@ export function SeriesEpisodesSlider({
                         "flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-medium transition",
                         activeSeason === s.season
                           ? "border border-primary/40 bg-primary/20 text-primary"
-                          : "border border-white/10 bg-white/5 text-white/60 hover:bg-white/10 hover:text-white",
+                          : "border border-white/10 bg-white/5 text-white/55 hover:bg-white/10 hover:text-white",
                       )}
                     >
                       {t("series.seasonTab").replace("{n}", String(s.season))}
@@ -251,13 +251,13 @@ export function SeriesEpisodesSlider({
                       <div className="flex flex-wrap items-center gap-2">
                         <span className="text-xs font-bold text-purple-400">EP.{ep.episodeNumber}</span>
                         {ep.id === currentVideoId ? (
-                          <span className="rounded-full bg-[#534AB7]/40 px-2 py-0.5 text-[9px] font-semibold text-white/60">
+                          <span className="rounded-full bg-[#534AB7]/40 px-2 py-0.5 text-[9px] font-semibold text-white/55">
                             Now Playing
                           </span>
                         ) : null}
                       </div>
                       <p className="mt-0.5 line-clamp-1 text-sm font-semibold text-white">{ep.title}</p>
-                      <p className="mt-0.5 text-[10px] text-white/40">
+                      <p className="mt-0.5 text-[10px] text-white/35">
                         {new Date(ep.createdAt).toLocaleDateString(dateLocale, {
                           year: "numeric",
                           month: "short",
@@ -267,7 +267,7 @@ export function SeriesEpisodesSlider({
                         {formatViewCountShort(ep.viewCount ?? 0)} {t("feed.views")}
                       </p>
                       {ep.description ? (
-                        <p className="mt-1 line-clamp-2 text-[11px] leading-snug text-white/40">
+                        <p className="mt-1 line-clamp-2 text-[11px] leading-snug text-white/35">
                           {ep.description}
                         </p>
                       ) : null}
