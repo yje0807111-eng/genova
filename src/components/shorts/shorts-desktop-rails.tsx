@@ -21,7 +21,7 @@ function avatarForVideo(v: ShortsFeedItem): string | null {
 }
 
 const railShell =
-  "flex h-full min-h-0 flex-col overflow-y-auto rounded-xl border border-white/10 bg-[linear-gradient(165deg,rgba(13,11,30,0.92)_0%,rgba(10,10,10,0.96)_100%)] px-4 py-5 shadow-[inset_0_1px_0_rgba(127,119,221,0.12)] backdrop-blur-md";
+  "flex h-full min-h-0 flex-col overflow-y-auto rounded-xl border border-white/10 bg-[linear-gradient(165deg,rgba(13,11,30,0.92)_0%,rgba(10,10,10,0.96)_100%)] px-4 py-5 shadow-[inset_0_1px_0_var(--tint-purple-12)] backdrop-blur-md";
 
 export function ShortsLeftRail({
   videos,

@@ -126,7 +126,7 @@ function CustomSelect({
         className="flex w-full items-center justify-between rounded-xl border px-4 py-2 text-sm transition"
         style={{
           borderColor: open ? "rgba(127,119,221,0.5)" : "rgba(255,255,255,0.08)",
-          background: open ? "rgba(83,74,183,0.15)" : "#0d0b20",
+          background: open ? "var(--tint-accent-15)" : "#0d0b20",
           color: selected ? "white" : "rgba(255,255,255,0.25)",
         }}
       >
@@ -796,7 +796,7 @@ export function EditVideoForm({ userId, video, competitions }: Props) {
                           ? "1px solid rgba(127,119,221,0.4)"
                           : "1px solid rgba(255,255,255,0.08)",
                         boxShadow: tagPreview.length > 0
-                          ? "0 0 16px rgba(127,119,221,0.12), inset 0 1px 0 rgba(127,119,221,0.08)"
+                          ? "0 0 16px var(--tint-purple-12), inset 0 1px 0 rgba(127,119,221,0.08)"
                           : "inset 0 1px 0 rgba(255,255,255,0.03)",
                       }}
                     />
@@ -891,7 +891,7 @@ export function EditVideoForm({ userId, video, competitions }: Props) {
           </div>
 
           <div style={{ display: step === 3 ? "block" : "none" }}>
-            <div className="rounded-2xl border border-white/[0.08] p-3" style={{ background: "rgba(83,74,183,0.08)", borderColor: "rgba(127,119,221,0.12)" }}>
+            <div className="rounded-2xl border border-white/[0.08] p-3" style={{ background: "rgba(83,74,183,0.08)", borderColor: "var(--tint-purple-12)" }}>
               <h2 className="mb-3 border-b border-[#7F77DD]/20 pb-2 text-[11px] font-bold uppercase tracking-[0.2em] text-[#AFA9EC]">
                 {t("upload.sectionSettingsPanel")}
               </h2>

@@ -449,7 +449,7 @@ export function CompetitionListClient({
         className="relative mt-12 overflow-hidden rounded-3xl border border-white/[0.1] p-10 backdrop-blur-xl"
         style={{
           background:
-            "linear-gradient(135deg, rgba(127,119,221,0.12) 0%, rgba(83,74,183,0.06) 50%, rgba(10,10,10,0.6) 100%)",
+            "linear-gradient(135deg, var(--tint-purple-12) 0%, rgba(83,74,183,0.06) 50%, rgba(10,10,10,0.6) 100%)",
           boxShadow: "inset 0 1px 0 rgba(255,255,255,0.08), 0 8px 32px rgba(0,0,0,0.3)",
         }}
       >

@@ -215,7 +215,7 @@ function HeroBanner({ videos, allVideos }: { videos: Video[]; allVideos: Video[]
               <span
                 className="rounded-md px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.15em] text-white/75"
                 style={{
-                  background: "rgba(127 119 221 / 0.12)",
+                  background: "var(--tint-purple-12)",
                   border: "1px solid var(--border-strong)",
                 }}
               >
@@ -894,7 +894,7 @@ function SpotlightMoreMenu({ creator }: { creator: SpotlightCreator }) {
                   <span
                     key={tool}
                     className="rounded-md px-2 py-0.5 text-[10px] text-white/50"
-                    style={{ background: "rgba(83 74 183 / 0.15)", border: "1px solid var(--tint-accent-20)" }}
+                    style={{ background: "var(--tint-accent-15)", border: "1px solid var(--tint-accent-20)" }}
                   >
                     {tool}
                   </span>

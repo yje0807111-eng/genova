@@ -252,7 +252,7 @@ export function SlimSidebar({ onOpenChat, unreadMessageCount = 0 }: SlimSidebarP
               const sharedClassName = cn(
                 "group relative flex h-12 w-12 flex-col items-center justify-center gap-0.5 overflow-visible rounded-xl transition-colors",
                 active
-                  ? "bg-gradient-to-br from-[#7F77DD]/20 to-[#534AB7]/10 text-[#C7C2F0] shadow-[0_0_20px_rgba(127,119,221,0.28),inset_0_0_20px_rgba(127,119,221,0.12)] ring-1 ring-inset ring-[#7F77DD]/25"
+                  ? "bg-gradient-to-br from-[#7F77DD]/20 to-[#534AB7]/10 text-[#C7C2F0] shadow-[0_0_20px_rgba(127,119,221,0.28),inset_0_0_20px_var(--tint-purple-12)] ring-1 ring-inset ring-[#7F77DD]/25"
                   : "text-white/35 hover:bg-white/[0.04] hover:text-white/80",
               );
               const inner = (
@@ -364,7 +364,7 @@ export function SlimSidebar({ onOpenChat, unreadMessageCount = 0 }: SlimSidebarP
             className={cn(
               "group relative flex h-12 w-12 flex-col items-center justify-center gap-0.5 overflow-visible rounded-xl transition-colors",
               pathname === "/profile" || pathname.startsWith("/profile/")
-                ? "bg-gradient-to-br from-[#7F77DD]/20 to-[#534AB7]/10 text-[#C7C2F0] shadow-[0_0_20px_rgba(127,119,221,0.28),inset_0_0_20px_rgba(127,119,221,0.12)] ring-1 ring-inset ring-[#7F77DD]/25"
+                ? "bg-gradient-to-br from-[#7F77DD]/20 to-[#534AB7]/10 text-[#C7C2F0] shadow-[0_0_20px_rgba(127,119,221,0.28),inset_0_0_20px_var(--tint-purple-12)] ring-1 ring-inset ring-[#7F77DD]/25"
                 : "text-white/35 hover:bg-white/[0.04] hover:text-white/80",
             )}
             aria-label={t("nav.profile", "Profile")}

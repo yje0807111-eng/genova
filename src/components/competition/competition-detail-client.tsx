@@ -751,7 +751,7 @@ export function CompetitionDetailClient({ competition, videos, featuredVideos }:
                     cardBorder: "rgba(127,119,221,0.22)",
                     cardShadow: "0 0 24px rgba(127,119,221,0.08)",
                     glowColor: "rgba(127,119,221,0.16)",
-                    iconBg: "rgba(127,119,221,0.12)",
+                    iconBg: "var(--tint-purple-12)",
                     iconBorder: "rgba(127,119,221,0.25)",
                     divider: "rgba(127,119,221,0.16)",
                   },
@@ -1160,7 +1160,7 @@ export function CompetitionDetailClient({ competition, videos, featuredVideos }:
         {activeTab === "faq" && (
           <div className="max-w-2xl space-y-5">
             {(competition.announcement_ko || competition.announcement_en || competition.announcement_ja || competition.announcement) && (
-              <div className="rounded-2xl p-6" style={{ background: "linear-gradient(135deg, rgba(83,74,183,0.15) 0%, rgba(40,35,100,0.1) 100%)", border: "1px solid rgba(127,119,221,0.2)" }}>
+              <div className="rounded-2xl p-6" style={{ background: "linear-gradient(135deg, var(--tint-accent-15) 0%, rgba(40,35,100,0.1) 100%)", border: "1px solid rgba(127,119,221,0.2)" }}>
                 <h2 className="mb-3 text-[18px] font-bold text-white">{t("competition.detail.announcementsTitle")}</h2>
                 <p className="text-[13px] leading-relaxed text-white/55 whitespace-pre-wrap">
                   {getText(competition.announcement_ko, competition.announcement_en, competition.announcement_ja, competition.announcement ?? "")}

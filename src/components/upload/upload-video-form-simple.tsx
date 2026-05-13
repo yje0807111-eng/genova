@@ -178,7 +178,7 @@ export function UploadVideoFormSimple({
         >
           <div
             className="rounded-2xl border-2 border-dashed border-[#7F77DD]/60 p-16 text-center"
-            style={{ background: "rgba(83,74,183,0.15)" }}
+            style={{ background: "var(--tint-accent-15)" }}
           >
             <Upload className="mx-auto mb-4 h-16 w-16 text-[#7F77DD]/60" strokeWidth={1.5} />
             <p className="text-xl font-bold text-white">{t("uploadSimple.dropHere")}</p>

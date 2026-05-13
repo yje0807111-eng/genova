@@ -80,7 +80,7 @@ export function ToolDetailClient({
           <div
             className="absolute right-0 top-40 h-72 w-72 rounded-full"
             style={{
-              background: "radial-gradient(circle, rgba(83,74,183,0.15) 0%, transparent 70%)",
+              background: "radial-gradient(circle, var(--tint-accent-15) 0%, transparent 70%)",
               filter: "blur(60px)",
             }}
           />

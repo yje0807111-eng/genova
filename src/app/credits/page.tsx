@@ -72,7 +72,7 @@ export default async function CreditsPage() {
         </AnimateIn>
 
         <AnimateIn delay={0.05}>
-          <section className="rounded-2xl border border-white/10 bg-[linear-gradient(165deg,rgba(19,16,40,0.92)_0%,rgba(10,10,10,0.96)_100%)] p-6 shadow-[inset_0_1px_0_rgba(127,119,221,0.12)] backdrop-blur-sm sm:p-8">
+          <section className="rounded-2xl border border-white/10 bg-[linear-gradient(165deg,rgba(19,16,40,0.92)_0%,rgba(10,10,10,0.96)_100%)] p-6 shadow-[inset_0_1px_0_var(--tint-purple-12)] backdrop-blur-sm sm:p-8">
             <h2 className="sr-only">Balance</h2>
             <div className="grid gap-6 sm:grid-cols-2">
               <div>

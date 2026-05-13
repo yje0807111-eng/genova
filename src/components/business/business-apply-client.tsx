@@ -126,7 +126,7 @@ export function BusinessApplyClient() {
           <div
             className="absolute left-1/2 top-0 h-[400px] w-[800px] -translate-x-1/2 rounded-full"
             style={{
-              background: "radial-gradient(ellipse, rgba(127,119,221,0.12) 0%, transparent 70%)",
+              background: "radial-gradient(ellipse, var(--tint-purple-12) 0%, transparent 70%)",
               filter: "blur(60px)",
             }}
           />

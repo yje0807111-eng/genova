@@ -158,9 +158,9 @@ export function VideoCard({
     <>
       <style>{`
         @keyframes borderGlow {
-          0% { box-shadow: inset 0 0 0 1.5px rgba(127,119,221,0.6), 0 0 15px rgba(83,74,183,0.4), 0 0 30px rgba(83,74,183,0.15); }
+          0% { box-shadow: inset 0 0 0 1.5px rgba(127,119,221,0.6), 0 0 15px rgba(83,74,183,0.4), 0 0 30px var(--tint-accent-15); }
           50% { box-shadow: inset 0 0 0 1.5px rgba(175,169,236,1), 0 0 25px rgba(83,74,183,0.7), 0 0 50px rgba(83,74,183,0.3); }
-          100% { box-shadow: inset 0 0 0 1.5px rgba(127,119,221,0.6), 0 0 15px rgba(83,74,183,0.4), 0 0 30px rgba(83,74,183,0.15); }
+          100% { box-shadow: inset 0 0 0 1.5px rgba(127,119,221,0.6), 0 0 15px rgba(83,74,183,0.4), 0 0 30px var(--tint-accent-15); }
         }
       `}</style>
       <Link

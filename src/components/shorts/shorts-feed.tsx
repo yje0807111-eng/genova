@@ -130,7 +130,7 @@ function ShortsSlide({
     >
       <div className="mx-auto flex h-full w-full max-w-[min(1600px,100%)] items-center justify-center gap-3 px-3 md:gap-5 md:px-6">
         <div
-          className="relative shrink-0 overflow-hidden rounded-2xl border border-white/10 bg-black shadow-[0_24px_80px_-12px_rgba(0,0,0,0.75),0_0_0_1px_rgba(127,119,221,0.12)]"
+          className="relative shrink-0 overflow-hidden rounded-2xl border border-white/10 bg-black shadow-[0_24px_80px_-12px_rgba(0,0,0,0.75),0_0_0_1px_var(--tint-purple-12)]"
           style={cardStyle}
         >
           {near ? (

@@ -201,7 +201,7 @@ export function CompetitionHero({ competition }: Props) {
           <AnimateIn delay={0.16}>
             <div
               className="relative overflow-hidden rounded-2xl border border-white/10 bg-[#0a0a0a]/70 p-4 backdrop-blur-xl"
-              style={{ boxShadow: "inset 0 1px 0 rgba(127,119,221,0.12)" }}
+              style={{ boxShadow: "inset 0 1px 0 var(--tint-purple-12)" }}
             >
               <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/45">
                 {t("competition.banner.deadline", "Deadline")}
