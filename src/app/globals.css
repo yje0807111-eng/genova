@@ -96,6 +96,9 @@
   --shadow-glow-sm:    0 0 12px rgba(83 74 183 / 0.2);
   --shadow-glow-md:    0 0 18px rgba(83 74 183 / 0.28);
   --shadow-glow-lg:    0 0 30px rgba(83 74 183 / 0.35);
+  --shadow-card-soft:       0 0 30px rgba(83 74 183 / 0.08), inset 0 1px 0 rgba(255 255 255 / 0.05);
+  --shadow-hero-glow:       0 0 80px rgba(127 119 221 / 0.25), inset 0 0 40px rgba(83 74 183 / 0.1);
+  --shadow-hero-glow-hover: 0 0 120px rgba(127 119 221 / 0.4), inset 0 0 40px rgba(83 74 183 / 0.15);
   --shadow-dropdown:   0 8px 32px rgba(0 0 0 / 0.6), 0 0 0 1px rgba(127 119 221 / 0.08);
   --glow-text:         0 0 8px rgba(175 169 236 / 0.8);
 
@@ -112,6 +115,8 @@
   --gradient-card-overlay: linear-gradient(180deg, transparent 50%, rgba(0 0 0 / 0.85) 100%);
   --gradient-row-fade-l:   linear-gradient(to right, rgba(10 10 10 / 0.85) 0%, rgba(10 10 10 / 0.4) 60%, transparent 100%);
   --gradient-row-fade-r:   linear-gradient(to left,  rgba(10 10 10 / 0.85) 0%, rgba(10 10 10 / 0.4) 60%, transparent 100%);
+  --gradient-card-top-accent: linear-gradient(to right, transparent, rgba(127 119 221 / 0.5) 30%, rgba(175 169 236 / 0.3) 60%, transparent);
+  --gradient-cta-solid:       linear-gradient(135deg, var(--accent-core) 0%, #7B6FE4 100%);
 
   /* Motion */
   --duration-fast:         200ms;   /* hover */
@@ -254,6 +259,7 @@
   --shadow-glow-sm:     var(--shadow-glow-sm);
   --shadow-glow-md:     var(--shadow-glow-md);
   --shadow-glow-lg:     var(--shadow-glow-lg);
+  --shadow-card-soft:   var(--shadow-card-soft);
   --shadow-dropdown:    var(--shadow-dropdown);
 
   /* Easing */
@@ -666,5 +672,14 @@ body {
     letter-spacing: 0.18em;
     text-transform: uppercase;
     color: #D5D1FF;
+  }
+
+  /* surface-hero-glow — competition hero outer glow with hover-driven elevation */
+  .surface-hero-glow {
+    box-shadow: var(--shadow-hero-glow);
+    transition: box-shadow var(--duration-fade) ease;
+  }
+  .surface-hero-glow:hover {
+    box-shadow: var(--shadow-hero-glow-hover);
   }
 }
