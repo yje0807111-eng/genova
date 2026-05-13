@@ -534,7 +534,7 @@ export function EditVideoForm({ userId, video, competitions }: Props) {
                         ? "linear-gradient(135deg, rgba(127,119,221,0.18) 0%, rgba(83,74,183,0.08) 100%)"
                         : done
                           ? "rgba(127,119,221,0.06)"
-                          : "rgba(255,255,255,0.02)",
+                          : "var(--border-white-02)",
                       border: active
                         ? "1px solid rgba(127,119,221,0.45)"
                         : done
@@ -856,7 +856,7 @@ export function EditVideoForm({ userId, video, competitions }: Props) {
                                 className="rounded-full border px-3 py-1.5 text-[11px] font-bold transition-all duration-200"
                                 style={{
                                   borderColor: on ? "rgba(127,119,221,0.7)" : "rgba(255,255,255,0.08)",
-                                  background: on ? "linear-gradient(135deg, rgba(127,119,221,0.4) 0%, rgba(83,74,183,0.25) 100%)" : "rgba(255,255,255,0.02)",
+                                  background: on ? "linear-gradient(135deg, rgba(127,119,221,0.4) 0%, rgba(83,74,183,0.25) 100%)" : "var(--border-white-02)",
                                   color: on ? "#ffffff" : "rgba(255,255,255,0.4)",
                                   boxShadow: on ? "0 0 12px rgba(127,119,221,0.3)" : "none",
                                 }}
@@ -867,7 +867,7 @@ export function EditVideoForm({ userId, video, competitions }: Props) {
                           })}
                           <button type="button" onClick={() => toggleOtherOpen(cat.key)} className="rounded-full border border-dashed px-3 py-1.5 text-[11px] font-bold transition-all duration-200" style={{
                             borderColor: otherActive ? "rgba(127,119,221,0.7)" : "rgba(255,255,255,0.08)",
-                            background: otherActive ? "rgba(83,74,183,0.2)" : "rgba(255,255,255,0.02)",
+                            background: otherActive ? "rgba(83,74,183,0.2)" : "var(--border-white-02)",
                             color: otherActive ? "#AFA9EC" : "rgba(255,255,255,0.35)",
                           }}>
                             {t("upload.otherTool")}
@@ -920,7 +920,7 @@ export function EditVideoForm({ userId, video, competitions }: Props) {
                         return (
                           <button key={k} type="button" onClick={() => setMainGenre(k)} disabled={isGenreLocked} className="rounded-full border px-3 py-1.5 text-[12px] font-bold transition-all duration-200" style={{
                             borderColor: selected ? "rgba(127,119,221,0.7)" : "rgba(255,255,255,0.08)",
-                            background: selected ? "linear-gradient(135deg, rgba(127,119,221,0.4) 0%, rgba(83,74,183,0.25) 100%)" : "rgba(255,255,255,0.02)",
+                            background: selected ? "linear-gradient(135deg, rgba(127,119,221,0.4) 0%, rgba(83,74,183,0.25) 100%)" : "var(--border-white-02)",
                             color: selected ? "#ffffff" : "rgba(255,255,255,0.4)",
                             opacity: isGenreLocked ? 0.5 : 1,
                             cursor: isGenreLocked ? "not-allowed" : "pointer",
@@ -942,7 +942,7 @@ export function EditVideoForm({ userId, video, competitions }: Props) {
                           return (
                             <button key={opt.value} type="button" onClick={() => setSubGenre(opt.value)} disabled={isGenreLocked} className="rounded-full border px-3 py-1.5 text-[12px] font-bold transition-all duration-200" style={{
                               borderColor: selected ? "rgba(127,119,221,0.7)" : "rgba(255,255,255,0.08)",
-                              background: selected ? "linear-gradient(135deg, rgba(127,119,221,0.4) 0%, rgba(83,74,183,0.25) 100%)" : "rgba(255,255,255,0.02)",
+                              background: selected ? "linear-gradient(135deg, rgba(127,119,221,0.4) 0%, rgba(83,74,183,0.25) 100%)" : "var(--border-white-02)",
                               color: selected ? "#ffffff" : "rgba(255,255,255,0.4)",
                               opacity: isGenreLocked ? 0.5 : 1,
                               cursor: isGenreLocked ? "not-allowed" : "pointer",
@@ -971,7 +971,7 @@ export function EditVideoForm({ userId, video, competitions }: Props) {
                         return (
                           <button key={k} type="button" onClick={() => setAdditionalGenres((prev) => (prev.includes(k) ? prev.filter((x) => x !== k) : [...prev, k]))} disabled={isGenreLocked} className="rounded-full border px-3 py-1.5 text-[11px] font-bold transition-all duration-200" style={{
                             borderColor: selected ? "rgba(127,119,221,0.5)" : "rgba(255,255,255,0.06)",
-                            background: selected ? "rgba(83,74,183,0.22)" : "rgba(255,255,255,0.02)",
+                            background: selected ? "rgba(83,74,183,0.22)" : "var(--border-white-02)",
                             color: selected ? "#AFA9EC" : "rgba(255,255,255,0.35)",
                             opacity: isGenreLocked ? 0.5 : 1,
                             cursor: isGenreLocked ? "not-allowed" : "pointer",
@@ -1018,7 +1018,7 @@ export function EditVideoForm({ userId, video, competitions }: Props) {
                   <p className={lbl}>{t("upload.seriesToggleLabel")}</p>
                   <button type="button" onClick={() => setIsSeriesMode(!isSeriesMode)} className="relative flex w-full items-center justify-between rounded-xl border px-4 py-2.5 text-sm font-medium transition" style={{
                     borderColor: isSeriesMode ? "rgba(127,119,221,0.5)" : "rgba(255,255,255,0.06)",
-                    background: isSeriesMode ? "rgba(83,74,183,0.35)" : "rgba(255,255,255,0.02)",
+                    background: isSeriesMode ? "rgba(83,74,183,0.35)" : "var(--border-white-02)",
                     color: isSeriesMode ? "#AFA9EC" : "rgba(255,255,255,0.55)",
                   }}>
                     <span>{t("upload.partOfSeries")}</span>
@@ -1068,7 +1068,7 @@ export function EditVideoForm({ userId, video, competitions }: Props) {
                     {(["public", "private"] as const).map((v) => (
                       <button key={v} type="button" onClick={() => setVisibility(v)} className="relative flex items-center justify-center gap-1.5 rounded-xl border py-2.5 text-sm font-medium transition" style={{
                         borderColor: visibility === v ? "rgba(127,119,221,0.5)" : "rgba(255,255,255,0.06)",
-                        background: visibility === v ? "rgba(83,74,183,0.35)" : "rgba(255,255,255,0.02)",
+                        background: visibility === v ? "rgba(83,74,183,0.35)" : "var(--border-white-02)",
                         color: visibility === v ? "#AFA9EC" : "rgba(255,255,255,0.55)",
                       }}>
                         <span>{v === "public" ? "🌐" : "🔒"}</span>
@@ -1085,7 +1085,7 @@ export function EditVideoForm({ userId, video, competitions }: Props) {
                     {(["personal", "competition"] as const).map((v) => (
                       <button key={v} type="button" onClick={() => setPurpose(v)} className="relative flex items-center justify-center gap-1.5 rounded-xl border py-2.5 text-sm font-medium transition" style={{
                         borderColor: purpose === v ? "rgba(127,119,221,0.5)" : "rgba(255,255,255,0.06)",
-                        background: purpose === v ? "rgba(83,74,183,0.35)" : "rgba(255,255,255,0.02)",
+                        background: purpose === v ? "rgba(83,74,183,0.35)" : "var(--border-white-02)",
                         color: purpose === v ? "#AFA9EC" : "rgba(255,255,255,0.3)",
                       }}>
                         <span>{v === "personal" ? "✦" : "🏆"}</span>

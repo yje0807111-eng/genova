@@ -178,7 +178,7 @@ export function EditCompetitionForm({ competition }: { competition: any }) {
             {/* 왼쪽 */}
             <div className="space-y-4">
               {/* 기본 정보 */}
-              <div className="rounded-xl border border-white/[0.06] p-4" style={{ background: "rgba(255,255,255,0.02)" }}>
+              <div className="rounded-xl border border-white/[0.06] p-4" style={{ background: "var(--border-white-02)" }}>
                 <h2 className="mb-3 text-[10px] font-bold uppercase tracking-widest text-[#AFA9EC]">기본 정보</h2>
                 <div className="space-y-2">
                   <div>
@@ -425,7 +425,7 @@ export function EditCompetitionForm({ competition }: { competition: any }) {
               </div>
 
               {/* 이미지 */}
-              <div className="rounded-xl border border-white/[0.06] p-4" style={{ background: "rgba(255,255,255,0.02)" }}>
+              <div className="rounded-xl border border-white/[0.06] p-4" style={{ background: "var(--border-white-02)" }}>
                 <h2 className="mb-3 text-[10px] font-bold uppercase tracking-widest text-[#AFA9EC]">이미지</h2>
                 <div className="space-y-3">
                   <div>
@@ -510,7 +510,7 @@ export function EditCompetitionForm({ competition }: { competition: any }) {
             {/* 오른쪽 */}
             <div className="space-y-4">
               {/* 공지 및 템플릿 */}
-              <div className="rounded-xl border border-white/[0.06] p-4" style={{ background: "rgba(255,255,255,0.02)" }}>
+              <div className="rounded-xl border border-white/[0.06] p-4" style={{ background: "var(--border-white-02)" }}>
                 <h2 className="mb-3 text-[10px] font-bold uppercase tracking-widest text-[#AFA9EC]">공지 및 템플릿</h2>
                 <div className="space-y-2">
                   <div>
@@ -546,7 +546,7 @@ export function EditCompetitionForm({ competition }: { competition: any }) {
               </div>
 
               {/* 상금 구성 */}
-              <div className="rounded-xl border border-white/[0.06] p-4" style={{ background: "rgba(255,255,255,0.02)" }}>
+              <div className="rounded-xl border border-white/[0.06] p-4" style={{ background: "var(--border-white-02)" }}>
                 <h2 className="mb-3 text-[10px] font-bold uppercase tracking-widest text-[#AFA9EC]">상금 구성</h2>
                 
                 {/* 총상금 잔액 표시 */}
@@ -691,7 +691,7 @@ export function EditCompetitionForm({ competition }: { competition: any }) {
               </div>
 
               {/* 규칙 및 심사 */}
-              <div className="rounded-xl border border-white/[0.06] p-4" style={{ background: "rgba(255,255,255,0.02)" }}>
+              <div className="rounded-xl border border-white/[0.06] p-4" style={{ background: "var(--border-white-02)" }}>
                 <h2 className="mb-3 text-[10px] font-bold uppercase tracking-widest text-[#AFA9EC]">규칙 및 심사</h2>
                 <div className="space-y-2">
                   <div>

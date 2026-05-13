@@ -425,7 +425,7 @@ export function SearchNav() {
                               href={`/profile/${p.id}`}
                               onClick={() => setOpen(false)}
                               className="flex flex-col items-center rounded-xl border border-white/[0.08] p-4 text-center transition hover:border-[#7F77DD]/30"
-                              style={{ background: "rgba(255,255,255,0.02)" }}
+                              style={{ background: "var(--border-white-02)" }}
                             >
                               <div className="mb-2 h-12 w-12 overflow-hidden rounded-full border border-white/10" style={{ boxShadow: "0 0 0 2px rgba(83,74,183,0.3)" }}>
                                 <img src={p.avatarUrl || "/default-avatar.png"} alt="" className="h-full w-full object-cover" />

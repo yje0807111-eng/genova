@@ -148,7 +148,7 @@ export function AwardsGallery({ heroAwardVideos, competitionTitle }: AwardsGalle
                   className="flex aspect-[3/2] flex-col items-center justify-center rounded-xl"
                   style={{
                     border: `1px solid ${slot.borderColor}`,
-                    background: "rgba(255,255,255,0.02)",
+                    background: "var(--border-white-02)",
                   }}
                 >
                   <TierIcon className="h-8 w-8" style={{ color: slot.color, opacity: 0.25 }} />

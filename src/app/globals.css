@@ -54,6 +54,7 @@
   --border-active:   rgba(127 119 221 / 0.60);
 
   /* Border — white alpha (글래스 chrome) */
+  --border-white-02: rgba(255 255 255 / 0.02);
   --border-white-04: rgba(255 255 255 / 0.04);
   --border-white-06: rgba(255 255 255 / 0.06);
   --border-white-08: rgba(255 255 255 / 0.08);
@@ -230,6 +231,7 @@
   --color-line-active:   var(--border-active);
 
   /* Lines / dividers (border-*) — white alpha (글래스 chrome) */
+  --color-line-white-02: var(--border-white-02);
   --color-line-white-04: var(--border-white-04);
   --color-line-white-06: var(--border-white-06);
   --color-line-white-08: var(--border-white-08);

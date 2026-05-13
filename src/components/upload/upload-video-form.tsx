@@ -806,7 +806,7 @@ export function UploadVideoForm({
                         ? "linear-gradient(135deg, rgba(127,119,221,0.18) 0%, rgba(83,74,183,0.08) 100%)"
                         : done
                           ? "rgba(127,119,221,0.06)"
-                          : "rgba(255,255,255,0.02)",
+                          : "var(--border-white-02)",
                       border: active
                         ? "1px solid rgba(127,119,221,0.45)"
                         : done
@@ -1490,7 +1490,7 @@ export function UploadVideoForm({
                                     borderColor: on ? "rgba(127,119,221,0.7)" : "rgba(255,255,255,0.08)",
                                     background: on
                                       ? "linear-gradient(135deg, rgba(127,119,221,0.4) 0%, rgba(83,74,183,0.25) 100%)"
-                                      : "rgba(255,255,255,0.02)",
+                                      : "var(--border-white-02)",
                                     color: on ? "#ffffff" : "rgba(255,255,255,0.4)",
                                     boxShadow: on
                                       ? "0 0 12px rgba(127,119,221,0.3), inset 0 1px 0 rgba(175,169,236,0.2)"
@@ -1607,7 +1607,7 @@ export function UploadVideoForm({
                               borderColor: selected ? "rgba(127,119,221,0.7)" : "rgba(255,255,255,0.08)",
                               background: selected
                                 ? "linear-gradient(135deg, rgba(127,119,221,0.4) 0%, rgba(83,74,183,0.25) 100%)"
-                                : "rgba(255,255,255,0.02)",
+                                : "var(--border-white-02)",
                               color: selected ? "#ffffff" : "rgba(255,255,255,0.4)",
                               boxShadow: selected
                                 ? "0 0 12px rgba(127,119,221,0.3), inset 0 1px 0 rgba(175,169,236,0.2)"
@@ -1639,7 +1639,7 @@ export function UploadVideoForm({
                                 borderColor: selected ? "rgba(127,119,221,0.7)" : "rgba(255,255,255,0.08)",
                                 background: selected
                                   ? "linear-gradient(135deg, rgba(127,119,221,0.4) 0%, rgba(83,74,183,0.25) 100%)"
-                                  : "rgba(255,255,255,0.02)",
+                                  : "var(--border-white-02)",
                                 color: selected ? "#ffffff" : "rgba(255,255,255,0.4)",
                                 boxShadow: selected
                                   ? "0 0 12px rgba(127,119,221,0.3), inset 0 1px 0 rgba(175,169,236,0.2)"
@@ -1687,7 +1687,7 @@ export function UploadVideoForm({
                             className="rounded-full border px-3 py-1.5 text-[11px] font-bold transition-all duration-200"
                             style={{
                               borderColor: selected ? "rgba(127,119,221,0.5)" : "rgba(255,255,255,0.06)",
-                              background: selected ? "rgba(83,74,183,0.22)" : "rgba(255,255,255,0.02)",
+                              background: selected ? "rgba(83,74,183,0.22)" : "var(--border-white-02)",
                               color: selected ? "#AFA9EC" : "rgba(255,255,255,0.35)",
                             }}
                           >
@@ -1723,7 +1723,7 @@ export function UploadVideoForm({
                     className="relative flex w-full items-center justify-between rounded-xl border px-4 py-2.5 text-sm font-medium transition"
                     style={{
                       borderColor: isSeriesMode ? "rgba(127,119,221,0.5)" : "rgba(255,255,255,0.06)",
-                      background: isSeriesMode ? "rgba(83,74,183,0.35)" : "rgba(255,255,255,0.02)",
+                      background: isSeriesMode ? "rgba(83,74,183,0.35)" : "var(--border-white-02)",
                       color: isSeriesMode ? "#AFA9EC" : "rgba(255,255,255,0.55)",
                       cursor: competitionIdFromUrl ? "not-allowed" : "pointer",
                       opacity: competitionIdFromUrl ? 0.5 : 1,
@@ -1823,7 +1823,7 @@ export function UploadVideoForm({
                         className="relative flex items-center justify-center gap-1.5 rounded-xl border py-2.5 text-sm font-medium transition"
                         style={{
                           borderColor: visibility === v ? "rgba(127,119,221,0.5)" : "rgba(255,255,255,0.06)",
-                          background: visibility === v ? "rgba(83,74,183,0.35)" : "rgba(255,255,255,0.02)",
+                          background: visibility === v ? "rgba(83,74,183,0.35)" : "var(--border-white-02)",
                           color: visibility === v ? "#AFA9EC" : "rgba(255,255,255,0.55)",
                           cursor: v === "private" && !!competitionIdFromUrl ? "not-allowed" : "pointer",
                           opacity: v === "private" && !!competitionIdFromUrl ? 0.4 : 1,
@@ -1862,7 +1862,7 @@ export function UploadVideoForm({
                           className="relative flex items-center justify-center gap-1.5 rounded-xl border py-2.5 text-sm font-medium transition"
                           style={{
                             borderColor: purpose === v ? "rgba(127,119,221,0.5)" : "rgba(255,255,255,0.06)",
-                            background: purpose === v ? "rgba(83,74,183,0.35)" : "rgba(255,255,255,0.02)",
+                            background: purpose === v ? "rgba(83,74,183,0.35)" : "var(--border-white-02)",
                             color: purpose === v ? "#AFA9EC" : "rgba(255,255,255,0.3)",
                           }}
                         >

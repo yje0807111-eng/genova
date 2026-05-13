@@ -175,7 +175,7 @@ function CompetitionTableRow({ c, idx, participantCount }: { c: Competition; idx
         borderBottom: "1px solid rgba(255,255,255,0.04)",
         background: isClosed
           ? "linear-gradient(to bottom, rgba(255,255,255,0.01) 0%, rgba(0,0,0,0.1) 100%)"
-          : "linear-gradient(to bottom, rgba(255,255,255,0.02) 0%, rgba(255,255,255,0.01) 100%)",
+          : "linear-gradient(to bottom, var(--border-white-02) 0%, rgba(255,255,255,0.01) 100%)",
         opacity: isClosed ? 0.6 : 1,
         filter: isClosed ? "grayscale(0.4)" : "none",
       }}

@@ -195,7 +195,7 @@ function StatCard({
     <div
       className={`group relative overflow-hidden rounded-xl border ${styles.border} bg-[#0a0a0a]/70 px-4 py-3.5 backdrop-blur-md transition-all duration-300 hover:-translate-y-0.5 sm:px-5 sm:py-4`}
       style={{
-        boxShadow: `0 0 0 1px rgba(255,255,255,0.02), 0 8px 32px ${styles.glow}`,
+        boxShadow: `0 0 0 1px var(--border-white-02), 0 8px 32px ${styles.glow}`,
       }}
     >
       <div
