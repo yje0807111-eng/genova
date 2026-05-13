@@ -45,7 +45,7 @@ export default async function ShortsPage() {
   const items = await enrichForShorts(withEngagement);
 
   return (
-    <div className="min-h-[100dvh] bg-[#080618]">
+    <div className="min-h-[100dvh] bg-[#0a0a0a]">
       <ShortsFeed videos={items} />
     </div>
   );

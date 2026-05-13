@@ -206,7 +206,7 @@ export function SearchNav() {
                   onPointerDown={(e) => e.stopPropagation()}
                   className="pointer-events-auto flex h-full max-h-[92dvh] min-h-0 w-full max-w-6xl flex-col overflow-hidden rounded-2xl border border-white/[0.08] shadow-2xl"
                   style={{
-                    background: "linear-gradient(135deg, rgba(15,13,36,0.99) 0%, rgba(8,6,24,1) 100%)",
+                    background: "linear-gradient(135deg, rgba(15,13,36,0.99) 0%, rgba(10,10,10,1) 100%)",
                     boxShadow: "0 0 0 1px rgba(127,119,221,0.08), 0 40px 80px rgba(0,0,0,0.8)",
                   }}
                   role="dialog"
@@ -336,13 +336,7 @@ export function SearchNav() {
                                     className="flex items-center gap-3 rounded-lg px-2 py-2 text-sm hover:bg-white/10"
                                   >
                                     <div className="h-10 w-10 shrink-0 overflow-hidden rounded-full bg-[#26215C]">
-                                      {p.avatarUrl ? (
-                                        <img src={p.avatarUrl} alt="" className="h-full w-full object-cover" />
-                                      ) : (
-                                        <div className="flex h-full w-full items-center justify-center text-xs text-[#AFA9EC]">
-                                          ?
-                                        </div>
-                                      )}
+                                      <img src={p.avatarUrl || "/default-avatar.png"} alt="" className="h-full w-full object-cover" />
                                     </div>
                                     <span className="font-medium text-[#EEEDFE]">
                                       <HighlightText text={p.displayName ?? "User"} query={debounced} />
@@ -408,7 +402,7 @@ export function SearchNav() {
                             >
                               <div className="relative aspect-video w-full overflow-hidden">
                                 <img src={v.thumbnailUrl} alt="" className="h-full w-full object-cover transition-transform duration-500 group-hover/card:scale-105" />
-                                <div className="absolute inset-x-0 bottom-0 z-[1]" style={{ height: "75%", background: "linear-gradient(to top, rgba(8,6,24,1) 0%, rgba(8,6,24,0.8) 40%, transparent 100%)" }} />
+                                <div className="absolute inset-x-0 bottom-0 z-[1]" style={{ height: "75%", background: "linear-gradient(to top, rgba(10,10,10,1) 0%, rgba(10,10,10,0.8) 40%, transparent 100%)" }} />
                                 <div className="absolute bottom-0 left-0 right-0 z-[2] px-2.5 pb-2">
                                   <p className="line-clamp-1 text-[12px] font-bold text-white">{v.title}</p>
                                 </div>
@@ -434,11 +428,7 @@ export function SearchNav() {
                               style={{ background: "rgba(255,255,255,0.02)" }}
                             >
                               <div className="mb-2 h-12 w-12 overflow-hidden rounded-full border border-white/10" style={{ boxShadow: "0 0 0 2px rgba(83,74,183,0.3)" }}>
-                                {p.avatarUrl ? (
-                                  <img src={p.avatarUrl} alt="" className="h-full w-full object-cover" />
-                                ) : (
-                                  <div className="flex h-full w-full items-center justify-center text-sm text-white/40 bg-[#26215C]">?</div>
-                                )}
+                                <img src={p.avatarUrl || "/default-avatar.png"} alt="" className="h-full w-full object-cover" />
                               </div>
                               <p className="truncate text-sm font-bold text-white">{p.displayName ?? "Creator"}</p>
                               <p className="mt-0.5 text-[11px] text-white/35">{p.followerCount} followers</p>

@@ -165,9 +165,9 @@ export function LandingClient({
   const dateLocale = locale === "ja" ? "ja-JP" : locale === "en" ? "en-US" : "ko-KR";
 
   return (
-    <div className="min-h-screen bg-[#080618] text-white overflow-x-hidden">
+    <div className="min-h-screen bg-[#0a0a0a] text-white overflow-x-hidden">
       {/* Top nav */}
-      <nav className="fixed top-0 left-0 right-0 z-50 border-b border-white/[0.05] bg-[#080618]/70 backdrop-blur-xl">
+      <nav className="fixed top-0 left-0 right-0 z-50 border-b border-white/[0.06] bg-[#0a0a0a]/85 backdrop-blur-xl">
         <div className="mx-auto flex max-w-[1600px] items-center justify-between px-6 py-3 sm:px-10">
           <Link href="/landing" className="flex items-center gap-2">
             <span className="text-[18px] font-black tracking-tight">Genova</span>
@@ -185,17 +185,17 @@ export function LandingClient({
                   onClick={() => setLocale(lang)}
                   className={cn(
                     "h-6 rounded-full px-2.5 text-[10px] font-semibold transition",
-                    locale === lang ? "bg-white/10 text-white" : "text-white/40 hover:text-white/70",
+                    locale === lang ? "bg-white/10 text-white" : "text-white/35 hover:text-white/70",
                   )}
                 >
                   {lang === "en" ? "EN" : lang === "ko" ? "KO" : "JA"}
                 </button>
               ))}
             </div>
-            <Link href="/" className="hidden text-[12px] font-semibold text-white/60 hover:text-white sm:block px-3 py-1.5">
+            <Link href="/" className="hidden text-[12px] font-semibold text-white/55 hover:text-white sm:block px-3 py-1.5">
               {t.nav.explore}
             </Link>
-            <Link href="/auth" className="rounded-full bg-white px-4 py-1.5 text-[12px] font-bold text-[#080618] hover:scale-105 transition">
+            <Link href="/auth" className="rounded-full bg-white px-4 py-1.5 text-[12px] font-bold text-[#0a0a0a] hover:scale-105 transition">
               {t.nav.start}
             </Link>
           </div>
@@ -227,7 +227,7 @@ export function LandingClient({
           <div
             className="absolute -left-20 top-10 h-[500px] w-[700px] rounded-full"
             style={{
-              background: "radial-gradient(ellipse, rgba(127,119,221,0.35) 0%, transparent 65%)",
+              background: "radial-gradient(ellipse, rgba(127,119,221,0.18) 0%, transparent 65%)",
               filter: "blur(100px)",
               animation: "search-pulse 6s ease-in-out infinite",
             }}
@@ -235,7 +235,7 @@ export function LandingClient({
           <div
             className="absolute right-0 top-32 h-[400px] w-[600px] rounded-full"
             style={{
-              background: "radial-gradient(circle, rgba(83,74,183,0.3) 0%, transparent 70%)",
+              background: "radial-gradient(circle, rgba(83,74,183,0.14) 0%, transparent 70%)",
               filter: "blur(100px)",
               animation: "search-pulse 8s ease-in-out infinite reverse",
             }}
@@ -243,7 +243,7 @@ export function LandingClient({
           <div
             className="absolute left-1/3 top-1/2 h-[300px] w-[400px] rounded-full"
             style={{
-              background: "radial-gradient(circle, rgba(175,169,236,0.15) 0%, transparent 70%)",
+              background: "radial-gradient(circle, rgba(175,169,236,0.08) 0%, transparent 70%)",
               filter: "blur(80px)",
               animation: "search-pulse 7s ease-in-out infinite",
             }}
@@ -277,7 +277,7 @@ export function LandingClient({
             <div className="mt-6 flex flex-wrap justify-center gap-2.5">
               <Link
                 href="/"
-                className="group inline-flex items-center gap-2 rounded-full bg-white px-5 py-2.5 text-[13px] font-bold text-[#080618] transition hover:scale-105"
+                className="group inline-flex items-center gap-2 rounded-full bg-white px-5 py-2.5 text-[13px] font-bold text-[#0a0a0a] transition hover:scale-105"
               >
                 <Play className="h-3.5 w-3.5 fill-current" />
                 {t.hero.ctaWatch}
@@ -340,7 +340,7 @@ export function LandingClient({
                       <div
                         className="absolute inset-0"
                         style={{
-                          background: "linear-gradient(180deg, transparent 50%, rgba(8,6,24,0.9) 100%)",
+                          background: "linear-gradient(180deg, transparent 50%, rgba(10,10,10,0.9) 100%)",
                         }}
                       />
                       <div className="absolute inset-0 rounded-xl ring-1 ring-inset ring-white/10 transition-all duration-500 group-hover:ring-[#7F77DD]/60" />
@@ -393,13 +393,10 @@ export function LandingClient({
                   <Link
                     key={c.id}
                     href={`/competition/${c.id}`}
-                    className="group relative block overflow-hidden rounded-2xl border border-white/[0.1] transition-all duration-500 hover:-translate-y-1 hover:border-[#7F77DD]/50 hover:shadow-[0_30px_80px_rgba(127,119,221,0.35)]"
-                    style={{
-                      background: "linear-gradient(135deg, rgba(127,119,221,0.12) 0%, rgba(83,74,183,0.04) 50%, rgba(8,6,24,0.6) 100%)",
-                    }}
+                    className="group relative block overflow-hidden rounded-2xl border border-white/[0.06] bg-[#1a1a1a] transition-all duration-500 hover:-translate-y-1 hover:border-[#7F77DD]/40 hover:shadow-[0_24px_56px_rgba(127,119,221,0.22)]"
                   >
                     <div
-                      className="pointer-events-none absolute -right-32 -top-32 h-96 w-96 rounded-full opacity-50 transition-opacity duration-500 group-hover:opacity-100"
+                      className="pointer-events-none absolute -right-32 -top-32 h-96 w-96 rounded-full opacity-0 transition-opacity duration-500 group-hover:opacity-90"
                       style={{
                         background: "radial-gradient(circle, rgba(255,200,80,0.3) 0%, transparent 70%)",
                         filter: "blur(60px)",
@@ -417,22 +414,22 @@ export function LandingClient({
                           <div
                             className="relative h-full w-full overflow-hidden"
                             style={{
-                              background: "linear-gradient(135deg, #1a1535 0%, #0f0a24 50%, #080618 100%)",
+                              background: "#1a1a1a",
                             }}
                           >
                             <div
-                              className="absolute inset-0 opacity-[0.08]"
+                              className="absolute inset-0 opacity-[0.06]"
                               style={{
                                 backgroundImage:
-                                  "linear-gradient(rgba(175,169,236,1) 1px, transparent 1px), linear-gradient(90deg, rgba(175,169,236,1) 1px, transparent 1px)",
+                                  "linear-gradient(rgba(255,255,255,0.12) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.12) 1px, transparent 1px)",
                                 backgroundSize: "32px 32px",
                               }}
                             />
                             <div
-                              className="absolute inset-0 opacity-30"
+                              className="absolute inset-0 opacity-20"
                               style={{
                                 backgroundImage:
-                                  "radial-gradient(circle at 1px 1px, rgba(127,119,221,0.4) 1px, transparent 0)",
+                                  "radial-gradient(circle at 1px 1px, rgba(255,255,255,0.15) 1px, transparent 0)",
                                 backgroundSize: "20px 20px",
                               }}
                             />
@@ -461,7 +458,7 @@ export function LandingClient({
                               className="absolute inset-0"
                               style={{
                                 background:
-                                  "radial-gradient(ellipse at center, transparent 30%, rgba(8,6,24,0.5) 100%)",
+                                  "radial-gradient(ellipse at center, transparent 30%, rgba(10,10,10,0.5) 100%)",
                               }}
                             />
                           </div>
@@ -469,7 +466,7 @@ export function LandingClient({
                         <div
                           className="absolute inset-0"
                           style={{
-                            background: "linear-gradient(90deg, transparent 50%, rgba(8,6,24,0.6) 100%)",
+                            background: "linear-gradient(90deg, transparent 50%, rgba(10,10,10,0.6) 100%)",
                           }}
                         />
                       </div>
@@ -537,18 +534,13 @@ export function LandingClient({
       </section>
 
       {/* Bottom CTA */}
-      <section className="border-t border-white/[0.05] py-12">
+      <section className="border-t border-white/[0.06] py-12">
         <div className="mx-auto max-w-[1600px] px-6 sm:px-10">
-          <div
-            className="relative overflow-hidden rounded-2xl border border-[#7F77DD]/20 p-8 sm:p-10"
-            style={{
-              background: "linear-gradient(135deg, rgba(127,119,221,0.12) 0%, rgba(83,74,183,0.04) 60%, transparent 100%)",
-            }}
-          >
+          <div className="group/cta relative overflow-hidden rounded-2xl border border-white/[0.06] bg-[#1a1a1a] p-8 transition-[border-color,box-shadow] duration-300 hover:border-white/[0.12] hover:shadow-[0_0_32px_rgba(127,119,221,0.18)] sm:p-10">
             <div
-              className="pointer-events-none absolute -right-20 top-0 h-72 w-72 rounded-full"
+              className="pointer-events-none absolute -right-20 top-0 h-72 w-72 rounded-full opacity-0 transition-opacity duration-500 group-hover/cta:opacity-100"
               style={{
-                background: "radial-gradient(circle, rgba(127,119,221,0.3) 0%, transparent 70%)",
+                background: "radial-gradient(circle, rgba(127,119,221,0.22) 0%, transparent 70%)",
                 filter: "blur(60px)",
               }}
             />
@@ -565,7 +557,7 @@ export function LandingClient({
               <div className="flex shrink-0 gap-2">
                 <Link
                   href="/auth"
-                  className="group inline-flex items-center gap-2 rounded-full bg-white px-6 py-3 text-[13px] font-bold text-[#080618] transition hover:scale-105"
+                  className="group inline-flex items-center gap-2 rounded-full bg-white px-6 py-3 text-[13px] font-bold text-[#0a0a0a] transition hover:scale-105"
                 >
                   {t.cta.button}
                   <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
@@ -577,17 +569,17 @@ export function LandingClient({
       </section>
 
       {/* Footer */}
-      <footer className="border-t border-white/[0.05] py-6">
+      <footer className="border-t border-white/[0.06] py-6">
         <div className="mx-auto flex max-w-[1600px] flex-wrap items-center justify-between gap-4 px-6 text-[11px] text-white/30 sm:px-10">
           <p>© 2026 Genova</p>
           <div className="flex gap-5">
-            <Link href="/terms" className="hover:text-white/60">
+            <Link href="/terms" className="hover:text-white/55">
               {t.footer.terms}
             </Link>
-            <Link href="/privacy" className="hover:text-white/60">
+            <Link href="/privacy" className="hover:text-white/55">
               {t.footer.privacy}
             </Link>
-            <Link href="/business" className="hover:text-white/60">
+            <Link href="/business" className="hover:text-white/55">
               {t.footer.business}
             </Link>
           </div>

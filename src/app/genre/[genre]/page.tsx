@@ -95,7 +95,7 @@ export default async function GenreExplorePage({
         <div className="relative mx-auto max-w-[1600px] px-6 pt-12 pb-10 sm:px-10">
           <Link
             href="/search"
-            className="group mb-6 inline-flex items-center gap-2 text-[12px] font-semibold uppercase tracking-[0.15em] text-white/40 transition hover:text-white"
+            className="group mb-6 inline-flex items-center gap-2 text-[12px] font-semibold uppercase tracking-[0.15em] text-white/35 transition hover:text-white"
           >
             <span className="transition-transform group-hover:-translate-x-1">←</span>
             Back to Discover
@@ -117,7 +117,7 @@ export default async function GenreExplorePage({
 
       <div className="mx-auto max-w-[1600px] px-6 sm:px-10">
         {/* Sort + Sub genre filters */}
-        <div className="sticky top-0 z-10 flex flex-wrap items-center justify-between gap-4 border-b border-white/[0.05] bg-[#080618]/80 py-5 backdrop-blur-xl">
+        <div className="sticky top-0 z-10 flex flex-wrap items-center justify-between gap-4 border-b border-white/[0.05] bg-[#0a0a0a]/80 py-5 backdrop-blur-xl">
           {showSubFilter ? (
             <div className="flex items-center gap-7 overflow-x-auto pr-4">
               <Link
@@ -163,7 +163,7 @@ export default async function GenreExplorePage({
                 className={
                   sort === k
                     ? "rounded-full border border-[#7F77DD]/40 bg-[#534AB7]/20 px-3.5 py-1.5 font-bold text-[#AFA9EC]"
-                    : "rounded-full border border-white/[0.08] px-3.5 py-1.5 font-semibold text-white/40 transition hover:border-white/25 hover:text-white/80"
+                    : "rounded-full border border-white/[0.08] px-3.5 py-1.5 font-semibold text-white/35 transition hover:border-white/25 hover:text-white/80"
                 }
               >
                 {label}
@@ -195,7 +195,7 @@ export default async function GenreExplorePage({
                     <Link
                       key={g}
                       href={`/genre/${g}`}
-                      className="group inline-flex items-center gap-1.5 rounded-full border border-white/[0.08] bg-white/[0.02] px-4 py-1.5 text-[12px] font-semibold text-white/60 transition hover:-translate-y-0.5 hover:border-[#7F77DD]/40 hover:text-white"
+                      className="group inline-flex items-center gap-1.5 rounded-full border border-white/[0.08] bg-white/[0.02] px-4 py-1.5 text-[12px] font-semibold text-white/55 transition hover:-translate-y-0.5 hover:border-[#7F77DD]/40 hover:text-white"
                     >
                       <span className="text-[#7F77DD]/60 group-hover:text-[#AFA9EC]">✦</span>
                       <span className="capitalize">{g}</span>

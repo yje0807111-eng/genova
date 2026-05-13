@@ -49,7 +49,7 @@ export default async function CreditsPage() {
         className="pointer-events-none absolute inset-0"
         style={{
           background:
-            "linear-gradient(to bottom, #0D0B1E 0%, rgba(13,11,30,0.82) 180px, rgba(13,11,30,0.42) 320px, transparent 460px), radial-gradient(ellipse 62% 52% at 52% 6%, rgba(83,74,183,0.26) 0%, rgba(83,74,183,0.12) 32%, rgba(8,6,24,0) 72%), radial-gradient(ellipse 46% 40% at 14% 10%, rgba(127,119,221,0.13) 0%, rgba(8,6,24,0) 70%)",
+            "linear-gradient(to bottom, #0D0B1E 0%, rgba(13,11,30,0.82) 180px, rgba(13,11,30,0.42) 320px, transparent 460px), radial-gradient(ellipse 62% 52% at 52% 6%, rgba(83,74,183,0.26) 0%, rgba(83,74,183,0.12) 32%, rgba(10,10,10,0) 72%), radial-gradient(ellipse 46% 40% at 14% 10%, rgba(127,119,221,0.13) 0%, rgba(10,10,10,0) 70%)",
         }}
       />
       <div
@@ -72,7 +72,7 @@ export default async function CreditsPage() {
         </AnimateIn>
 
         <AnimateIn delay={0.05}>
-          <section className="rounded-2xl border border-white/10 bg-[linear-gradient(165deg,rgba(19,16,40,0.92)_0%,rgba(8,6,24,0.96)_100%)] p-6 shadow-[inset_0_1px_0_rgba(127,119,221,0.12)] backdrop-blur-sm sm:p-8">
+          <section className="rounded-2xl border border-white/10 bg-[linear-gradient(165deg,rgba(19,16,40,0.92)_0%,rgba(10,10,10,0.96)_100%)] p-6 shadow-[inset_0_1px_0_rgba(127,119,221,0.12)] backdrop-blur-sm sm:p-8">
             <h2 className="sr-only">Balance</h2>
             <div className="grid gap-6 sm:grid-cols-2">
               <div>

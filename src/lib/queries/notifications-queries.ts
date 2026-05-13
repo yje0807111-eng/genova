@@ -5,7 +5,7 @@ export type AppNotification = {
   title: string;
   body: string | null;
   href: string | null;
-  type: "comment" | "follow" | "competition_result" | "trophy";
+  type: "comment" | "follow" | "competition_result" | "trophy" | "like";
   isRead: boolean;
   createdAt: string;
 };

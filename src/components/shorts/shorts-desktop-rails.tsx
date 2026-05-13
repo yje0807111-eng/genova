@@ -7,6 +7,7 @@ import { formatViewCountShort } from "@/lib/view-count";
 import { normalizeToolName } from "@/lib/constants/ai-tools";
 import { hrefForVideoCreator } from "@/lib/creator-links";
 import type { ShortsFeedItem } from "@/components/shorts/shorts-feed";
+import { useUploadModal } from "@/components/upload/upload-modal-context";
 
 function displayName(v: ShortsFeedItem): string {
   if (v.creatorName) return v.creatorName;
@@ -20,7 +21,7 @@ function avatarForVideo(v: ShortsFeedItem): string | null {
 }
 
 const railShell =
-  "flex h-full min-h-0 flex-col overflow-y-auto rounded-xl border border-white/10 bg-[linear-gradient(165deg,rgba(13,11,30,0.92)_0%,rgba(8,6,24,0.96)_100%)] px-4 py-5 shadow-[inset_0_1px_0_rgba(127,119,221,0.12)] backdrop-blur-md";
+  "flex h-full min-h-0 flex-col overflow-y-auto rounded-xl border border-white/10 bg-[linear-gradient(165deg,rgba(13,11,30,0.92)_0%,rgba(10,10,10,0.96)_100%)] px-4 py-5 shadow-[inset_0_1px_0_rgba(127,119,221,0.12)] backdrop-blur-md";
 
 export function ShortsLeftRail({
   videos,
@@ -31,6 +32,7 @@ export function ShortsLeftRail({
   activeIndex: number;
   onSelectIndex: (index: number) => void;
 }) {
+  const { open: openUploadModal } = useUploadModal();
   const upNext = useMemo(() => {
     const out: { v: ShortsFeedItem; index: number }[] = [];
     for (let i = activeIndex + 1; i < videos.length && out.length < 5; i += 1) {
@@ -75,7 +77,7 @@ export function ShortsLeftRail({
                 onClick={() => onSelectIndex(index)}
                 className="group flex w-full gap-3 rounded-lg border border-transparent p-1.5 text-left transition hover:border-[#534AB7]/40 hover:bg-white/[0.04]"
               >
-                <div className="relative h-14 w-10 shrink-0 overflow-hidden rounded-md bg-[#1a1535] ring-1 ring-white/10">
+                <div className="relative h-14 w-10 shrink-0 overflow-hidden rounded-md bg-[#1a1a1a] ring-1 ring-white/10">
                   <img src={v.thumbnailUrl} alt="" className="h-full w-full object-cover opacity-90 transition group-hover:opacity-100" />
                 </div>
                 <div className="min-w-0 flex-1">
@@ -98,9 +100,9 @@ export function ShortsLeftRail({
         <Link href="/competition" className="rounded-lg px-2 py-2 text-[#AFA9EC] transition hover:bg-white/[0.05] hover:text-[#F8F7FF]">
           Competitions →
         </Link>
-        <Link href="/upload" className="rounded-lg px-2 py-2 text-[#AFA9EC] transition hover:bg-white/[0.05] hover:text-[#F8F7FF]">
+        <button type="button" onClick={() => openUploadModal()} className="rounded-lg px-2 py-2 text-left text-[#AFA9EC] transition hover:bg-white/[0.05] hover:text-[#F8F7FF]">
           Upload a film →
-        </Link>
+        </button>
       </nav>
 
       <p className="mt-6 text-[10px] leading-relaxed text-[#AFA9EC]/50">
@@ -190,7 +192,7 @@ export function ShortsRightRail({
           <ul className="mt-2 flex flex-wrap gap-1.5">
             {active.aiTools.slice(0, 8).map((t) => (
               <li key={t}>
-                <span className="inline-block rounded-md bg-[#1a1535]/90 px-2 py-0.5 text-[10px] font-medium text-[#AFA9EC] ring-1 ring-white/10">
+                <span className="inline-block rounded-md bg-[#1a1a1a]/90 px-2 py-0.5 text-[10px] font-medium text-[#AFA9EC] ring-1 ring-white/10">
                   {normalizeToolName(t)}
                 </span>
               </li>
@@ -213,7 +215,7 @@ export function ShortsRightRail({
                 onClick={() => onSelectIndex(index)}
                 className="group flex w-full gap-3 rounded-lg border border-transparent p-1.5 text-left transition hover:border-[#534AB7]/40 hover:bg-white/[0.04]"
               >
-                <div className="relative h-12 w-9 shrink-0 overflow-hidden rounded-md bg-[#1a1535] ring-1 ring-white/10">
+                <div className="relative h-12 w-9 shrink-0 overflow-hidden rounded-md bg-[#1a1a1a] ring-1 ring-white/10">
                   <img src={v.thumbnailUrl} alt="" className="h-full w-full object-cover opacity-90 transition group-hover:opacity-100" />
                 </div>
                 <div className="min-w-0 flex-1">

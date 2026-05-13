@@ -313,7 +313,7 @@ export function ValuePropCards() {
               onClick={() => setOpenKey(item.key)}
               className="group relative overflow-hidden rounded-2xl border border-white/[0.08] p-6 text-left transition-all duration-500 hover:-translate-y-1.5 hover:border-white/20"
               style={{
-                background: "linear-gradient(135deg, rgba(255,255,255,0.025) 0%, rgba(8,6,24,0.4) 100%)",
+                background: "#1a1a1a",
                 animation: `fade-in-up 0.6s ease-out ${i * 0.1}s both`,
               }}
             >
@@ -326,7 +326,7 @@ export function ValuePropCards() {
               />
               {/* Glow orb */}
               <div
-                className="pointer-events-none absolute -right-16 -top-16 h-40 w-40 rounded-full opacity-30 transition-all duration-700 group-hover:opacity-90 group-hover:scale-110"
+                className="pointer-events-none absolute -right-16 -top-16 h-40 w-40 rounded-full opacity-0 transition-all duration-700 group-hover:opacity-80 group-hover:scale-110"
                 style={{
                   background: `radial-gradient(circle, ${item.glow} 0%, transparent 70%)`,
                   filter: "blur(30px)",
@@ -400,7 +400,7 @@ export function ValuePropCards() {
           <div
             className="relative w-full max-w-lg overflow-hidden rounded-2xl border border-white/[0.1] p-8"
             style={{
-              background: "linear-gradient(135deg, rgba(127,119,221,0.12) 0%, rgba(8,6,24,0.95) 60%, rgba(8,6,24,1) 100%)",
+              background: "#1a1a1a",
               animation: "fade-in-up 0.4s ease-out",
               maxHeight: "85vh",
               overflowY: "auto",
@@ -408,7 +408,7 @@ export function ValuePropCards() {
             onClick={(e) => e.stopPropagation()}
           >
             <div
-              className="pointer-events-none absolute -right-20 -top-20 h-56 w-56 rounded-full"
+              className="pointer-events-none absolute -right-20 -top-20 h-56 w-56 rounded-full opacity-25"
               style={{
                 background: `radial-gradient(circle, ${active.glow} 0%, transparent 70%)`,
                 filter: "blur(50px)",
@@ -417,7 +417,7 @@ export function ValuePropCards() {
             <button
               type="button"
               onClick={() => setOpenKey(null)}
-              className="absolute right-4 top-4 z-10 rounded-full p-1.5 text-white/40 transition hover:bg-white/[0.05] hover:text-white"
+              className="absolute right-4 top-4 z-10 rounded-full p-1.5 text-white/35 transition hover:bg-white/[0.05] hover:text-white"
             >
               <X className="h-4 w-4" />
             </button>

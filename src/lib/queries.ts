@@ -2,7 +2,7 @@ import { mapCompetition, mapCreator, mapVideo } from "@/lib/mappers";
 import type { Competition, Creator, Video } from "@/lib/types";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 
-async function mergeVideoRows(
+export async function mergeVideoRows(
   baseRows: Parameters<typeof mapVideo>[0][],
 ): Promise<Parameters<typeof mapVideo>[0][]> {
   const supabase = await createServerSupabaseClient();
@@ -51,10 +51,20 @@ async function mergeVideoRows(
   return rows;
 }
 
-async function fetchPublicVideosBase(): Promise<Parameters<typeof mapVideo>[0][]> {
+async function fetchPublicVideosBase(
+  { limit, offset = 0 }: { limit?: number; offset?: number } = {},
+): Promise<Parameters<typeof mapVideo>[0][]> {
   const supabase = await createServerSupabaseClient();
   if (!supabase) return [];
-  const { data, error } = await supabase.from("videos").select("*").eq("visibility", "public").order("created_at", { ascending: false });
+  let query = supabase
+    .from("videos")
+    .select("*")
+    .eq("visibility", "public")
+    .order("created_at", { ascending: false });
+  if (typeof limit === "number") {
+    query = query.range(offset, offset + limit - 1);
+  }
+  const { data, error } = await query;
   if (error || !data) {
     console.error("[fetchPublicVideosBase] videos fetch failed", { message: error?.message, code: error?.code });
     return [];
@@ -62,8 +72,14 @@ async function fetchPublicVideosBase(): Promise<Parameters<typeof mapVideo>[0][]
   return data as Parameters<typeof mapVideo>[0][];
 }
 
-export async function fetchVideosWithCreators(): Promise<Video[]> {
-  const rows = await fetchPublicVideosBase();
+export interface FetchVideosOptions {
+  limit?: number;
+  offset?: number;
+}
+
+export async function fetchVideosWithCreators(options: FetchVideosOptions = {}): Promise<Video[]> {
+  const { limit, offset } = options;
+  const rows = await fetchPublicVideosBase({ limit, offset });
   const mergedRows = await mergeVideoRows(rows);
   console.info("[fetchVideosWithCreators] rows", {
     total: mergedRows.length,

@@ -46,7 +46,7 @@ export function ToolDetailClient({
   const totalCount = videos.length;
 
   return (
-    <div className="-mt-16 min-h-screen bg-[#080618]">
+    <div className="-mt-16 min-h-screen bg-[#0a0a0a]">
       {/* Cinematic Hero */}
       <div className="relative pt-16">
         {/* Background image with heavy blur and dark overlay */}
@@ -62,7 +62,7 @@ export function ToolDetailClient({
               className="absolute inset-0"
               style={{
                 background:
-                  "linear-gradient(180deg, rgba(8,6,24,0.92) 0%, rgba(8,6,24,0.55) 15%, rgba(8,6,24,0.4) 40%, rgba(8,6,24,0.75) 75%, rgba(8,6,24,1) 100%)",
+                  "linear-gradient(180deg, rgba(10,10,10,0.92) 0%, rgba(10,10,10,0.55) 15%, rgba(10,10,10,0.4) 40%, rgba(10,10,10,0.75) 75%, rgba(10,10,10,1) 100%)",
               }}
             />
           </div>
@@ -108,7 +108,7 @@ export function ToolDetailClient({
         <div
           className="pointer-events-none absolute -bottom-1 left-0 right-0 h-32"
           style={{
-            background: "linear-gradient(180deg, transparent 0%, rgba(8,6,24,1) 100%)",
+            background: "linear-gradient(180deg, transparent 0%, rgba(10,10,10,1) 100%)",
           }}
         />
 
@@ -176,13 +176,13 @@ export function ToolDetailClient({
             className="mt-12 grid grid-cols-3 gap-4 rounded-2xl border border-white/[0.1] p-6 backdrop-blur-xl"
             style={{
               background:
-                "linear-gradient(135deg, rgba(127,119,221,0.08) 0%, rgba(83,74,183,0.04) 50%, rgba(8,6,24,0.6) 100%)",
+                "linear-gradient(135deg, rgba(127,119,221,0.08) 0%, rgba(83,74,183,0.04) 50%, rgba(10,10,10,0.6) 100%)",
               boxShadow:
                 "inset 0 1px 0 rgba(255,255,255,0.06), 0 8px 32px rgba(0,0,0,0.3)",
             }}
           >
             <div className="border-r border-white/[0.06] px-2">
-              <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/40">
+              <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/35">
                 영상
               </p>
               <div className="mt-2 flex items-baseline gap-2">
@@ -191,7 +191,7 @@ export function ToolDetailClient({
               </div>
             </div>
             <div className="border-r border-white/[0.06] px-2">
-              <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/40">
+              <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/35">
                 총 조회수
               </p>
               <div className="mt-2 flex items-baseline gap-2">
@@ -200,7 +200,7 @@ export function ToolDetailClient({
               </div>
             </div>
             <div className="px-2">
-              <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/40">
+              <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/35">
                 크리에이터
               </p>
               <div className="mt-2 flex items-baseline gap-2">
@@ -235,7 +235,7 @@ export function ToolDetailClient({
                   사용 크리에이터
                 </h2>
               </div>
-              <span className="shrink-0 rounded-full border border-white/[0.08] bg-white/[0.04] px-3 py-1 text-[11px] font-bold text-white/60">
+              <span className="shrink-0 rounded-full border border-white/[0.08] bg-white/[0.04] px-3 py-1 text-[11px] font-bold text-white/55">
                 {totalCreatorCount > 12 ? `Top 12 of ${totalCreatorCount}` : `${totalCreatorCount} creators`}
               </span>
             </div>
@@ -248,7 +248,7 @@ export function ToolDetailClient({
                   className="group relative flex flex-col gap-3 overflow-hidden rounded-2xl border border-white/[0.1] p-4 backdrop-blur-xl transition-all duration-300 hover:-translate-y-1 hover:border-[#7F77DD]/30 hover:shadow-[0_0_32px_rgba(127,119,221,0.25)]"
                   style={{
                     background:
-                      "linear-gradient(135deg, rgba(127,119,221,0.08) 0%, rgba(83,74,183,0.04) 50%, rgba(8,6,24,0.6) 100%)",
+                      "linear-gradient(135deg, rgba(127,119,221,0.08) 0%, rgba(83,74,183,0.04) 50%, rgba(10,10,10,0.6) 100%)",
                     boxShadow:
                       "inset 0 1px 0 rgba(255,255,255,0.06), 0 4px 16px rgba(0,0,0,0.2)",
                   }}
@@ -257,24 +257,18 @@ export function ToolDetailClient({
                   <div className="flex items-center gap-3">
                     <div className="relative shrink-0">
                       <div className="h-12 w-12 overflow-hidden rounded-full ring-1 ring-white/10 transition-all duration-300 group-hover:ring-[#7F77DD]/40">
-                        {creator.avatarUrl ? (
-                          <img
-                            src={creator.avatarUrl}
-                            alt=""
-                            className="h-full w-full object-cover"
-                          />
-                        ) : (
-                          <div className="flex h-full w-full items-center justify-center bg-[#26215C] text-sm font-bold text-white/70">
-                            {creator.displayName.slice(0, 1).toUpperCase()}
-                          </div>
-                        )}
+                        <img
+                          src={creator.avatarUrl || "/default-avatar.png"}
+                          alt=""
+                          className="h-full w-full object-cover"
+                        />
                       </div>
                     </div>
                     <div className="min-w-0 flex-1">
                       <p className="truncate text-[13px] font-bold text-white transition group-hover:text-[#AFA9EC]">
                         {creator.displayName}
                       </p>
-                      <div className="mt-0.5 flex items-center gap-1.5 text-[10px] text-white/40">
+                      <div className="mt-0.5 flex items-center gap-1.5 text-[10px] text-white/35">
                         <span className="font-semibold text-[#AFA9EC]">{creator.videoCount}</span>
                         <span>films</span>
                         <span className="text-white/20">·</span>
@@ -343,7 +337,7 @@ export function ToolDetailClient({
               사용 영상
             </h2>
           </div>
-          <span className="shrink-0 rounded-full border border-white/[0.08] bg-white/[0.04] px-3 py-1 text-[11px] font-bold text-white/60">
+          <span className="shrink-0 rounded-full border border-white/[0.08] bg-white/[0.04] px-3 py-1 text-[11px] font-bold text-white/55">
             {totalCount} films
           </span>
         </div>

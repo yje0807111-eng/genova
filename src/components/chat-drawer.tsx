@@ -88,22 +88,6 @@ function formatChatRelativeTime(
   });
 }
 
-function getInitials(name: string): string {
-  const parts = name.trim().split(/\s+/);
-  return `${parts[0]?.[0] ?? ""}${parts[1]?.[0] ?? ""}`.toUpperCase();
-}
-
-function Avatar({ name }: { name: string }) {
-  const initials = getInitials(name);
-  return (
-    <div
-      className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-xs font-semibold text-white"
-      style={{ backgroundColor: "#534AB7" }}
-    >
-      {initials}
-    </div>
-  );
-}
 
 export function ChatDrawer({
   open,
@@ -250,7 +234,7 @@ export function ChatDrawer({
 
         return {
           userId: profile.id as string,
-          displayName: (profile.display_name as string) ?? "User",
+          displayName: (profile.display_name as string) ?? t("chat.unknownUser", "사용자"),
           avatarUrl: (profile.avatar_url as string | null),
           lastMessage: last?.content ?? "",
           lastTime: last?.createdAt ?? "",
@@ -324,7 +308,7 @@ export function ChatDrawer({
 
           return {
             userId: profile.id as string,
-            displayName: (profile.display_name as string) ?? "User",
+            displayName: (profile.display_name as string) ?? t("chat.unknownUser", "사용자"),
             avatarUrl: (profile.avatar_url as string | null),
             lastMessage: last?.content ?? "",
             lastTime: last?.createdAt ?? "",
@@ -718,8 +702,8 @@ export function ChatDrawer({
         open ? "translate-x-0" : "translate-x-full",
       )}
       style={{
-        background: "linear-gradient(180deg, rgba(12,10,30,0.99) 0%, rgba(8,6,24,1) 100%)",
-        borderLeft: "1px solid rgba(127,119,221,0.12)",
+        background: "#0a0a0a",
+        borderLeft: "1px solid rgba(255,255,255,0.06)",
         backdropFilter: "blur(20px)",
       }}
       aria-hidden={!open}
@@ -728,13 +712,13 @@ export function ChatDrawer({
         <>
           <div
             className="flex items-center justify-between px-4 py-3"
-            style={{ borderBottom: "1px solid rgba(127,119,221,0.1)" }}
+            style={{ borderBottom: "1px solid rgba(255,255,255,0.06)" }}
           >
             <div className="flex min-w-0 items-center gap-3">
               <button
                 type="button"
                 onClick={() => setActiveTarget(null)}
-                className="flex h-7 w-7 items-center justify-center rounded-full text-white/40 transition hover:bg-white/[0.05] hover:text-white"
+                className="flex h-7 w-7 items-center justify-center rounded-full text-white/35 transition hover:bg-white/[0.05] hover:text-white"
               >
                 ←
               </button>
@@ -744,17 +728,11 @@ export function ChatDrawer({
               >
                 <div className="relative shrink-0">
                   <div className="h-9 w-9 overflow-hidden rounded-full bg-[#26215C] ring-1 ring-white/10 transition group-hover:ring-[#7F77DD]/40">
-                    {activeTarget?.avatarUrl ? (
-                      <img src={activeTarget.avatarUrl} alt="" className="h-full w-full object-cover" />
-                    ) : (
-                      <div className="flex h-full w-full items-center justify-center text-sm font-bold text-white/60">
-                        {activeTarget?.displayName.slice(0, 1).toUpperCase()}
-                      </div>
-                    )}
+                    <img src={activeTarget?.avatarUrl || "/default-avatar.png"} alt="" className="h-full w-full object-cover" />
                   </div>
                   <span
                     className={cn(
-                      "absolute -bottom-0.5 -right-0.5 h-2.5 w-2.5 rounded-full ring-2 ring-[#080618]",
+                      "absolute -bottom-0.5 -right-0.5 h-2.5 w-2.5 rounded-full ring-2 ring-[#0a0a0a]",
                       activeTarget?.status === "online"
                         ? "bg-emerald-400"
                         : activeTarget?.status === "away"
@@ -767,7 +745,7 @@ export function ChatDrawer({
                   <p className="truncate text-[14px] font-bold leading-tight text-white transition group-hover:text-[#AFA9EC]">
                     {activeTarget?.displayName}
                   </p>
-                  <p className="mt-0.5 flex items-center gap-1 text-[10px] text-white/40">
+                  <p className="mt-0.5 flex items-center gap-1 text-[10px] text-white/35">
                     <span
                       className={cn(
                         "h-1 w-1 rounded-full",
@@ -775,10 +753,10 @@ export function ChatDrawer({
                       )}
                     />
                     {activeTarget?.status === "online"
-                      ? "Active now"
+                      ? t("chat.status.active", "온라인")
                       : activeTarget?.status === "away"
-                        ? "Away"
-                        : "Genova Member"}
+                        ? t("chat.status.away", "자리비움")
+                        : t("chat.member", "Genova 멤버")}
                   </p>
                 </div>
               </Link>
@@ -787,7 +765,7 @@ export function ChatDrawer({
               <button
                 type="button"
                 className="flex h-8 w-8 items-center justify-center rounded-full transition hover:bg-white/[0.06] hover:text-white"
-                aria-label="Conversation info"
+                aria-label={t("chat.info", "대화 정보")}
               >
                 <Info className="h-[18px] w-[18px]" />
               </button>
@@ -808,7 +786,7 @@ export function ChatDrawer({
                     <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z" strokeLinecap="round" strokeLinejoin="round" />
                   </svg>
                 </div>
-                <p className="text-[13px] font-semibold text-white/60">{t("chat.emptyStateTitle")}</p>
+                <p className="text-[13px] font-semibold text-white/55">{t("chat.emptyStateTitle")}</p>
                 <p className="mt-1 text-[11px] leading-relaxed text-white/30">
                   {t("chat.emptyStateSubtitle").replace("{name}", activeTarget.displayName)}
                 </p>
@@ -845,13 +823,7 @@ export function ChatDrawer({
                     <div className="mr-2 h-6 w-6 shrink-0 self-end">
                       {isGroupEnd ? (
                         <div className="h-6 w-6 overflow-hidden rounded-full bg-[#26215C]">
-                          {activeTarget.avatarUrl ? (
-                            <img src={activeTarget.avatarUrl} alt="" className="h-full w-full object-cover" />
-                          ) : (
-                            <div className="flex h-full w-full items-center justify-center text-[9px] font-bold text-white/60">
-                              {activeTarget.displayName.slice(0, 1).toUpperCase()}
-                            </div>
-                          )}
+                          <img src={activeTarget.avatarUrl || "/default-avatar.png"} alt="" className="h-full w-full object-cover" />
                         </div>
                       ) : null}
                     </div>
@@ -859,10 +831,10 @@ export function ChatDrawer({
                   <div className={`flex max-w-[75%] flex-col gap-0.5 ${isMine ? "items-end" : "items-start"}`}>
                     {m.replyToContent && (
                       <div
-                        className="mb-0.5 rounded-lg border-l-2 border-[#7F77DD]/50 bg-white/[0.04] px-2 py-1"
+                        className="mb-0.5 rounded-lg border-l-2 border-[#534AB7]/60 bg-white/[0.03] px-2 py-1"
                         style={{ fontSize: "11px" }}
                       >
-                        <p className="line-clamp-1 text-white/40">{m.replyToContent}</p>
+                        <p className="line-clamp-1 text-white/35">{m.replyToContent}</p>
                       </div>
                     )}
                     <div className="relative">
@@ -872,8 +844,8 @@ export function ChatDrawer({
                           background: m.isDeleted
                             ? "rgba(255,255,255,0.04)"
                             : isMine
-                              ? "linear-gradient(135deg, #534AB7 0%, #6B5FD4 100%)"
-                              : "rgba(255,255,255,0.06)",
+                              ? "#534AB7"
+                              : "rgba(255,255,255,0.08)",
                           color: m.isDeleted ? "rgba(255,255,255,0.4)" : "white",
                           borderRadius: "16px",
                         }}
@@ -964,7 +936,7 @@ export function ChatDrawer({
 
           <div
             className="flex-shrink-0 px-4 pb-4 pt-3"
-            style={{ borderTop: "1px solid rgba(127,119,221,0.1)" }}
+            style={{ borderTop: "1px solid rgba(255,255,255,0.06)" }}
           >
             {replyTarget && (
               <div
@@ -985,7 +957,7 @@ export function ChatDrawer({
                 <button
                   type="button"
                   onClick={() => setReplyTarget(null)}
-                  className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-white/40 transition hover:bg-white/[0.08] hover:text-white"
+                  className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-white/35 transition hover:bg-white/[0.08] hover:text-white"
                 >
                   <X className="h-3.5 w-3.5" />
                 </button>
@@ -997,14 +969,14 @@ export function ChatDrawer({
             >
               <button
                 type="button"
-                className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg text-white/40 transition hover:bg-white/[0.06] hover:text-white/70"
+                className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg text-white/35 transition hover:bg-white/[0.06] hover:text-white/70"
                 aria-label={t("chat.attachAria")}
               >
                 <Paperclip className="h-4 w-4" />
               </button>
               <button
                 type="button"
-                className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg text-white/40 transition hover:bg-white/[0.06] hover:text-white/70"
+                className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg text-white/35 transition hover:bg-white/[0.06] hover:text-white/70"
                 aria-label={t("chat.emojiAria")}
               >
                 <Smile className="h-4 w-4" />
@@ -1019,7 +991,7 @@ export function ChatDrawer({
                   }
                 }}
                 placeholder={t("chat.msgPlaceholder")}
-                className="flex-1 bg-transparent px-1 text-sm text-white outline-none placeholder:text-white/40"
+                className="flex-1 bg-transparent px-1 text-sm text-white outline-none placeholder:text-white/35"
               />
               <button
                 type="button"
@@ -1040,7 +1012,7 @@ export function ChatDrawer({
               <div
                 className="mx-4 w-full max-w-xs rounded-2xl border border-white/[0.08] p-5"
                 style={{
-                  background: "linear-gradient(135deg, rgba(20,17,50,0.99) 0%, rgba(10,8,28,1) 100%)",
+                  background: "linear-gradient(135deg, rgba(26,26,26,0.99) 0%, rgba(10,10,10,1) 100%)",
                   boxShadow: "0 0 0 1px rgba(127,119,221,0.1), 0 40px 80px rgba(0,0,0,0.6)",
                 }}
               >
@@ -1056,8 +1028,8 @@ export function ChatDrawer({
                   </svg>
                 </div>
                 <h2 className="text-center text-sm font-black text-white">{t("chat.deleteModalTitle")}</h2>
-                <p className="mt-1 text-center text-xs text-white/40">{t("chat.deleteModalLead")}</p>
-                <p className="mt-1 text-center text-xs text-white/40">{t("chat.deleteModalNote")}</p>
+                <p className="mt-1 text-center text-xs text-white/35">{t("chat.deleteModalLead")}</p>
+                <p className="mt-1 text-center text-xs text-white/35">{t("chat.deleteModalNote")}</p>
                 <div className="mt-4 flex gap-2">
                   <button
                     type="button"
@@ -1103,7 +1075,7 @@ export function ChatDrawer({
             <button
               type="button"
               onClick={onClose}
-              className="rounded-md p-1 text-white/40 transition hover:bg-white/[0.06] hover:text-white"
+              className="rounded-md p-1 text-white/35 transition hover:bg-white/[0.06] hover:text-white"
               aria-label={t("common.close")}
             >
               <X size={16} />
@@ -1116,7 +1088,7 @@ export function ChatDrawer({
               onClick={() => setActiveTab("messages")}
               className={cn(
                 "relative py-3 text-[13px] font-semibold transition",
-                activeTab === "messages" ? "text-white" : "text-white/40 hover:text-white/60",
+                activeTab === "messages" ? "text-white" : "text-white/35 hover:text-white/55",
               )}
             >
               {t("chat.messages")}
@@ -1132,7 +1104,7 @@ export function ChatDrawer({
               onClick={() => setActiveTab("following")}
               className={cn(
                 "relative py-3 text-[13px] font-semibold transition",
-                activeTab === "following" ? "text-white" : "text-white/40 hover:text-white/60",
+                activeTab === "following" ? "text-white" : "text-white/35 hover:text-white/55",
               )}
             >
               {t("chat.following")}
@@ -1205,16 +1177,10 @@ export function ChatDrawer({
                           )}
                         >
                           <div className="relative shrink-0">
-                            {conv.avatarUrl ? (
-                              <img src={conv.avatarUrl} alt="" className="h-11 w-11 rounded-full object-cover ring-1 ring-white/[0.06]" />
-                            ) : (
-                              <div className="flex h-11 w-11 items-center justify-center rounded-full bg-[#26215C] text-sm font-bold text-white/70 ring-1 ring-white/[0.06]">
-                                {conv.displayName.slice(0, 1).toUpperCase()}
-                              </div>
-                            )}
+                            <img src={conv.avatarUrl || "/default-avatar.png"} alt="" className="h-11 w-11 rounded-full object-cover ring-1 ring-white/[0.06]" />
                             {conv.unreadCount > 0 ? (
                               <span
-                                className="absolute -right-0.5 -top-0.5 h-3 w-3 rounded-full bg-[#7F77DD] ring-2 ring-[#080618]"
+                                className="absolute -right-0.5 -top-0.5 h-3 w-3 rounded-full bg-[#7F77DD] ring-2 ring-[#0a0a0a]"
                                 style={{ boxShadow: "0 0 8px rgba(127,119,221,0.6)" }}
                               />
                             ) : null}
@@ -1280,7 +1246,7 @@ export function ChatDrawer({
           ) : activeTab === "following" ? (
             <div className="sidebar-scroll flex-1 overflow-y-auto pb-4">
               {followingLoading ? (
-                <p className="py-8 text-center text-xs text-white/40">{t("chat.loading")}</p>
+                <p className="py-8 text-center text-xs text-white/35">{t("chat.loading")}</p>
               ) : (
                 <>
                   <div className="flex items-center gap-2 px-5 pb-2 pt-5">
@@ -1291,7 +1257,7 @@ export function ChatDrawer({
                   </div>
                   {followingUsers.length === 0 ? (
                     <div className="px-5 py-6 text-center">
-                      <p className="text-[12px] text-white/40">{t("chat.noFollowing")}</p>
+                      <p className="text-[12px] text-white/35">{t("chat.noFollowing")}</p>
                     </div>
                   ) : (
                     <div className="space-y-0">
@@ -1299,25 +1265,14 @@ export function ChatDrawer({
                         <div key={user.id} className="flex items-center gap-3 px-5 py-2.5 transition hover:bg-white/[0.02]">
                           <Link href={`/profile/${user.id}`} className="flex min-w-0 flex-1 items-center gap-3">
                             <div className="relative shrink-0">
-                              {user.avatarUrl ? (
-                                <img
-                                  src={user.avatarUrl}
-                                  alt=""
-                                  className={cn(
-                                    "h-9 w-9 rounded-full object-cover",
-                                    user.hasNewVideo ? "ring-2 ring-[#8b5cf6] ring-offset-1 ring-offset-[#080618]" : "",
-                                  )}
-                                />
-                              ) : (
-                                <div
-                                  className={cn(
-                                    "flex h-9 w-9 items-center justify-center rounded-full bg-[#534AB7] text-xs font-semibold text-white",
-                                    user.hasNewVideo ? "ring-2 ring-[#8b5cf6] ring-offset-1 ring-offset-[#080618]" : "",
-                                  )}
-                                >
-                                  {(user.displayName ?? "U").slice(0, 2).toUpperCase()}
-                                </div>
-                              )}
+                              <img
+                                src={user.avatarUrl || "/default-avatar.png"}
+                                alt=""
+                                className={cn(
+                                  "h-9 w-9 rounded-full object-cover",
+                                  user.hasNewVideo ? "ring-2 ring-[#8b5cf6] ring-offset-1 ring-offset-[#0a0a0a]" : "",
+                                )}
+                              />
                               {user.hasNewVideo ? (
                                 <span className="absolute -right-0.5 -top-0.5 flex h-3 w-3 items-center justify-center rounded-full bg-[#8b5cf6] text-[7px] font-bold text-white">
                                   N
@@ -1358,13 +1313,7 @@ export function ChatDrawer({
                     {discoverUsers.map((user) => (
                       <div key={user.id} className="flex items-center gap-3 px-5 py-2.5 transition hover:bg-white/[0.02]">
                         <Link href={`/profile/${user.id}`} className="flex min-w-0 flex-1 items-center gap-3">
-                          {user.avatarUrl ? (
-                            <img src={user.avatarUrl} alt="" className="h-9 w-9 shrink-0 rounded-full object-cover" />
-                          ) : (
-                            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#534AB7] text-xs font-semibold text-white">
-                              {(user.displayName ?? "U").slice(0, 2).toUpperCase()}
-                            </div>
-                          )}
+                          <img src={user.avatarUrl || "/default-avatar.png"} alt="" className="h-9 w-9 shrink-0 rounded-full object-cover" />
                           <div className="min-w-0 flex-1">
                             <p className="truncate text-[13px] font-semibold text-white">{user.displayName ?? t("chat.unknownUser")}</p>
                             <p

@@ -51,7 +51,7 @@ const FAQ = [
 
 export function BusinessLandingClient() {
   return (
-    <div className="-mt-16 min-h-screen bg-[#080618]">
+    <div className="-mt-16 min-h-screen bg-[#0a0a0a]">
       {/* Hero */}
       <div className="relative pt-16">
         <div className="pointer-events-none absolute inset-0 overflow-hidden">
@@ -152,7 +152,7 @@ export function BusinessLandingClient() {
                 className="group relative overflow-hidden rounded-2xl border border-white/[0.1] p-6 backdrop-blur-xl transition-all duration-300 hover:-translate-y-1 hover:border-[#7F77DD]/30 hover:shadow-[0_0_32px_rgba(127,119,221,0.2)]"
                 style={{
                   background:
-                    "linear-gradient(135deg, rgba(127,119,221,0.08) 0%, rgba(83,74,183,0.04) 50%, rgba(8,6,24,0.6) 100%)",
+                    "linear-gradient(135deg, rgba(127,119,221,0.08) 0%, rgba(83,74,183,0.04) 50%, rgba(10,10,10,0.6) 100%)",
                   boxShadow: "inset 0 1px 0 rgba(255,255,255,0.06), 0 4px 16px rgba(0,0,0,0.2)",
                 }}
               >
@@ -197,7 +197,7 @@ export function BusinessLandingClient() {
             {PROCESS_STEPS.map((step, idx) => (
               <div
                 key={step.num}
-                className="relative rounded-2xl border border-white/[0.08] bg-[#080618]/40 p-5 backdrop-blur-xl"
+                className="relative rounded-2xl border border-white/[0.08] bg-[#0a0a0a]/40 p-5 backdrop-blur-xl"
               >
                 <div className="mb-3 flex items-center justify-between">
                   <span
@@ -236,7 +236,7 @@ export function BusinessLandingClient() {
             {FAQ.map((item) => (
               <div
                 key={item.q}
-                className="rounded-2xl border border-white/[0.08] bg-[#080618]/40 p-5 backdrop-blur-xl"
+                className="rounded-2xl border border-white/[0.08] bg-[#0a0a0a]/40 p-5 backdrop-blur-xl"
               >
                 <div className="flex items-start gap-3">
                   <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-[#7F77DD]" />
@@ -258,7 +258,7 @@ export function BusinessLandingClient() {
             className="relative overflow-hidden rounded-3xl border border-white/[0.1] p-12 text-center backdrop-blur-xl"
             style={{
               background:
-                "linear-gradient(135deg, rgba(127,119,221,0.15) 0%, rgba(83,74,183,0.08) 50%, rgba(8,6,24,0.6) 100%)",
+                "linear-gradient(135deg, rgba(127,119,221,0.15) 0%, rgba(83,74,183,0.08) 50%, rgba(10,10,10,0.6) 100%)",
               boxShadow: "inset 0 1px 0 rgba(255,255,255,0.08), 0 8px 32px rgba(0,0,0,0.3)",
             }}
           >

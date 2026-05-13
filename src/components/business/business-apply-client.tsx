@@ -72,7 +72,7 @@ export function BusinessApplyClient() {
 
   if (submitted) {
     return (
-      <div className="-mt-16 min-h-screen bg-[#080618] pt-16">
+      <div className="-mt-16 min-h-screen bg-[#0a0a0a] pt-16">
         <div className="mx-auto flex min-h-[calc(100vh-4rem)] max-w-2xl flex-col items-center justify-center px-6 py-20 text-center">
           <AnimateIn delay={0.05}>
             <div
@@ -120,7 +120,7 @@ export function BusinessApplyClient() {
   }
 
   return (
-    <div className="-mt-16 min-h-screen bg-[#080618]">
+    <div className="-mt-16 min-h-screen bg-[#0a0a0a]">
       <div className="relative pt-16">
         <div className="pointer-events-none absolute inset-0 overflow-hidden">
           <div
@@ -143,7 +143,7 @@ export function BusinessApplyClient() {
           <AnimateIn delay={0.05}>
             <Link
               href="/business"
-              className="mb-8 inline-flex items-center gap-2 text-[12px] font-semibold uppercase tracking-[0.2em] text-white/40 transition hover:text-white/70"
+              className="mb-8 inline-flex items-center gap-2 text-[12px] font-semibold uppercase tracking-[0.2em] text-white/35 transition hover:text-white/70"
             >
               <ArrowLeft className="h-3.5 w-3.5" />
               뒤로
@@ -177,7 +177,7 @@ export function BusinessApplyClient() {
                     onClick={() => setType("business")}
                     className={`rounded-lg py-2.5 text-[13px] font-bold transition ${
                       type === "business"
-                        ? "bg-white text-[#080618]"
+                        ? "bg-white text-[#0a0a0a]"
                         : "text-white/50 hover:text-white"
                     }`}
                   >
@@ -188,7 +188,7 @@ export function BusinessApplyClient() {
                     onClick={() => setType("individual")}
                     className={`rounded-lg py-2.5 text-[13px] font-bold transition ${
                       type === "individual"
-                        ? "bg-white text-[#080618]"
+                        ? "bg-white text-[#0a0a0a]"
                         : "text-white/50 hover:text-white"
                     }`}
                   >
@@ -239,7 +239,7 @@ export function BusinessApplyClient() {
                       className="shrink-0 cursor-pointer rounded-lg border border-white/[0.08] bg-white/[0.02] px-2.5 py-2.5 text-[13px] text-white outline-none transition focus:border-[#7F77DD]/50"
                     >
                       {COUNTRY_CODES.map((c, idx) => (
-                        <option key={`${c.country}-${idx}`} value={`${c.code}-${idx}`} className="bg-[#080618]">
+                        <option key={`${c.country}-${idx}`} value={`${c.code}-${idx}`} className="bg-[#0a0a0a]">
                           {c.label}
                         </option>
                       ))}

@@ -3,10 +3,13 @@
 import Link from "next/link";
 import { useState } from "react";
 import { Bell, MessageCircle, UserPlus, Star, Trash2, X } from "lucide-react";
+import { cn } from "@/lib/utils/cn";
 import { markAllNotificationsReadAction } from "@/app/actions/notifications";
+import { updateProfileAction } from "@/app/actions/profile";
 import type { AppNotification } from "@/lib/queries/notifications-queries";
 import { getBrowserSupabaseClient } from "@/lib/supabase/browser";
 import { useI18n } from "@/components/genova/language-provider";
+import { getNotificationLabel } from "@/lib/notifications-i18n";
 
 function NotificationIcon({ type }: { type: string }) {
   const base = "h-4 w-4";
@@ -36,12 +39,66 @@ function timeAgo(iso: string, t: (key: string, fallback?: string) => string): st
   return t("notifications.timeAgo", "{n} ago").replace("{n}", `${days}d`);
 }
 
+function NotificationToggle({
+  label,
+  description,
+  value,
+  onChange,
+}: {
+  label: string;
+  description: string;
+  value: boolean;
+  onChange: (v: boolean) => void;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={() => onChange(!value)}
+      className="flex w-full items-center justify-between gap-3 rounded-lg border border-white/[0.06] bg-white/[0.02] px-3 py-2.5 transition hover:border-white/[0.12]"
+    >
+      <div className="flex flex-col items-start text-left">
+        <span className="text-[13px] font-bold text-white">{label}</span>
+        <span className="text-[11px] text-white/45">{description}</span>
+      </div>
+      <span className={cn(
+        "relative h-5 w-9 shrink-0 rounded-full transition",
+        value ? "bg-[#534AB7]" : "bg-white/[0.1]"
+      )}>
+        <span className={cn(
+          "absolute top-0.5 h-4 w-4 rounded-full bg-white transition-transform",
+          value ? "translate-x-[18px]" : "translate-x-0.5"
+        )} />
+      </span>
+    </button>
+  );
+}
+
 type FilterType = "all" | "unread" | "read";
 
-export function NotificationsList({ items: initialItems }: { items: AppNotification[] }) {
+export function NotificationsList({
+  items: initialItems,
+  initialNotifyLikes = true,
+  initialNotifyComments = true,
+  initialNotifyFollows = true,
+}: {
+  items: AppNotification[];
+  initialNotifyLikes?: boolean;
+  initialNotifyComments?: boolean;
+  initialNotifyFollows?: boolean;
+}) {
   const { t } = useI18n();
   const [items, setItems] = useState(initialItems);
   const [filter, setFilter] = useState<FilterType>("all");
+  const [notifyLikes, setNotifyLikes] = useState(initialNotifyLikes);
+  const [notifyComments, setNotifyComments] = useState(initialNotifyComments);
+  const [notifyFollows, setNotifyFollows] = useState(initialNotifyFollows);
+
+  const handleToggle = async (field: "notifyLikes" | "notifyComments" | "notifyFollows", value: boolean) => {
+    if (field === "notifyLikes") setNotifyLikes(value);
+    if (field === "notifyComments") setNotifyComments(value);
+    if (field === "notifyFollows") setNotifyFollows(value);
+    await updateProfileAction({ [field]: value });
+  };
 
   const unreadCount = items.filter((n) => !n.isRead).length;
 
@@ -96,8 +153,7 @@ export function NotificationsList({ items: initialItems }: { items: AppNotificat
     <div
       className="rounded-2xl border border-white/[0.08] p-5"
       style={{
-        background: "linear-gradient(135deg, rgba(20,17,50,0.98) 0%, rgba(10,8,28,0.99) 100%)",
-        boxShadow: "0 0 0 1px rgba(127,119,221,0.08)",
+        background: "#0a0a0a",
       }}
     >
       {/* 헤더 */}
@@ -123,7 +179,7 @@ export function NotificationsList({ items: initialItems }: { items: AppNotificat
             <button
               type="button"
               onClick={() => void onReadAll()}
-              className="rounded-lg border border-white/[0.08] px-3 py-1.5 text-xs font-medium text-white/40 transition hover:border-[#7F77DD]/30 hover:text-white/70"
+              className="rounded-lg border border-white/[0.08] px-3 py-1.5 text-xs font-medium text-white/35 transition hover:border-[#7F77DD]/30 hover:text-white/70"
             >
               {t("notifications.markAllRead", "Mark all as read")}
             </button>
@@ -132,12 +188,44 @@ export function NotificationsList({ items: initialItems }: { items: AppNotificat
             <button
               type="button"
               onClick={() => void deleteAll()}
-              className="flex items-center gap-1.5 rounded-lg border border-white/[0.08] px-3 py-1.5 text-xs font-medium text-white/40 transition hover:border-red-500/30 hover:text-red-400"
+              className="flex items-center gap-1.5 rounded-lg border border-white/[0.08] px-3 py-1.5 text-xs font-medium text-white/35 transition hover:border-red-500/30 hover:text-red-400"
             >
               <Trash2 className="h-3 w-3" />
-              Delete all
+              {t("notifications.deleteAll", "전체 삭제")}
             </button>
           )}
+        </div>
+      </div>
+
+      {/* 알림 설정 */}
+      <div className="mb-8 rounded-xl border border-white/[0.06] bg-white/[0.02] p-5">
+        <div className="mb-4">
+          <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-[#AFA9EC]/70">
+            ✦ {t("notifications.settings.eyebrow", "SETTINGS")}
+          </p>
+          <h3 className="mt-1 text-[15px] font-bold text-white">
+            {t("notifications.settings.title", "Notification settings")}
+          </h3>
+        </div>
+        <div className="space-y-2">
+          <NotificationToggle
+            label={t("notifications.toggle.likes", "Likes")}
+            description={t("notifications.toggle.likesDesc", "When someone likes your film")}
+            value={notifyLikes}
+            onChange={(v) => void handleToggle("notifyLikes", v)}
+          />
+          <NotificationToggle
+            label={t("notifications.toggle.comments", "Comments")}
+            description={t("notifications.toggle.commentsDesc", "When someone comments on your film")}
+            value={notifyComments}
+            onChange={(v) => void handleToggle("notifyComments", v)}
+          />
+          <NotificationToggle
+            label={t("notifications.toggle.follows", "Followers")}
+            description={t("notifications.toggle.followsDesc", "When someone follows you")}
+            value={notifyFollows}
+            onChange={(v) => void handleToggle("notifyFollows", v)}
+          />
         </div>
       </div>
 
@@ -151,14 +239,18 @@ export function NotificationsList({ items: initialItems }: { items: AppNotificat
             key={f}
             type="button"
             onClick={() => setFilter(f)}
-            className="flex-1 rounded-lg py-1.5 text-xs font-semibold transition"
-            style={{
-              background: filter === f ? "rgba(83,74,183,0.4)" : "transparent",
-              border: filter === f ? "1px solid rgba(127,119,221,0.4)" : "1px solid transparent",
-              color: filter === f ? "#AFA9EC" : "rgba(255,255,255,0.35)",
-            }}
+            className={cn(
+              "flex-1 rounded-lg py-1.5 text-xs font-semibold transition",
+              filter === f
+                ? "border border-white/[0.08] bg-white/[0.06] text-white"
+                : "border border-transparent text-white/35 hover:text-white/60"
+            )}
           >
-            {f === "all" ? `All (${items.length})` : f === "unread" ? `Unread (${unreadCount})` : `Read (${items.length - unreadCount})`}
+            {f === "all"
+              ? `${t("notifications.tab.all", "전체")} (${items.length})`
+              : f === "unread"
+                ? `${t("notifications.tab.unread", "안 읽음")} (${unreadCount})`
+                : `${t("notifications.tab.read", "읽음")} (${items.length - unreadCount})`}
           </button>
         ))}
       </div>
@@ -191,15 +283,17 @@ export function NotificationsList({ items: initialItems }: { items: AppNotificat
             const content = (
               <div
                 onClick={!n.href ? () => void handleClick(n) : undefined}
-                className={`group relative flex cursor-pointer items-start gap-3 rounded-xl border px-4 py-3 transition hover:bg-white/[0.04] hover:border-[#7F77DD]/30 hover:shadow-[0_0_24px_rgba(127,119,221,0.15)] ${
+                className={`group relative flex cursor-pointer items-start gap-3 rounded-xl border px-4 py-3 transition hover:bg-white/[0.04] hover:border-white/[0.12] ${
                   n.isRead
                     ? "border-white/[0.06] bg-transparent opacity-60"
-                    : "border-[#7F77DD]/25 bg-[#534AB7]/10"
+                    : "border-white/[0.06] bg-white/[0.02]"
                 }`}
               >
                 <span
-                  className="absolute bottom-2 left-0 top-2 w-[2px] rounded-r-full"
-                  style={{ background: notificationLineColor(n.type) }}
+                  className={cn(
+                    "absolute bottom-2 left-0 top-2 w-[2px] rounded-r-full",
+                    n.isRead ? "bg-transparent" : "bg-[#7F77DD]"
+                  )}
                   aria-hidden
                 />
                 {!n.isRead && <span className="absolute right-2 top-2 h-2 w-2 rounded-full bg-[#7F77DD]" aria-hidden />}
@@ -216,12 +310,19 @@ export function NotificationsList({ items: initialItems }: { items: AppNotificat
 
                 {/* 텍스트 */}
                 <div className="min-w-0 flex-1">
-                  <p className={`text-sm font-semibold ${n.isRead ? "text-white/60" : "text-white"}`}>
-                    {n.title}
-                  </p>
-                  {n.body && (
-                    <p className="mt-0.5 text-xs text-white/35">{n.body}</p>
-                  )}
+                  {(() => {
+                    const { title, body } = getNotificationLabel(n, t);
+                    return (
+                      <>
+                        <p className={`text-sm font-semibold ${n.isRead ? "text-white/55" : "text-white"}`}>
+                          {title}
+                        </p>
+                        {body && (
+                          <p className="mt-0.5 text-xs text-white/35">{body}</p>
+                        )}
+                      </>
+                    );
+                  })()}
                   {n.createdAt && (
                     <p className="mt-1 text-[10px] text-white/25">{timeAgo(n.createdAt, t)}</p>
                   )}

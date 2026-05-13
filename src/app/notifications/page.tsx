@@ -12,13 +12,27 @@ export default async function NotificationsPage() {
   } = await supabase.auth.getUser();
   if (!user) redirect("/auth");
 
-  const items = await fetchMyNotifications();
+  const [items, profileResult] = await Promise.all([
+    fetchMyNotifications(),
+    supabase
+      .from("profiles")
+      .select("notify_likes, notify_comments, notify_follows")
+      .eq("id", user.id)
+      .single(),
+  ]);
+
+  const profile = profileResult.data;
 
   return (
     <div className="min-h-screen px-4 py-6 text-white sm:px-6">
       <div className="mx-auto max-w-2xl">
         <AnimateIn delay={0}>
-          <NotificationsList items={items} />
+          <NotificationsList
+            items={items}
+            initialNotifyLikes={profile?.notify_likes ?? true}
+            initialNotifyComments={profile?.notify_comments ?? true}
+            initialNotifyFollows={profile?.notify_follows ?? true}
+          />
         </AnimateIn>
       </div>
     </div>

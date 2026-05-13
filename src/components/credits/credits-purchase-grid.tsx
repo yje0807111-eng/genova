@@ -37,7 +37,7 @@ export function CreditsPurchaseGrid() {
       {toast ? (
         <div
           role="status"
-          className="fixed bottom-8 left-1/2 z-[100] -translate-x-1/2 rounded-full border border-[#534AB7]/60 bg-[#1a1535]/95 px-6 py-3 text-sm font-semibold text-[#EEEDFE] shadow-[0_12px_40px_rgba(0,0,0,0.45)] backdrop-blur-md"
+          className="fixed bottom-8 left-1/2 z-[100] -translate-x-1/2 rounded-full border border-[#534AB7]/60 bg-[#1a1a1a]/95 px-6 py-3 text-sm font-semibold text-[#EEEDFE] shadow-[0_12px_40px_rgba(0,0,0,0.45)] backdrop-blur-md"
         >
           {toast}
         </div>
@@ -47,7 +47,7 @@ export function CreditsPurchaseGrid() {
         {PACKAGES.map((pkg) => (
           <div
             key={pkg.usd}
-            className={`relative flex flex-col rounded-xl border bg-[linear-gradient(165deg,rgba(19,16,40,0.95)_0%,rgba(8,6,24,0.98)_100%)] p-5 shadow-[inset_0_1px_0_rgba(127,119,221,0.1)] ${
+            className={`relative flex flex-col rounded-xl border bg-[linear-gradient(165deg,rgba(19,16,40,0.95)_0%,rgba(10,10,10,0.98)_100%)] p-5 shadow-[inset_0_1px_0_rgba(127,119,221,0.1)] ${
               pkg.popular
                 ? "border-[#7F77DD]/55 ring-2 ring-[#534AB7]/40"
                 : "border-white/10"

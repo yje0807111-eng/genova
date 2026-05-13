@@ -10,6 +10,7 @@ import type { Video } from "@/lib/types";
 import { VideoLikeButton } from "@/components/video/video-like-button";
 import { VideoSaveButton } from "@/components/video/video-save-button";
 import { ShortsLeftRail, ShortsRightRail } from "@/components/shorts/shorts-desktop-rails";
+import { useUploadModal } from "@/components/upload/upload-modal-context";
 
 /** Matches `SiteHeader` `h-16` (4rem) for below-the-fold shorts area */
 export const SHORTS_NAV_OFFSET = "4rem";
@@ -124,7 +125,7 @@ function ShortsSlide({
 
   return (
     <div
-      className="relative w-full shrink-0 snap-start snap-always bg-[#080618]"
+      className="relative w-full shrink-0 snap-start snap-always bg-[#0a0a0a]"
       style={{ height: `calc(100dvh - ${SHORTS_NAV_OFFSET})` }}
     >
       <div className="mx-auto flex h-full w-full max-w-[min(1600px,100%)] items-center justify-center gap-3 px-3 md:gap-5 md:px-6">
@@ -179,7 +180,7 @@ function ShortsSlide({
                     {video.aiTools.slice(0, 6).map((t) => (
                       <span
                         key={t}
-                        className="rounded-md bg-[#1a1535]/90 px-2 py-0.5 text-[10px] font-medium text-[#AFA9EC] ring-1 ring-white/10"
+                        className="rounded-md bg-[#1a1a1a]/90 px-2 py-0.5 text-[10px] font-medium text-[#AFA9EC] ring-1 ring-white/10"
                       >
                         {normalizeToolName(t)}
                       </span>
@@ -206,6 +207,7 @@ function ShortsSlide({
 }
 
 export function ShortsFeed({ videos }: { videos: ShortsFeedItem[] }) {
+  const { open: openUploadModal } = useUploadModal();
   const containerRef = useRef<HTMLDivElement>(null);
   const [activeIndex, setActiveIndex] = useState(0);
   const viewedRef = useRef(new Set<string>());
@@ -251,12 +253,12 @@ export function ShortsFeed({ videos }: { videos: ShortsFeedItem[] }) {
 
   if (videos.length === 0) {
     return (
-      <div className="flex min-h-[100dvh] flex-col items-center justify-center bg-[#080618] px-6 text-center">
+      <div className="flex min-h-[100dvh] flex-col items-center justify-center bg-[#0a0a0a] px-6 text-center">
         <p className="text-lg font-semibold text-[#F8F7FF]">No public films yet</p>
         <p className="mt-2 text-sm text-[#AFA9EC]">Check back soon or upload from the studio.</p>
-        <Link href="/upload" className="mt-6 rounded-[6px] bg-[#534AB7] px-5 py-2.5 text-sm font-semibold text-[#EEEDFE]">
+        <button type="button" onClick={() => openUploadModal()} className="mt-6 rounded-[6px] bg-[#534AB7] px-5 py-2.5 text-sm font-semibold text-[#EEEDFE]">
           Upload
-        </Link>
+        </button>
       </div>
     );
   }
@@ -264,7 +266,7 @@ export function ShortsFeed({ videos }: { videos: ShortsFeedItem[] }) {
   const shortH = `calc(100dvh - ${SHORTS_NAV_OFFSET})`;
 
   return (
-    <div className="relative bg-[#080618]" style={{ minHeight: shortH }}>
+    <div className="relative bg-[#0a0a0a]" style={{ minHeight: shortH }}>
       <Link
         href="/feed"
         className="fixed left-4 z-[60] rounded-full border border-white/15 bg-black/55 px-3 py-1.5 text-xs font-semibold text-[#EEEDFE] backdrop-blur-md transition hover:border-[#7F77DD]/50 md:left-6 lg:hidden"

@@ -107,7 +107,7 @@ export function SearchPageBody({
             )}
           </div>
           {empty && (
-            <p className="mt-3 text-[14px] text-white/40">
+            <p className="mt-3 text-[14px] text-white/35">
               {t("search.heroHint")}
             </p>
           )}
@@ -236,7 +236,7 @@ export function SearchPageBody({
 
         {/* Tabs + Sort */}
         {!empty && (
-          <div className="sticky top-0 z-10 flex items-center justify-between gap-4 border-b border-white/[0.05] bg-[#080618]/80 py-4 backdrop-blur-xl">
+          <div className="sticky top-0 z-10 flex items-center justify-between gap-4 border-b border-white/[0.05] bg-[#0a0a0a]/80 py-4 backdrop-blur-xl">
             <div className="flex items-center gap-6">
               {(
                 [
@@ -297,7 +297,7 @@ export function SearchPageBody({
                   </span>
                   <span className="text-[13px] font-semibold text-white">{genreMatch.label}</span>
                 </div>
-                <span className="text-[11px] text-white/40 group-hover:text-[#AFA9EC]">→</span>
+                <span className="text-[11px] text-white/35 group-hover:text-[#AFA9EC]">→</span>
               </Link>
             </AnimateIn>
           )}
@@ -381,7 +381,7 @@ export function SearchPageBody({
                       href={`/profile/${p.id}`}
                       className="group relative flex items-center gap-4 overflow-hidden rounded-xl border border-white/[0.06] p-4 transition-all duration-500 hover:-translate-y-0.5 hover:border-[#7F77DD]/40 hover:shadow-[0_12px_40px_rgba(127,119,221,0.25)]"
                       style={{
-                        background: "linear-gradient(135deg, rgba(127,119,221,0.05) 0%, rgba(8,6,24,0.3) 100%)",
+                        background: "linear-gradient(135deg, rgba(127,119,221,0.05) 0%, rgba(10,10,10,0.3) 100%)",
                       }}
                     >
                       <div
@@ -399,11 +399,7 @@ export function SearchPageBody({
                           }}
                         />
                         <div className="relative h-14 w-14 overflow-hidden rounded-full border border-white/10 ring-2 ring-[#534AB7]/30 transition group-hover:ring-[#7F77DD]/60">
-                          {p.avatarUrl ? (
-                            <img src={p.avatarUrl} alt="" className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110" />
-                          ) : (
-                            <div className="flex h-full w-full items-center justify-center bg-[#26215C] text-sm text-white/40">?</div>
-                          )}
+                          <img src={p.avatarUrl || "/default-avatar.png"} alt="" className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110" />
                         </div>
                       </div>
                       <div className="relative min-w-0 flex-1">
@@ -458,7 +454,7 @@ export function SearchPageBody({
           {/* Empty */}
           {!empty && globalEmpty && (
             <div className="py-24 text-center">
-              <p className="text-[15px] font-semibold text-white/60">
+              <p className="text-[15px] font-semibold text-white/55">
                 {t("search.noResultsLine").replace("{q}", q)}
               </p>
               <p className="mt-1 text-[12px] text-white/30">{t("search.tryOtherKeywords")}</p>
@@ -475,7 +471,7 @@ export function SearchPageBody({
                   <Link
                     key={slug}
                     href={`/genre/${slug}`}
-                    className="rounded-full border border-white/[0.08] bg-white/[0.02] px-4 py-1.5 text-[12px] font-medium text-white/60 transition hover:border-[#7F77DD]/30 hover:text-white"
+                    className="rounded-full border border-white/[0.08] bg-white/[0.02] px-4 py-1.5 text-[12px] font-medium text-white/55 transition hover:border-[#7F77DD]/30 hover:text-white"
                   >
                     {t(labelKey)}
                   </Link>
