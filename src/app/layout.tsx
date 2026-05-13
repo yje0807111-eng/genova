@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Plus_Jakarta_Sans, Syne } from "next/font/google";
 import { LayoutWrapper } from "@/components/genova/layout-wrapper";
 import "./globals.css";
+import { Toaster } from "sonner";
 
 const plusJakarta = Plus_Jakarta_Sans({
   variable: "--font-plus-jakarta",
@@ -67,6 +68,17 @@ export default function RootLayout({
       </head>
       <body className="min-h-full bg-background font-sans text-balance">
         <LayoutWrapper>{children}</LayoutWrapper>
+        <Toaster
+          position="bottom-right"
+          theme="dark"
+          toastOptions={{
+            style: {
+              background: "#1a1a1a",
+              border: "1px solid rgba(255,255,255,0.08)",
+              color: "white",
+            },
+          }}
+        />
       </body>
     </html>
   );
