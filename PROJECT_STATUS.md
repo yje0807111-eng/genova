@@ -362,11 +362,24 @@ inline `style={{...}}` 사용:  535건 / 55개 파일
 
 - [x] **4.4** — legacy shadcn 토큰 5개 브랜드 align (`--primary`, `--accent`, `--ring`, `--sidebar-primary`, `--sidebar-ring`) — Tailwind violet `#9d7dff`/`#8b5cf6` → 브랜드 purple `#534AB7`/`#7F77DD`. ~75 사용처 시각 변화 (의도된 정합). 다른 legacy 토큰 (foreground/card/popover/secondary/muted/border)은 이미 neutral grays — 변경 없음 — `72d9df4`
 
-#### 향후 후보 (별도 세션)
+#### Phase N (완료 ✅) — bespoke + sweep 추가 라운드
 
-- [ ] competition-hero / genova-competition-hero 잔여 bespoke 패턴 (`.btn-tertiary` adoption, JS hover handlers → CSS class, `--gradient-cta-hero` 신토큰 등) — 시각 미세 변화
-- [ ] Tailwind 마이그레이션 미진행 컴포넌트 잔여 식별
-- [ ] hero fade `--gradient-hero-top-fade/-bottom-fade` 토큰화 — home에서만 사용 (단일 컴포넌트 ROI 낮음)
+- [x] **N1** — competition-hero `--gradient-cta-hero` 신토큰 + Enter Now CTA 적용, View Rules `.btn-tertiary` 채택 — `12c7dfe`
+- [x] **N3** — `--gradient-hero-top-fade`, `--gradient-hero-bottom-fade` 토큰화 (home Hero 2 사이트) — `e627aa4`
+- [x] **tools/tool-detail-client** SectionHeader `.typo-section-title` + `text-accent-primary` 채택 — `178a01d`
+- [x] **추가 토큰 + sweep**:
+  - `--border-white-02` (26 사이트, 7 파일) — `7c756c9`
+  - `--tint-accent-06`, `--tint-accent-25`, `--tint-purple-08` (32 사이트, 11 파일) — `5640675`
+  - `--border-white-12` (7 사이트) — `e8e473b`
+  - `--border-default` direct sweep (11 사이트, 7 파일) — `07a1995`
+- [x] **합계**: 새 토큰 8 + 합성 클래스 활용. 약 **76 사이트 추가 토큰화**. 시각 0%.
+
+#### 향후 후보 (별도 세션, ROI 작음)
+
+- [ ] competition-hero stat pills JS hover handlers → CSS composite class (3 pills, 시각 미세 변화)
+- [ ] genova/competition-hero 9개 bespoke decorative (각 1회 사용)
+- [ ] 단발성 잔여 inline (대부분 동적/bespoke/계산값)
+- [ ] 추가 cross-file 패턴 (rgba(255,255,255,0.05) 6사이트, rgba(0,0,0,0.5/0.6) 등) — 단발성 알파, 가치 미미
 
 ### Phase B — 문서/코드 동기화
 
