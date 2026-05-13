@@ -149,7 +149,7 @@ export function CompetitionHero({
                         }}
                         className="inline-flex items-center gap-2 rounded-xl px-8 py-2 text-[14px] font-bold text-white transition-all duration-300 hover:scale-[1.03]"
                         style={{
-                          background: "linear-gradient(125deg, #5B7FE8 0%, #6B5FD4 35%, #7B4FCC 65%, #5B35B0 100%)",
+                          background: "var(--gradient-cta-hero)",
                           border: "1px solid rgba(150,170,255,0.3)",
                         }}
                         onMouseEnter={(e) => {
@@ -164,12 +164,7 @@ export function CompetitionHero({
                       <button
                         type="button"
                         onClick={() => setRulesOpen(true)}
-                        className="inline-flex items-center gap-2 rounded-xl px-6 py-2 text-[14px] font-semibold text-white/50 transition-all duration-300 hover:text-white/80"
-                        style={{
-                          border: "1px solid rgba(255,255,255,0.15)",
-                          background: "rgba(255,255,255,0.05)",
-                          backdropFilter: "blur(8px)",
-                        }}
+                        className="btn-tertiary inline-flex items-center gap-2 rounded-xl px-6 py-2 text-[14px] font-semibold text-white/50 transition-all duration-300 hover:text-white/80"
                       >
                         {t("competition.viewRules")}
                       </button>

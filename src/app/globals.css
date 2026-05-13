@@ -116,6 +116,7 @@
   --gradient-hero-bottom-fade: linear-gradient(to top, rgba(8 6 20 / 0.95) 0%, rgba(8 6 20 / 0.5) 20%, transparent 50%);
   --gradient-card-top-accent: linear-gradient(to right, transparent, rgba(127 119 221 / 0.5) 30%, rgba(175 169 236 / 0.3) 60%, transparent);
   --gradient-cta-solid:       linear-gradient(135deg, var(--accent-core) 0%, #7B6FE4 100%);
+  --gradient-cta-hero:        linear-gradient(125deg, #5B7FE8 0%, #6B5FD4 35%, #7B4FCC 65%, #5B35B0 100%);
 
   /* Motion */
   --duration-fast:         200ms;   /* hover */
