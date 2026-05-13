@@ -21,11 +21,6 @@
   --neutral-950:  #0a0a0a;   /* 페이지 베이스 (~50%) */
   --neutral-1000: #080618;   /* fade only — CLAUDE.md 명시 */
 
-  /* Sidebar tints (통일 검토 중, 현재 시각 보존) */
-  --sidebar-tint-top: #160E2A;
-  --sidebar-tint-mid: #100B22;
-  --sidebar-tint-low: #0B081A;
-
   /* System */
   --red-600: #dc2626;
   --red-500: #ef4444;
@@ -38,7 +33,6 @@
   /* Background */
   --bg-base:    var(--neutral-950);
   --bg-fade:    var(--neutral-1000);
-  --bg-sidebar: var(--sidebar-tint-top);
 
   /* Accent (역할 분리 — CLAUDE.md 결정) */
   --accent-primary: var(--purple-200);   /* 가시 액센트 */
@@ -108,7 +102,6 @@
   --gradient-cta-primary:  linear-gradient(135deg, rgba(107 95 212 / 0.85) 0%, rgba(83 74 183 / 0.75) 50%, rgba(63 54 163 / 0.65) 100%);
   --gradient-card-bg:      linear-gradient(160deg, rgba(16 12 32 / 0.92) 0%, rgba(8 6 20 / 0.96) 100%);
   --gradient-badge-purple: linear-gradient(135deg, rgba(127 119 221 / 0.35) 0%, rgba(83 74 183 / 0.20) 50%, rgba(43 34 143 / 0.10) 100%);
-  --gradient-sidebar:      linear-gradient(180deg, rgba(22 14 42 / 0.99) 0%, rgba(16 11 34 / 1) 30%, rgba(11 8 26 / 1) 65%, var(--bg-base) 100%);
   --gradient-section-end:  linear-gradient(to top, var(--bg-base) 0%, rgba(10 10 10 / 0.8) 40%, transparent 100%);
   --gradient-danger:       linear-gradient(135deg, var(--danger-from) 0%, var(--danger-to) 100%);
   --gradient-dropdown:     linear-gradient(160deg, rgba(22 14 42 / 0.99) 0%, rgba(10 6 22 / 1) 100%);
@@ -209,7 +202,6 @@
   /* Surfaces (bg-*) */
   --color-surface-base:    var(--bg-base);
   --color-surface-fade:    var(--bg-fade);
-  --color-surface-sidebar: var(--bg-sidebar);
 
   /* Accents (bg/text/border-*) */
   --color-accent-primary: var(--accent-primary);
