@@ -316,17 +316,28 @@ inline `style={{...}}` 사용:  535건 / 55개 파일
 - [x] **3.3** — `home-page-client.tsx` 인라인 style 33 → 25 (8개 완전 제거, 11개 토큰화, `.btn-primary` / `.btn-tertiary` 채택) — `c7a1cff`
 - [x] `hero-section.tsx` dead code 삭제 — `00f7a37`
 
-#### Phase 4 (다음)
+#### Phase 4 (부분 완료)
 
-- [ ] **4.1** — 홈 잔여 인라인 25개 추가 마이그레이션 (선택 작업 — ROI 낮음. 동적/일회성 위주)
-- [ ] **4.2** — 다음 reference 컴포넌트 마이그레이션 순차 진행
-  - `films-page-client.tsx` (홈과 패턴 유사 — 우선)
-  - `competition-detail-client.tsx` (~59건 추정, 큰 작업)
-  - `watch-detail-client.tsx`
-  - `profile-page-client.tsx` (소량)
-- [ ] **4.3** — 사이드바 통일 검토 (gradient `--gradient-sidebar` vs flat `--bg-base`) — Phase 2.1 결정 보류 항목
-- [ ] **4.4** — legacy shadcn 토큰 (`--primary` `#9d7dff` 등) 신토큰 매핑 또는 제거 — `.eyebrow` 54 사용처, shadcn 컴포넌트 다수 영향. 신중 검토 필요
-- [ ] **4.5** — Q2 보류 토큰 4개 재검토 (`--tint-purple-12`, `--tint-accent-15`, `--gradient-hero-top-fade`, `--gradient-hero-bottom-fade`) — 추가 사용처 발견 시 토큰화
+- [ ] **4.1** — 홈 잔여 인라인 25개 추가 마이그레이션 (선택 — ROI 낮음, 동적/일회성 위주)
+- [x] **4.2** — Films track reference 컴포넌트 마이그레이션:
+  - [x] `--gradient-row-fade-l/r` 토큰 신설 — `6cbd465`
+  - [x] `films-page-client.tsx` (8 → 3 inline) — `09df29a`
+  - [x] `films/continue-watching.tsx` row-fade 채택 — `90ec804`
+  - [x] `video/up-next-section.tsx` row-fade 채택 — `c06723f`
+- [ ] **4.3** — 사이드바 통일 검토 (gradient `--gradient-sidebar` vs flat `--bg-base`) — **별도 세션 (시각 영향)**
+- [ ] **4.4** — legacy shadcn 토큰 (`--primary` `#9d7dff` 등) 신토큰 매핑 또는 제거 — `.eyebrow` 54 사용처. **별도 세션 (시각 영향)**
+- [ ] **4.5** — Q2 보류 토큰 4개 재검토 (`--tint-purple-12`, `--tint-accent-15`, `--gradient-hero-top-fade`, `--gradient-hero-bottom-fade`)
+
+#### Phase 5 (완료 ✅)
+
+- [x] **5.1** — competition-detail design tokens 추가 (5 토큰 + 1 합성 클래스: `--shadow-card-soft`, `--shadow-hero-glow`/`-hover`, `--gradient-card-top-accent`, `--gradient-cta-solid`, `.surface-hero-glow`) — `bea037a`
+- [x] **5.2** — `competition-detail-client.tsx` 마이그레이션 (59 → 49 inline, 5개 완전 제거 + 6개 토큰화, JS hover handlers → CSS `:hover`) — `9c11770`
+
+#### Phase 6 (다음 — 이번 세션 진행 예정)
+
+- [ ] **6.1** — `profile-page-client.tsx` 마이그레이션 (~6 inline, 소량)
+- [ ] **6.2** — `competition-hero.tsx` 마이그레이션 (~24+ inline)
+- [ ] **6.3** — `watch-detail-client.tsx` 마이그레이션
 
 ### Phase B — 문서/코드 동기화
 
