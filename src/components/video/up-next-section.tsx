@@ -147,7 +147,7 @@ function VideoCardStrip({ videos }: { videos: Video[] }) {
             isHovered ? "opacity-100" : "opacity-0",
           )}
           style={{
-            background: "linear-gradient(to right, rgba(10,10,10,0.85) 0%, rgba(10,10,10,0.4) 60%, transparent 100%)",
+            background: "var(--gradient-row-fade-l)",
           }}
           aria-label="Scroll left"
         >
@@ -177,7 +177,7 @@ function VideoCardStrip({ videos }: { videos: Video[] }) {
             isHovered ? "opacity-100" : "opacity-0",
           )}
           style={{
-            background: "linear-gradient(to left, rgba(10,10,10,0.85) 0%, rgba(10,10,10,0.4) 60%, transparent 100%)",
+            background: "var(--gradient-row-fade-r)",
           }}
           aria-label="Scroll right"
         >
