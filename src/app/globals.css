@@ -110,6 +110,8 @@
   --gradient-danger:       linear-gradient(135deg, var(--danger-from) 0%, var(--danger-to) 100%);
   --gradient-dropdown:     linear-gradient(160deg, rgba(22 14 42 / 0.99) 0%, rgba(10 6 22 / 1) 100%);
   --gradient-card-overlay: linear-gradient(180deg, transparent 50%, rgba(0 0 0 / 0.85) 100%);
+  --gradient-row-fade-l:   linear-gradient(to right, rgba(10 10 10 / 0.85) 0%, rgba(10 10 10 / 0.4) 60%, transparent 100%);
+  --gradient-row-fade-r:   linear-gradient(to left,  rgba(10 10 10 / 0.85) 0%, rgba(10 10 10 / 0.4) 60%, transparent 100%);
 
   /* Motion */
   --duration-fast:         200ms;   /* hover */
