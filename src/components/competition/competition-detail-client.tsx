@@ -197,23 +197,11 @@ export function CompetitionDetailClient({ competition, videos, featuredVideos }:
   ];
 
   return (
-    <div className="min-h-screen text-white" style={{ background: "#0a0a0a", fontFamily: "'Inter', 'Pretendard', -apple-system, BlinkMacSystemFont, sans-serif", WebkitFontSmoothing: "antialiased" }}>
+    <div className="min-h-screen text-white">
 
       {/* ── Hero ─────────────────────────────────── */}
       <div
-        className="group/hero relative w-full overflow-hidden rounded-2xl -mt-16"
-        style={{
-          minHeight: "50vh",
-          border: "1px solid rgba(127,119,221,0.25)",
-          boxShadow: "0 0 80px rgba(127,119,221,0.25), inset 0 0 40px rgba(83,74,183,0.1)",
-          transition: "box-shadow 0.4s ease",
-        }}
-        onMouseEnter={(e) => {
-          (e.currentTarget as HTMLDivElement).style.boxShadow = "0 0 120px rgba(127,119,221,0.4), inset 0 0 40px rgba(83,74,183,0.15)";
-        }}
-        onMouseLeave={(e) => {
-          (e.currentTarget as HTMLDivElement).style.boxShadow = "0 0 80px rgba(127,119,221,0.25), inset 0 0 40px rgba(83,74,183,0.1)";
-        }}
+        className="group/hero surface-hero-glow relative w-full overflow-hidden rounded-2xl -mt-16 min-h-[50vh] border border-line-strong"
       >
         {/* Background: video or image */}
         {bannerImage && isVideoUrl(bannerImage) ? (
@@ -308,10 +296,8 @@ export function CompetitionDetailClient({ competition, videos, featuredVideos }:
 
               {/* Title */}
               <h1
-                className="text-3xl font-black leading-tight tracking-tight md:text-4xl lg:text-5xl"
+                className="text-3xl font-black leading-tight tracking-tight md:text-4xl lg:text-5xl text-white"
                 style={{
-                  fontFamily: "'Plus Jakarta Sans', 'Inter', sans-serif",
-                  color: "#fff",
                   textShadow: "0 2px 20px rgba(0,0,0,0.5)",
                 }}
               >
@@ -385,10 +371,7 @@ export function CompetitionDetailClient({ competition, videos, featuredVideos }:
                   <button
                     type="button"
                     onClick={() => openUploadModal({ competitionId: competition.id })}
-                    className="inline-flex items-center gap-2 rounded-lg px-6 py-2.5 text-[14px] font-bold text-white transition-all duration-200 shadow-[0_8px_24px_rgba(83,74,183,0.4)]"
-                    style={{ background: "#534AB7" }}
-                    onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.background = "#6b5fd4"; }}
-                    onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.background = "#534AB7"; }}
+                    className="inline-flex items-center gap-2 rounded-lg px-6 py-2.5 text-[14px] font-bold text-white bg-accent-core hover:bg-[#6b5fd4] transition-colors duration-200 shadow-[0_8px_24px_rgba(83,74,183,0.4)]"
                   >
                     {t("competition.detail.submitNowCta")}
                   </button>
@@ -448,7 +431,7 @@ export function CompetitionDetailClient({ competition, videos, featuredVideos }:
       </div>
 
       {/* ── Tabs ─────────────────────────────────── */}
-      <div data-tab-content className="sticky top-0 z-40 border-b border-white/[0.07]" style={{ background: "rgba(10,10,10,0.96)", backdropFilter: "blur(16px)" }}>
+      <div data-tab-content className="sticky top-0 z-40 border-b border-white/[0.07] bg-[rgba(10,10,10,0.96)] backdrop-blur-lg">
         <div className="mx-auto max-w-[1400px] px-8">
           <div className="flex">
             {[
@@ -489,14 +472,8 @@ export function CompetitionDetailClient({ competition, videos, featuredVideos }:
 
               {/* 왼쪽 — 공모전 소개 */}
               <div className="h-full">
-                <div
-                  className="relative h-full overflow-hidden rounded-2xl"
-                  style={{
-                    border: "1px solid rgba(127,119,221,0.18)",
-                    background: "linear-gradient(160deg, rgba(16,12,32,0.92) 0%, rgba(8,6,20,0.96) 100%)",
-                    boxShadow: "0 0 30px rgba(83,74,183,0.08), inset 0 1px 0 rgba(127,119,221,0.15)",
-                  }}
-                >
+                <div className="surface-card relative h-full overflow-hidden">
+
                   <div className="pointer-events-none absolute right-0 top-0 bottom-0 w-[50%]">
                     <img
                       src="/competition-trophy.png"
@@ -534,9 +511,7 @@ export function CompetitionDetailClient({ competition, videos, featuredVideos }:
                   {/* 상단 shimmer 라인 */}
                   <div
                     className="pointer-events-none absolute top-0 left-0 right-0 h-px"
-                    style={{
-                      background: "linear-gradient(to right, transparent, rgba(127,119,221,0.5) 30%, rgba(175,169,236,0.3) 60%, transparent)",
-                    }}
+                    style={{ background: "var(--gradient-card-top-accent)" }}
                   />
 
                   <div className="relative z-10 p-8">
@@ -579,7 +554,7 @@ export function CompetitionDetailClient({ competition, videos, featuredVideos }:
                         {concept.split("\n").filter(Boolean).map((line, i) => (
                           i === 0 ? (
                             <div key={i} className="flex items-center gap-2.5">
-                              <span className="shrink-0 text-[18px] text-[#7F77DD]" style={{ filter: "drop-shadow(0 0 6px rgba(127,119,221,0.6))" }}>✦</span>
+                              <span className="shrink-0 text-[18px] text-accent-primary" style={{ filter: "drop-shadow(0 0 6px rgba(127,119,221,0.6))" }}>✦</span>
                               <p className="text-[17px] font-bold leading-snug text-white/90">{line}</p>
                             </div>
                           ) : i === 1 ? (
@@ -597,8 +572,8 @@ export function CompetitionDetailClient({ competition, videos, featuredVideos }:
               </div>
 
               {/* 오른쪽 — 참가 규칙 */}
-              <div className="relative h-full overflow-hidden rounded-2xl border border-white/10 bg-[#0a0a0a]/40 p-5 backdrop-blur-xl" style={{ boxShadow: "0 0 30px rgba(83,74,183,0.08), inset 0 1px 0 rgba(255,255,255,0.05)" }}>
-                <div className="pointer-events-none absolute top-0 left-0 right-0 h-px" style={{ background: "linear-gradient(to right, transparent, rgba(127,119,221,0.5) 30%, rgba(175,169,236,0.3) 60%, transparent)" }} />
+              <div className="relative h-full overflow-hidden rounded-2xl border border-white/10 bg-[#0a0a0a]/40 p-5 backdrop-blur-xl shadow-card-soft">
+                <div className="pointer-events-none absolute top-0 left-0 right-0 h-px" style={{ background: "var(--gradient-card-top-accent)" }} />
                 <div className="pointer-events-none absolute right-0 bottom-0 w-40 h-40 rounded-full" style={{ background: "radial-gradient(circle, rgba(83,74,183,0.1) 0%, transparent 70%)", filter: "blur(40px)" }} />
                 <h2 className="mb-4 text-[16px] font-bold text-white">{t("competition.detail.rulesSidebarTitle")}</h2>
                 <div className="divide-y divide-white/[0.05]">
@@ -630,7 +605,7 @@ export function CompetitionDetailClient({ competition, videos, featuredVideos }:
                     },
                   ].map((item) => (
                     <div key={item.label} className="flex gap-2.5 py-2">
-                      <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg text-[#AFA9EC]" style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)" }}>
+                      <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg text-accent-light bg-line-white-06 border border-line-white-10">
                         {item.icon}
                       </div>
                       <div className="min-w-0">
@@ -840,8 +815,7 @@ export function CompetitionDetailClient({ competition, videos, featuredVideos }:
                       {/* Eyebrow + Label */}
                       <div className="mt-5">
                         <p
-                          className="text-[10px] font-black uppercase tracking-[0.22em]"
-                          style={{ color: "rgba(255,255,255,0.5)" }}
+                          className="text-[10px] font-black uppercase tracking-[0.22em] text-white/50"
                         >
                           {tier.eyebrow}
                         </p>
@@ -1040,7 +1014,7 @@ export function CompetitionDetailClient({ competition, videos, featuredVideos }:
                               )}
                               {isPast && !isNow && (
                                 <div className="mt-2.5 flex justify-center">
-                                  <span className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-black uppercase tracking-wider" style={{ color: "rgba(175,169,236,0.8)" }}>
+                                  <span className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-black uppercase tracking-wider text-accent-light/80">
                                     {t("competition.detail.badgeDone")}
                                   </span>
                                 </div>
@@ -1064,10 +1038,9 @@ export function CompetitionDetailClient({ competition, videos, featuredVideos }:
           <div className="grid grid-cols-1 gap-6 lg:grid-cols-[1fr_320px]">
             <div className="space-y-6">
               <div
-                className="relative overflow-hidden rounded-2xl border border-white/10 bg-[#0a0a0a]/40 p-8 backdrop-blur-xl"
-                style={{ boxShadow: "0 0 30px rgba(83,74,183,0.08), inset 0 1px 0 rgba(255,255,255,0.05)" }}
+                className="relative overflow-hidden rounded-2xl border border-white/10 bg-[#0a0a0a]/40 p-8 backdrop-blur-xl shadow-card-soft"
               >
-                <div className="pointer-events-none absolute top-0 left-0 right-0 h-px" style={{ background: "linear-gradient(to right, transparent, rgba(127,119,221,0.45) 30%, rgba(175,169,236,0.25) 60%, transparent)" }} />
+                <div className="pointer-events-none absolute top-0 left-0 right-0 h-px" style={{ background: "var(--gradient-card-top-accent)" }} />
                 <div className="mb-6 flex items-center gap-3">
                   <span className="text-sm text-[#7F77DD]">✦</span>
                   <h2 className="text-[22px] font-black tracking-tight text-white">{t("competition.detail.judgingTitle")}</h2>
@@ -1358,7 +1331,7 @@ export function CompetitionDetailClient({ competition, videos, featuredVideos }:
                   <h3 className="text-lg font-semibold text-white/50">{t("competition.detail.entriesEmptyTitle")}</h3>
                   <p className="mt-2 text-sm text-white/30">{t("competition.detail.entriesEmptyHint")}</p>
                   {isOpen && (
-                    <button type="button" onClick={() => openUploadModal({ competitionId: competition.id })} className="mt-6 flex items-center gap-2 rounded-xl px-6 py-2.5 text-sm font-bold text-white transition hover:scale-[1.02]" style={{ background: "linear-gradient(135deg, #534AB7 0%, #7B6FE4 100%)" }}>
+                    <button type="button" onClick={() => openUploadModal({ competitionId: competition.id })} className="mt-6 flex items-center gap-2 rounded-xl px-6 py-2.5 text-sm font-bold text-white transition hover:scale-[1.02]" style={{ background: "var(--gradient-cta-solid)" }}>
                       <Upload size={14} />
                       {t("competition.detail.entriesEmptyCta")}
                     </button>
