@@ -341,10 +341,17 @@ inline `style={{...}}` 사용:  535건 / 55개 파일
 - [x] **6.3.b** — watch 영역 단발성 inline 정리 (mux-player-client, recommendation-card, watch-meta-sidebar, watch-video-embed — 4 파일) — `5aff96b`
 - [x] **6.4** — tail inline cleanup (video-card, series-episodes-slider, up-next-section 잔여, genova/competition-hero — 4 파일 8 변환) — `8548891`
 
+#### Phase 4.3 (완료 ✅)
+
+- [x] **4.3.1** — GenreSidebar 컴포넌트 dead code 삭제 (-748줄) — `fa726e2`
+  - 조사 결과: `GenreSidebar`는 어디서도 import 안 됨. 실제 사이드바는 `SlimSidebar` (flat #0a0a0a + backdrop-blur). 통일은 G-E 시기에 사실상 완료된 상태.
+- [x] **4.3.2** — 사이드바 그라데이션 dead 토큰 7개 제거 (-8줄, globals.css) — `2f89f0c`
+  - 제거: `--sidebar-tint-top/mid/low`, `--bg-sidebar`, `--gradient-sidebar`, `--color-surface-sidebar`
+  - 보존: shadcn legacy `--sidebar*` (SlimSidebar의 `bg-sidebar` 유틸 의존)
+
 #### 향후 후보 (별도 세션)
 
 - [ ] **4.1** 홈 잔여 25 inline (ROI 낮음)
-- [ ] **4.3** 사이드바 통일 검토 — 시각 영향
 - [ ] **4.4** legacy shadcn 토큰 마이그레이션 — `.eyebrow` 54 사용처 영향
 - [ ] **4.5** Q2 보류 토큰 4개 재검토
 - [ ] competition-hero / genova-competition-hero 잔여 bespoke 패턴 (`.btn-tertiary` adoption, JS hover handlers → CSS class, `--gradient-cta-hero` 신토큰 등) — 시각 미세 변화
