@@ -27,9 +27,7 @@ export function RecommendationCard({ item }: { item: Video }) {
         />
         <div
           className="absolute inset-0"
-          style={{
-            background: "linear-gradient(180deg, transparent 50%, rgba(0,0,0,0.85) 100%)",
-          }}
+          style={{ background: "var(--gradient-card-overlay)" }}
         />
         <div className="absolute inset-x-0 bottom-0 p-3">
           <p className="line-clamp-1 text-[13px] font-bold text-white">{item.title}</p>

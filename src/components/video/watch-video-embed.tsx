@@ -15,7 +15,7 @@ export function WatchVideoEmbed({ title, vimeoId, muxPlaybackId }: Props) {
         playbackId={muxPlaybackId}
         streamType="on-demand"
         accentColor="#534AB7"
-        style={{ width: "100%", height: "100%", aspectRatio: "16/9" }}
+        className="w-full h-full aspect-video"
         metadata={{ video_title: title }}
       />
     );

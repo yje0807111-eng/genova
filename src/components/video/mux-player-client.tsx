@@ -55,8 +55,7 @@ export function MuxPlayerClient({
       playbackId={playbackId}
       envKey={process.env.NEXT_PUBLIC_MUX_ENV_KEY}
       streamType="on-demand"
-      className="h-full w-full"
-      style={{ aspectRatio: "16/9" }}
+      className="h-full w-full aspect-video"
       accentColor="#534AB7"
       title={title}
       autoPlay

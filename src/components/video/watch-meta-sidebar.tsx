@@ -209,8 +209,7 @@ export function WatchMetaSidebar({
 
       {/* Tab content */}
       <div
-        className="min-h-0 flex-1 overflow-y-auto"
-        style={{ overscrollBehavior: "contain" }}
+        className="min-h-0 flex-1 overflow-y-auto overscroll-contain"
         onWheel={(e) => e.stopPropagation()}
       >
         {activeTab === "comments" ? (
