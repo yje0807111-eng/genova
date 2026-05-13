@@ -168,9 +168,7 @@ function ProfileVideoCard({ video, t, isOwner, onEdit }: { video: any; t: (key: 
         {/* Bottom gradient */}
         <div
           className="absolute inset-0"
-          style={{
-            background: "linear-gradient(180deg, transparent 50%, rgba(0,0,0,0.85) 100%)",
-          }}
+          style={{ background: "var(--gradient-card-overlay)" }}
         />
 
         {/* Info overlay */}
@@ -1030,19 +1028,17 @@ export function GenovaProfileClient({
                                 <Link
                                   key={video.id}
                                   href={`/watch/${video.id}`}
-                                  className="group/card relative shrink-0 cursor-pointer overflow-hidden rounded-xl border border-white/[0.08] transition-all duration-300 hover:scale-[1.03] hover:border-[#7F77DD]/40"
-                                  style={{ width: "220px" }}
+                                  className="group/card relative shrink-0 cursor-pointer overflow-hidden rounded-xl border border-white/[0.08] transition-all duration-300 hover:scale-[1.03] hover:border-[#7F77DD]/40 w-[220px]"
                                 >
-                                  <div className="relative w-full overflow-hidden" style={{ aspectRatio: "16/9" }}>
+                                  <div className="relative w-full overflow-hidden aspect-video">
                                     <img
                                       src={thumb}
                                       alt=""
                                       className="h-full w-full object-cover transition-transform duration-500 group-hover/card:scale-105"
                                     />
                                     <div
-                                      className="absolute inset-x-0 bottom-0 z-[1]"
+                                      className="absolute inset-x-0 bottom-0 z-[1] h-[70%]"
                                       style={{
-                                        height: "70%",
                                         background:
                                           "linear-gradient(to top, rgba(10,10,10,1) 0%, rgba(10,10,10,0.8) 40%, transparent 100%)",
                                       }}
