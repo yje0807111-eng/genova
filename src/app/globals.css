@@ -59,6 +59,7 @@
   --border-white-06: rgba(255 255 255 / 0.06);
   --border-white-08: rgba(255 255 255 / 0.08);
   --border-white-10: rgba(255 255 255 / 0.10);
+  --border-white-12: rgba(255 255 255 / 0.12);
   --border-white-15: rgba(255 255 255 / 0.15);
 
   /* Tint — accent-core 채우기 */
@@ -239,6 +240,7 @@
   --color-line-white-06: var(--border-white-06);
   --color-line-white-08: var(--border-white-08);
   --color-line-white-10: var(--border-white-10);
+  --color-line-white-12: var(--border-white-12);
   --color-line-white-15: var(--border-white-15);
 
   /* Tints (bg-* fills) — accent-core 알파 */

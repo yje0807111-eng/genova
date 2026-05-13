@@ -421,7 +421,7 @@ export function LandingClient({
                               className="absolute inset-0 opacity-[0.06]"
                               style={{
                                 backgroundImage:
-                                  "linear-gradient(rgba(255,255,255,0.12) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.12) 1px, transparent 1px)",
+                                  "linear-gradient(var(--border-white-12) 1px, transparent 1px), linear-gradient(90deg, var(--border-white-12) 1px, transparent 1px)",
                                 backgroundSize: "32px 32px",
                               }}
                             />

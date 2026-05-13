@@ -27,7 +27,7 @@ function TrophyCup({ fill, grand }: { fill: string; grand?: boolean }) {
         strokeWidth="1.2"
         d="M14 12h36v10a20 20 0 01-20 20 20 20 0 01-20-20V12zm6 40h24v8H20v-8zm-8 12h40l4 10H16l4-10z"
       />
-      <ellipse cx="32" cy="14" rx="18" ry="4" fill="rgba(255,255,255,0.12)" />
+      <ellipse cx="32" cy="14" rx="18" ry="4" fill="var(--border-white-12)" />
     </svg>
   );
 }

@@ -478,7 +478,7 @@ export function Navbar() {
               style={{
                 background: "linear-gradient(135deg, rgba(107,95,212,0.85) 0%, rgba(83,74,183,0.75) 50%, rgba(63,54,163,0.65) 100%)",
                 border: "1px solid rgba(175,169,236,0.35)",
-                boxShadow: "inset 0 1px 0 rgba(255,255,255,0.12), 0 2px 8px rgba(83,74,183,0.2)",
+                boxShadow: "inset 0 1px 0 var(--border-white-12), 0 2px 8px rgba(83,74,183,0.2)",
               }}
             >
               <Upload className="h-3.5 w-3.5" />

@@ -92,7 +92,7 @@ export function GenreFilteredVideoFeed({ videos, variant = "feed" }: Props) {
                 <button
                   type="button"
                   onClick={() => setSortOpen((v) => !v)}
-                  className="relative rounded-[6px] border border-[rgba(255,255,255,0.12)] bg-[rgba(255,255,255,0.05)] px-[10px] py-[5px] pr-[28px] text-[12px] text-[#EEEDFE] transition hover:border-[rgba(127,119,221,0.45)]"
+                  className="relative rounded-[6px] border border-[var(--border-white-12)] bg-[rgba(255,255,255,0.05)] px-[10px] py-[5px] pr-[28px] text-[12px] text-[#EEEDFE] transition hover:border-[rgba(127,119,221,0.45)]"
                   aria-haspopup="listbox"
                   aria-expanded={sortOpen}
                 >

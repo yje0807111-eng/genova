@@ -106,7 +106,7 @@ export function FeedYoutubeLayout({ videos, hideSidebar, defaultGenre }: { video
                 <button
                   type="button"
                   onClick={() => setSortOpen((v) => !v)}
-                  className="typo-sidebar-link relative rounded-lg border border-[rgba(255,255,255,0.12)] bg-[rgba(255,255,255,0.05)] px-3 py-2 pr-9 text-[13px] font-medium text-[#EEEDFE] transition hover:border-[rgba(127,119,221,0.45)]"
+                  className="typo-sidebar-link relative rounded-lg border border-[var(--border-white-12)] bg-[rgba(255,255,255,0.05)] px-3 py-2 pr-9 text-[13px] font-medium text-[#EEEDFE] transition hover:border-[rgba(127,119,221,0.45)]"
                   aria-haspopup="listbox"
                   aria-expanded={sortOpen}
                 >
