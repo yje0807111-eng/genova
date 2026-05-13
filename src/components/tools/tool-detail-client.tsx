@@ -221,17 +221,11 @@ export function ToolDetailClient({
               <div>
                 <div className="mb-1.5 flex items-center gap-1.5">
                   <span className="text-[10px] text-[#7F77DD]">✦</span>
-                  <p
-                    className="text-[10px] font-black uppercase tracking-[0.22em]"
-                    style={{ color: "#7F77DD", opacity: 0.75 }}
-                  >
+                  <p className="text-[10px] font-black uppercase tracking-[0.22em] text-accent-primary opacity-75">
                     Creators
                   </p>
                 </div>
-                <h2
-                  className="text-[26px] font-black tracking-tight text-white"
-                  style={{ letterSpacing: "-0.02em" }}
-                >
+                <h2 className="typo-section-title">
                   사용 크리에이터
                 </h2>
               </div>
