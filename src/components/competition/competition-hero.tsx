@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { Calendar, PlayCircle, Trophy, Users } from "lucide-react";
 import { useI18n } from "@/components/genova/language-provider";
+import { CompetitionRulesModal } from "./competition-rules-modal";
 
 function FadeIn({ children, delay = 0, className }: { children: React.ReactNode; delay?: number; className?: string }) {
   const [show, setShow] = useState(false);
@@ -38,6 +39,16 @@ export function CompetitionHero({
 }) {
   const { t } = useI18n();
   const [rulesOpen, setRulesOpen] = useState(false);
+  useEffect(() => {
+    if (rulesOpen) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+    }
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [rulesOpen]);
   return (
     <div
       className="relative w-full overflow-hidden -mt-16"
@@ -91,7 +102,7 @@ export function CompetitionHero({
             "linear-gradient(to right, rgba(6,4,15,0.98) 0%, rgba(6,4,15,0.9) 25%, rgba(6,4,15,0.5) 50%, rgba(6,4,15,0.15) 70%, rgba(6,4,15,0) 85%)",
         }}
       />
-      <div className="absolute inset-0 bg-gradient-to-r from-[#080618] via-[#080618]/70 to-[#080618]/30 pointer-events-none" />
+      <div className="absolute inset-0 bg-gradient-to-r from-[#0a0a0a] via-[#0a0a0a]/70 to-[#0a0a0a]/30 pointer-events-none" />
       <div className="absolute inset-0" style={{ background: "linear-gradient(to top, rgba(6,4,15,0.7) 0%, transparent 25%)" }} />
 
       {/* Content wrapper keeps existing hero content/layout */}
@@ -175,7 +186,7 @@ export function CompetitionHero({
                 <div className="hidden sm:flex flex-col items-end gap-3 pt-8">
                   <FadeIn delay={150}>
                     <div
-                      className="group flex w-52 items-center gap-3 rounded-xl border border-white/10 bg-[#080618]/70 px-3 py-2.5 backdrop-blur-xl transition-all duration-300 hover:scale-[1.02]"
+                      className="group flex w-52 items-center gap-3 rounded-xl border border-white/10 bg-[#0a0a0a]/70 px-3 py-2.5 backdrop-blur-xl transition-all duration-300 hover:scale-[1.02]"
                       style={{
                         boxShadow: "0 0 0 0 rgba(83,74,183,0)",
                       }}
@@ -191,7 +202,7 @@ export function CompetitionHero({
                   </FadeIn>
                   <FadeIn delay={200}>
                     <div
-                      className="group flex w-52 items-center gap-3 rounded-xl border border-white/10 bg-[#080618]/70 px-3 py-2.5 backdrop-blur-xl transition-all duration-300 hover:scale-[1.02]"
+                      className="group flex w-52 items-center gap-3 rounded-xl border border-white/10 bg-[#0a0a0a]/70 px-3 py-2.5 backdrop-blur-xl transition-all duration-300 hover:scale-[1.02]"
                       style={{
                         boxShadow: "0 0 0 0 rgba(83,74,183,0)",
                       }}
@@ -207,7 +218,7 @@ export function CompetitionHero({
                   </FadeIn>
                   <FadeIn delay={250}>
                     <div
-                      className="group flex w-52 items-center gap-3 rounded-xl border border-white/10 bg-[#080618]/70 px-3 py-2.5 backdrop-blur-xl transition-all duration-300 hover:scale-[1.02]"
+                      className="group flex w-52 items-center gap-3 rounded-xl border border-white/10 bg-[#0a0a0a]/70 px-3 py-2.5 backdrop-blur-xl transition-all duration-300 hover:scale-[1.02]"
                       style={{
                         boxShadow: "0 0 0 0 rgba(83,74,183,0)",
                       }}
@@ -229,7 +240,7 @@ export function CompetitionHero({
                 <div
                   className="relative flex overflow-hidden mt-4"
                   style={{
-                    background: "rgba(8,6,24,0.4)",
+                    background: "rgba(10,10,10,0.4)",
                     border: "1px solid rgba(255,255,255,0.1)",
                     width: "60%",
                     borderRadius: "20px",
@@ -332,16 +343,16 @@ export function CompetitionHero({
       {/* Seamless bottom/page fade */}
       <div
         className="absolute bottom-0 left-0 right-0 h-32 z-20 pointer-events-none"
-        style={{ background: "linear-gradient(to bottom, transparent, #06040f)" }}
+        style={{ background: "linear-gradient(to bottom, transparent, #111111)" }}
       />
 
       {/* Left/right side fades */}
       <div
-        className="absolute top-0 left-0 z-10 pointer-events-none h-full w-32 bg-gradient-to-r from-[#080618] to-transparent"
+        className="absolute top-0 left-0 z-10 pointer-events-none h-full w-32 bg-gradient-to-r from-[#0a0a0a] to-transparent"
       />
 
       <div
-        className="absolute top-0 right-0 z-10 pointer-events-none h-full w-32 bg-gradient-to-l from-[#06040f] to-transparent"
+        className="absolute top-0 right-0 z-10 pointer-events-none h-full w-32 bg-gradient-to-l from-[#111111] to-transparent"
       />
       {/* 상단 페이드 */}
       <div
@@ -352,106 +363,7 @@ export function CompetitionHero({
         }}
       />
 
-      {/* 공모전 규칙 팝업 */}
-      {rulesOpen && (
-        <div
-          className="fixed inset-0 z-[200] flex items-center justify-center p-6"
-          style={{ background: "rgba(0,0,0,0.7)", backdropFilter: "blur(8px)" }}
-          onClick={() => setRulesOpen(false)}
-        >
-          <div
-            className="relative w-full max-w-2xl max-h-[80vh] overflow-y-auto rounded-2xl p-8"
-            style={{
-              background: "linear-gradient(160deg, rgba(22,16,42,0.98) 0%, rgba(10,8,24,0.99) 100%)",
-              border: "1px solid rgba(127,119,221,0.25)",
-              boxShadow: "0 0 60px rgba(83,74,183,0.2), 0 24px 80px rgba(0,0,0,0.6)",
-            }}
-            onClick={(e) => e.stopPropagation()}
-          >
-            {/* 닫기 버튼 */}
-            <button
-              type="button"
-              onClick={() => setRulesOpen(false)}
-              className="absolute right-4 top-4 flex h-8 w-8 items-center justify-center rounded-full text-white/40 transition hover:bg-white/10 hover:text-white"
-            >
-              <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={2}>
-                <path d="M18 6 6 18M6 6l12 12" strokeLinecap="round" />
-              </svg>
-            </button>
-
-            {/* 헤더 */}
-            <div className="mb-6">
-              <div
-                className="mb-3 inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-[11px] font-bold uppercase tracking-[0.15em]"
-                style={{
-                  background: "linear-gradient(135deg, rgba(127,119,221,0.3) 0%, rgba(83,74,183,0.15) 100%)",
-                  border: "1px solid rgba(175,169,236,0.3)",
-                  color: "#D5D1FF",
-                }}
-              >
-                <span>✦</span> Genova
-              </div>
-              <h2
-                className="text-2xl font-black text-white bg-clip-text"
-                style={{
-                  backgroundImage: "linear-gradient(125deg, #ffffff 0%, #e8e4ff 50%, #AFA9EC 100%)",
-                  WebkitBackgroundClip: "text",
-                  WebkitTextFillColor: "transparent",
-                }}
-              >
-                {t("competition.rulesModalTitle")}
-              </h2>
-              <p className="mt-1 text-[13px] text-white/40">{t("competition.rulesModalSubtitle")}</p>
-            </div>
-
-            {/* 규칙 목록 */}
-            <div className="space-y-4">
-              {[
-                { num: "01", title: t("competition.rules.r1.title"), desc: t("competition.rules.r1.desc") },
-                { num: "02", title: t("competition.rules.r2.title"), desc: t("competition.rules.r2.desc") },
-                { num: "03", title: t("competition.rules.r3.title"), desc: t("competition.rules.r3.desc") },
-                { num: "04", title: t("competition.rules.r4.title"), desc: t("competition.rules.r4.desc") },
-                { num: "05", title: t("competition.rules.r5.title"), desc: t("competition.rules.r5.desc") },
-                { num: "06", title: t("competition.rules.r6.title"), desc: t("competition.rules.r6.desc") },
-                { num: "07", title: t("competition.rules.r7.title"), desc: t("competition.rules.r7.desc") },
-                { num: "08", title: t("competition.rules.r8.title"), desc: t("competition.rules.r8.desc") },
-              ].map((rule) => (
-                <div
-                  key={rule.num}
-                  className="flex gap-4 rounded-xl p-4"
-                  style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)" }}
-                >
-                  <span
-                    className="shrink-0 text-[11px] font-black"
-                    style={{ color: "rgba(127,119,221,0.6)", fontVariantNumeric: "tabular-nums" }}
-                  >
-                    {rule.num}
-                  </span>
-                  <div>
-                    <p className="mb-1 text-[13px] font-bold text-white">{rule.title}</p>
-                    <p className="text-[12px] leading-relaxed text-white/50">{rule.desc}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            {/* 하단 */}
-            <div className="mt-6 flex justify-end">
-              <button
-                type="button"
-                onClick={() => setRulesOpen(false)}
-                className="rounded-xl px-6 py-2.5 text-[13px] font-bold text-white transition hover:scale-[1.02]"
-                style={{
-                  background: "linear-gradient(135deg, rgba(107,95,212,0.85) 0%, rgba(83,74,183,0.75) 100%)",
-                  border: "1px solid rgba(175,169,236,0.3)",
-                }}
-              >
-                {t("common.confirm")}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <CompetitionRulesModal open={rulesOpen} onClose={() => setRulesOpen(false)} />
     </div>
   );
 }

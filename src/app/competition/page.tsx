@@ -1,5 +1,5 @@
 import { CompetitionListClient } from "@/components/competition/competition-list-client";
-import { CompetitionHero } from "@/components/competition/competition-hero";
+import { FeaturedHeroCarousel } from "@/components/competition/featured-hero-carousel";
 import { fetchAllCompetitions } from "@/lib/queries";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 
@@ -93,18 +93,16 @@ export default async function CompetitionPage() {
     }
   }
 
-  return (
-    <div className="bg-[#06040f] text-white">
-      <CompetitionHero
-        activeCount={active.length}
-        upcomingCount={upcoming.length}
-        totalPrizeLabel={totalPrizeLabel}
-        totalParticipants={totalParticipants ?? 0}
-      />
+  const featuredCompetitions = (active as any[]).filter((c) => c.is_featured);
 
-      {/* Tab filters - client component */}
-      <div className="bg-[#06040f]">
-        <div className="mx-auto max-w-[1680px] px-16 pt-2 pb-12">
+  return (
+    <div className="bg-[#111111] text-white">
+      {featuredCompetitions.length > 0 && (
+        <FeaturedHeroCarousel competitions={featuredCompetitions} />
+      )}
+
+      <div className="bg-[#111111]">
+        <div className="mx-auto max-w-[1680px] px-16 pt-8 pb-12">
           <CompetitionListClient
             active={active as any[]}
             upcoming={upcoming as any[]}

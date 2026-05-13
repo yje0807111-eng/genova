@@ -8,8 +8,13 @@ import { formatPrizeWithConversion } from "@/lib/utils/format-prize";
 import { mainGenreLabel } from "@/lib/constants/genres";
 import { cn } from "@/lib/utils/cn";
 import { VideoCard } from "@/components/video/video-card";
+import { useUploadModal } from "@/components/upload/upload-modal-context";
 import type { Video as AppVideo } from "@/lib/types";
 import { Trophy, Calendar, Clock, ChevronLeft, Upload, Star, Grid, List, Users, Award, Medal } from "lucide-react";
+
+function isVideoUrl(url: string): boolean {
+  return /\.(mp4|webm|ogg|mov)(\?.*)?$/i.test(url);
+}
 
 type Competition = {
   id: string;
@@ -121,6 +126,7 @@ function dDay(deadline: string) {
 
 export function CompetitionDetailClient({ competition, videos, featuredVideos }: CompetitionDetailProps) {
   const { t, locale } = useI18n();
+  const { open: openUploadModal } = useUploadModal();
   const dateLocale = intlDateLocale(locale);
   const [sortBy, setSortBy] = useState<"views" | "newest" | "award">("views");
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
@@ -191,115 +197,258 @@ export function CompetitionDetailClient({ competition, videos, featuredVideos }:
   ];
 
   return (
-    <div className="min-h-screen text-white" style={{ background: "#080618", fontFamily: "'Inter', 'Pretendard', -apple-system, BlinkMacSystemFont, sans-serif", WebkitFontSmoothing: "antialiased" }}>
+    <div className="min-h-screen text-white" style={{ background: "#0a0a0a", fontFamily: "'Inter', 'Pretendard', -apple-system, BlinkMacSystemFont, sans-serif", WebkitFontSmoothing: "antialiased" }}>
 
       {/* ── Hero ─────────────────────────────────── */}
-      <div className="relative w-full overflow-hidden -mt-16" style={{ height: "420px" }}>
-        {bannerImage ? (
+      <div
+        className="group/hero relative w-full overflow-hidden rounded-2xl -mt-16"
+        style={{
+          minHeight: "50vh",
+          border: "1px solid rgba(127,119,221,0.25)",
+          boxShadow: "0 0 80px rgba(127,119,221,0.25), inset 0 0 40px rgba(83,74,183,0.1)",
+          transition: "box-shadow 0.4s ease",
+        }}
+        onMouseEnter={(e) => {
+          (e.currentTarget as HTMLDivElement).style.boxShadow = "0 0 120px rgba(127,119,221,0.4), inset 0 0 40px rgba(83,74,183,0.15)";
+        }}
+        onMouseLeave={(e) => {
+          (e.currentTarget as HTMLDivElement).style.boxShadow = "0 0 80px rgba(127,119,221,0.25), inset 0 0 40px rgba(83,74,183,0.1)";
+        }}
+      >
+        {/* Background: video or image */}
+        {bannerImage && isVideoUrl(bannerImage) ? (
+          <video
+            autoPlay
+            muted
+            loop
+            playsInline
+            className="absolute inset-0 h-full w-full object-cover"
+            src={bannerImage}
+          />
+        ) : bannerImage ? (
           <img src={bannerImage} alt="" className="absolute inset-0 h-full w-full object-cover" />
         ) : (
-          <div className="absolute inset-0 flex items-center justify-center" style={{ background: "linear-gradient(135deg, #1a1547 0%, #0f0d24 100%)" }}>
+          <div
+            className="absolute inset-0 flex items-center justify-center"
+            style={{ background: "linear-gradient(135deg, #1a1547 0%, #0a0a0a 100%)" }}
+          >
             <img src="/genova-logo.png" alt="Genova" className="h-24 w-24 object-contain opacity-20" />
+            <div className="pointer-events-none absolute inset-0 overflow-hidden">
+              <div
+                className="absolute -right-32 top-1/2 h-[140%] w-[60%] -translate-y-1/2 rounded-full opacity-40 blur-3xl"
+                style={{ background: "radial-gradient(circle, rgba(127,119,221,0.5) 0%, transparent 65%)" }}
+              />
+              <div
+                className="absolute -left-20 bottom-0 h-[60%] w-[40%] rounded-full opacity-25 blur-3xl"
+                style={{ background: "radial-gradient(circle, rgba(83,74,183,0.4) 0%, transparent 70%)" }}
+              />
+            </div>
           </div>
         )}
-        {/* overlays */}
-        <div className="absolute inset-0" style={{ background: "linear-gradient(to right, rgba(8,6,24,0.95) 0%, rgba(8,6,24,0.7) 45%, rgba(8,6,24,0.2) 100%)" }} />
-        <div className="absolute inset-0" style={{ background: "linear-gradient(to top, rgba(8,6,24,1) 0%, rgba(8,6,24,0.3) 30%, transparent 60%)" }} />
-        <div className="absolute inset-0" style={{ background: "linear-gradient(to bottom, rgba(8,6,24,0.95) 0%, rgba(8,6,24,0.3) 15%, transparent 35%)" }} />
 
-        {/* back */}
-        <Link href="/competition" className="absolute left-8 top-20 z-20 flex items-center gap-2 rounded-lg border border-white/15 bg-black/30 px-3 py-1.5 text-[12px] text-white/60 backdrop-blur-sm transition hover:border-white/30 hover:text-white">
+        {/* Left gradient overlay */}
+        <div
+          className="absolute inset-0 pointer-events-none"
+          style={{ background: "linear-gradient(90deg, rgba(8,6,24,0.95) 0%, rgba(8,6,24,0.6) 50%, transparent 80%)" }}
+        />
+        {/* Bottom gradient overlay */}
+        <div
+          className="absolute inset-0 pointer-events-none"
+          style={{ background: "linear-gradient(180deg, transparent 60%, rgba(8,6,24,0.8) 100%)" }}
+        />
+
+        {/* Back button */}
+        <Link
+          href="/competition"
+          className="absolute left-8 top-20 z-30 flex items-center gap-2 rounded-lg border border-white/15 bg-black/30 px-3 py-1.5 text-[12px] text-white/55 backdrop-blur-sm transition hover:border-white/30 hover:text-white"
+        >
           <ChevronLeft size={14} />
           {t("competition.detail.backToAll")}
         </Link>
 
-        {/* content */}
-        <div className="absolute bottom-0 left-0 z-20 p-10 pb-12" style={{ maxWidth: "80%" }}>
-          {/* badges */}
-          <div className="mb-2 flex items-center gap-2.5">
-            <span className={`inline-flex items-center gap-1 text-[10px] font-semibold uppercase tracking-wider ${
-              isOpen ? "text-emerald-400" :
-              isUpcoming ? "text-sky-300/80" :
-              "text-white/35"
-            }`}>
-              <span className={`${isOpen ? "text-emerald-400/90" : isUpcoming ? "text-sky-300/70" : "text-white/35"}`}>●</span>
-              {isOpen ? t("competition.detail.heroStatusRecruiting") : isUpcoming ? t("competition.detail.heroStatusUpcoming") : t("competition.detail.heroStatusClosed")}
-            </span>
-            {competition.sponsor && (
-              <span className="text-[10px] uppercase tracking-[0.2em] text-[#AFA9EC]">
-                ✦ SPONSORED BY {competition.sponsor.toUpperCase()}
-              </span>
-            )}
-          </div>
+        {/* Content layout */}
+        <div className="relative z-20 flex h-full min-h-[50vh] items-center px-10 pt-20 pb-10 lg:px-16">
+          <div className="flex w-full items-center justify-between gap-10">
+            {/* Left ~30% — Text content */}
+            <div className="flex max-w-[560px] flex-col gap-5">
+              {/* Status Badge */}
+              {isOpen && (
+                <span
+                  className="inline-flex w-fit items-center gap-2 rounded-full px-4 py-1.5 text-[11px] font-bold uppercase tracking-[0.15em]"
+                  style={{
+                    background: "rgba(83,74,183,0.2)",
+                    border: "1px solid rgba(127,119,221,0.4)",
+                    color: "#AFA9EC",
+                    boxShadow: "0 0 12px rgba(83,74,183,0.4)",
+                  }}
+                >
+                  <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                  {t("competition.detail.acceptingSubmissions")}
+                </span>
+              )}
+              {isUpcoming && (
+                <span className="inline-flex w-fit items-center gap-2 rounded-full border border-white/15 bg-white/5 px-4 py-1.5 text-[11px] font-bold uppercase tracking-[0.15em] text-white/55">
+                  <span className="h-1.5 w-1.5 rounded-full bg-sky-400" />
+                  {t("competition.detail.heroStatusUpcoming")}
+                </span>
+              )}
+              {isClosed && (
+                <span className="inline-flex w-fit items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-1.5 text-[11px] font-bold uppercase tracking-[0.15em] text-white/35">
+                  <span className="h-1.5 w-1.5 rounded-full bg-white/30" />
+                  {t("competition.detail.heroStatusClosed")}
+                </span>
+              )}
 
-          {/* title */}
-          <h1
-            className="mb-1 whitespace-nowrap text-[clamp(1.8rem,3.5vw,3.6rem)] font-black leading-tight tracking-tight"
-            style={{
-              backgroundImage: "linear-gradient(135deg, #ffffff 0%, #e8e4ff 50%, #AFA9EC 100%)",
-              WebkitBackgroundClip: "text",
-              WebkitTextFillColor: "transparent",
-              backgroundClip: "text",
-            }}
-          >
-            {getText(competition.title_ko, competition.title_en, competition.title_ja, competition.title)}
-          </h1>
+              {/* Sponsor tag */}
+              {competition.sponsor && (
+                <span className="text-[10px] uppercase tracking-[0.2em] text-[#AFA9EC]">
+                  ✦ SPONSORED BY {competition.sponsor.toUpperCase()}
+                </span>
+              )}
 
-          {competition.description && (
-            <p className="mb-3 mt-1 text-[16px] text-white/65 leading-relaxed">{competition.description}</p>
-          )}
-
-          {/* meta row */}
-          <div className="mb-6 flex flex-wrap items-center gap-4 text-[13px] text-white/50">
-            <div className="flex items-center gap-1.5">
-              <Trophy size={13} className="text-[#C8963E]" />
-              <span className="font-bold text-[#C8963E]">{prizeDisplay}</span>
-            </div>
-            <div className="flex items-center gap-1.5">
-              <Calendar size={13} />
-              <span>{t("competition.detail.deadlineOn").replace("{date}", deadlineLabel)}</span>
-            </div>
-            {d > 0 && isOpen && (
-              <div className="flex items-center gap-1.5">
-                <Clock size={13} />
-                <span className="font-bold text-white/80">D-{d}</span>
-              </div>
-            )}
-          </div>
-
-          {/* CTA */}
-          <div className="flex items-center gap-3">
-            {isOpen && (
-              <Link
-                href={`/upload?competition=${competition.id}&purpose=competition`}
-                className="inline-flex items-center gap-2 rounded-xl px-9 py-2 text-[14px] font-bold text-white transition-all duration-300 hover:scale-[1.03]"
+              {/* Title */}
+              <h1
+                className="text-3xl font-black leading-tight tracking-tight md:text-4xl lg:text-5xl"
                 style={{
-                  background: "linear-gradient(125deg, #5B7FE8 0%, #6B5FD4 35%, #7B4FCC 65%, #5B35B0 100%)",
-                  border: "1px solid rgba(150,170,255,0.3)",
+                  fontFamily: "'Plus Jakarta Sans', 'Inter', sans-serif",
+                  color: "#fff",
+                  textShadow: "0 2px 20px rgba(0,0,0,0.5)",
                 }}
-                onMouseEnter={(e) => { (e.currentTarget as HTMLAnchorElement).style.boxShadow = "0 0 20px rgba(100,120,255,0.4)"; }}
-                onMouseLeave={(e) => { (e.currentTarget as HTMLAnchorElement).style.boxShadow = "none"; }}
               >
-                <Upload size={15} />
-                {t("competition.detail.submitEntryCta")}
-              </Link>
-            )}
-            <button
-              type="button"
-              onClick={() => setActiveTab("entries")}
-              className="inline-flex items-center gap-2 rounded-xl px-8 py-2 text-[14px] font-semibold text-white/60 transition hover:text-white/90"
-              style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", backdropFilter: "blur(8px)" }}
-              onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.background = "rgba(255,255,255,0.1)"; }}
-              onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.background = "rgba(255,255,255,0.05)"; }}
+                {getText(competition.title_ko, competition.title_en, competition.title_ja, competition.title)}
+              </h1>
+
+              {concept && (
+                <p className="max-w-[480px] text-[14px] leading-relaxed text-white/55 md:text-[15px]">
+                  {concept.split("\n")[0]}
+                </p>
+              )}
+
+              {/* Meta info blocks */}
+              <div className="mt-1 flex flex-wrap items-start gap-x-6 gap-y-3">
+                <div className="flex flex-col">
+                  <span className="text-[10px] font-bold uppercase tracking-[0.18em] text-white/40">
+                    {t("competition.period", "접수 기간")}
+                  </span>
+                  <span className="mt-0.5 text-[14px] font-bold tabular-nums text-white">
+                    {deadlineLabel}
+                  </span>
+                </div>
+
+                <div className="flex flex-col">
+                  <span className="text-[10px] font-bold uppercase tracking-[0.18em] text-white/40">
+                    {t("competition.totalPrize", "총 상금")}
+                  </span>
+                  <span className="mt-0.5 text-[14px] font-bold text-amber-300">
+                    {prizeDisplay}
+                  </span>
+                </div>
+
+                {competition.vote_end && (
+                  <div className="flex flex-col">
+                    <span className="text-[10px] font-bold uppercase tracking-[0.18em] text-white/40">
+                      {t("competition.resultAnnouncement", "결과 발표")}
+                    </span>
+                    <span className="mt-0.5 text-[14px] font-bold tabular-nums text-white">
+                      {voteEndLabel}
+                    </span>
+                  </div>
+                )}
+
+                {d > 0 && isOpen && (
+                  <div className="flex flex-col">
+                    <span className="text-[10px] font-bold uppercase tracking-[0.18em] text-white/40">
+                      {t("competition.daysLeft", "남은 기간")}
+                    </span>
+                    <span className="mt-0.5 inline-flex items-center gap-1.5 text-[14px] font-bold text-[#AFA9EC]">
+                      <span className="h-1.5 w-1.5 rounded-full bg-[#7F77DD] animate-pulse" />
+                      D-{d}
+                    </span>
+                  </div>
+                )}
+              </div>
+
+              {/* CTA Buttons */}
+              <div className="mt-1 flex items-center gap-3">
+                <button
+                  type="button"
+                  onClick={() => {
+                    const el = document.querySelector("[data-tab-content]");
+                    if (el) el.scrollIntoView({ behavior: "smooth" });
+                    setActiveTab("overview");
+                  }}
+                  className="inline-flex items-center gap-2 rounded-lg border border-white/[0.15] bg-white/[0.05] px-6 py-2.5 text-[14px] font-semibold text-white/85 backdrop-blur-md transition hover:bg-white/[0.1] hover:text-white"
+                >
+                  {t("competition.detail.viewDetailsCta")}
+                </button>
+                {isOpen && (
+                  <button
+                    type="button"
+                    onClick={() => openUploadModal({ competitionId: competition.id })}
+                    className="inline-flex items-center gap-2 rounded-lg px-6 py-2.5 text-[14px] font-bold text-white transition-all duration-200 shadow-[0_8px_24px_rgba(83,74,183,0.4)]"
+                    style={{ background: "#534AB7" }}
+                    onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.background = "#6b5fd4"; }}
+                    onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.background = "#534AB7"; }}
+                  >
+                    {t("competition.detail.submitNowCta")}
+                  </button>
+                )}
+              </div>
+            </div>
+
+            {/* Right — Prize Card */}
+            <div
+              className="hidden w-[280px] shrink-0 rounded-2xl p-6 md:block"
+              style={{
+                background: "linear-gradient(135deg, rgba(245,158,11,0.1) 0%, rgba(245,158,11,0.05) 100%)",
+                border: "1px solid rgba(245,158,11,0.3)",
+                backdropFilter: "blur(16px)",
+                boxShadow: "0 0 32px rgba(245,158,11,0.1)",
+              }}
             >
-              {t("competition.detail.viewEntriesCta")}
-            </button>
+              <div className="mb-4 flex items-center gap-2">
+                <Trophy size={16} className="text-amber-400" />
+                <span className="text-[11px] font-bold uppercase tracking-[0.2em] text-amber-300">
+                  {t("competition.detail.grandPrizeLabel")}
+                </span>
+              </div>
+              <p
+                className="text-3xl font-black leading-none tabular-nums"
+                style={{
+                  background: "linear-gradient(135deg, #fde68a 0%, #fbbf24 100%)",
+                  WebkitBackgroundClip: "text",
+                  WebkitTextFillColor: "transparent",
+                  backgroundClip: "text",
+                }}
+              >
+                {competition.prize_grand ?? prizeDisplay}
+              </p>
+              {competition.prize_grand && (
+                <p className="mt-3 text-[12px] text-amber-200/50">
+                  {t("competition.detail.prizeTotalWord")}: {prizeDisplay}
+                </p>
+              )}
+              {competition.prize_excellence && (
+                <div className="mt-4 border-t border-amber-400/15 pt-4 space-y-2">
+                  {[
+                    { label: t("competition.detail.prizeEyebrowExcellence"), value: competition.prize_excellence },
+                    competition.prize_merit ? { label: t("competition.detail.prizeEyebrowMerit"), value: competition.prize_merit } : null,
+                    competition.prize_audience ? { label: t("competition.detail.prizeEyebrowAudience"), value: competition.prize_audience } : null,
+                  ].filter(Boolean).map((item) => (
+                    <div key={item!.label} className="flex items-center justify-between">
+                      <span className="text-[11px] text-amber-200/40">{item!.label}</span>
+                      <span className="text-[13px] font-bold tabular-nums text-amber-200/70">{item!.value}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </div>
 
       {/* ── Tabs ─────────────────────────────────── */}
-      <div className="sticky top-0 z-40 border-b border-white/[0.07]" style={{ background: "rgba(8,6,24,0.96)", backdropFilter: "blur(16px)" }}>
+      <div data-tab-content className="sticky top-0 z-40 border-b border-white/[0.07]" style={{ background: "rgba(10,10,10,0.96)", backdropFilter: "blur(16px)" }}>
         <div className="mx-auto max-w-[1400px] px-8">
           <div className="flex">
             {[
@@ -357,7 +506,7 @@ export function CompetitionDetailClient({ competition, videos, featuredVideos }:
                     />
                     <div className="absolute inset-0" style={{ background: "linear-gradient(to right, rgba(8,6,20,1) 0%, rgba(8,6,20,0.6) 35%, rgba(8,6,20,0.1) 75%, rgba(8,6,20,0) 100%)" }} />
                     <div className="absolute inset-0" style={{ background: "linear-gradient(to bottom, rgba(8,6,20,0.5) 0%, transparent 25%, transparent 75%, rgba(8,6,20,0.5) 100%)" }} />
-                    <div className="absolute inset-0" style={{ background: "linear-gradient(to left, transparent 0%, rgba(8,6,24,0.3) 45%, rgba(8,6,24,0.7) 100%)" }} />
+                    <div className="absolute inset-0" style={{ background: "linear-gradient(to left, transparent 0%, rgba(10,10,10,0.3) 45%, rgba(10,10,10,0.7) 100%)" }} />
                   </div>
 
                   {/* 우측 배경 글로우 orb */}
@@ -448,7 +597,7 @@ export function CompetitionDetailClient({ competition, videos, featuredVideos }:
               </div>
 
               {/* 오른쪽 — 참가 규칙 */}
-              <div className="relative h-full overflow-hidden rounded-2xl border border-white/10 bg-[#080618]/40 p-5 backdrop-blur-xl" style={{ boxShadow: "0 0 30px rgba(83,74,183,0.08), inset 0 1px 0 rgba(255,255,255,0.05)" }}>
+              <div className="relative h-full overflow-hidden rounded-2xl border border-white/10 bg-[#0a0a0a]/40 p-5 backdrop-blur-xl" style={{ boxShadow: "0 0 30px rgba(83,74,183,0.08), inset 0 1px 0 rgba(255,255,255,0.05)" }}>
                 <div className="pointer-events-none absolute top-0 left-0 right-0 h-px" style={{ background: "linear-gradient(to right, transparent, rgba(127,119,221,0.5) 30%, rgba(175,169,236,0.3) 60%, transparent)" }} />
                 <div className="pointer-events-none absolute right-0 bottom-0 w-40 h-40 rounded-full" style={{ background: "radial-gradient(circle, rgba(83,74,183,0.1) 0%, transparent 70%)", filter: "blur(40px)" }} />
                 <h2 className="mb-4 text-[16px] font-bold text-white">{t("competition.detail.rulesSidebarTitle")}</h2>
@@ -539,7 +688,7 @@ export function CompetitionDetailClient({ competition, videos, featuredVideos }:
                   <span className="h-[2px] w-8 rounded-full bg-gradient-to-r from-[#7F77DD] to-transparent" />
                 </div>
                 <div className="flex items-center gap-3 rounded-xl border border-white/10 bg-white/[0.04] px-4 py-2 backdrop-blur-md">
-                  <span className="text-[10px] font-black uppercase tracking-wider text-white/40">{t("competition.detail.prizeTotalWord")}</span>
+                  <span className="text-[10px] font-black uppercase tracking-wider text-white/35">{t("competition.detail.prizeTotalWord")}</span>
                   <span className="h-3 w-px bg-white/15" />
                   <span
                     className="text-[20px] font-black tabular-nums leading-none"
@@ -683,7 +832,7 @@ export function CompetitionDetailClient({ competition, videos, featuredVideos }:
                           }}
                           strokeWidth={tier.isHero ? 2 : 1.75}
                         />
-                        <span className="absolute right-3 top-3 text-xs font-mono text-white/40">
+                        <span className="absolute right-3 top-3 text-xs font-mono text-white/35">
                           #{Number(tier.rank)}
                         </span>
                       </div>
@@ -746,7 +895,7 @@ export function CompetitionDetailClient({ competition, videos, featuredVideos }:
                 </div>
                 {d > 0 && isOpen && (
                   <div className="text-right">
-                    <p className="text-[10px] font-medium uppercase tracking-[0.2em] text-white/40">{t("competition.detail.untilDeadline")}</p>
+                    <p className="text-[10px] font-medium uppercase tracking-[0.2em] text-white/35">{t("competition.detail.untilDeadline")}</p>
                     <p className="text-2xl font-bold leading-none tabular-nums text-[#7F77DD]">
                       D-{d}
                     </p>
@@ -838,13 +987,13 @@ export function CompetitionDetailClient({ competition, videos, featuredVideos }:
                               style={
                                 isNow
                                   ? {
-                                      background: "rgba(8,6,24,0.4)",
+                                      background: "rgba(10,10,10,0.4)",
                                       border: "1px solid rgba(127,119,221,0.4)",
                                       backdropFilter: "blur(12px)",
                                       boxShadow: "0 0 24px rgba(127,119,221,0.15)",
                                     }
                                   : {
-                                      background: "rgba(8,6,24,0.4)",
+                                      background: "rgba(10,10,10,0.4)",
                                       border: "1px solid rgba(255,255,255,0.1)",
                                       backdropFilter: "blur(12px)",
                                     }
@@ -915,7 +1064,7 @@ export function CompetitionDetailClient({ competition, videos, featuredVideos }:
           <div className="grid grid-cols-1 gap-6 lg:grid-cols-[1fr_320px]">
             <div className="space-y-6">
               <div
-                className="relative overflow-hidden rounded-2xl border border-white/10 bg-[#080618]/40 p-8 backdrop-blur-xl"
+                className="relative overflow-hidden rounded-2xl border border-white/10 bg-[#0a0a0a]/40 p-8 backdrop-blur-xl"
                 style={{ boxShadow: "0 0 30px rgba(83,74,183,0.08), inset 0 1px 0 rgba(255,255,255,0.05)" }}
               >
                 <div className="pointer-events-none absolute top-0 left-0 right-0 h-px" style={{ background: "linear-gradient(to right, transparent, rgba(127,119,221,0.45) 30%, rgba(175,169,236,0.25) 60%, transparent)" }} />
@@ -948,15 +1097,15 @@ export function CompetitionDetailClient({ competition, videos, featuredVideos }:
                       desc: t("competition.detail.judgingFinalDesc").replace("{date}", voteEndLabel),
                     },
                   ].map((item) => (
-                    <div key={item.step} className="space-y-2 rounded-xl border border-white/10 bg-[#080618]/40 p-5 backdrop-blur-xl">
+                    <div key={item.step} className="space-y-2 rounded-xl border border-white/10 bg-[#0a0a0a]/40 p-5 backdrop-blur-xl">
                       <p className="text-[10px] uppercase tracking-[0.2em] text-[#7F77DD]">{item.step}</p>
                       <p className="text-base font-bold text-white">{item.title}</p>
-                      <p className="text-sm leading-relaxed text-white/60">{item.desc}</p>
+                      <p className="text-sm leading-relaxed text-white/55">{item.desc}</p>
                     </div>
                   ))}
                 </div>
 
-                <div className="mt-6 rounded-xl border border-white/10 bg-[#080618]/40 p-5 backdrop-blur-xl">
+                <div className="mt-6 rounded-xl border border-white/10 bg-[#0a0a0a]/40 p-5 backdrop-blur-xl">
                   <p className="mb-3 text-[10px] uppercase tracking-[0.2em] text-[#7F77DD]">EVALUATION WEIGHTS</p>
                   <div className="space-y-3">
                     {[
@@ -984,7 +1133,7 @@ export function CompetitionDetailClient({ competition, videos, featuredVideos }:
                   </div>
                 </div>
 
-                <div className="mt-6 rounded-xl border border-white/10 bg-[#080618]/40 p-5 backdrop-blur-xl">
+                <div className="mt-6 rounded-xl border border-white/10 bg-[#0a0a0a]/40 p-5 backdrop-blur-xl">
                   <p className="mb-3 text-[10px] uppercase tracking-[0.2em] text-[#7F77DD]">{t("competition.detail.judgingScheduleBlockTitle")}</p>
                   <div className="space-y-2 text-sm text-white/70">
                     <p>{t("competition.detail.judgingScheduleLine1").replace("{date}", deadlineLabel)}</p>
@@ -997,12 +1146,12 @@ export function CompetitionDetailClient({ competition, videos, featuredVideos }:
 
             <div className="space-y-4">
               <div
-                className="relative overflow-hidden rounded-xl border border-white/10 bg-[#080618]/40 p-5 backdrop-blur-xl lg:sticky lg:top-24"
+                className="relative overflow-hidden rounded-xl border border-white/10 bg-[#0a0a0a]/40 p-5 backdrop-blur-xl lg:sticky lg:top-24"
                 style={{ boxShadow: "0 0 24px rgba(83,74,183,0.08), inset 0 1px 0 rgba(255,255,255,0.05)" }}
               >
                 <h2 className="mb-4 text-[18px] font-bold text-white">{t("competition.detail.sidebarPrizeHeading")}</h2>
                 <div className="mb-4 rounded-lg border border-white/10 bg-white/[0.04] px-3 py-2">
-                  <p className="text-[10px] uppercase tracking-[0.2em] text-white/40">TOTAL</p>
+                  <p className="text-[10px] uppercase tracking-[0.2em] text-white/35">TOTAL</p>
                   <p className="text-2xl font-bold text-[#F5D182]">{prizeDisplay}</p>
                 </div>
 
@@ -1040,7 +1189,7 @@ export function CompetitionDetailClient({ competition, videos, featuredVideos }:
             {(competition.announcement_ko || competition.announcement_en || competition.announcement_ja || competition.announcement) && (
               <div className="rounded-2xl p-6" style={{ background: "linear-gradient(135deg, rgba(83,74,183,0.15) 0%, rgba(40,35,100,0.1) 100%)", border: "1px solid rgba(127,119,221,0.2)" }}>
                 <h2 className="mb-3 text-[18px] font-bold text-white">{t("competition.detail.announcementsTitle")}</h2>
-                <p className="text-[13px] leading-relaxed text-white/60 whitespace-pre-wrap">
+                <p className="text-[13px] leading-relaxed text-white/55 whitespace-pre-wrap">
                   {getText(competition.announcement_ko, competition.announcement_en, competition.announcement_ja, competition.announcement ?? "")}
                 </p>
               </div>
@@ -1062,14 +1211,14 @@ export function CompetitionDetailClient({ competition, videos, featuredVideos }:
                 ].map((item, i) => (
                   <div
                     key={i}
-                    className="space-y-3 rounded-xl border border-white/[0.08] bg-[#080618]/40 p-5 backdrop-blur-xl transition-colors duration-200 hover:border-white/15"
+                    className="space-y-3 rounded-xl border border-white/[0.08] bg-[#0a0a0a]/40 p-5 backdrop-blur-xl transition-colors duration-200 hover:border-white/15"
                   >
                     <div className="flex items-start gap-2.5">
                       <span className="mt-0.5 shrink-0 font-mono text-sm font-bold text-[#7F77DD]">Q.</span>
                       <p className="text-base font-semibold leading-[1.5] text-white">{item.q}</p>
                     </div>
                     <div className="flex items-start gap-2.5 pl-[2px]">
-                      <span className="mt-0.5 shrink-0 font-mono text-xs text-white/40">A.</span>
+                      <span className="mt-0.5 shrink-0 font-mono text-xs text-white/35">A.</span>
                       <p className="text-sm leading-[1.6] text-white/65">{item.a}</p>
                     </div>
                   </div>
@@ -1077,9 +1226,9 @@ export function CompetitionDetailClient({ competition, videos, featuredVideos }:
               </div>
             </div>
 
-            <div className="rounded-xl border border-white/10 bg-[#080618]/40 p-5 text-center backdrop-blur-xl">
-              <p className="mb-1.5 text-sm font-semibold text-white/60">{t("competition.detail.faqContactLead")}</p>
-              <p className="mb-4 text-xs text-white/40">{t("competition.detail.faqContactHint")}</p>
+            <div className="rounded-xl border border-white/10 bg-[#0a0a0a]/40 p-5 text-center backdrop-blur-xl">
+              <p className="mb-1.5 text-sm font-semibold text-white/55">{t("competition.detail.faqContactLead")}</p>
+              <p className="mb-4 text-xs text-white/35">{t("competition.detail.faqContactHint")}</p>
               <a
                 href="mailto:contact@genova.tv"
                 className="inline-flex items-center gap-2 rounded-lg border border-white/10 bg-white/5 px-5 py-2 text-[13px] font-medium text-white/90 backdrop-blur-md transition-colors hover:bg-white/10"
@@ -1168,8 +1317,8 @@ export function CompetitionDetailClient({ competition, videos, featuredVideos }:
                         className={cn(
                           "h-8 cursor-pointer rounded-full px-4 text-xs font-medium tracking-wide transition-all duration-200",
                           sortBy === s.key
-                            ? "bg-white text-[#080618]"
-                            : "border border-white/[0.08] bg-white/[0.04] text-white/60 hover:border-white/[0.15] hover:bg-white/[0.08] hover:text-white/80",
+                            ? "bg-white text-[#0a0a0a]"
+                            : "border border-white/[0.08] bg-white/[0.04] text-white/55 hover:border-white/[0.15] hover:bg-white/[0.08] hover:text-white/80",
                         )}
                       >
                         {s.label}
@@ -1182,7 +1331,7 @@ export function CompetitionDetailClient({ competition, videos, featuredVideos }:
                       onClick={() => setViewMode("grid")}
                       className={cn(
                         "flex h-8 w-8 items-center justify-center transition-colors",
-                        viewMode === "grid" ? "bg-white/10 text-white" : "text-white/40 hover:text-white/70",
+                        viewMode === "grid" ? "bg-white/10 text-white" : "text-white/35 hover:text-white/70",
                       )}
                     >
                       <Grid size={14} />
@@ -1192,7 +1341,7 @@ export function CompetitionDetailClient({ competition, videos, featuredVideos }:
                       onClick={() => setViewMode("list")}
                       className={cn(
                         "flex h-8 w-8 items-center justify-center transition-colors",
-                        viewMode === "list" ? "bg-white/10 text-white" : "text-white/40 hover:text-white/70",
+                        viewMode === "list" ? "bg-white/10 text-white" : "text-white/35 hover:text-white/70",
                       )}
                     >
                       <List size={14} />
@@ -1209,10 +1358,10 @@ export function CompetitionDetailClient({ competition, videos, featuredVideos }:
                   <h3 className="text-lg font-semibold text-white/50">{t("competition.detail.entriesEmptyTitle")}</h3>
                   <p className="mt-2 text-sm text-white/30">{t("competition.detail.entriesEmptyHint")}</p>
                   {isOpen && (
-                    <Link href="/upload" className="mt-6 flex items-center gap-2 rounded-xl px-6 py-2.5 text-sm font-bold text-white transition hover:scale-[1.02]" style={{ background: "linear-gradient(135deg, #534AB7 0%, #7B6FE4 100%)" }}>
+                    <button type="button" onClick={() => openUploadModal({ competitionId: competition.id })} className="mt-6 flex items-center gap-2 rounded-xl px-6 py-2.5 text-sm font-bold text-white transition hover:scale-[1.02]" style={{ background: "linear-gradient(135deg, #534AB7 0%, #7B6FE4 100%)" }}>
                       <Upload size={14} />
                       {t("competition.detail.entriesEmptyCta")}
-                    </Link>
+                    </button>
                   )}
                 </div>
               ) : viewMode === "grid" ? (
