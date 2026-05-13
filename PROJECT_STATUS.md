@@ -309,13 +309,24 @@ inline `style={{...}}` 사용:  535건 / 55개 파일
 - [x] **2.4** — `tailwind.config.ts` 제거 (dead config, Tailwind v4 CSS-first 정착) — `68c1640`
 - [x] CLAUDE.md 컬러 팔레트 가이드 갱신 (4-tier 버튼 / 예외 컬러 / 사용 금지 명시) — `4b96058`
 
-#### Phase 3 (다음)
+#### Phase 3 (완료 ✅)
 
-- [ ] **홈** 페이지 인라인 style 535건 → 토큰 마이그레이션 (reference 구현)
-- [ ] 이후 `films`, `competition`, `watch`, `profile` 페이지 순차 마이그레이션
-- [ ] legacy shadcn 토큰 (`--primary` = `#9d7dff` 등) 신토큰 매핑 또는 제거
-- [ ] `sidebar-tint` 통일 검토 (gradient vs flat)
-- [ ] `hero-section.tsx` dead code 삭제 (Phase 2.3 메모)
+- [x] **3.1** — 홈 마이그레이션용 신토큰 6개 추가 (`--sidebar-width`, `--gradient-dropdown`, `--shadow-dropdown`, `--gradient-card-overlay`, `--border-white-06/10`) — `ac34b65`
+- [x] **3.2** — 합성 클래스 신설 (`.typo-hero-title`, `.typo-section-title`) — `aab7826`
+- [x] **3.3** — `home-page-client.tsx` 인라인 style 33 → 25 (8개 완전 제거, 11개 토큰화, `.btn-primary` / `.btn-tertiary` 채택) — `c7a1cff`
+- [x] `hero-section.tsx` dead code 삭제 — `00f7a37`
+
+#### Phase 4 (다음)
+
+- [ ] **4.1** — 홈 잔여 인라인 25개 추가 마이그레이션 (선택 작업 — ROI 낮음. 동적/일회성 위주)
+- [ ] **4.2** — 다음 reference 컴포넌트 마이그레이션 순차 진행
+  - `films-page-client.tsx` (홈과 패턴 유사 — 우선)
+  - `competition-detail-client.tsx` (~59건 추정, 큰 작업)
+  - `watch-detail-client.tsx`
+  - `profile-page-client.tsx` (소량)
+- [ ] **4.3** — 사이드바 통일 검토 (gradient `--gradient-sidebar` vs flat `--bg-base`) — Phase 2.1 결정 보류 항목
+- [ ] **4.4** — legacy shadcn 토큰 (`--primary` `#9d7dff` 등) 신토큰 매핑 또는 제거 — `.eyebrow` 54 사용처, shadcn 컴포넌트 다수 영향. 신중 검토 필요
+- [ ] **4.5** — Q2 보류 토큰 4개 재검토 (`--tint-purple-12`, `--tint-accent-15`, `--gradient-hero-top-fade`, `--gradient-hero-bottom-fade`) — 추가 사용처 발견 시 토큰화
 
 ### Phase B — 문서/코드 동기화
 
