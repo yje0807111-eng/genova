@@ -25,6 +25,7 @@ const en: Messages = {
   "nav.competition": "Competition",
   "nav.creators": "Creators",
   "nav.upload": "Upload",
+  "nav.admin": "Admin",
   "nav.profile": "Profile",
   "nav.business": "Host a competition",
   "nav.home": "Home",

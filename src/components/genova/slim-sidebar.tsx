@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import type { LucideIcon } from "lucide-react";
-import { Bell, Globe, Home, MessageCircle, Trophy, Upload, User, X } from "lucide-react";
+import { Bell, Globe, Home, MessageCircle, Shield, Trophy, Upload, User, X } from "lucide-react";
 import { markAllNotificationsReadAction } from "@/app/actions/notifications";
 import { useI18n } from "@/components/genova/language-provider";
 import { getBrowserSupabaseClient } from "@/lib/supabase/browser";
@@ -58,6 +58,7 @@ export function SlimSidebar({ onOpenChat, unreadMessageCount = 0 }: SlimSidebarP
   const { open: openUploadModal } = useUploadModal();
 
   const [userId, setUserId] = useState<string | null | undefined>(undefined);
+  const [isAdmin, setIsAdmin] = useState(false);
   const [notifUnread, setNotifUnread] = useState(0);
   const [showNotifications, setShowNotifications] = useState(false);
   const [showLang, setShowLang] = useState(false);
@@ -116,11 +117,26 @@ export function SlimSidebar({ onOpenChat, unreadMessageCount = 0 }: SlimSidebarP
       return;
     }
 
+    const syncAdmin = async (email: string | null | undefined) => {
+      if (!email) {
+        setIsAdmin(false);
+        return;
+      }
+      try {
+        const res = await fetch("/api/check-admin");
+        const data = await res.json();
+        setIsAdmin(data.isAdmin === true);
+      } catch {
+        setIsAdmin(false);
+      }
+    };
+
     const syncUser = async () => {
       const {
         data: { user },
       } = await supabase.auth.getUser();
       setUserId(user?.id ?? null);
+      void syncAdmin(user?.email);
 
       if (user) {
         try {
@@ -159,6 +175,7 @@ export function SlimSidebar({ onOpenChat, unreadMessageCount = 0 }: SlimSidebarP
     } = supabase.auth.onAuthStateChange((_event, session) => {
       const u = session?.user ?? null;
       setUserId(u?.id ?? null);
+      void syncAdmin(u?.email);
     });
 
     return () => subscription.unsubscribe();
@@ -395,6 +412,45 @@ export function SlimSidebar({ onOpenChat, unreadMessageCount = 0 }: SlimSidebarP
               {t("nav.profile", "Profile")}
             </span>
           </Link>
+
+          {isAdmin && (
+            <Link
+              href="/admin"
+              className={cn(
+                "group relative flex h-12 w-12 flex-col items-center justify-center gap-0.5 overflow-visible rounded-xl transition-colors",
+                pathname === "/admin" || pathname.startsWith("/admin/")
+                  ? "bg-gradient-to-br from-[#7F77DD]/20 to-[#534AB7]/10 text-[#C7C2F0] shadow-[0_0_20px_rgba(127,119,221,0.28),inset_0_0_20px_var(--tint-purple-12)] ring-1 ring-inset ring-[#7F77DD]/25"
+                  : "text-white/35 hover:bg-white/[0.04] hover:text-white/80",
+              )}
+              aria-label={t("nav.admin", "Admin")}
+            >
+              {(pathname === "/admin" || pathname.startsWith("/admin/")) && (
+                <div
+                  className="pointer-events-none absolute -left-3 top-1/2 z-0 h-12 w-8 -translate-y-1/2 rounded-full opacity-80"
+                  style={{
+                    background: "radial-gradient(circle, rgba(127,119,221,0.55) 0%, transparent 70%)",
+                    filter: "blur(14px)",
+                  }}
+                  aria-hidden
+                />
+              )}
+              <Shield
+                className={cn(
+                  "relative z-[1] h-5 w-5 shrink-0",
+                  pathname === "/admin" || pathname.startsWith("/admin/") ? "text-[#C7C2F0]" : "",
+                )}
+                aria-hidden
+              />
+              <span
+                className={cn(
+                  "relative z-[1] max-w-[64px] whitespace-nowrap text-center text-[9px] font-semibold uppercase tracking-wider",
+                  pathname === "/admin" || pathname.startsWith("/admin/") ? "text-[#C7C2F0]" : "",
+                )}
+              >
+                {t("nav.admin", "Admin")}
+              </span>
+            </Link>
+          )}
 
           <button
             ref={langBtnRef}

@@ -9,6 +9,7 @@ export const jaOverrides: Record<string, string> = {
   "nav.competition": "コンペ",
   "nav.creators": "クリエイター",
   "nav.upload": "アップロード",
+  "nav.admin": "管理",
   "nav.profile": "プロフィール",
   "nav.business": "コンペを開催",
 

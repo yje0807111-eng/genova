@@ -9,6 +9,7 @@ export const koOverrides: Record<string, string> = {
   "nav.competition": "공모전",
   "nav.creators": "크리에이터",
   "nav.upload": "업로드",
+  "nav.admin": "관리자",
   "nav.profile": "프로필",
   "nav.business": "공모전 열기",
 
