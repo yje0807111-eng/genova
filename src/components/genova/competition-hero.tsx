@@ -111,10 +111,7 @@ export function CompetitionHero({ competition }: Props) {
       <div className="relative z-10 mx-auto flex max-w-[1600px] flex-col gap-6 px-4 pb-10 pt-20 sm:px-6 md:grid md:grid-cols-3 md:items-end md:gap-8 md:pb-12 md:pt-24 lg:px-10">
         <div className="flex flex-col md:col-span-2">
           <AnimateIn delay={0.05}>
-            <p
-              className="text-[11px] font-semibold uppercase tracking-[0.22em]"
-              style={{ color: "#AFA9EC" }}
-            >
+            <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-accent-light">
               {t("hero.featuredCompetition", "✦ Featured Competition")}
             </p>
           </AnimateIn>
@@ -124,7 +121,7 @@ export function CompetitionHero({ competition }: Props) {
               <span
                 className="mt-3 inline-flex w-fit rounded-full border px-3 py-1 text-[11px] font-bold uppercase tracking-[0.12em] text-white/90"
                 style={{
-                  borderColor: "rgba(127,119,221,0.35)",
+                  borderColor: "var(--border-emphasis)",
                   background: "rgba(10,10,10,0.5)",
                 }}
               >
@@ -218,10 +215,7 @@ export function CompetitionHero({ competition }: Props) {
                   </span>
                 ) : (
                   <>
-                    <span
-                      className="font-display text-[48px] font-black leading-none tabular-nums md:text-[56px]"
-                      style={{ color: "#AFA9EC" }}
-                    >
+                    <span className="font-display text-[48px] font-black leading-none tabular-nums md:text-[56px] text-accent-light">
                       {countdown.daysLeft}
                     </span>
                     <span className="pb-1 text-[12px] font-semibold uppercase tracking-[0.15em] text-white/55">

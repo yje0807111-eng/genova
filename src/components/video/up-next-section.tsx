@@ -60,13 +60,7 @@ function VideoCardStrip({ videos }: { videos: Video[] }) {
       <div
         ref={scrollRef}
         onScroll={onScroll}
-        style={{
-          overflowX: "auto",
-          overflowY: "visible",
-          paddingTop: "8px",
-          paddingBottom: "8px",
-        }}
-        className="hide-scrollbar flex gap-4"
+        className="hide-scrollbar flex gap-4 overflow-x-auto overflow-y-visible py-2"
       >
         {videos.map((item) => {
           const itemGenre = item.genre
@@ -85,7 +79,7 @@ function VideoCardStrip({ videos }: { videos: Video[] }) {
                 border: "1px solid rgba(127,119,221,0.15)",
               }}
             >
-              <div className="relative overflow-hidden" style={{ aspectRatio: "16/9" }}>
+              <div className="relative overflow-hidden aspect-video">
                 {item.thumbnailUrl ? (
                   <img
                     src={item.thumbnailUrl}
@@ -104,7 +98,7 @@ function VideoCardStrip({ videos }: { videos: Video[] }) {
                 />
                 <div className="absolute right-2 top-2 flex items-center justify-center opacity-0 transition-opacity duration-150 group-hover/card:opacity-100">
                   <img src="/genova-play1.png" alt="" className="h-[38px] w-[38px] object-contain opacity-40" />
-                  <svg className="absolute h-[14px] w-[14px]" viewBox="0 0 24 24" fill="white" style={{ marginLeft: "1px" }}>
+                  <svg className="absolute h-[14px] w-[14px] ml-px" viewBox="0 0 24 24" fill="white">
                     <polygon points="6,3 20,12 6,21" />
                   </svg>
                 </div>

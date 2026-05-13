@@ -96,7 +96,7 @@ export function SeriesEpisodesSlider({
                 }`}
                 style={{ width: `${CARD_WIDTH}px` }}
               >
-                <div className="relative overflow-hidden bg-black/40" style={{ aspectRatio: "16/9" }}>
+                <div className="relative overflow-hidden bg-black/40 aspect-video">
                   <img
                     src={ep.thumbnailUrl || `https://picsum.photos/seed/${ep.id}/400/225`}
                     alt=""

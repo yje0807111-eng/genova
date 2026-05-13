@@ -74,8 +74,7 @@ export function VideoCard({
           <img
             src={video.thumbnailUrl}
             alt=""
-            className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
-            style={{ filter: "brightness(1.05)" }}
+            className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105 brightness-105"
           />
           <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-black/20" />
         </div>
