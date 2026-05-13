@@ -111,6 +111,12 @@ export function SlimSidebar({ onOpenChat, unreadMessageCount = 0 }: SlimSidebarP
   }, [showNotifications, showLang]);
 
   useEffect(() => {
+    // Cache hit on remount keeps the admin button stable across page transitions.
+    try {
+      const cached = sessionStorage.getItem("genova:isAdmin");
+      if (cached !== null) setIsAdmin(cached === "true");
+    } catch {}
+
     const supabase = getBrowserSupabaseClient();
     if (!supabase) {
       setUserId(null);
@@ -120,12 +126,15 @@ export function SlimSidebar({ onOpenChat, unreadMessageCount = 0 }: SlimSidebarP
     const syncAdmin = async (email: string | null | undefined) => {
       if (!email) {
         setIsAdmin(false);
+        try { sessionStorage.removeItem("genova:isAdmin"); } catch {}
         return;
       }
       try {
         const res = await fetch("/api/check-admin");
         const data = await res.json();
-        setIsAdmin(data.isAdmin === true);
+        const v = data.isAdmin === true;
+        setIsAdmin(v);
+        try { sessionStorage.setItem("genova:isAdmin", String(v)); } catch {}
       } catch {
         setIsAdmin(false);
       }
