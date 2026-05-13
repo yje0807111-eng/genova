@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import { AnimateIn } from "@/components/animate-in";
 import { GenovaProfileClient } from "@/components/profile/profile-page-client";
 import { mapVideo } from "@/lib/mappers";
+import { profileHandle } from "@/lib/profile-handle";
 import { attachEngagementToVideos } from "@/lib/queries/engagement-queries";
 import {
   fetchFinalistVideosByUploader,
@@ -20,16 +21,6 @@ export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
-
-function profileHandle(displayName: string, id: string): string {
-  const slug = displayName
-    .trim()
-    .toLowerCase()
-    .replace(/\s+/g, "")
-    .replace(/[^a-z0-9_]/g, "");
-  if (slug.length >= 2) return slug.slice(0, 32);
-  return `user_${id.replace(/-/g, "").slice(0, 8)}`;
-}
 
 function formatJoinedLabel(iso: string | null | undefined): string | null {
   if (!iso) return null;
@@ -116,8 +107,12 @@ export default async function ProfileByIdPage({ params }: { params: Promise<{ id
 
   const displayName = profile.displayName?.trim() || `user_${id.slice(0, 8)}`;
   const handle = profileHandle(displayName, id);
-  const avatarUrl = profile.avatarUrl?.trim() || "/placeholder-user.jpg";
+  const avatarUrl = profile.avatarUrl?.trim() || "/default-avatar.png";
   const showFollow = Boolean(currentUser) && !isOwner;
+
+  const userEmail = isOwner ? (currentUser?.email ?? null) : null;
+  const authProvider = isOwner ? (currentUser?.app_metadata?.provider ?? "email") : "email";
+  const hasPassword = authProvider === "email";
   const headerIntro = profile.bio.trim();
   const headerToolsLine = profile.tools.length ? profile.tools.join(" · ") : "";
   const joinedLabel = formatJoinedLabel(profile.joinedAt);
@@ -162,6 +157,10 @@ export default async function ProfileByIdPage({ params }: { params: Promise<{ id
           followingUsers={followingUsers}
           activityVideos={activityVideos}
           awardBadges={awardBadges}
+          profile={profile}
+          userEmail={userEmail}
+          hasPassword={hasPassword}
+          authProvider={authProvider}
         />
       </AnimateIn>
     </div>

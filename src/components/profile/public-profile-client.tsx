@@ -56,7 +56,7 @@ const SORTS: { key: ProfileSortKey; label: string }[] = [
 function profileMainTabClass(active: boolean): string {
   return [
     "rounded-lg px-4 py-2.5 text-sm font-semibold transition",
-    "focus:outline-none focus-visible:ring-2 focus-visible:ring-[#7F77DD]/55 focus-visible:ring-offset-2 focus-visible:ring-offset-[#080618]",
+    "focus:outline-none focus-visible:ring-2 focus-visible:ring-[#7F77DD]/55 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0a0a0a]",
     active
       ? "bg-[#534AB7]/55 text-[#F8F7FF] shadow-[inset_0_1px_0_rgba(255,255,255,0.1)] ring-1 ring-[#7F77DD]/50"
       : "text-[#AFA9EC] hover:bg-white/[0.08] hover:text-[#EEEDFE]",
@@ -400,7 +400,7 @@ export function ProfilePageClient({
     <div className="space-y-10">
       <AnimateIn delay={0.05}>
       <section className="rounded-2xl border border-white/10 bg-[#1A1535] p-6 sm:p-8" aria-labelledby="profile-display-name">
-        <div className="relative mb-6 h-44 overflow-hidden rounded-xl border border-white/10 bg-gradient-to-r from-[#1a1535] via-[#26215c] to-[#0f0d1e] sm:h-56">
+        <div className="relative mb-6 h-44 overflow-hidden rounded-xl border border-white/[0.06] bg-gradient-to-r from-[#111111] via-[#1a1a1a] to-[#0a0a0a] sm:h-56">
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_30%,rgba(127,119,221,0.35),transparent_55%)]" />
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_80%_70%,rgba(83,74,183,0.35),transparent_58%)]" />
         </div>
@@ -622,7 +622,7 @@ export function ProfilePageClient({
 
       <AnimateIn delay={0.15}>
         <div
-          className="inline-flex max-w-full flex-wrap gap-1 rounded-xl border border-white/12 bg-[linear-gradient(180deg,rgba(16,14,36,0.95)_0%,rgba(8,6,24,0.98)_100%)] p-1 shadow-[inset_0_1px_0_rgba(127,119,221,0.12)]"
+          className="inline-flex max-w-full flex-wrap gap-1 rounded-xl border border-white/12 bg-[linear-gradient(180deg,rgba(16,14,36,0.95)_0%,rgba(10,10,10,0.98)_100%)] p-1 shadow-[inset_0_1px_0_rgba(127,119,221,0.12)]"
           role="tablist"
           aria-label="Profile content"
         >
@@ -749,14 +749,14 @@ export function ProfilePageClient({
               {t("profile.creditsPoints")}
             </h2>
             <div className="grid gap-4 sm:grid-cols-2">
-              <div className="rounded-xl border border-white/10 bg-[linear-gradient(165deg,rgba(19,16,40,0.9)_0%,rgba(8,6,24,0.95)_100%)] p-5 shadow-[inset_0_1px_0_rgba(127,119,221,0.1)]">
+              <div className="rounded-xl border border-white/10 bg-[linear-gradient(165deg,rgba(19,16,40,0.9)_0%,rgba(10,10,10,0.95)_100%)] p-5 shadow-[inset_0_1px_0_rgba(127,119,221,0.1)]">
                 <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[#7F77DD]">{t("profile.credits")}</p>
                 <p className="mt-2 font-display text-3xl font-bold tabular-nums text-[#F8F7FF]">
                   {new Intl.NumberFormat("en-US").format(profile.credits)}
                 </p>
                 <p className="mt-1 text-xs text-[#AFA9EC]">{t("profile.creditsHint")}</p>
               </div>
-              <div className="rounded-xl border border-white/10 bg-[linear-gradient(165deg,rgba(19,16,40,0.9)_0%,rgba(8,6,24,0.95)_100%)] p-5 shadow-[inset_0_1px_0_rgba(127,119,221,0.1)]">
+              <div className="rounded-xl border border-white/10 bg-[linear-gradient(165deg,rgba(19,16,40,0.9)_0%,rgba(10,10,10,0.95)_100%)] p-5 shadow-[inset_0_1px_0_rgba(127,119,221,0.1)]">
                 <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[#7F77DD]">{t("profile.points", "Points")}</p>
                 <p className="mt-2 font-display text-3xl font-bold tabular-nums text-[#F8F7FF]">
                   {new Intl.NumberFormat("en-US").format(profile.points)}

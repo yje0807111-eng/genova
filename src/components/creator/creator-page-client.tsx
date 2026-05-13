@@ -346,7 +346,7 @@ export function CreatorPageClient({
                         "flex items-center gap-1 rounded-full border px-2 py-0.5 text-[10px] font-semibold transition",
                         activeAwardFilter === "all"
                           ? "border-primary bg-primary/20 text-primary"
-                          : "border-white/20 bg-white/5 text-white/60 hover:text-white hover:border-white/40",
+                          : "border-white/20 bg-white/5 text-white/55 hover:text-white hover:border-white/40",
                       )}
                     >
                       {t("common.all")}

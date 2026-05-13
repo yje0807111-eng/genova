@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useMemo } from "react";
 import type { TrophyRow } from "@/lib/queries/trophies-queries";
+import { useUploadModal } from "@/components/upload/upload-modal-context";
 import {
   competitionAwardAccent,
   formatWeekRange,
@@ -83,7 +84,7 @@ function TrophyCard({ t }: { t: TrophyRow }) {
       </div>
       <div
         role="tooltip"
-        className="pointer-events-none absolute bottom-[calc(100%+8px)] left-1/2 z-20 w-56 -translate-x-1/2 rounded-lg border border-white/15 bg-[#0f0d24]/95 px-3 py-2 text-[11px] leading-snug text-[#E8E4FF] opacity-0 shadow-xl ring-1 ring-[#534AB7]/30 transition duration-200 group-hover:opacity-100"
+        className="pointer-events-none absolute bottom-[calc(100%+8px)] left-1/2 z-20 w-56 -translate-x-1/2 rounded-lg border border-white/15 bg-[#1a1a1a]/95 px-3 py-2 text-[11px] leading-snug text-[#E8E4FF] opacity-0 shadow-xl ring-1 ring-[#534AB7]/30 transition duration-200 group-hover:opacity-100"
       >
         {lines.map((line, i) => (
           <p key={`${t.id}-${i}`} className={i === 0 ? "font-semibold text-[#F8F7FF]" : "text-[#AFA9EC]"}>
@@ -119,6 +120,7 @@ function sortWeeklyTrophies(list: TrophyRow[]): TrophyRow[] {
 }
 
 export function ProfileTrophiesSection({ trophies }: { trophies: TrophyRow[] }) {
+  const { open: openUploadModal } = useUploadModal();
   const { competition, weekly } = useMemo(() => {
     const competitionRaw = trophies.filter((t) => t.type === "competition");
     const weeklyRaw = trophies.filter((t) => t.type === "weekly_genre");
@@ -177,12 +179,13 @@ export function ProfileTrophiesSection({ trophies }: { trophies: TrophyRow[] }) 
           <div className="rounded-xl border border-dashed border-white/15 bg-[#1A1535]/50 px-6 py-8 text-center">
             <p className="text-sm text-[#F8F7FF]">No weekly genre trophies yet.</p>
             <p className="mt-2 text-sm text-[#AFA9EC]">Publish public films and climb the weekly leaderboard by genre.</p>
-            <Link
-              href="/upload"
+            <button
+              type="button"
+              onClick={() => openUploadModal()}
               className="mt-4 inline-flex rounded-[6px] bg-[#534AB7] px-4 py-2 text-sm font-semibold text-[#EEEDFE] transition hover:bg-[#655cd0]"
             >
               Upload a film
-            </Link>
+            </button>
           </div>
         )}
       </div>

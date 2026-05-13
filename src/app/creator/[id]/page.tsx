@@ -61,7 +61,7 @@ export default async function CreatorPage({
         headerIntro={creator.bio ?? ""}
         headerToolsLine=""
         bioFull={creator.bio ?? ""}
-        avatarUrl={creator.avatarUrl ?? "/placeholder-user.jpg"}
+        avatarUrl={creator.avatarUrl ?? "/default-avatar.png"}
         bannerUrl={null}
         joinedLabel={null}
         followersCount={counts.followers}

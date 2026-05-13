@@ -1,114 +1,82 @@
 "use client";
 
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { ChevronDown, Globe, Instagram, LogOut, X as XIcon, Youtube } from "lucide-react";
 import { updateProfileAction } from "@/app/actions/profile";
 import { useI18n } from "@/components/genova/language-provider";
 import type { Profile } from "@/lib/queries/profile-queries";
+import { cn } from "@/lib/utils/cn";
 import { createBrowserSupabaseClient } from "@/lib/supabase/browser";
+import { ArrowLeft, ChevronDown, X } from "lucide-react";
 
-const TOOL_CATEGORIES = [
-  {
-    category: "Image",
-    tools: [
-      "Midjourney",
-      "Nano Banana Pro",
-      "Nano Banana 2",
-      "ChatGPT Image 2",
-      "Flux",
-      "Stable Diffusion",
-      "Ideogram",
-      "Leonardo",
-    ],
-  },
-  {
-    category: "Video",
-    tools: ["Sora 2", "Veo 3", "Runway Gen-4", "Kling 2.0", "Hailuo", "Luma Dream Machine", "Pika 2.0", "Higgsfield"],
-  },
-  {
-    category: "Music",
-    tools: ["Suno v5", "Udio", "Stable Audio", "Mubert"],
-  },
-  {
-    category: "Voice",
-    tools: ["ElevenLabs", "OpenAI Voice", "PlayHT"],
-  },
-  {
-    category: "Editing",
-    tools: ["CapCut", "DaVinci Resolve", "Adobe Premiere", "Topaz Video AI"],
-  },
-  {
-    category: "Platforms",
-    tools: ["ComfyUI", "Krea", "Freepik", "Magnific", "Higgsfield", "Hedra", "Viggle", "Domo AI", "Genmo", "Replicate", "Fal.ai"],
-  },
-];
+function determineMainPlatform(p: Profile): string {
+  if (p.websiteUrl) return "website";
+  if (p.twitterUrl) return "twitter";
+  if (p.instagramUrl) return "instagram";
+  if (p.youtubeUrl) return "youtube";
+  if (p.tiktokUrl) return "tiktok";
+  if (p.vimeoUrl) return "vimeo";
+  return "";
+}
 
-const CATEGORY_COLOR: Record<string, { from: string; to: string; glow: string }> = {
-  Image: { from: "#EC4899", to: "#F472B6", glow: "rgba(236,72,153,0.15)" },
-  Video: { from: "#06B6D4", to: "#22D3EE", glow: "rgba(6,182,212,0.15)" },
-  Music: { from: "#F59E0B", to: "#FBBF24", glow: "rgba(245,158,11,0.15)" },
-  Voice: { from: "#10B981", to: "#34D399", glow: "rgba(16,185,129,0.15)" },
-  Editing: { from: "#8B5CF6", to: "#A78BFA", glow: "rgba(139,92,246,0.15)" },
-  Platforms: { from: "#6366F1", to: "#818CF8", glow: "rgba(99,102,241,0.15)" },
-};
+function getMainPlatformUrl(p: Profile): string {
+  switch (determineMainPlatform(p)) {
+    case "website": return p.websiteUrl ?? "";
+    case "twitter": return p.twitterUrl ?? "";
+    case "instagram": return p.instagramUrl ?? "";
+    case "youtube": return p.youtubeUrl ?? "";
+    case "tiktok": return p.tiktokUrl ?? "";
+    case "vimeo": return p.vimeoUrl ?? "";
+    default: return "";
+  }
+}
 
-export function ProfileSettingsClient({ profile }: { profile: Profile }) {
+export function ProfileSettingsClient({
+  profile,
+  userEmail,
+  hasPassword,
+  authProvider,
+  handle,
+  isModal,
+  onClose,
+}: {
+  profile: Profile;
+  userEmail: string | null;
+  hasPassword: boolean;
+  authProvider: string;
+  handle: string;
+  isModal?: boolean;
+  onClose?: () => void;
+}) {
   const router = useRouter();
-  const { locale, setLocale, t } = useI18n();
+  const { t } = useI18n();
   const [displayName, setDisplayName] = useState(profile.displayName ?? "");
   const [bio, setBio] = useState(profile.bio ?? "");
   const [avatarUrl, setAvatarUrl] = useState(profile.avatarUrl ?? "");
-  const [tools, setTools] = useState<string[]>(profile.tools ?? []);
-  const [toolInput, setToolInput] = useState("");
-  const [websiteUrl, setWebsiteUrl] = useState(profile.websiteUrl ?? "");
-  const [twitterUrl, setTwitterUrl] = useState(profile.twitterUrl ?? "");
-  const [instagramUrl, setInstagramUrl] = useState(profile.instagramUrl ?? "");
-  const [youtubeUrl, setYoutubeUrl] = useState(profile.youtubeUrl ?? "");
+  const [bannerUrl, setBannerUrl] = useState(profile.bannerUrl ?? "");
+  const [mainGenre, setMainGenre] = useState(profile.mainGenre ?? "");
+  const [country, setCountry] = useState(profile.country ?? "");
+  const [accountExpanded, setAccountExpanded] = useState(false);
+  const [mainPlatform, setMainPlatform] = useState(() => determineMainPlatform(profile));
+  const [mainPlatformUrl, setMainPlatformUrl] = useState(() => getMainPlatformUrl(profile));
+
   const [saving, setSaving] = useState(false);
-  const [uploadingAvatar, setUploadingAvatar] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [bannerUrl, setBannerUrl] = useState(profile.bannerUrl ?? "");
-  const [country, setCountry] = useState(profile.country ?? "");
-  const [mainGenre, setMainGenre] = useState(profile.mainGenre ?? "");
-  const [tagline, setTagline] = useState(profile.tagline ?? "");
-  const [pronouns, setPronouns] = useState(profile.pronouns ?? "");
-  const [availableForCollab, setAvailableForCollab] = useState(profile.availableForCollab ?? false);
-  const [pinnedVideoId, setPinnedVideoId] = useState(profile.pinnedVideoId ?? "");
-  const [tiktokUrl, setTiktokUrl] = useState(profile.tiktokUrl ?? "");
-  const [vimeoUrl, setVimeoUrl] = useState(profile.vimeoUrl ?? "");
-  const [notifyLikes, setNotifyLikes] = useState(profile.notifyLikes ?? true);
-  const [notifyComments, setNotifyComments] = useState(profile.notifyComments ?? true);
-  const [notifyFollows, setNotifyFollows] = useState(profile.notifyFollows ?? true);
+  const [uploadingAvatar, setUploadingAvatar] = useState(false);
   const [uploadingBanner, setUploadingBanner] = useState(false);
-  const [showLogoutModal, setShowLogoutModal] = useState(false);
-  const [activeTab, setActiveTab] = useState<"profile" | "creator" | "social" | "notifications">("profile");
-  const avatarPreview = avatarUrl.trim();
-  const avatarPreviewValid = (() => {
-    if (!avatarPreview) return false;
-    try {
-      new URL(avatarPreview);
-      return true;
-    } catch {
-      return false;
-    }
-  })();
+  const [resetSending, setResetSending] = useState(false);
+  const [resetSent, setResetSent] = useState(false);
 
-  const inputClass =
-    "w-full rounded-lg border border-white/[0.08] bg-white/[0.02] px-3 py-2.5 text-sm text-white placeholder:text-white/30 outline-none transition focus:border-[#7F77DD]/50 focus:bg-white/[0.04]";
-  const labelClass = "mb-1.5 block text-xs font-medium text-white/60";
-
-  const addTool = () => {
-    const next = toolInput.trim();
-    if (!next) return;
-    if (tools.includes(next)) {
-      setToolInput("");
-      return;
-    }
-    setTools((prev) => [...prev, next]);
-    setToolInput("");
+  const handlePasswordReset = async () => {
+    if (!userEmail) return;
+    setResetSending(true);
+    const supabase = createBrowserSupabaseClient();
+    const { error: resetError } = await supabase.auth.resetPasswordForEmail(userEmail, {
+      redirectTo: `${window.location.origin}/auth/reset-password`,
+    });
+    setResetSending(false);
+    if (!resetError) setResetSent(true);
   };
 
   const handleAvatarUpload = async (file: File) => {
@@ -166,543 +134,322 @@ export function ProfileSettingsClient({ profile }: { profile: Profile }) {
     setSaving(true);
     setMessage(null);
     setError(null);
+    const socialUrls = {
+      websiteUrl: mainPlatform === "website" ? (mainPlatformUrl.trim() || null) : null,
+      twitterUrl: mainPlatform === "twitter" ? (mainPlatformUrl.trim() || null) : null,
+      instagramUrl: mainPlatform === "instagram" ? (mainPlatformUrl.trim() || null) : null,
+      youtubeUrl: mainPlatform === "youtube" ? (mainPlatformUrl.trim() || null) : null,
+      tiktokUrl: mainPlatform === "tiktok" ? (mainPlatformUrl.trim() || null) : null,
+      vimeoUrl: mainPlatform === "vimeo" ? (mainPlatformUrl.trim() || null) : null,
+    };
+
     const res = await updateProfileAction({
       displayName: displayName.trim() || "User",
       bio,
-      tools,
       avatarUrl: avatarUrl.trim() ? avatarUrl.trim() : null,
       bannerUrl: bannerUrl.trim() ? bannerUrl.trim() : null,
-      country: country.trim() ? country.trim() : null,
       mainGenre: mainGenre.trim() ? mainGenre.trim() : null,
-      tagline: tagline.trim() ? tagline.trim() : null,
-      pronouns: pronouns.trim() ? pronouns.trim() : null,
-      availableForCollab,
-      pinnedVideoId: pinnedVideoId.trim() ? pinnedVideoId.trim() : null,
-      websiteUrl: websiteUrl.trim() ? websiteUrl.trim() : null,
-      twitterUrl: twitterUrl.trim() ? twitterUrl.trim() : null,
-      instagramUrl: instagramUrl.trim() ? instagramUrl.trim() : null,
-      youtubeUrl: youtubeUrl.trim() ? youtubeUrl.trim() : null,
-      tiktokUrl: tiktokUrl.trim() ? tiktokUrl.trim() : null,
-      vimeoUrl: vimeoUrl.trim() ? vimeoUrl.trim() : null,
-      notifyLikes,
-      notifyComments,
-      notifyFollows,
+      country: country.trim() ? country.trim() : null,
+      ...socialUrls,
     });
     setSaving(false);
     if (!res.ok) {
       setError(res.message);
       return;
     }
-    router.push(`/profile/${profile.id}`);
-  };
-
-  const handleLogout = () => setShowLogoutModal(true);
-
-  const confirmLogout = async () => {
-    const supabase = createBrowserSupabaseClient();
-    await supabase.auth.signOut();
-    router.push("/auth");
-    router.refresh();
+    if (isModal && onClose) {
+      router.refresh();
+      onClose();
+    } else {
+      router.push(`/profile/${profile.id}`);
+    }
   };
 
   return (
-    <>
-      <div className="w-full pb-16">
-        <form onSubmit={onSubmit}>
-          <div
-            className="rounded-2xl border border-white/[0.06] bg-[#0d0b20]/60 p-6 md:p-8"
+    <form onSubmit={onSubmit} className="space-y-4">
+      {/* Page header — hidden in modal mode */}
+      {!isModal && (
+        <div className="flex items-center gap-3">
+          <button
+            type="button"
+            onClick={() => router.push(`/profile/${profile.id}`)}
+            className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-white/[0.06] bg-white/[0.02] text-white/55 transition hover:border-white/[0.12] hover:text-white"
+            title={t("settings.back", "프로필로 돌아가기")}
           >
-            <div className="mb-4 flex items-end justify-between border-b border-white/[0.06] pb-3">
-              <div>
-                <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-[#7F77DD]/60">{t("settings.pageEyebrow")}</p>
-                <h1 className="mt-1 text-xl font-bold text-white">
-                  {t("settings.editProfile", "Edit Profile")}
-                </h1>
-              </div>
-              <Link
-                href={`/profile/${profile.id}`}
-                className="text-sm font-medium text-white/60 transition hover:text-white"
-              >
-                {t("settings.viewProfile", "View profile")} →
-              </Link>
-            </div>
+            <ArrowLeft className="h-4 w-4" />
+          </button>
+          <h1 className="text-[18px] font-bold text-white">
+            {t("settings.title", "프로필 편집")}
+          </h1>
+        </div>
+      )}
 
-            <div className="overflow-x-auto border-b border-white/[0.06]">
-              <div className="flex min-w-max items-center gap-1">
-                {[
-                  { id: "profile", label: "Profile" },
-                  { id: "creator", label: "Creator" },
-                  { id: "social", label: "Social" },
-                  { id: "notifications", label: "Notifications" },
-                ].map((tab) => {
-                  const isActive = activeTab === tab.id;
-                  return (
-                    <button
-                      key={tab.id}
-                      type="button"
-                      onClick={() => setActiveTab(tab.id as typeof activeTab)}
-                      className={`border-b-2 px-1 pb-3 text-sm font-medium transition ${isActive ? "border-[#534AB7] text-white" : "border-transparent text-white/40 hover:text-white"}`}
-                    >
-                      {tab.label}
-                    </button>
-                  );
-                })}
+      {/* Banner + Avatar inline */}
+      <section className="space-y-2">
+        <div className="grid grid-cols-[1fr_120px] items-stretch gap-3">
+          {/* 배너 */}
+          <div>
+            <label className="mb-1.5 block text-[11px] font-semibold text-white/55">
+              {t("settings.banner", "배너")}
+            </label>
+            <div className="relative h-[120px] overflow-hidden rounded-lg border border-white/[0.06]">
+              <img src={bannerUrl || "/default-banner.png"} alt="" className="h-full w-full object-cover" />
+              <div className="absolute top-1.5 right-1.5 flex items-center gap-1">
+                <label className="cursor-pointer rounded-md bg-[#0a0a0a]/80 px-2 py-0.5 text-[10px] font-semibold text-white/80 backdrop-blur-md transition hover:bg-[#534AB7] hover:text-white">
+                  {t("settings.changeBanner", "변경")}
+                  <input type="file" accept="image/*" onChange={(e) => { const f = e.target.files?.[0]; if (f) void handleBannerUpload(f); }} className="hidden" />
+                </label>
+                {bannerUrl && (
+                  <button type="button" onClick={() => setBannerUrl("")} title={t("settings.resetBanner", "기본으로")} className="flex h-5 w-5 items-center justify-center rounded-full border border-white/[0.1] bg-[#0a0a0a]/80 text-white/65 backdrop-blur-md transition hover:border-white/30 hover:text-white">
+                    <X className="h-2.5 w-2.5" />
+                  </button>
+                )}
               </div>
             </div>
-
-            <div className="mt-6 space-y-6">
-              {activeTab === "profile" && (
-                <div className="space-y-8">
-                  <section className="space-y-4">
-                    <h2 className="text-sm font-semibold text-white">{t("settings.sectionProfile")}</h2>
-                    <div>
-                      <label className={labelClass}>{t("settings.bannerLabel")}</label>
-                    <div
-                      className="relative h-28 w-full overflow-hidden rounded-lg border border-white/10"
-                      style={{ background: "linear-gradient(135deg, #1a1535, #26215c, #0f0d1e)" }}
-                    >
-                      {bannerUrl ? (
-                        <img src={bannerUrl} alt="" className="absolute inset-0 h-full w-full object-cover" />
-                      ) : (
-                        <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_50%,rgba(83,74,183,0.3),transparent_60%)]" />
-                      )}
-                      <label className="absolute inset-0 flex cursor-pointer flex-col items-center justify-center gap-1 bg-black/45 opacity-0 transition hover:opacity-100">
-                        <span className="text-xs font-semibold text-white">{t("settings.uploadBanner")}</span>
-                        <span className="text-[10px] text-white/50">{t("settings.bannerSizeHint")}</span>
-                        <input
-                          type="file"
-                          accept="image/*"
-                          className="hidden"
-                          onChange={(e) => {
-                            const f = e.target.files?.[0];
-                            if (f) void handleBannerUpload(f);
-                          }}
-                        />
-                      </label>
-                    </div>
-                    {uploadingBanner && <p className="mt-1 text-xs text-white/40">{t("settings.uploadingBanner")}</p>}
-                  </div>
-
-                  <div className="flex items-center gap-4">
-                    <div className="relative shrink-0">
-                      <img
-                        src={avatarPreviewValid ? avatarUrl : "/placeholder-user.jpg"}
-                        alt="Avatar"
-                        className="h-16 w-16 rounded-full object-cover"
-                        style={{ boxShadow: "0 0 0 2px #534AB7, 0 0 16px rgba(83,74,183,0.35)" }}
-                      />
-                      <label className="absolute inset-0 flex cursor-pointer items-center justify-center rounded-full bg-black/50 opacity-0 transition hover:opacity-100">
-                        <span className="text-[10px] font-semibold text-white">Edit</span>
-                        <input
-                          type="file"
-                          accept="image/*"
-                          className="hidden"
-                          onChange={(e) => {
-                            const f = e.target.files?.[0];
-                            if (f) void handleAvatarUpload(f);
-                          }}
-                        />
-                      </label>
-                    </div>
-                    <div className="flex-1">
-                      <label className={labelClass}>{t("settings.displayNameField")}</label>
-                      <input value={displayName} onChange={(e) => setDisplayName(e.target.value)} className={inputClass} autoComplete="name" />
-                    </div>
-                  </div>
-
-                  <div>
-                    <label className={labelClass}>{t("settings.taglineField", "Tagline")}</label>
-                    <input
-                      value={tagline}
-                      onChange={(e) => setTagline(e.target.value)}
-                      className={inputClass}
-                      maxLength={60}
-                      placeholder="AI filmmaker exploring sci-fi narratives"
-                    />
-                    <p className="mt-1 text-right text-[11px] text-white/35">{tagline.length}/60</p>
-                  </div>
-
-                  <div>
-                    <label className={labelClass}>{t("settings.pronounsField", "Pronouns")}</label>
-                    <input
-                      value={pronouns}
-                      onChange={(e) => setPronouns(e.target.value)}
-                      className={inputClass}
-                      placeholder="he/him, she/her, they/them"
-                    />
-                  </div>
-
-                  <div>
-                    <label className={labelClass}>{t("settings.bioField")}</label>
-                    <textarea
-                      value={bio}
-                      onChange={(e) => setBio(e.target.value)}
-                      rows={5}
-                      className={`${inputClass} resize-none`}
-                      placeholder={t("settings.bioPlaceholderShort")}
-                    />
-                  </div>
-                  </section>
-                </div>
-              )}
-
-              {activeTab === "creator" && (
-                <div className="space-y-8">
-                  <section className="space-y-4">
-                    <h2 className="text-sm font-semibold text-white">{t("settings.creatorInfoSection")}</h2>
-                    <div>
-                    <label className={labelClass}>{t("settings.countryField")}</label>
-                    <div className="relative">
-                      <select value={country} onChange={(e) => setCountry(e.target.value)} className={`${inputClass} appearance-none pr-10`}>
-                        <option style={{ backgroundColor: "#0d0b20", color: "white" }} value="">{t("settings.countryPlaceholder")}</option>
-                        <option style={{ backgroundColor: "#0d0b20", color: "white" }} value="United States">United States</option>
-                        <option style={{ backgroundColor: "#0d0b20", color: "white" }} value="Korea">Korea</option>
-                        <option style={{ backgroundColor: "#0d0b20", color: "white" }} value="Japan">Japan</option>
-                        <option style={{ backgroundColor: "#0d0b20", color: "white" }} value="United Kingdom">United Kingdom</option>
-                        <option style={{ backgroundColor: "#0d0b20", color: "white" }} value="France">France</option>
-                        <option style={{ backgroundColor: "#0d0b20", color: "white" }} value="Germany">Germany</option>
-                        <option style={{ backgroundColor: "#0d0b20", color: "white" }} value="Canada">Canada</option>
-                        <option style={{ backgroundColor: "#0d0b20", color: "white" }} value="Australia">Australia</option>
-                        <option style={{ backgroundColor: "#0d0b20", color: "white" }} value="Other">Other</option>
-                      </select>
-                      <ChevronDown className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-white/40" />
-                    </div>
-                  </div>
-
-                  <div>
-                    <label className={labelClass}>{t("settings.mainGenreField")}</label>
-                    <div className="relative">
-                      <select value={mainGenre} onChange={(e) => setMainGenre(e.target.value)} className={`${inputClass} appearance-none pr-10`}>
-                        <option style={{ backgroundColor: "#0d0b20", color: "white" }} value="">{t("settings.genrePlaceholder")}</option>
-                        <option style={{ backgroundColor: "#0d0b20", color: "white" }} value="film">{t("settings.genreFilm")}</option>
-                        <option style={{ backgroundColor: "#0d0b20", color: "white" }} value="animation">{t("settings.genreAnimation")}</option>
-                        <option style={{ backgroundColor: "#0d0b20", color: "white" }} value="music">{t("settings.genreMusicVideo")}</option>
-                        <option style={{ backgroundColor: "#0d0b20", color: "white" }} value="daily">{t("settings.genreDaily")}</option>
-                        <option style={{ backgroundColor: "#0d0b20", color: "white" }} value="art">{t("settings.genreArt")}</option>
-                        <option style={{ backgroundColor: "#0d0b20", color: "white" }} value="documentary">{t("settings.genreDocumentary")}</option>
-                        <option style={{ backgroundColor: "#0d0b20", color: "white" }} value="horror">{t("settings.genreHorror")}</option>
-                        <option style={{ backgroundColor: "#0d0b20", color: "white" }} value="sci_fi">{t("settings.genreScifi")}</option>
-                      </select>
-                      <ChevronDown className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-white/40" />
-                    </div>
-                  </div>
-
-                  <div>
-                    <label className={labelClass}>{t("settings.languageUi")}</label>
-                    <div className="relative">
-                      <select
-                        value={locale}
-                        onChange={(e) => {
-                          const v = e.target.value;
-                          setLocale(v === "ko" ? "ko" : v === "ja" ? "ja" : "en");
-                        }}
-                        className={`${inputClass} appearance-none pr-10`}
-                      >
-                        <option style={{ backgroundColor: "#0d0b20", color: "white" }} value="en">English</option>
-                        <option style={{ backgroundColor: "#0d0b20", color: "white" }} value="ko">Korean</option>
-                        <option style={{ backgroundColor: "#0d0b20", color: "white" }} value="ja">Japanese</option>
-                      </select>
-                      <ChevronDown className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-white/40" />
-                    </div>
-                  </div>
-
-                  <div className="flex items-center justify-between py-2.5">
-                    <div>
-                      <p className="text-sm text-white">{t("settings.openToCollab", "Open to collaboration")}</p>
-                      <p className="mt-0.5 text-xs text-white/40">{t("settings.openToCollabDesc", "Show a badge on your profile")}</p>
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => setAvailableForCollab((prev) => !prev)}
-                      className="relative h-5 w-9 shrink-0 rounded-full transition-colors duration-200"
-                      style={{ background: availableForCollab ? "#534AB7" : "rgba(255,255,255,0.14)" }}
-                    >
-                      <span
-                        className="absolute top-0.5 h-4 w-4 rounded-full bg-white shadow transition-[left] duration-200"
-                        style={{ left: availableForCollab ? "18px" : "2px" }}
-                      />
-                    </button>
-                  </div>
-
-                  <div>
-                    <label className={labelClass}>{t("settings.pinnedVideoHeading", "Pinned video")}</label>
-                    <input
-                      value={pinnedVideoId}
-                      onChange={(e) => setPinnedVideoId(e.target.value)}
-                      className={inputClass}
-                      placeholder={t("settings.pinnedVideoPlaceholder", "Paste video ID from /watch/[id]")}
-                    />
-                    <p className="mt-1 text-xs text-white/30">
-                      {t("settings.pinnedVideoHint", "Copy the ID from your /watch/[id] URL.")}
-                    </p>
-                  </div>
-                  </section>
-
-                  <section className="space-y-4">
-                    <h2 className="text-sm font-semibold text-white">{t("settings.aiToolsHeading")}</h2>
-                    {TOOL_CATEGORIES.map((group) => (
-                      <div key={group.category} className="space-y-2.5">
-                        {(() => {
-                          const color = CATEGORY_COLOR[group.category] ?? {
-                            from: "#7F77DD",
-                            to: "#AFA9EC",
-                            glow: "rgba(127,119,221,0.15)",
-                          };
-                          const selectedCount = group.tools.filter((tool) => tools.includes(tool)).length;
-                          return (
-                            <div className="mb-2.5 flex items-center gap-2">
-                              <span className="h-2 w-2 rounded-full" style={{ background: color.from }} />
-                              <p className="text-xs font-semibold text-white/70">{group.category}</p>
-                              <span className="text-[10px] text-white/30">
-                                {selectedCount > 0 ? `${selectedCount} selected` : ""}
-                              </span>
-                            </div>
-                          );
-                        })()}
-                        <div className="flex flex-wrap gap-1.5">
-                          {group.tools.map((tool) => {
-                            const active = tools.includes(tool);
-                            const color = CATEGORY_COLOR[group.category] ?? {
-                              from: "#7F77DD",
-                              to: "#AFA9EC",
-                              glow: "rgba(127,119,221,0.15)",
-                            };
-                            return (
-                              <button
-                                key={tool}
-                                type="button"
-                                onClick={() => setTools((prev) => (active ? prev.filter((n) => n !== tool) : [...prev, tool]))}
-                                className="rounded-lg border px-2.5 py-1.5 text-xs font-medium transition"
-                                style={{
-                                  borderColor: active ? `${color.from}80` : "rgba(255,255,255,0.06)",
-                                  background: active
-                                    ? `linear-gradient(135deg, ${color.from}20 0%, ${color.to}10 100%)`
-                                    : "rgba(255,255,255,0.02)",
-                                  color: active ? "#FFFFFF" : "rgba(255,255,255,0.4)",
-                                  boxShadow: active ? `0 0 12px ${color.glow}` : "none",
-                                }}
-                              >
-                                {tool}
-                              </button>
-                            );
-                          })}
-                        </div>
-                      </div>
-                    ))}
-                    <div>
-                      <div className="mb-1.5 flex items-center gap-2">
-                        <label className="text-xs font-medium text-white/60">Other tools</label>
-                        <span className="text-[10px] text-white/30">Add a tool not listed above</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <input
-                          value={toolInput}
-                          onChange={(e) => setToolInput(e.target.value)}
-                          onKeyDown={(e) => {
-                            if (e.key === "Enter") {
-                              e.preventDefault();
-                              addTool();
-                            }
-                          }}
-                          className={inputClass}
-                          placeholder={t("settings.toolInputPlaceholder")}
-                        />
-                        <button
-                          type="button"
-                          onClick={addTool}
-                          className="rounded-lg border border-white/[0.08] bg-white/[0.02] px-3 py-1.5 text-xs text-white/70 transition hover:bg-white/[0.06]"
-                        >
-                          Add
-                        </button>
-                      </div>
-                    </div>
-                    {tools.length > 0 && (
-                      <div>
-                        <p className="mb-2 text-xs text-white/40">Selected ({tools.length})</p>
-                        <div className="flex flex-wrap gap-1.5">
-                          {tools.map((tool) => (
-                            <span
-                              key={tool}
-                              className="flex items-center gap-1.5 rounded-lg border border-white/[0.08] bg-white/[0.02] px-3 py-1 text-xs text-white/70"
-                            >
-                              {tool}
-                              <button
-                                type="button"
-                                onClick={() => setTools((prev) => prev.filter((i) => i !== tool))}
-                                className="text-white/40 hover:text-white"
-                              >
-                                ×
-                              </button>
-                            </span>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-                  </section>
-                </div>
-              )}
-
-              {activeTab === "social" && (
-                <div className="space-y-8">
-                  <section className="space-y-4">
-                    <h2 className="text-sm font-semibold text-white">{t("settings.socialHeading")}</h2>
-                  {[
-                    {
-                      icon: <Globe className="h-3 w-3" />,
-                      label: "Website",
-                      value: websiteUrl,
-                      onChange: setWebsiteUrl,
-                      placeholder: "https://yoursite.com",
-                    },
-                    {
-                      icon: <XIcon className="h-3 w-3" />,
-                      label: "X / Twitter",
-                      value: twitterUrl,
-                      onChange: setTwitterUrl,
-                      placeholder: "https://x.com/username",
-                    },
-                    {
-                      icon: <Instagram className="h-3 w-3" />,
-                      label: "Instagram",
-                      value: instagramUrl,
-                      onChange: setInstagramUrl,
-                      placeholder: "https://instagram.com/username",
-                    },
-                    {
-                      icon: <Youtube className="h-3 w-3" />,
-                      label: "YouTube",
-                      value: youtubeUrl,
-                      onChange: setYoutubeUrl,
-                      placeholder: "https://youtube.com/@channel",
-                    },
-                    {
-                      icon: (
-                        <svg viewBox="0 0 24 24" className="h-3 w-3" fill="currentColor">
-                          <path d="M19.59 6.69a4.83 4.83 0 01-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 01-2.88 2.5 2.89 2.89 0 01-2.89-2.89 2.89 2.89 0 012.89-2.89c.28 0 .54.04.79.1V9.01a6.33 6.33 0 00-.79-.05 6.34 6.34 0 00-6.34 6.34 6.34 6.34 0 006.34 6.34 6.34 6.34 0 006.33-6.34V8.69a8.18 8.18 0 004.78 1.52V6.75a4.85 4.85 0 01-1.01-.06z" />
-                        </svg>
-                      ),
-                      label: "TikTok",
-                      value: tiktokUrl,
-                      onChange: setTiktokUrl,
-                      placeholder: "https://tiktok.com/@username",
-                    },
-                    {
-                      icon: (
-                        <svg viewBox="0 0 24 24" className="h-3 w-3" fill="currentColor">
-                          <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69.01-.03.01-.14-.07-.2-.08-.06-.19-.04-.27-.02-.12.02-1.96 1.25-5.53 3.67-.52.36-1 .53-1.42.52-.47-.01-1.37-.26-2.03-.48-.82-.27-1.47-.42-1.42-.88.03-.25.38-.51 1.07-.78 4.18-1.82 6.97-3.02 8.37-3.6 3.98-1.66 4.81-1.95 5.35-1.96.12 0 .38.03.55.17.14.12.18.28.2.45-.02.07-.02.13-.02.22z" />
-                        </svg>
-                      ),
-                      label: "Vimeo",
-                      value: vimeoUrl,
-                      onChange: setVimeoUrl,
-                      placeholder: "https://vimeo.com/username",
-                    },
-                  ].map(({ icon, label, value, onChange, placeholder }) => (
-                    <div key={label}>
-                      <label className={labelClass}>
-                        <span className="mr-2 inline-flex items-center text-white/50">{icon}</span>
-                        {label}
-                      </label>
-                      <input value={value} onChange={(e) => onChange(e.target.value)} className={inputClass} placeholder={placeholder} />
-                    </div>
-                  ))}
-                  </section>
-                </div>
-              )}
-
-              {activeTab === "notifications" && (
-                <div className="space-y-8">
-                  <section className="space-y-4">
-                    <h2 className="text-sm font-semibold text-white">{t("settings.notificationsHeading")}</h2>
-                  {[
-                    {
-                      label: t("settings.notifLikes"),
-                      desc: t("settings.notifLikesDesc"),
-                      value: notifyLikes,
-                      onChange: setNotifyLikes,
-                    },
-                    {
-                      label: t("settings.notifComments"),
-                      desc: t("settings.notifCommentsDesc"),
-                      value: notifyComments,
-                      onChange: setNotifyComments,
-                    },
-                    {
-                      label: t("settings.notifFollowers"),
-                      desc: t("settings.notifFollowersDesc"),
-                      value: notifyFollows,
-                      onChange: setNotifyFollows,
-                    },
-                  ].map(({ label, desc, value, onChange }) => (
-                    <div key={label} className="flex items-center justify-between py-2.5">
-                      <div>
-                        <p className="text-sm text-white">{label}</p>
-                        <p className="mt-0.5 text-xs text-white/40">{desc}</p>
-                      </div>
-                      <button
-                        type="button"
-                        onClick={() => onChange(!value)}
-                        className="relative h-5 w-9 shrink-0 rounded-full transition-colors duration-200"
-                        style={{ background: value ? "#534AB7" : "rgba(255,255,255,0.14)" }}
-                      >
-                        <span
-                          className="absolute top-0.5 h-4 w-4 rounded-full bg-white shadow transition-[left] duration-200"
-                          style={{ left: value ? "18px" : "2px" }}
-                        />
-                      </button>
-                    </div>
-                  ))}
-                  </section>
-                </div>
-              )}
-            </div>
-
-            <div className="mt-8 space-y-4">
-              {error && <p className="text-sm text-red-400">{error}</p>}
-              {message && <p className="text-sm text-emerald-400">{message}</p>}
-              <button
-                type="submit"
-                disabled={saving}
-                className="w-full rounded-lg bg-[#534AB7] px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-[#7F77DD] disabled:opacity-50"
-              >
-                {saving ? t("settings.saving", "Saving…") : t("settings.saveChanges", "Save changes")}
-              </button>
-              <button
-                type="button"
-                onClick={handleLogout}
-                className="flex w-full items-center justify-center gap-2 rounded-lg border border-white/[0.08] px-4 py-2.5 text-sm text-white/50 transition hover:border-red-500/30 hover:text-red-400"
-              >
-                <LogOut className="h-4 w-4" />
-                {t("profile.logoutAction")}
-              </button>
-            </div>
+            {uploadingBanner && <p className="mt-1 text-[10px] text-white/35">Uploading…</p>}
           </div>
-        </form>
-      </div>
-      {showLogoutModal && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm">
-          <div className="w-full max-w-sm rounded-xl border border-white/[0.06] bg-[#0d0b20]/95 p-6">
-            <h2 className="text-sm font-semibold text-white">{t("profile.logoutTitle")}</h2>
-            <p className="mt-1 text-sm text-white/40">{t("profile.logoutConfirm")}</p>
-            <div className="mt-5 flex gap-3">
-              <button
-                type="button"
-                onClick={() => setShowLogoutModal(false)}
-                className="flex-1 rounded-lg border border-white/[0.08] px-4 py-2.5 text-sm text-white/50 transition hover:border-white/20 hover:text-white"
-              >
-                {t("common.cancel")}
-              </button>
-              <button
-                type="button"
-                onClick={() => void confirmLogout()}
-                className="flex-1 rounded-lg bg-[#534AB7] px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-[#7F77DD]"
-              >
-                {t("profile.logoutAction")}
-              </button>
+
+          {/* 아바타 */}
+          <div className="flex flex-col">
+            <label className="mb-1.5 block text-[11px] font-semibold text-white/55">
+              {t("settings.avatar", "프로필")}
+            </label>
+            <div className="relative flex flex-1 flex-col items-center justify-between rounded-lg border border-white/[0.06] bg-white/[0.02] p-2">
+              <div className="relative">
+                <div className="group relative h-[72px] w-[72px] overflow-hidden rounded-full border border-white/[0.06] bg-white/[0.02] transition-transform duration-200 hover:scale-[2] hover:z-[200]">
+                  <img src={avatarUrl || "/default-avatar.png"} alt="" className="h-full w-full object-cover" />
+                </div>
+                {avatarUrl && (
+                  <button type="button" onClick={() => setAvatarUrl("")} title={t("settings.resetAvatar", "기본으로")} className="absolute -top-1 -right-1 z-[210] flex h-5 w-5 items-center justify-center rounded-full border border-white/[0.1] bg-[#0a0a0a]/90 text-white/65 transition hover:border-white/30 hover:text-white">
+                    <X className="h-2.5 w-2.5" />
+                  </button>
+                )}
+              </div>
+              <label className="cursor-pointer rounded-md border border-white/[0.06] bg-white/[0.02] px-2.5 py-0.5 text-[10px] font-semibold text-white/80 transition hover:border-[#7F77DD]/40 hover:text-white">
+                {t("settings.changeAvatar", "변경")}
+                <input type="file" accept="image/*" onChange={(e) => { const f = e.target.files?.[0]; if (f) void handleAvatarUpload(f); }} className="hidden" />
+              </label>
+              {uploadingAvatar && <span className="text-[10px] text-white/35">Uploading…</span>}
             </div>
           </div>
         </div>
+      </section>
+
+      {/* Display Name */}
+      <section>
+        <label className="mb-1.5 block text-[11px] font-semibold text-white/55">
+          {t("settings.displayName", "닉네임")}
+        </label>
+        <input
+          type="text"
+          value={displayName}
+          onChange={(e) => setDisplayName(e.target.value)}
+          placeholder={t("settings.displayNamePlaceholder", "표시될 이름")}
+          className="w-full rounded-lg border border-white/[0.06] bg-white/[0.02] px-3 py-1.5 text-[13px] text-white placeholder:text-white/30 outline-none transition focus:border-[#7F77DD]/40"
+        />
+      </section>
+
+      {/* Handle (read-only) */}
+      <section>
+        <label className="mb-1.5 block text-[11px] font-semibold text-white/55">
+          {t("settings.handle", "아이디")}
+        </label>
+        <div className="flex items-center gap-2 rounded-lg border border-white/[0.06] bg-white/[0.02] px-3 py-2">
+          <span className="text-[13px] text-white/45">@</span>
+          <span className="flex-1 text-[13px] text-white/70">{handle}</span>
+          <span className="rounded-md border border-white/[0.06] bg-white/[0.02] px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-white/45">
+            {t("settings.handleFixed", "고정")}
+          </span>
+        </div>
+        <p className="mt-1 text-[11px] text-white/35">
+          {t("settings.handleNote", "아이디는 닉네임을 영문으로 변경하면 자동 업데이트됩니다")}
+        </p>
+      </section>
+
+      {/* Bio */}
+      <section>
+        <label className="mb-1.5 block text-[11px] font-semibold text-white/55">
+          {t("settings.bio", "소개")}
+        </label>
+        <div className="relative rounded-lg border border-white/[0.06] bg-white/[0.02] transition focus-within:border-[#7F77DD]/40">
+          <textarea
+            value={bio}
+            onChange={(e) => setBio(e.target.value)}
+            rows={2}
+            maxLength={300}
+            placeholder={t("settings.bioPlaceholder", "자기소개를 작성해주세요")}
+            className="w-full resize-none rounded-lg bg-transparent px-3 py-1.5 pr-14 text-[13px] text-white placeholder:text-white/30 outline-none"
+          />
+          <span className="absolute bottom-1.5 right-2 text-[10px] tabular-nums text-white/35">
+            {bio.length}/300
+          </span>
+        </div>
+      </section>
+
+      {/* Main Genre */}
+      <section>
+        <label className="mb-1.5 block text-[11px] font-semibold text-white/55">
+          {t("settings.mainGenre", "메인 장르")}
+        </label>
+        <div className="flex flex-wrap gap-2">
+          {[
+            { value: "film", label: t("genre.film", "영화") },
+            { value: "animation", label: t("genre.animation", "애니메이션") },
+            { value: "music", label: t("genre.music", "음악") },
+            { value: "art", label: t("genre.art", "아트") },
+            { value: "lifestyle", label: t("genre.lifestyle", "일상") },
+          ].map((g) => (
+            <button
+              key={g.value}
+              type="button"
+              onClick={() => setMainGenre(g.value)}
+              className={cn(
+                "rounded-lg border px-2.5 py-1 text-[11px] font-semibold transition",
+                mainGenre === g.value
+                  ? "border-[#7F77DD]/40 bg-gradient-to-br from-[#7F77DD]/15 to-[#534AB7]/5 text-white"
+                  : "border-white/[0.06] bg-white/[0.02] text-white/55 hover:border-white/[0.12] hover:text-white/85"
+              )}
+            >
+              {g.label}
+            </button>
+          ))}
+        </div>
+      </section>
+
+      {/* More — collapsible */}
+      <section className="border-t border-white/[0.06] pt-4">
+        <button
+          type="button"
+          onClick={() => setAccountExpanded((prev) => !prev)}
+          className="flex w-full items-center justify-between gap-2 text-left transition"
+        >
+          <div>
+            <h2 className="text-[13px] font-bold text-white">
+              {t("settings.more", "더보기")}
+            </h2>
+            <p className="mt-0.5 text-[11px] text-white/45">
+              {t("settings.moreDescription", "계정 정보, 국가, 메인 플랫폼")}
+            </p>
+          </div>
+          <ChevronDown className={cn("h-4 w-4 text-white/55 transition-transform", accountExpanded && "rotate-180")} />
+        </button>
+
+        {accountExpanded && (
+          <div className="mt-4 space-y-3">
+            {/* Country */}
+            <div>
+              <label className="mb-1.5 block text-[11px] font-semibold text-white/55">
+                {t("settings.country", "국가")}
+              </label>
+              <select
+                value={country}
+                onChange={(e) => setCountry(e.target.value)}
+                className="w-full rounded-lg border border-white/[0.06] bg-white/[0.02] px-3 py-1.5 text-[13px] text-white outline-none transition focus:border-[#7F77DD]/40"
+              >
+                <option value="" className="bg-[#0a0a0a]">{t("settings.countrySelect", "선택")}</option>
+                <option value="KR" className="bg-[#0a0a0a]">대한민국</option>
+                <option value="US" className="bg-[#0a0a0a]">미국</option>
+                <option value="JP" className="bg-[#0a0a0a]">일본</option>
+                <option value="CN" className="bg-[#0a0a0a]">중국</option>
+                <option value="UK" className="bg-[#0a0a0a]">영국</option>
+                <option value="DE" className="bg-[#0a0a0a]">독일</option>
+                <option value="FR" className="bg-[#0a0a0a]">프랑스</option>
+                <option value="OTHER" className="bg-[#0a0a0a]">{t("settings.countryOther", "기타")}</option>
+              </select>
+            </div>
+
+            {/* Main Platform + URL */}
+            <div>
+              <label className="mb-1.5 block text-[11px] font-semibold text-white/55">
+                {t("settings.mainPlatform", "메인 플랫폼")}
+              </label>
+              <div className="flex gap-2">
+                <select
+                  value={mainPlatform}
+                  onChange={(e) => setMainPlatform(e.target.value)}
+                  className="rounded-lg border border-white/[0.06] bg-white/[0.02] px-3 py-1.5 text-[13px] text-white outline-none transition focus:border-[#7F77DD]/40"
+                >
+                  <option value="" className="bg-[#0a0a0a]">{t("settings.platformSelect", "선택")}</option>
+                  <option value="website" className="bg-[#0a0a0a]">Website</option>
+                  <option value="twitter" className="bg-[#0a0a0a]">X (Twitter)</option>
+                  <option value="instagram" className="bg-[#0a0a0a]">Instagram</option>
+                  <option value="youtube" className="bg-[#0a0a0a]">YouTube</option>
+                  <option value="tiktok" className="bg-[#0a0a0a]">TikTok</option>
+                  <option value="vimeo" className="bg-[#0a0a0a]">Vimeo</option>
+                </select>
+                <input
+                  type="url"
+                  value={mainPlatformUrl}
+                  onChange={(e) => setMainPlatformUrl(e.target.value)}
+                  placeholder="https://..."
+                  className="flex-1 rounded-lg border border-white/[0.06] bg-white/[0.02] px-3 py-1.5 text-[13px] text-white placeholder:text-white/30 outline-none transition focus:border-[#7F77DD]/40"
+                />
+              </div>
+            </div>
+
+            {/* Email (read-only) */}
+            <div>
+              <label className="mb-1.5 block text-[11px] font-semibold text-white/55">
+                {t("settings.email", "이메일")}
+              </label>
+              <div className="flex items-center gap-2">
+                <div className="flex-1 rounded-lg border border-white/[0.06] bg-white/[0.02] px-3 py-1.5 text-[13px] text-white/70">
+                  {userEmail ?? "—"}
+                </div>
+                {authProvider !== "email" && (
+                  <span className="rounded-md border border-white/[0.06] bg-white/[0.02] px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-white/55">
+                    {authProvider}
+                  </span>
+                )}
+              </div>
+            </div>
+
+            {/* Password reset */}
+            {hasPassword ? (
+              <div>
+                <label className="mb-1.5 block text-[11px] font-semibold text-white/55">
+                  {t("settings.password", "비밀번호")}
+                </label>
+                <button
+                  type="button"
+                  onClick={handlePasswordReset}
+                  disabled={resetSending || resetSent}
+                  className="w-full rounded-lg border border-white/[0.06] bg-white/[0.02] px-3 py-1.5 text-[12px] font-semibold text-white/80 transition hover:border-[#7F77DD]/40 hover:text-white disabled:opacity-50"
+                >
+                  {resetSending
+                    ? t("settings.passwordSending", "전송 중...")
+                    : resetSent
+                      ? t("settings.passwordSent", "재설정 링크 전송됨")
+                      : t("settings.passwordReset", "비밀번호 재설정 메일 받기")}
+                </button>
+              </div>
+            ) : null}
+          </div>
+        )}
+      </section>
+
+      {/* Error/success messages */}
+      {error && (
+        <p className="rounded-lg border border-red-500/20 bg-red-500/10 px-4 py-2.5 text-[13px] text-red-300">
+          {error}
+        </p>
       )}
-    </>
+      {message && (
+        <p className="rounded-lg border border-emerald-500/20 bg-emerald-500/10 px-4 py-2.5 text-[13px] text-emerald-300">
+          {message}
+        </p>
+      )}
+
+      {/* Save button */}
+      <div className="pt-4">
+        <button
+          type="submit"
+          disabled={saving}
+          className="w-full rounded-lg bg-[#534AB7] px-4 py-2 text-[13px] font-bold text-white transition hover:bg-[#6b5fd4] disabled:opacity-50"
+        >
+          {saving ? t("settings.saving", "저장 중...") : t("settings.save", "저장")}
+        </button>
+      </div>
+    </form>
   );
 }

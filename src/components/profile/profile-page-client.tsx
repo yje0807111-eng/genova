@@ -4,7 +4,10 @@ import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState, useTransition } from "react";
+import { createPortal } from "react-dom";
 import { useI18n } from "@/components/genova/language-provider";
+import { useUploadModal } from "@/components/upload/upload-modal-context";
+import { useEditModal } from "@/components/upload/edit-modal-context";
 import {
   ArrowLeft,
   Bookmark,
@@ -19,11 +22,11 @@ import {
   Film,
   Globe,
   Grid,
+  Heart,
   Instagram,
   MessageCircle,
   MoreHorizontal,
   Pencil,
-  Play,
   Plus,
   Star,
   Trophy,
@@ -34,11 +37,11 @@ import {
 } from "lucide-react";
 import { followUserAction, unfollowUserAction } from "@/app/actions/profile";
 import { updateVideoVisibilityAction } from "@/app/actions/video";
-import type { FollowingPreviewUser, ProfileAwardBadge } from "@/lib/queries/profile-queries";
+import type { FollowingPreviewUser, Profile, ProfileAwardBadge } from "@/lib/queries/profile-queries";
+import { ProfileSettingsClient } from "@/components/profile/profile-settings-client";
 import type { Video } from "@/lib/types";
 import { AnimateIn } from "@/components/animate-in";
 import { addWindowCustomListener } from "@/lib/dom/window-custom-events";
-import { formatUploadedRelative } from "@/lib/format-uploaded-relative";
 import { formatViewCountShort } from "@/lib/view-count";
 import { cn } from "@/lib/utils/cn";
 
@@ -140,10 +143,112 @@ function SocialLinks({
   );
 }
 
+function ProfileVideoCard({ video, t, isOwner, onEdit }: { video: any; t: (key: string, fallback?: string) => string; isOwner?: boolean; onEdit?: (videoId: string) => void }) {
+  const [isHovered, setIsHovered] = useState(false);
+  const muxPid = video.mux_playback_id ?? video.muxPlaybackId;
+
+  return (
+    <Link
+      href={`/watch/${video.id}`}
+      className="group/card relative block overflow-hidden rounded-xl transition-all duration-300 hover:-translate-y-1"
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+    >
+      <div className="relative aspect-[3/2] overflow-hidden bg-white/[0.02]">
+        <img
+          src={
+            isHovered && muxPid
+              ? `https://image.mux.com/${muxPid}/animated.gif?width=640&fps=15`
+              : video.thumbnail_url ?? video.thumbnailUrl ?? ""
+          }
+          alt={video.title ?? ""}
+          className="h-full w-full object-cover transition-transform duration-500 group-hover/card:scale-105"
+        />
+
+        {/* Bottom gradient */}
+        <div
+          className="absolute inset-0"
+          style={{
+            background: "linear-gradient(180deg, transparent 50%, rgba(0,0,0,0.85) 100%)",
+          }}
+        />
+
+        {/* Info overlay */}
+        <div className="absolute inset-x-0 bottom-0 p-3">
+          <p className="line-clamp-1 text-[13px] font-bold text-white">
+            {video.title}
+          </p>
+          <div className="mt-1 flex items-center gap-2 text-[11px] text-white/55">
+            {video.runtime && (
+              <>
+                <span className="tabular-nums">{video.runtime}</span>
+                <span className="text-white/20">·</span>
+              </>
+            )}
+            <span className="tabular-nums">
+              {(video.view_count ?? video.viewCount ?? 0).toLocaleString()} {t("profile.viewsSuffix", "views")}
+            </span>
+            {typeof (video.like_count ?? video.likeCount) === "number" && (video.like_count ?? video.likeCount) > 0 && (
+              <>
+                <span className="text-white/20">·</span>
+                <span className="inline-flex items-center gap-0.5 tabular-nums">
+                  <Heart className="h-3 w-3" />
+                  {(video.like_count ?? video.likeCount)}
+                </span>
+              </>
+            )}
+          </div>
+        </div>
+
+        {/* Border ring */}
+        <div className="absolute inset-0 rounded-xl ring-1 ring-inset ring-white/[0.06] transition group-hover/card:ring-white/15" />
+
+        {isOwner && onEdit && (
+          <button
+            type="button"
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              onEdit(video.id);
+            }}
+            title={t("profile.editVideo", "영상 편집")}
+            className="absolute top-2 right-2 z-10 flex h-7 w-7 items-center justify-center rounded-full border border-white/[0.1] bg-[#0a0a0a]/80 text-white/70 opacity-0 backdrop-blur-md transition hover:bg-[#534AB7] hover:text-white group-hover/card:opacity-100"
+          >
+            <Pencil className="h-3.5 w-3.5" />
+          </button>
+        )}
+
+        {/* Competition badge */}
+        {video.purpose === "competition" && (
+          <div className="absolute left-2 top-2">
+            <span className="inline-flex items-center gap-0.5 rounded-md bg-amber-400/15 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider text-amber-300">
+              {video.is_finalist ? "FINALIST" : t("profile.submission", "출품작")}
+            </span>
+          </div>
+        )}
+      </div>
+    </Link>
+  );
+}
+
+function Stat({ label, value }: { label: string; value: number }) {
+  return (
+    <div className="flex flex-col items-center">
+      <span className="text-[18px] font-bold tabular-nums text-white md:text-[20px]">
+        {value.toLocaleString()}
+      </span>
+      <span className="mt-0.5 text-[11px] font-semibold uppercase tracking-[0.15em] text-white/45">
+        {label}
+      </span>
+    </div>
+  );
+}
+
 export function GenovaProfileClient({
   profileId,
   displayName,
   handle,
+
   headerIntro,
   headerToolsLine,
   bioFull,
@@ -174,6 +279,10 @@ export function GenovaProfileClient({
   followingUsers,
   activityVideos,
   awardBadges,
+  profile,
+  userEmail,
+  hasPassword,
+  authProvider,
 }: {
   profileId: string;
   displayName: string;
@@ -208,9 +317,15 @@ export function GenovaProfileClient({
   followingUsers: FollowingPreviewUser[];
   activityVideos: Video[];
   awardBadges: ProfileAwardBadge[];
+  profile: Profile;
+  userEmail: string | null;
+  hasPassword: boolean;
+  authProvider: string;
 }) {
-  const { t, locale } = useI18n();
+  const { t } = useI18n();
   const router = useRouter();
+  const { open: openUploadModal } = useUploadModal();
+  const { open: openEditModal } = useEditModal();
   const [pending, startTransition] = useTransition();
   const [following, setFollowing] = useState(initialFollowing);
   const [activeTab, setActiveTab] = useState<TabKey>("Videos");
@@ -226,6 +341,11 @@ export function GenovaProfileClient({
   const [currentPage, setCurrentPage] = useState(1);
   const [activeAwardFilter, setActiveAwardFilter] = useState<string | null>(null);
   const [awardsModalOpen, setAwardsModalOpen] = useState(false);
+  const [editModalOpen, setEditModalOpen] = useState(false);
+  useEffect(() => {
+    document.body.style.overflow = editModalOpen ? "hidden" : "";
+    return () => { document.body.style.overflow = ""; };
+  }, [editModalOpen]);
   const [expanded, setExpanded] = useState(false);
   const [visibleAwardIds, setVisibleAwardIds] = useState<string[]>([]);
 
@@ -511,264 +631,171 @@ export function GenovaProfileClient({
       <div>
         {/* 커버 배너 */}
         <div className="relative">
-          <div
-            className="relative h-[200px] w-full overflow-hidden md:h-[420px]"
-            style={{
-              background: "linear-gradient(135deg, #1a1547 0%, #26215C 40%, #0f0d24 100%)",
-            }}
-          >
-            {bannerUrl ? (
-              <img src={bannerUrl} alt="" className="absolute inset-0 h-full w-full object-cover" />
-            ) : null}
-            <div
-              className="absolute inset-0"
+          <div className="relative h-[220px] w-full overflow-hidden md:h-[400px]">
+            <img
+              src={bannerUrl || "/default-banner.png"}
+              alt=""
+              className="absolute inset-0 h-full w-full object-cover"
               style={{
-                background:
-                  "radial-gradient(ellipse at 30% 50%, rgba(83,74,183,0.4) 0%, transparent 60%), radial-gradient(ellipse at 80% 30%, rgba(127,119,221,0.2) 0%, transparent 50%)",
+                maskImage: "linear-gradient(180deg, black 0%, black 50%, transparent 100%)",
+                WebkitMaskImage: "linear-gradient(180deg, black 0%, black 50%, transparent 100%)",
               }}
             />
-            <div className="pointer-events-none absolute inset-x-0 top-0 z-10 h-32 bg-gradient-to-b from-[#080618]/60 via-transparent to-transparent" />
-            <div
-              className="pointer-events-none absolute inset-x-0 bottom-0 h-[60%]"
-              style={{
-                background: "linear-gradient(to bottom, transparent 0%, rgba(8,6,24,0.6) 50%, #080618 100%)",
-              }}
-            />
-
-            <div className="absolute right-3 top-16 z-20 md:right-6 md:top-20">
-              {isOwner ? null : (
-                <div className="flex items-center gap-2">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      window.dispatchEvent(
-                        new CustomEvent("open-message", {
-                          detail: {
-                            userId: profileId,
-                            displayName: displayName,
-                            avatarUrl: avatarUrl,
-                          },
-                        }),
-                      );
-                    }}
-                    className="flex items-center gap-2 rounded-lg border border-white/15 bg-white/5 px-4 py-2 text-sm transition hover:bg-white/10"
-                  >
-                    <MessageCircle className="h-4 w-4" />
-                    {t("profile.message", "Message")}
-                  </button>
-                  {showFollow ? (
-                    <button
-                      type="button"
-                      onClick={onFollowToggle}
-                      disabled={pending}
-                      className={cn(
-                        "flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold transition disabled:opacity-60",
-                        following
-                          ? "border border-white/20 bg-white/5 hover:bg-white/10"
-                          : "bg-[#534AB7] text-white hover:bg-[#6B5FD4]",
-                      )}
-                    >
-                      {following ? <UserCheck className="h-4 w-4" /> : <UserPlus className="h-4 w-4" />}
-                      {following ? t("profile.following", "Following") : t("profile.follow", "Follow")}
-                    </button>
-                  ) : null}
-                  <button
-                    type="button"
-                    className="rounded-lg border border-white/15 bg-white/5 p-2 transition hover:bg-white/10"
-                  >
-                    <MoreHorizontal className="h-4 w-4" />
-                  </button>
-                </div>
-              )}
-            </div>
           </div>
         </div>
 
         <AnimateIn delay={0.05}>
-        <div className="relative z-10 mx-auto w-full max-w-[1280px] -mt-40 px-6 pb-6 sm:px-12 md:-mt-48">
-          <div className="grid grid-cols-1 gap-4 lg:grid-cols-[1fr_auto]">
-            {/* 좌측: 프로필 + Stats */}
-            <div className="relative min-w-0 rounded-xl border border-white/10 bg-[#080618]/40 p-6 backdrop-blur-xl transition-all duration-500 hover:border-[#7F77DD]/25 hover:shadow-[0_0_40px_rgba(127,119,221,0.15)] md:p-8">
-              {isOwner ? (
-                <Link
-                  href="/profile/settings"
-                  className="absolute right-3 top-3 rounded-lg border border-white/10 bg-white/5 px-3 py-1.5 text-xs font-medium text-white/70 backdrop-blur-md transition hover:border-white/20 hover:bg-white/10 hover:text-white"
-                >
-                  {t("settings.editProfile", "Edit profile")}
-                </Link>
-              ) : null}
-              <div className="flex flex-row items-center justify-between gap-5">
-                <div className="flex flex-col items-center gap-6 text-center md:flex-row md:items-center md:gap-10 md:text-left">
-                  <div className="relative">
-                    <div className="h-36 w-36 overflow-hidden rounded-full ring-1 ring-white/10">
-                      <Image
-                        src={avatarUrl}
-                        alt={displayName}
-                        width={144}
-                        height={144}
-                        className="h-full w-full object-cover"
-                        unoptimized={avatarUrl.startsWith("http")}
-                      />
-                    </div>
-                    {isOwner ? (
-                      <Link
-                        href="/profile/settings"
-                        className="absolute bottom-1 right-1 flex h-7 w-7 items-center justify-center rounded-full border border-white/10 bg-black/50 text-white/70 backdrop-blur-md transition hover:border-white/20 hover:bg-black/70"
-                        aria-label={t("settings.editProfile", "Edit profile")}
-                      >
-                        <Pencil className="h-3 w-3" />
-                      </Link>
-                    ) : null}
-                  </div>
-
-                  <div className="min-w-0 flex-1">
-                    <div className="flex flex-wrap items-center justify-center gap-3 md:justify-start">
-                      <h1 className="text-2xl font-bold text-white md:text-3xl">{displayName}</h1>
-                    </div>
-                    <div className="mt-2.5 flex flex-wrap items-center gap-3">
-                      <p className="text-sm text-white/50">@{handle}</p>
-                      {mainGenre ? (
-                        <span className="inline-flex rounded-md border border-[#7F77DD]/30 bg-[#534AB7]/15 px-2 py-0.5 text-[10px] font-medium uppercase tracking-wider text-[#AFA9EC]">
-                          {GENRE_LABEL[mainGenre] ?? mainGenre}
-                        </span>
-                      ) : null}
-                    </div>
-                    {headerIntro ? <p className="mt-4 line-clamp-1 text-sm text-white/70">{headerIntro}</p> : null}
-                    <div className="mt-4 inline-flex items-center gap-2">
-                      {availableForCollab ? (
-                        <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2 py-0.5 text-[10px] font-medium text-emerald-300">
-                          <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
-                          Open to collaborate
-                        </span>
-                      ) : null}
-                      <button
-                        type="button"
-                        onClick={() => setExpanded((prev) => !prev)}
-                        className="inline-flex items-center gap-1 text-xs text-white/50 transition hover:text-white"
-                      >
-                        {expanded ? "Show less" : "Show more"}
-                        <ChevronDown className={cn("h-3 w-3 transition-transform", expanded && "rotate-180")} />
-                      </button>
-                    </div>
-                  </div>
-                </div>
-
-                <div
-                  className="relative overflow-hidden rounded-xl border border-white/[0.06] px-8 py-6"
-                  style={{
-                    background:
-                      "radial-gradient(ellipse 100% 80% at 50% 100%, rgba(83,74,183,0.25) 0%, transparent 60%), rgba(255,255,255,0.02)",
-                  }}
-                >
-                  <div className="flex items-center gap-10 md:gap-12">
-                    <div className="flex flex-col items-center">
-                      <p className="text-2xl font-bold leading-none tabular-nums text-white">
-                      {totalVideoCount}
-                    </p>
-                      <p className="mt-2 text-xs text-white/40">{t("profile.videos", "Videos")}</p>
-                    </div>
-                    <div className="flex flex-col items-center">
-                      <p className="text-2xl font-bold leading-none tabular-nums text-white">
-                      {followersCount}
-                    </p>
-                      <p className="mt-2 text-xs text-white/40">{t("profile.followers", "Followers")}</p>
-                    </div>
-                    <div className="flex flex-col items-center">
-                      <p className="text-2xl font-bold leading-none tabular-nums text-white">
-                      {followingCount}
-                    </p>
-                      <p className="mt-2 text-xs text-white/40">{t("profile.followingCountLabel")}</p>
-                    </div>
-                  </div>
-                </div>
+        <div className="relative z-10 mx-auto w-full max-w-[800px] -mt-60 px-6 pb-2 sm:px-8 md:-mt-72">
+          {/* Edit profile icon moved to name row */}
+          <div className="flex flex-col items-center text-center">
+            {/* Avatar */}
+            <div className="relative">
+              <div className="h-28 w-28 overflow-hidden rounded-full ring-2 ring-[#0a0a0a]/80 md:h-32 md:w-32">
+                <Image
+                  src={avatarUrl || "/default-avatar.png"}
+                  alt={displayName}
+                  width={176}
+                  height={176}
+                  className={cn("h-full w-full object-cover transition", avatarUrl === "/default-avatar.png" && "opacity-60")}
+                  unoptimized={(avatarUrl || "").startsWith("http")}
+                />
               </div>
-
-              {expanded ? (
-                <div className="mt-6 space-y-5 border-t border-white/[0.06] pt-6">
-                  {headerToolsLine ? (
-                    <div>
-                      <p className="mb-1.5 text-[10px] font-medium uppercase tracking-widest text-white/40">{t("profile.aiToolsSectionLabel")}</p>
-                      <div className="flex flex-wrap gap-1.5">
-                        {headerToolsLine.split(" · ").map((tool) => (
-                          <span
-                            key={tool}
-                            className="rounded-md border border-white/[0.08] bg-white/[0.02] px-2 py-0.5 text-xs text-white/70"
-                          >
-                            {tool}
-                          </span>
-                        ))}
-                      </div>
-                    </div>
-                  ) : null}
-
-                  <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-white/50">
-                    {country ? <span>📍 {country}</span> : null}
-                    {joinedLabel ? <span>{joinedLabel}</span> : null}
-                  </div>
-
-                  {bioFull && bioFull.length > headerIntro.length ? (
-                    <p className="whitespace-pre-wrap text-sm text-white/70">{bioFull}</p>
-                  ) : null}
-
-                  <SocialLinks
-                    websiteUrl={websiteUrl}
-                    twitterUrl={twitterUrl}
-                    instagramUrl={instagramUrl}
-                    youtubeUrl={youtubeUrl}
-                    tiktokUrl={tiktokUrl}
-                    vimeoUrl={vimeoUrl}
-                  />
-                </div>
-              ) : null}
+              {/* Edit button is now floating at top-right of header */}
             </div>
 
-            {/* 우측: Achievements */}
-            {awardBadges.length > 0 || isOwner ? (
-              <div className="shrink-0 rounded-xl border border-white/10 bg-[#080618]/40 p-5 backdrop-blur-xl transition-all duration-500 hover:border-[#7F77DD]/25 hover:shadow-[0_0_40px_rgba(127,119,221,0.15)] md:p-6 lg:w-[300px]">
-                <div className="mb-4 flex items-center justify-between">
-                  <p className="text-xs uppercase tracking-wider text-white/50">
-                    {t("profile.achievements", "Achievements")}
-                  </p>
-                  <span className="text-xs text-white/40">{t("profile.awardsEarnedCount").replace("{n}", String(visibleAwards.length))}</span>
-                </div>
-                <div className="grid grid-cols-4 gap-3">
-                  {visibleAwards.map((item) => (
-                    <div
-                      key={item.id}
-                      className="group relative flex flex-col items-center"
-                    >
-                      <span className="pointer-events-none absolute -top-9 left-1/2 z-10 -translate-x-1/2 whitespace-nowrap rounded-md border border-white/10 bg-black/90 px-2 py-1 text-[10px] font-medium text-white opacity-0 transition group-hover:opacity-100">
-                        {awardLabel({
-                          id: item.id,
-                          awardType: item.awardType,
-                          awardTier: item.awardTier,
-                          createdAt: "",
-                        })}
-                      </span>
-                      <div className="transition-transform duration-200 group-hover:scale-110 group-hover:drop-shadow-[0_0_14px_rgba(127,119,221,0.35)]">
-                        {renderAwardIcon({
-                          id: item.id,
-                          awardType: item.awardType,
-                          awardTier: item.awardTier,
-                          createdAt: "",
-                        })}
-                      </div>
-                      <span className="text-xs font-semibold text-white/70">x{item.count}</span>
-                    </div>
-                  ))}
-                  {(visibleAwards.length < sortedAwards.length || isOwner) && (
-                    <button
-                      type="button"
-                      onClick={() => setAwardsModalOpen(true)}
-                      className="flex h-10 w-10 items-center justify-center rounded-full border border-dashed border-white/15 text-white/40 transition hover:border-[#7F77DD]/50 hover:text-[#7F77DD]"
-                      aria-label={t("profile.customize", "Customize")}
-                    >
-                      <Plus className="h-4 w-4" />
-                    </button>
-                  )}
-                </div>
-              </div>
+            {/* Display name + collab badge + edit icon */}
+            <div className="mt-3 flex flex-wrap items-center justify-center gap-2.5">
+              <h1 className="text-[22px] font-black tracking-tight text-white md:text-[28px]">
+                {displayName}
+              </h1>
+              {/* 협업 가능 뱃지 제거됨 */}
+              {isOwner && (
+                <button
+                  type="button"
+                  onClick={() => setEditModalOpen(true)}
+                  title={t("settings.editProfile", "Edit profile")}
+                  className="inline-flex h-7 w-7 items-center justify-center rounded-full border border-white/[0.08] bg-white/[0.02] text-white/55 transition hover:border-[#7F77DD]/40 hover:text-white"
+                >
+                  <Pencil className="h-3.5 w-3.5" />
+                </button>
+              )}
+            </div>
+
+            {/* Handle + genre badge */}
+            <div className="mt-1 flex items-center gap-2 text-[14px] text-white/45">
+              <span>@{handle}</span>
+              {mainGenre && (
+                <>
+                  <span className="text-white/15">·</span>
+                  <span className="font-semibold uppercase tracking-[0.12em] text-[#AFA9EC]/80">
+                    {GENRE_LABEL[mainGenre] ?? mainGenre}
+                  </span>
+                </>
+              )}
+            </div>
+
+            {/* Bio */}
+            {headerIntro ? (
+              <p className="mt-2 max-w-[520px] text-[13px] leading-relaxed text-white/65">
+                {expanded ? (bioFull || headerIntro) : headerIntro}
+              </p>
             ) : null}
+
+            {/* Show more/less */}
+            {bioFull && bioFull.length > (headerIntro?.length ?? 0) && (
+              <button
+                type="button"
+                onClick={() => setExpanded((prev) => !prev)}
+                className="mt-2 flex items-center gap-1 text-[12px] font-semibold text-[#AFA9EC] transition hover:text-white"
+              >
+                {expanded ? t("profile.showLess", "Show less") : t("profile.showMore", "Show more")}
+                <ChevronDown className={cn("h-3 w-3 transition-transform", expanded && "rotate-180")} />
+              </button>
+            )}
+
+            {/* Expanded details */}
+            {expanded && (
+              <div className="mt-4 flex flex-col items-center gap-3">
+                {headerToolsLine && (
+                  <div className="flex flex-wrap justify-center gap-1.5">
+                    {headerToolsLine.split(" · ").map((tool) => (
+                      <span key={tool} className="rounded-md border border-white/[0.08] bg-white/[0.02] px-2 py-0.5 text-xs text-white/70">
+                        {tool}
+                      </span>
+                    ))}
+                  </div>
+                )}
+                <div className="flex flex-wrap justify-center gap-x-4 gap-y-1 text-xs text-white/50">
+                  {country ? <span>📍 {country}</span> : null}
+                  {joinedLabel ? <span>{joinedLabel}</span> : null}
+                </div>
+                <SocialLinks
+                  websiteUrl={websiteUrl}
+                  twitterUrl={twitterUrl}
+                  instagramUrl={instagramUrl}
+                  youtubeUrl={youtubeUrl}
+                  tiktokUrl={tiktokUrl}
+                  vimeoUrl={vimeoUrl}
+                />
+              </div>
+            )}
+
+            {/* CTA row — message/follow for non-owners */}
+            {!isOwner && (
+              <div className="mt-3 flex items-center justify-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    window.dispatchEvent(
+                      new CustomEvent("open-message", {
+                        detail: {
+                          userId: profileId,
+                          displayName: displayName,
+                          avatarUrl: avatarUrl,
+                        },
+                      }),
+                    );
+                  }}
+                  className="flex items-center gap-2 rounded-lg border border-white/15 bg-white/5 px-4 py-2 text-sm transition hover:bg-white/10"
+                >
+                  <MessageCircle className="h-4 w-4" />
+                  {t("profile.message", "Message")}
+                </button>
+                {showFollow && (
+                  <button
+                    type="button"
+                    onClick={onFollowToggle}
+                    disabled={pending}
+                    className={cn(
+                      "flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold transition disabled:opacity-60",
+                      following
+                        ? "border border-white/20 bg-white/5 hover:bg-white/10"
+                        : "bg-[#534AB7] text-white hover:bg-[#6B5FD4]",
+                    )}
+                  >
+                    {following ? <UserCheck className="h-4 w-4" /> : <UserPlus className="h-4 w-4" />}
+                    {following ? t("profile.following", "Following") : t("profile.follow", "Follow")}
+                  </button>
+                )}
+                <button
+                  type="button"
+                  className="rounded-lg border border-white/15 bg-white/5 p-2 transition hover:bg-white/10"
+                >
+                  <MoreHorizontal className="h-4 w-4" />
+                </button>
+              </div>
+            )}
+
+            {/* Stats row */}
+            <div className="mt-4 flex items-center gap-5 md:gap-7">
+              <Stat label={t("profile.videos", "Videos")} value={totalVideoCount} />
+              <div className="h-8 w-px bg-white/[0.08]" />
+              <Stat label={t("profile.followers", "Followers")} value={followersCount} />
+              <div className="h-8 w-px bg-white/[0.08]" />
+              <Stat label={t("profile.followingCountLabel", "Following")} value={followingCount} />
+            </div>
+
+            {/* Achievement showcase — removed for beta, restore later */}
           </div>
         </div>
         </AnimateIn>
@@ -777,25 +804,25 @@ export function GenovaProfileClient({
       {/* Tabs + grid */}
       <AnimateIn delay={0.1}>
       <div className="pb-12 pt-6">
-        <div className="mx-auto min-w-0 w-full max-w-[1280px] px-6 sm:px-12">
-            <div className="flex flex-col gap-3 border-b border-white/[0.04] sm:flex-row sm:items-center sm:justify-between">
-              <div className="flex flex-wrap rounded-xl border border-white/[0.06] bg-white/[0.02] p-1">
+        <div className="mx-auto min-w-0 w-full max-w-[1800px] px-6 sm:px-10 lg:px-14">
+            <div className="flex items-center justify-between gap-6 py-3">
+              <div className="flex items-center gap-2">
                 {tabs.map((tab) => (
                   <button
                     key={tab}
                     type="button"
                     onClick={() => setActiveTab(tab)}
                     className={cn(
-                      "flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium transition",
+                      "flex min-w-[88px] items-center justify-center gap-1.5 rounded-lg px-3 py-1.5 text-[12px] transition",
                       activeTab === tab
-                        ? "bg-white/[0.05] text-white shadow-[0_2px_8px_rgba(127,119,221,0.4)]"
-                        : "text-white/40 hover:text-white/70",
+                        ? "border border-white/[0.08] bg-gradient-to-br from-white/[0.06] to-white/[0.02] font-bold text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]"
+                        : "border border-transparent font-semibold text-white/45 hover:bg-white/[0.03] hover:text-white/80",
                     )}
                   >
-                    {tab === "Videos" ? <Grid className="h-4 w-4" /> : null}
-                    {tab === "Competition" ? <Trophy className="h-4 w-4" /> : null}
-                    {tab === "Series" ? <Film className="h-4 w-4" /> : null}
-                    {tab === "Saved" ? <Bookmark className="h-4 w-4" /> : null}
+                    {tab === "Videos" ? <Grid className="h-3.5 w-3.5" /> : null}
+                    {tab === "Competition" ? <Trophy className="h-3.5 w-3.5" /> : null}
+                    {tab === "Series" ? <Film className="h-3.5 w-3.5" /> : null}
+                    {tab === "Saved" ? <Bookmark className="h-3.5 w-3.5" /> : null}
                     {tab === "Videos"
                       ? t("profile.tabVideos")
                       : tab === "Competition"
@@ -814,23 +841,23 @@ export function GenovaProfileClient({
                       const v = e.target.value as "Newest" | "Oldest" | "Most Viewed";
                       setSortBy(v);
                     }}
-                    className="appearance-none rounded-lg border border-white/[0.08] bg-white/[0.02] px-3 py-2 pr-9 text-sm text-white/80 outline-none transition hover:border-white/15 focus:border-[#7F77DD]/40"
+                    className="appearance-none rounded-lg border border-white/[0.06] bg-white/[0.02] px-3 py-1.5 pr-8 text-[12px] font-semibold text-white/65 outline-none transition hover:border-white/[0.12] hover:text-white/85 focus:border-[#7F77DD]/40"
                   >
                     <option value="Newest">{t("profile.sortNewest")}</option>
                     <option value="Oldest">{t("profile.sortOldest")}</option>
                     <option value="Most Viewed">{t("profile.sortMostViewed")}</option>
                   </select>
-                  <ChevronDown className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-white/40" />
+                  <ChevronDown className="pointer-events-none absolute right-2.5 top-1/2 h-3 w-3 -translate-y-1/2 text-white/45" />
                 </div>
                 {isOwner ? (
                   <button
                     type="button"
                     onClick={() => setEditMode((prev) => !prev)}
                     className={cn(
-                      "ml-2 rounded-lg border p-1.5 transition-all duration-200",
+                      "inline-flex h-[30px] w-[30px] items-center justify-center rounded-lg border transition",
                       editMode
-                        ? "border-primary bg-primary/20 text-primary"
-                        : "border-border bg-card text-white/40 hover:border-white/30 hover:text-white",
+                        ? "border-[#7F77DD]/40 bg-[#534AB7]/15 text-[#AFA9EC]"
+                        : "border-white/[0.06] bg-white/[0.02] text-white/55 hover:border-white/[0.12] hover:text-white/85",
                     )}
                     aria-label={t("profile.toggleEditMode", "Toggle edit mode")}
                   >
@@ -1017,7 +1044,7 @@ export function GenovaProfileClient({
                                       style={{
                                         height: "70%",
                                         background:
-                                          "linear-gradient(to top, rgba(8,6,24,1) 0%, rgba(8,6,24,0.8) 40%, transparent 100%)",
+                                          "linear-gradient(to top, rgba(10,10,10,1) 0%, rgba(10,10,10,0.8) 40%, transparent 100%)",
                                       }}
                                     />
                                     {video.episodeNumber ? (
@@ -1032,7 +1059,7 @@ export function GenovaProfileClient({
                                     ) : null}
                                     <div className="absolute bottom-0 left-0 right-0 z-[3] px-2.5 pb-2">
                                       <h3 className="line-clamp-1 text-[12px] font-bold text-white">{video.title}</h3>
-                                      <p className="text-[10px] text-white/40">
+                                      <p className="text-[10px] text-white/35">
                                         {views} {t("profile.viewsSuffix")}
                                       </p>
                                     </div>
@@ -1047,174 +1074,66 @@ export function GenovaProfileClient({
                 );
               })()
             ) : (
-              <div className="mt-4 grid grid-cols-2 gap-5 md:grid-cols-3 lg:grid-cols-4">
+              <div className="mt-4 grid min-h-[700px] grid-cols-2 gap-5 md:grid-cols-3 lg:grid-cols-4 2xl:grid-cols-5 content-start">
                 {displayVideos.videos.length === 0 ? (
-                  <div className="col-span-4 mt-12 flex flex-col items-center justify-center gap-4 text-center">
-                    <Film className="h-16 w-16 text-white/15" />
-                    <p className="text-sm text-white/40">
-                      {activeAwardFilter ? t("profile.noVideosForAward") : t("profile.noVideosYet", "No videos yet.")}
-                    </p>
+                  <div className="col-span-full flex min-h-[600px] flex-col items-center justify-center gap-5 rounded-xl border border-dashed border-white/[0.06] py-20 text-center">
+                    <Film className="h-12 w-12 text-white/15" />
+                    <div className="space-y-1">
+                      <p className="text-[15px] font-bold text-white/70">
+                        {activeAwardFilter ? t("profile.noVideosForAward", "수상작이 없습니다") : t("profile.noVideosYet", "아직 작품이 없습니다")}
+                      </p>
+                      {isOwner && (
+                        <p className="text-[12px] text-white/35">
+                          {t("profile.noVideosHint", "첫 작품을 업로드해보세요")}
+                        </p>
+                      )}
+                    </div>
                     {isOwner ? (
-                      <Link
-                        href="/upload"
-                        className="rounded-lg bg-[#534AB7] px-4 py-2 text-sm text-white transition hover:bg-[#7F77DD]"
+                      <button
+                        type="button"
+                        onClick={() => openUploadModal()}
+                        className="rounded-lg bg-[#534AB7] px-5 py-2.5 text-[13px] font-bold text-white transition hover:bg-[#6b5fd4]"
                       >
-                        {t("upload.uploadTitle", "Upload video")}
-                      </Link>
+                        {t("upload.uploadTitle", "영상 업로드")}
+                      </button>
                     ) : null}
                   </div>
                 ) : null}
-                {displayVideos.videos.map((video) => {
-                  const thumb =
-                    video.thumbnailUrl?.trim() ||
-                    `https://picsum.photos/seed/${encodeURIComponent(video.id)}/400/225`;
-                  const views = formatViewCountShort(video.viewCount ?? 0);
-                  const when = formatUploadedRelative(video.createdAt, locale);
-                  const competitionVideo = video as CompetitionVideo;
-                  const competitionTitle =
-                    locale === "ko"
-                      ? competitionVideo.competitions?.title_ko || competitionVideo.competitions?.title
-                      : locale === "ja"
-                        ? competitionVideo.competitions?.title_ja || competitionVideo.competitions?.title
-                        : competitionVideo.competitions?.title_en || competitionVideo.competitions?.title;
-                  return (
-                    <div
-                      key={`${activeTab}-${video.id}`}
-                      className={cn(
-                        "relative cursor-pointer",
-                        editMode && selectedVideoIds.includes(video.id) && "scale-95 ring-2 ring-primary rounded-xl",
-                      )}
-                      onClick={
-                        editMode
-                          ? (e) => {
-                              e.preventDefault();
-                              if (!bulkAction) {
-                                setShowBulkHint(true);
-                                setTimeout(() => setShowBulkHint(false), 2000);
-                                return;
-                              }
-                              setSelectedVideoIds((prev) =>
-                                prev.includes(video.id) ? prev.filter((id) => id !== video.id) : [...prev, video.id],
-                              );
+                {displayVideos.videos.map((video) => (
+                  <div
+                    key={`${activeTab}-${video.id}`}
+                    className={cn(
+                      "relative",
+                      editMode && selectedVideoIds.includes(video.id) && "scale-95 ring-2 ring-primary rounded-xl",
+                      editMode && "[&_a]:pointer-events-none",
+                    )}
+                    onClick={
+                      editMode
+                        ? (e) => {
+                            e.preventDefault();
+                            if (!bulkAction) {
+                              setShowBulkHint(true);
+                              setTimeout(() => setShowBulkHint(false), 2000);
+                              return;
                             }
-                          : undefined
-                      }
-                    >
-                      <Link
-                        href={editMode ? "#" : `/watch/${video.id}`}
-                        onClick={editMode ? (e) => e.preventDefault() : undefined}
-                        className="group/card block cursor-pointer rounded-xl border border-white/[0.08] transition duration-300 hover:scale-[1.02] hover:border-[#7F77DD]/60 hover:shadow-[0_0_40px_rgba(127,119,221,0.4)]"
-                      >
-                        <div
-                          className="relative w-full overflow-hidden rounded-xl ring-1 ring-transparent transition group-hover/card:ring-[#7F77DD]/30"
-                          style={{ aspectRatio: "16/9" }}
-                        >
-                          <Image
-                            src={thumb}
-                            alt={video.title}
-                            fill
-                            className="object-cover transition-transform duration-500 group-hover/card:scale-105"
-                            sizes="(max-width: 1024px) 50vw, 25vw"
-                            unoptimized={thumb.startsWith("http")}
-                          />
-
-                          <div
-                            className="pointer-events-none absolute -right-16 top-1/2 z-[1] h-48 w-48 -translate-y-1/2 rounded-full opacity-0 transition-opacity duration-700 group-hover/card:opacity-100"
-                            style={{
-                              background: "radial-gradient(circle, rgba(127,119,221,0.25) 0%, transparent 70%)",
-                              filter: "blur(40px)",
-                            }}
-                          />
-
-                          <div className="absolute inset-0 z-[1] bg-black/0 transition group-hover/card:bg-black/20" />
-
-                          {activeTab === "Competition" && competitionTitle ? (
-                            <div className="absolute left-2 top-2 z-[3]">
-                              <span className="rounded-full border border-[#7F77DD]/30 bg-[#7F77DD]/20 px-2.5 py-1 text-[10px] uppercase tracking-wider text-[#AFA9EC] backdrop-blur-md">
-                                ✦ {competitionTitle}
-                              </span>
-                            </div>
-                          ) : null}
-
-                          {/* 수상 배지 */}
-                          {video.award ? (
-                            <div
-                              title={
-                                video.award === "gold"
-                                  ? t("profile.awardGrandPrize")
-                                  : video.award === "silver"
-                                    ? t("profile.awardRunnerUp")
-                                    : video.award === "bronze"
-                                      ? t("profile.awardThirdPlace")
-                                      : video.award === "special"
-                                        ? t("profile.awardSpecial")
-                                        : video.award === "genre_1st"
-                                          ? t("profile.awardGenreFirst")
-                                          : video.award === "genre_2nd"
-                                            ? t("profile.awardGenreSecond")
-                                            : t("profile.awardGenreThird")
-                              }
-                              className="absolute left-2 top-2 z-[3] rounded-full border border-white/10 bg-black/60 p-1.5 backdrop-blur-md"
-                            >
-                              {video.award === "gold" && <Trophy className="h-4 w-4 text-yellow-400" />}
-                              {video.award === "silver" && <Trophy className="h-4 w-4 text-slate-300" />}
-                              {video.award === "bronze" && <Trophy className="h-4 w-4 text-amber-600" />}
-                              {video.award === "special" && <Trophy className="h-4 w-4 text-purple-400" />}
-                              {video.award === "genre_1st" && <Star className="h-4 w-4 text-yellow-400" />}
-                              {video.award === "genre_2nd" && <Star className="h-4 w-4 text-slate-300" />}
-                              {video.award === "genre_3rd" && <Star className="h-4 w-4 text-amber-600" />}
-                            </div>
-                          ) : null}
-
-                          {/* 호버 플레이 */}
-                          <div className="absolute inset-0 z-[3] flex items-center justify-center opacity-0 transition-opacity duration-300 group-hover/card:opacity-100">
-                            <div className="flex h-12 w-12 items-center justify-center rounded-full border border-white/20 bg-white/10 backdrop-blur-md">
-                              <Play className="h-5 w-5 text-white" />
-                            </div>
-                          </div>
-
-                          {/* 편집 버튼 */}
-                          {isOwner ? (
-                            <button
-                              type="button"
-                              className="absolute right-2 top-2 z-[10] flex items-center gap-1 rounded-md border border-white/15 bg-black/65 px-2 py-1 text-[10px] text-white/70 opacity-0 backdrop-blur-sm transition group-hover/card:opacity-100 hover:bg-black/85 hover:text-white"
-                              onClick={(e) => {
-                                e.preventDefault();
-                                e.stopPropagation();
-                                router.push(`/upload/edit/${video.id}`);
-                              }}
-                            >
-                              <Pencil className="h-2.5 w-2.5" />
-                              {t("profile.edit")}
-                            </button>
-                          ) : null}
-
-                          {/* 선택 체크 */}
-                          {isOwner && editMode && selectedVideoIds.includes(video.id) ? (
-                            <div className="absolute inset-0 z-[4] rounded-xl bg-black/60 pointer-events-none" />
-                          ) : null}
-                          {isOwner && editMode && selectedVideoIds.includes(video.id) ? (
-                            <div className="absolute top-3 left-3 z-[5] flex h-6 w-6 items-center justify-center rounded-full bg-primary shadow-lg">
-                              <Check className="h-4 w-4 text-white" />
-                            </div>
-                          ) : null}
-                        </div>
-                        <div className="px-2.5 pt-2.5">
-                          <h3 className="line-clamp-1 text-sm font-semibold text-white">{video.title}</h3>
-                          <div className="mt-1 flex items-center gap-2 text-xs text-white/40">
-                            {video.runtime ? <span>{video.runtime}</span> : null}
-                            {video.runtime ? <span>·</span> : null}
-                            <span>
-                              {views} {t("profile.viewsSuffix")}
-                            </span>
-                            <span>·</span>
-                            <span>{when}</span>
-                          </div>
-                        </div>
-                      </Link>
-                    </div>
-                  );
-                })}
+                            setSelectedVideoIds((prev) =>
+                              prev.includes(video.id) ? prev.filter((id) => id !== video.id) : [...prev, video.id],
+                            );
+                          }
+                        : undefined
+                    }
+                  >
+                    <ProfileVideoCard video={video} t={t} isOwner={isOwner} onEdit={openEditModal} />
+                    {isOwner && editMode && selectedVideoIds.includes(video.id) ? (
+                      <div className="absolute inset-0 z-[4] rounded-xl bg-black/60 pointer-events-none" />
+                    ) : null}
+                    {isOwner && editMode && selectedVideoIds.includes(video.id) ? (
+                      <div className="absolute top-3 left-3 z-[5] flex h-6 w-6 items-center justify-center rounded-full bg-primary shadow-lg">
+                        <Check className="h-4 w-4 text-white" />
+                      </div>
+                    ) : null}
+                  </div>
+                ))}
               </div>
             )}
             {displayVideos.totalPages > 1 ? (
@@ -1290,6 +1209,41 @@ export function GenovaProfileClient({
         </div>
       </div>
       </AnimateIn>
+
+      {editModalOpen && typeof window !== "undefined" && createPortal(
+        <div
+          className="fixed inset-0 z-[100] flex items-start justify-center overflow-y-auto bg-black/70 backdrop-blur-sm p-4 pt-[10vh]"
+          onClick={() => setEditModalOpen(false)}
+        >
+          <div
+            className="relative w-full max-w-2xl rounded-2xl border border-white/[0.08] bg-[#0a0a0a] p-6 mb-[10vh]"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="mb-5 flex items-center justify-between">
+              <h2 className="text-[18px] font-bold text-white">
+                {t("settings.title", "프로필 편집")}
+              </h2>
+              <button
+                type="button"
+                onClick={() => setEditModalOpen(false)}
+                className="flex h-8 w-8 items-center justify-center rounded-full border border-white/[0.06] bg-white/[0.02] text-white/55 transition hover:border-white/[0.12] hover:text-white"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+            <ProfileSettingsClient
+              profile={profile}
+              userEmail={userEmail}
+              hasPassword={hasPassword}
+              authProvider={authProvider}
+              handle={handle}
+              isModal
+              onClose={() => setEditModalOpen(false)}
+            />
+          </div>
+        </div>,
+        document.body,
+      )}
 
       {isOwner && awardsModalOpen ? (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
