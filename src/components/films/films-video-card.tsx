@@ -42,7 +42,7 @@ export function FilmsVideoCard({
             className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
           />
         ) : (
-          <div className="h-full w-full bg-gradient-to-br from-[#1a1547] to-[#0f0d24]" />
+          <div className="h-full w-full bg-gradient-to-br from-[#1a1547] to-[#1a1a1a]" />
         )}
 
         {/* 기본 상태: 얇은 하단 그라데이션 + 제목만 */}
@@ -50,7 +50,7 @@ export function FilmsVideoCard({
           className="absolute inset-x-0 bottom-0 z-[1] transition-opacity duration-300 group-hover:opacity-0"
           style={{
             height: "45%",
-            background: "linear-gradient(to top, rgba(8,6,24,0.92) 0%, rgba(8,6,24,0.5) 50%, transparent 100%)",
+            background: "linear-gradient(to top, rgba(10,10,10,0.92) 0%, rgba(10,10,10,0.5) 50%, transparent 100%)",
           }}
         />
         <div className="absolute bottom-0 left-0 right-0 z-[2] px-3 pb-2.5 transition-opacity duration-300 group-hover:opacity-0">
@@ -70,7 +70,7 @@ export function FilmsVideoCard({
         <div
           className="absolute inset-0 z-[3] flex flex-col justify-between p-3 opacity-0 transition-opacity duration-300 group-hover:opacity-100"
           style={{
-            background: "linear-gradient(to top, rgba(8,6,24,0.97) 0%, rgba(8,6,24,0.7) 45%, rgba(8,6,24,0.15) 100%)",
+            background: "linear-gradient(to top, rgba(10,10,10,0.97) 0%, rgba(10,10,10,0.7) 45%, rgba(10,10,10,0.15) 100%)",
           }}
         >
           {/* 상단: 어워드 배지 or 장르 */}
@@ -105,7 +105,7 @@ export function FilmsVideoCard({
           {/* 하단: 제목 + 크리에이터 + 메타 */}
           <div>
             <h3 className="mb-1.5 line-clamp-2 text-[13px] font-bold leading-snug text-white">{video.title}</h3>
-            <p className="text-[11px] font-medium text-white/60">{creator}</p>
+            <p className="text-[11px] font-medium text-white/55">{creator}</p>
             {video.viewCount ? (
               <p className="mt-1 text-[10px] text-white/35">
                 {video.viewCount >= 1000
@@ -128,7 +128,7 @@ export function FilmsComingSoon({ className = "" }: { className?: string }) {
     >
       <p className="typo-sidebar-heading text-[#7F77DD]/65">{t("meta.brand", "Genova")}</p>
       <p className="mt-3 text-lg font-semibold text-white">{t("films.comingSoonTitle", "Coming Soon")}</p>
-      <p className="mt-2 max-w-sm text-sm text-white/40">
+      <p className="mt-2 max-w-sm text-sm text-white/35">
         {t("films.comingSoonLineup", "This lineup is being curated. Check back shortly.")}
       </p>
     </div>

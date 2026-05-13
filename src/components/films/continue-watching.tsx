@@ -122,7 +122,7 @@ export function ContinueWatching({
                 )}
                 style={{ width: "calc((100% - 60px) / 6.9)", transformOrigin: "center center" }}
               >
-                <div className="relative aspect-video w-full overflow-hidden rounded-xl border border-white/10 bg-[#0f0d24]">
+                <div className="relative aspect-video w-full overflow-hidden rounded-xl border border-white/10 bg-[#1a1a1a]">
                     {video.thumbnailUrl ? (
                       <img
                         src={video.thumbnailUrl}
@@ -130,7 +130,7 @@ export function ContinueWatching({
                         className="h-full w-full object-cover"
                       />
                     ) : (
-                      <div className="h-full w-full bg-gradient-to-br from-[#1a1547] to-[#0f0d24]" />
+                      <div className="h-full w-full bg-gradient-to-br from-[#1a1547] to-[#1a1a1a]" />
                     )}
                     <div className="absolute inset-0 z-[1] bg-black/0 transition-opacity duration-150 group-hover/card:bg-black/40" />
                     <div className="absolute bottom-0 left-0 right-0 z-[3] h-1 bg-white/10">
@@ -196,7 +196,7 @@ export function ContinueWatching({
               isHovered ? "opacity-100" : "opacity-0"
             )}
             style={{
-              background: "linear-gradient(to right, rgba(8,6,24,0.85) 0%, rgba(8,6,24,0.4) 60%, transparent 100%)"
+              background: "linear-gradient(to right, rgba(10,10,10,0.85) 0%, rgba(10,10,10,0.4) 60%, transparent 100%)"
             }}
           >
             <ChevronLeft
@@ -221,7 +221,7 @@ export function ContinueWatching({
               isHovered ? "opacity-100" : "opacity-0"
             )}
             style={{
-              background: "linear-gradient(to left, rgba(8,6,24,0.85) 0%, rgba(8,6,24,0.4) 60%, transparent 100%)"
+              background: "linear-gradient(to left, rgba(10,10,10,0.85) 0%, rgba(10,10,10,0.4) 60%, transparent 100%)"
             }}
           >
             <ChevronRight
