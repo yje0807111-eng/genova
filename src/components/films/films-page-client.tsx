@@ -43,7 +43,7 @@ function VideoRow({ title, videos }: { title: string; videos: (Video & { award?:
   if (videos.length === 0) return null;
 
   return (
-    <div className="space-y-3 overflow-visible" style={{ position: "relative", zIndex: 0 }}>
+    <div className="relative z-0 space-y-3 overflow-visible">
       <div className="flex items-center gap-3">
         <span className="text-sm text-[#7F77DD]">✦</span>
         <h2 className="text-[22px] font-black tracking-tight text-white">
@@ -64,14 +64,13 @@ function VideoRow({ title, videos }: { title: string; videos: (Video & { award?:
           <div
             ref={scrollRef}
             onScroll={onScroll}
-            style={{ overflowX: "auto", overflowY: "visible", paddingTop: "20px", paddingBottom: "20px", marginTop: "-20px", marginBottom: "-20px", paddingLeft: "0px", paddingRight: "60px", marginLeft: "0px", marginRight: "-60px" }}
-            className="hide-scrollbar flex gap-4"
+            className="hide-scrollbar flex gap-4 overflow-x-auto overflow-y-visible py-5 -my-5 pr-[60px] -mr-[60px]"
           >
             {videos.map((video) => (
               <div
                 key={video.id}
-                className={cn("shrink-0", arrowHovered ? "pointer-events-none" : "")}
-                style={{ width: "calc((100% - 60px) / 6.9)", transformOrigin: "center center" }}
+                className={cn("shrink-0 origin-center", arrowHovered ? "pointer-events-none" : "")}
+                style={{ width: "calc((100% - 60px) / 6.9)" }}
               >
                 <VideoCard
                   video={video}
@@ -99,7 +98,7 @@ function VideoRow({ title, videos }: { title: string; videos: (Video & { award?:
               isHovered ? "pointer-events-auto" : "pointer-events-none"
             )}
             style={{
-              background: "linear-gradient(to right, rgba(10,10,10,0.85) 0%, rgba(10,10,10,0.4) 60%, transparent 100%)"
+              background: "var(--gradient-row-fade-l)"
             }}
           >
             <div className="flex h-full w-full items-center justify-center transition-all duration-200 group-hover/arrow:bg-black/20">
@@ -128,7 +127,7 @@ function VideoRow({ title, videos }: { title: string; videos: (Video & { award?:
               isHovered ? "pointer-events-auto" : "pointer-events-none"
             )}
             style={{
-              background: "linear-gradient(to left, rgba(10,10,10,0.85) 0%, rgba(10,10,10,0.4) 60%, transparent 100%)"
+              background: "var(--gradient-row-fade-r)"
             }}
           >
             <div className="flex h-full w-full items-center justify-center transition-all duration-200 group-hover/arrow:bg-black/20">
@@ -232,8 +231,7 @@ export function FilmsPageClient({
   return (
     <div className="relative min-h-screen pt-12">
       <div
-        className="pointer-events-none absolute inset-0"
-        style={{ background: "#111111" }}
+        className="pointer-events-none absolute inset-0 bg-[#111111]"
       />
 
       <div className="relative mx-auto max-w-[1680px] px-12 pb-24 pt-8 text-white space-y-10">
@@ -369,11 +367,11 @@ export function FilmsPageClient({
               <div>
                 <div className="mb-1.5 flex items-center gap-1.5">
                   <span className="text-[10px] text-[#7F77DD]">✦</span>
-                  <p className="text-[10px] font-black uppercase tracking-[0.22em]" style={{ color: "#7F77DD", opacity: 0.75 }}>
+                  <p className="text-[10px] font-black uppercase tracking-[0.22em] text-accent-primary opacity-75">
                     {t("films.seriesSectionTitle")}
                   </p>
                 </div>
-                <h2 className="text-[26px] font-black tracking-tight text-white" style={{ letterSpacing: "-0.02em" }}>
+                <h2 className="typo-section-title">
                   {t("films.seriesSectionTitle")}
                 </h2>
               </div>
