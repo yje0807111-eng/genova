@@ -61,7 +61,9 @@
 
   /* Border — white alpha (글래스 chrome) */
   --border-white-04: rgba(255 255 255 / 0.04);
+  --border-white-06: rgba(255 255 255 / 0.06);
   --border-white-08: rgba(255 255 255 / 0.08);
+  --border-white-10: rgba(255 255 255 / 0.10);
   --border-white-15: rgba(255 255 255 / 0.15);
 
   /* Tint — accent-core 채우기 */
@@ -94,6 +96,7 @@
   --shadow-glow-sm:    0 0 12px rgba(83 74 183 / 0.2);
   --shadow-glow-md:    0 0 18px rgba(83 74 183 / 0.28);
   --shadow-glow-lg:    0 0 30px rgba(83 74 183 / 0.35);
+  --shadow-dropdown:   0 8px 32px rgba(0 0 0 / 0.6), 0 0 0 1px rgba(127 119 221 / 0.08);
   --glow-text:         0 0 8px rgba(175 169 236 / 0.8);
 
   /* Gradient */
@@ -105,6 +108,8 @@
   --gradient-sidebar:      linear-gradient(180deg, rgba(22 14 42 / 0.99) 0%, rgba(16 11 34 / 1) 30%, rgba(11 8 26 / 1) 65%, var(--bg-base) 100%);
   --gradient-section-end:  linear-gradient(to top, var(--bg-base) 0%, rgba(10 10 10 / 0.8) 40%, transparent 100%);
   --gradient-danger:       linear-gradient(135deg, var(--danger-from) 0%, var(--danger-to) 100%);
+  --gradient-dropdown:     linear-gradient(160deg, rgba(22 14 42 / 0.99) 0%, rgba(10 6 22 / 1) 100%);
+  --gradient-card-overlay: linear-gradient(180deg, transparent 50%, rgba(0 0 0 / 0.85) 100%);
 
   /* Motion */
   --duration-fast:         200ms;   /* hover */
@@ -124,6 +129,9 @@
   --z-tabnav:       60;
   --z-arrow:        100;
   --z-modal:        200;
+
+  /* Layout */
+  --sidebar-width: 240px;
 
   /* ============================================================
      LEGACY shadcn tokens — out-of-scope this round
@@ -217,7 +225,9 @@
 
   /* Lines / dividers (border-*) — white alpha (글래스 chrome) */
   --color-line-white-04: var(--border-white-04);
+  --color-line-white-06: var(--border-white-06);
   --color-line-white-08: var(--border-white-08);
+  --color-line-white-10: var(--border-white-10);
   --color-line-white-15: var(--border-white-15);
 
   /* Tints (bg-* fills) — accent-core 알파 */
@@ -242,6 +252,7 @@
   --shadow-glow-sm:     var(--shadow-glow-sm);
   --shadow-glow-md:     var(--shadow-glow-md);
   --shadow-glow-lg:     var(--shadow-glow-lg);
+  --shadow-dropdown:    var(--shadow-dropdown);
 
   /* Easing */
   --ease-standard: var(--ease-standard);
