@@ -184,6 +184,75 @@
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
   --radius-lg: var(--radius);
+
+  /* ============================================================
+     Layer 2/3 design tokens exposed as Tailwind utilities.
+     Naming: --color-{surface|accent|fg|line|tint|danger}-* (semantic)
+     Layer 1 (scale) NOT exposed — components must use semantic only.
+     ============================================================ */
+
+  /* Surfaces (bg-*) */
+  --color-surface-base:    var(--bg-base);
+  --color-surface-fade:    var(--bg-fade);
+  --color-surface-sidebar: var(--bg-sidebar);
+
+  /* Accents (bg/text/border-*) */
+  --color-accent-primary: var(--accent-primary);
+  --color-accent-core:    var(--accent-core);
+  --color-accent-light:   var(--accent-light);
+
+  /* Foreground / text (text-*) */
+  --color-fg-primary:   var(--text-primary);
+  --color-fg-secondary: var(--text-secondary);
+  --color-fg-tertiary:  var(--text-tertiary);
+  --color-fg-muted:     var(--text-muted);
+  --color-fg-disabled:  var(--text-disabled);
+
+  /* Lines / dividers (border-*) — purple alpha */
+  --color-line-subtle:   var(--border-subtle);
+  --color-line-default:  var(--border-default);
+  --color-line-strong:   var(--border-strong);
+  --color-line-emphasis: var(--border-emphasis);
+  --color-line-active:   var(--border-active);
+
+  /* Lines / dividers (border-*) — white alpha (글래스 chrome) */
+  --color-line-white-04: var(--border-white-04);
+  --color-line-white-08: var(--border-white-08);
+  --color-line-white-15: var(--border-white-15);
+
+  /* Tints (bg-* fills) — accent-core 알파 */
+  --color-tint-08: var(--tint-accent-08);
+  --color-tint-12: var(--tint-accent-12);
+  --color-tint-20: var(--tint-accent-20);
+  --color-tint-30: var(--tint-accent-30);
+
+  /* Danger system (gradient stops) */
+  --color-danger-from: var(--danger-from);
+  --color-danger-to:   var(--danger-to);
+
+  /* Radii (sm/md/xl reserved for Tailwind built-ins per Q3) */
+  --radius-card: var(--radius-card);
+  --radius-pill: var(--radius-pill);
+
+  /* Shadow / Glow (box-shadow only; --glow-text is text-shadow, use as var()) */
+  --shadow-card:        var(--shadow-card);
+  --shadow-card-hover:  var(--shadow-card-hover);
+  --shadow-cta:         var(--shadow-cta);
+  --shadow-cta-strong:  var(--shadow-cta-strong);
+  --shadow-glow-sm:     var(--shadow-glow-sm);
+  --shadow-glow-md:     var(--shadow-glow-md);
+  --shadow-glow-lg:     var(--shadow-glow-lg);
+
+  /* Easing */
+  --ease-standard: var(--ease-standard);
+
+  /* NOT exposed (use as var() or custom CSS):
+     - --gradient-* (no Tailwind namespace)
+     - --duration-* (use duration-[var(--duration-fast)])
+     - --z-* (use z-[var(--z-arrow)])
+     - --glow-text (text-shadow, use [text-shadow:var(--glow-text)])
+  */
+
   --font-sans: var(--font-plus-jakarta), ui-sans-serif, system-ui, sans-serif;
   --font-display: var(--font-syne), var(--font-plus-jakarta), ui-sans-serif, system-ui, sans-serif;
 }
