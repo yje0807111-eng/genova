@@ -46,7 +46,7 @@ type Props = {
 
 const inp =
   "w-full rounded-xl border border-white/[0.12] bg-[#0d0b20] px-4 py-2 text-sm text-white placeholder:text-white/20 outline-none transition focus:border-[#7F77DD]/60 focus:ring-1 focus:ring-[#7F77DD]/30 focus:bg-[#110e28]";
-const lbl = "mb-1.5 block text-[11px] font-bold uppercase tracking-widest text-white/40";
+const lbl = "mb-1.5 block text-[11px] font-bold uppercase tracking-widest text-white/35";
 type CatKey = (typeof AI_TOOL_CATEGORIES)[number]["key"];
 
 function NumberInput({
@@ -66,7 +66,7 @@ function NumberInput({
       <button
         type="button"
         onClick={() => onChange(Math.max(min, value - 1))}
-        className="flex h-10 w-10 shrink-0 items-center justify-center text-white/40 transition hover:bg-white/[0.05] hover:text-white"
+        className="flex h-10 w-10 shrink-0 items-center justify-center text-white/35 transition hover:bg-white/[0.05] hover:text-white"
       >
         <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={2}>
           <path d="M5 12h14" strokeLinecap="round" />
@@ -82,7 +82,7 @@ function NumberInput({
       <button
         type="button"
         onClick={() => onChange(value + 1)}
-        className="flex h-10 w-10 shrink-0 items-center justify-center text-white/40 transition hover:bg-white/[0.05] hover:text-white"
+        className="flex h-10 w-10 shrink-0 items-center justify-center text-white/35 transition hover:bg-white/[0.05] hover:text-white"
       >
         <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={2}>
           <path d="M12 5v14M5 12h14" strokeLinecap="round" />
@@ -458,7 +458,7 @@ export function EditVideoForm({ userId, video, competitions }: Props) {
     try {
       const result = await deleteVideoAction(video.id);
       if (result.ok) {
-        router.push("/films");
+        router.push("/?tab=films");
         router.refresh();
         return;
       }
@@ -601,7 +601,7 @@ export function EditVideoForm({ userId, video, competitions }: Props) {
                 </div>
                 <div className="relative mx-auto overflow-hidden rounded-xl border border-white/[0.08]" style={{ maxWidth: "240px" }}>
                   <div className="aspect-[3/4] w-full bg-black">
-                    <img src={thumbnailPreview ?? "/placeholder-user.jpg"} alt="" className="h-full w-full object-cover" />
+                    <img src={thumbnailPreview ?? "/default-avatar.png"} alt="" className="h-full w-full object-cover" />
                   </div>
                   <button type="button" onClick={openThumbPicker} className="absolute right-2 top-2 rounded-lg bg-black/70 px-3 py-1.5 text-xs font-semibold text-white backdrop-blur-sm transition hover:bg-black/90">
                     {t("upload.change")}
@@ -665,7 +665,7 @@ export function EditVideoForm({ userId, video, competitions }: Props) {
                   </div>
                   <svg
                     viewBox="0 0 24 24"
-                    className="h-3.5 w-3.5 text-white/40 transition-transform duration-300"
+                    className="h-3.5 w-3.5 text-white/35 transition-transform duration-300"
                     style={{ transform: previewOpen ? "rotate(180deg)" : "rotate(0deg)" }}
                     fill="none"
                     stroke="currentColor"
@@ -689,12 +689,12 @@ export function EditVideoForm({ userId, video, competitions }: Props) {
                         {thumbnailPreview ? (
                           <img src={thumbnailPreview} alt="" className="absolute inset-0 h-full w-full object-cover" />
                         ) : (
-                          <div className="absolute inset-0 bg-gradient-to-br from-[#1a1547] to-[#0f0d24]" />
+                          <div className="absolute inset-0 bg-gradient-to-br from-[#1a1547] to-[#1a1a1a]" />
                         )}
                         <div
                           className="absolute inset-0"
                           style={{
-                            background: "linear-gradient(to top, rgba(8,6,24,1) 0%, rgba(8,6,24,0.5) 40%, transparent 75%)",
+                            background: "linear-gradient(to top, rgba(10,10,10,1) 0%, rgba(10,10,10,0.5) 40%, transparent 75%)",
                           }}
                         />
                         <div className="absolute bottom-0 left-0 right-0 p-2.5">
@@ -722,7 +722,7 @@ export function EditVideoForm({ userId, video, competitions }: Props) {
                             style={{ filter: "brightness(1.15)" }}
                           />
                         ) : (
-                          <div className="absolute inset-0 bg-gradient-to-br from-[#1a1547] to-[#0f0d24]" />
+                          <div className="absolute inset-0 bg-gradient-to-br from-[#1a1547] to-[#1a1a1a]" />
                         )}
                         {/* 페이드 — 백드롭 없으면 강하게 */}
                         <div
@@ -957,7 +957,7 @@ export function EditVideoForm({ userId, video, competitions }: Props) {
 
                   <div className="border-t border-white/[0.05] pt-3.5">
                     <div className="mb-1.5 flex items-center gap-2">
-                      <span className="text-[11px] font-bold uppercase tracking-widest text-white/40">
+                      <span className="text-[11px] font-bold uppercase tracking-widest text-white/35">
                         {t("upload.additionalGenres", "Detail Genres")}
                       </span>
                       <span className="rounded-full px-1.5 py-0.5 text-[8px] font-black uppercase tracking-[0.15em]" style={{ background: "rgba(255,255,255,0.04)", color: "rgba(255,255,255,0.35)", border: "1px solid rgba(255,255,255,0.06)" }}>

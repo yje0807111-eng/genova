@@ -16,6 +16,7 @@ import {
 import { useI18n } from "@/components/genova/language-provider";
 import { MAX_VIDEO_TAGS } from "@/lib/tags";
 import { getBrowserSupabaseClient } from "@/lib/supabase/browser";
+import { SelectedVideoUploader } from "@/components/upload/selected-video-uploader";
 
 type Props = {
   userId: string;
@@ -28,7 +29,7 @@ type Props = {
 
 const inp =
   "w-full rounded-xl border border-white/[0.12] bg-[#0d0b20] px-4 py-2.5 text-sm text-white placeholder:text-white/20 outline-none transition focus:border-[#7F77DD]/60 focus:ring-1 focus:ring-[#7F77DD]/30 focus:bg-[#110e28]";
-const lbl = "mb-1.5 block text-[11px] font-bold uppercase tracking-widest text-white/40";
+const lbl = "mb-1.5 block text-[11px] font-bold uppercase tracking-widest text-white/35";
 
 type CatKey = (typeof AI_TOOL_CATEGORIES)[number]["key"];
 
@@ -51,7 +52,7 @@ function NumberInput({
       <button
         type="button"
         onClick={() => onChange(Math.max(min, value - 1))}
-        className="flex h-10 w-10 shrink-0 items-center justify-center text-white/40 transition hover:bg-white/[0.05] hover:text-white"
+        className="flex h-10 w-10 shrink-0 items-center justify-center text-white/35 transition hover:bg-white/[0.05] hover:text-white"
       >
         <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={2}>
           <path d="M5 12h14" strokeLinecap="round" />
@@ -67,7 +68,7 @@ function NumberInput({
       <button
         type="button"
         onClick={() => onChange(value + 1)}
-        className="flex h-10 w-10 shrink-0 items-center justify-center text-white/40 transition hover:bg-white/[0.05] hover:text-white"
+        className="flex h-10 w-10 shrink-0 items-center justify-center text-white/35 transition hover:bg-white/[0.05] hover:text-white"
       >
         <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={2}>
           <path d="M12 5v14M5 12h14" strokeLinecap="round" />
@@ -159,104 +160,6 @@ function CustomSelect({
               )}
             </button>
           ))}
-        </div>
-      )}
-    </div>
-  );
-}
-
-function SelectedVideoUploader({
-  file,
-  uploadUrl,
-  onUploadStart,
-  onProgress,
-  onSuccess,
-  onReset,
-  status,
-  duration,
-}: {
-  file: File;
-  uploadUrl: string;
-  onUploadStart: () => void;
-  onProgress: (pct: number) => void;
-  onSuccess: () => void;
-  onReset: () => void;
-  status: "idle" | "uploading" | "processing" | "ready";
-  duration: number | null;
-}) {
-  const { t } = useI18n();
-  const [progress, setProgress] = useState(0);
-  const [started, setStarted] = useState(false);
-
-  useEffect(() => {
-    if (started) return;
-    setStarted(true);
-    onUploadStart();
-
-    const xhr = new XMLHttpRequest();
-    xhr.open("PUT", uploadUrl);
-    xhr.upload.onprogress = (event) => {
-      if (event.lengthComputable) {
-        const pct = Math.round((event.loaded / event.total) * 100);
-        setProgress(pct);
-        onProgress(pct);
-      }
-    };
-    xhr.onload = () => {
-      if (xhr.status >= 200 && xhr.status < 300) onSuccess();
-    };
-    xhr.send(file);
-  }, []);
-
-  return (
-    <div className="space-y-3 rounded-xl border border-white/[0.08] p-3">
-      <div className="flex items-center gap-2">
-        <svg className="h-4 w-4 shrink-0 text-[#7F77DD]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
-          <path
-            d="M15 10l4.553-2.277A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M3 8a2 2 0 012-2h8a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2V8z"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
-        </svg>
-        <p className="min-w-0 flex-1 truncate text-xs text-white/60">{file.name}</p>
-        {status === "idle" && (
-          <button type="button" onClick={onReset} className="text-white/30 hover:text-white/60">
-            <svg viewBox="0 0 24 24" className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth={2}>
-              <path d="M18 6L6 18M6 6l12 12" strokeLinecap="round" />
-            </svg>
-          </button>
-        )}
-      </div>
-
-      {status === "uploading" && (
-        <div className="space-y-1.5">
-          <div className="h-1.5 w-full overflow-hidden rounded-full bg-white/[0.06]">
-            <div
-              className="h-full rounded-full transition-all duration-300"
-              style={{ width: `${progress}%`, background: "linear-gradient(90deg, #534AB7, #7B6FE8)" }}
-            />
-          </div>
-          <p className="text-[11px] text-[#AFA9EC]">{t("upload.uploadProgress").replace("{n}", String(progress))}</p>
-        </div>
-      )}
-
-      {status === "processing" && (
-        <div className="space-y-1.5">
-          <div className="h-1.5 w-full overflow-hidden rounded-full bg-white/[0.06]">
-            <div className="h-full w-full animate-pulse rounded-full" style={{ background: "linear-gradient(90deg, #534AB7, #7B6FE8)" }} />
-          </div>
-          <p className="text-[11px] text-amber-400">{t("upload.processingShort")}</p>
-        </div>
-      )}
-
-      {status === "ready" && (
-        <div className="flex items-center gap-2">
-          <div className="h-2 w-2 rounded-full bg-emerald-400" />
-          <p className="text-[11px] text-emerald-400">
-            Ready to publish
-            {duration &&
-              ` · ${String(Math.floor(duration / 60)).padStart(2, "0")}:${String(Math.round(duration % 60)).padStart(2, "0")}`}
-          </p>
         </div>
       )}
     </div>
@@ -843,7 +746,7 @@ export function UploadVideoForm({
         {isDraggingOver && (
           <div
             className="fixed inset-0 z-[200] flex flex-col items-center justify-center gap-4 pointer-events-none"
-            style={{ background: "rgba(8,6,24,0.85)", backdropFilter: "blur(8px)" }}
+            style={{ background: "rgba(10,10,10,0.85)", backdropFilter: "blur(8px)" }}
           >
             <div
               className="rounded-2xl border-2 border-dashed border-[#7F77DD]/60 p-16 text-center"
@@ -859,7 +762,7 @@ export function UploadVideoForm({
                 <path d="M12 16v-8m0 0-3 3m3-3 3 3M4 17h16" strokeLinecap="round" strokeLinejoin="round" />
               </svg>
               <p className="text-xl font-bold text-white">{t("upload.dropHere")}</p>
-              <p className="mt-2 text-sm text-white/40">{t("upload.dropHint")}</p>
+              <p className="mt-2 text-sm text-white/35">{t("upload.dropHint")}</p>
             </div>
           </div>
         )}
@@ -970,7 +873,7 @@ export function UploadVideoForm({
               <span className="text-sm text-[#7F77DD]">✦</span>
               <div className="flex-1">
                 <p className="text-sm font-semibold text-white">{t("upload.competitionModeTitle")}</p>
-                <p className="mt-0.5 text-xs text-white/60">
+                <p className="mt-0.5 text-xs text-white/55">
                   {t("upload.competitionModeHint")}
                 </p>
               </div>
@@ -1004,7 +907,7 @@ export function UploadVideoForm({
                         <path d="M12 16v-8m0 0-3 3m3-3 3 3M4 17h16" strokeLinecap="round" strokeLinejoin="round" />
                       </svg>
                       <div className="text-center">
-                        <p className="text-sm font-medium text-white/40">{t("upload.clickUploadVideo")}</p>
+                        <p className="text-sm font-medium text-white/35">{t("upload.clickUploadVideo")}</p>
                         <p className="text-[11px] text-white/20">{t("upload.videoFormatsHint")}</p>
                       </div>
                     </button>
@@ -1110,7 +1013,7 @@ export function UploadVideoForm({
                     <path d="M12 16v-8m0 0-3 3m3-3 3 3M4 17h16" strokeLinecap="round" strokeLinejoin="round" />
                   </svg>
                   <div className="text-center">
-                    <p className="text-sm font-medium text-white/40">{t("upload.uploadThumbnailPrompt")}</p>
+                    <p className="text-sm font-medium text-white/35">{t("upload.uploadThumbnailPrompt")}</p>
                     <p className="text-[11px] text-white/20">{t("upload.thumbnailFormats")}</p>
                   </div>
                 </button>
@@ -1226,7 +1129,7 @@ export function UploadVideoForm({
                   </div>
                   <svg
                     viewBox="0 0 24 24"
-                    className="h-3.5 w-3.5 text-white/40 transition-transform duration-300"
+                    className="h-3.5 w-3.5 text-white/35 transition-transform duration-300"
                     style={{ transform: previewOpen ? "rotate(180deg)" : "rotate(0deg)" }}
                     fill="none"
                     stroke="currentColor"
@@ -1250,12 +1153,12 @@ export function UploadVideoForm({
                         {thumbnailPreview ? (
                           <img src={thumbnailPreview} alt="" className="absolute inset-0 h-full w-full object-cover" />
                         ) : (
-                          <div className="absolute inset-0 bg-gradient-to-br from-[#1a1547] to-[#0f0d24]" />
+                          <div className="absolute inset-0 bg-gradient-to-br from-[#1a1547] to-[#1a1a1a]" />
                         )}
                         <div
                           className="absolute inset-0"
                           style={{
-                            background: "linear-gradient(to top, rgba(8,6,24,1) 0%, rgba(8,6,24,0.5) 40%, transparent 75%)",
+                            background: "linear-gradient(to top, rgba(10,10,10,1) 0%, rgba(10,10,10,0.5) 40%, transparent 75%)",
                           }}
                         />
                         <div className="absolute bottom-0 left-0 right-0 p-2.5">
@@ -1283,7 +1186,7 @@ export function UploadVideoForm({
                             style={{ filter: "brightness(1.15)" }}
                           />
                         ) : (
-                          <div className="absolute inset-0 bg-gradient-to-br from-[#1a1547] to-[#0f0d24]" />
+                          <div className="absolute inset-0 bg-gradient-to-br from-[#1a1547] to-[#1a1a1a]" />
                         )}
                         {/* 페이드 — 백드롭 없으면 강하게 */}
                         <div
@@ -1379,7 +1282,7 @@ export function UploadVideoForm({
                                 e.stopPropagation();
                                 removeTag(tag);
                               }}
-                              className="ml-0.5 text-white/60 transition hover:text-white"
+                              className="ml-0.5 text-white/55 transition hover:text-white"
                             >
                               ×
                             </button>
@@ -1404,11 +1307,11 @@ export function UploadVideoForm({
                         {recentTags.length > 0 && (
                           <div>
                             <div className="mb-2 flex items-center gap-2">
-                              <svg className="h-3 w-3 text-white/40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                              <svg className="h-3 w-3 text-white/35" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
                                 <circle cx="12" cy="12" r="9" strokeLinecap="round" />
                                 <path d="M12 8v4l3 2" strokeLinecap="round" />
                               </svg>
-                              <span className="text-[10px] font-bold uppercase tracking-widest text-white/40">
+                              <span className="text-[10px] font-bold uppercase tracking-widest text-white/35">
                                 {t("upload.recentVideoTags")}
                               </span>
                             </div>
@@ -1434,7 +1337,7 @@ export function UploadVideoForm({
                             <svg className="h-3 w-3" viewBox="0 0 24 24" fill="#FFD478">
                               <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
                             </svg>
-                            <span className="text-[10px] font-bold uppercase tracking-widest text-white/40">
+                            <span className="text-[10px] font-bold uppercase tracking-widest text-white/35">
                               {t("upload.favoriteTags")}
                             </span>
                           </div>
@@ -1754,7 +1657,7 @@ export function UploadVideoForm({
                   {/* 3) Additional Genres (보조) */}
                   <div className="border-t border-white/[0.05] pt-3.5">
                     <div className="mb-1.5 flex items-center gap-2">
-                      <span className="text-[11px] font-bold uppercase tracking-widest text-white/40">
+                      <span className="text-[11px] font-bold uppercase tracking-widest text-white/35">
                         {t("upload.additionalGenres", "Detail Genres")}
                       </span>
                       <span
@@ -1799,7 +1702,7 @@ export function UploadVideoForm({
                 {/* 런타임 (자동 인식, 읽기 전용) */}
                 {(detectedDurationSeconds > 0 || (muxDuration && muxDuration > 0)) && (
                   <div className="rounded-lg border border-white/10 bg-white/[0.04] p-3 text-sm">
-                    <span className="text-white/40">{t("upload.runtimeVideoLength")}</span>{" "}
+                    <span className="text-white/35">{t("upload.runtimeVideoLength")}</span>{" "}
                     <span className="font-mono font-semibold text-white">
                       {(() => {
                         const seconds = detectedDurationSeconds || Math.round(muxDuration ?? 0);
@@ -1944,7 +1847,7 @@ export function UploadVideoForm({
                       <span className="text-sm text-[#7F77DD]">✦</span>
                       <div className="flex-1">
                         <p className="text-sm font-semibold text-white">{t("upload.competitionModeTitle")}</p>
-                        <p className="mt-0.5 text-xs text-white/60">
+                        <p className="mt-0.5 text-xs text-white/55">
                           {t("upload.competitionModeHint")}
                         </p>
                       </div>
@@ -1980,7 +1883,7 @@ export function UploadVideoForm({
                     <label className={lbl}>{t("upload.selectCompetition")}</label>
                     {isCompetitionLocked ? (
                       <div className="rounded-lg border border-white/10 bg-white/[0.04] p-4">
-                        <p className="mb-2 text-[10px] uppercase tracking-[0.2em] text-white/40">
+                        <p className="mb-2 text-[10px] uppercase tracking-[0.2em] text-white/35">
                           {t("upload.competitionSelectLabel")}
                         </p>
                         <p className="text-sm font-semibold text-white">

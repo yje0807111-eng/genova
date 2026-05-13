@@ -64,8 +64,6 @@ export async function createVideoAction(form: {
   }
 
   if (!form.title.trim()) return { ok: false, message: "Please enter a title." };
-  if (!form.thumbnailUrl) return { ok: false, message: "Please upload a thumbnail." };
-  if (Math.round(form.runtimeMinutes * 60) < 1) return { ok: false, message: "Please enter runtime in minutes." };
   if (!MAIN_GENRE_KEYS.includes(form.genre as (typeof MAIN_GENRE_KEYS)[number])) {
     return { ok: false, message: "Please select a genre." };
   }
@@ -74,24 +72,11 @@ export async function createVideoAction(form: {
     g !== form.genre &&
     arr.indexOf(g) === i
   );
-  if (needsSubGenre(form.genre) && !form.subGenre) {
-    return { ok: false, message: "Please select a sub genre." };
-  }
-  if (needsSubGenre(form.genre) && form.subGenre && !isValidSubGenre(form.genre, form.subGenre)) {
+  if (form.subGenre && needsSubGenre(form.genre) && !isValidSubGenre(form.genre, form.subGenre)) {
     return { ok: false, message: "Please select a valid sub genre." };
-  }
-  if (!needsSubGenre(form.genre) && form.subGenre) {
-    return { ok: false, message: "This genre does not support sub genre." };
   }
   if (form.purpose === "competition" && !form.submittedCompetitionId) {
     return { ok: false, message: "Please select a competition." };
-  }
-  if (normalizedTags.length > MAX_VIDEO_TAGS) {
-    return { ok: false, message: `You can add up to ${MAX_VIDEO_TAGS} tags.` };
-  }
-  if (form.genre === "series") {
-    if (!form.seriesName?.trim()) return { ok: false, message: "Please enter a series name." };
-    if (!form.episodeNumber || form.episodeNumber < 1) return { ok: false, message: "Please enter an episode number." };
   }
 
   const profileOk = await ensureProfile(user.id, user.email);
@@ -107,13 +92,16 @@ export async function createVideoAction(form: {
 
   const purpose = form.purpose;
   const competitionId = purpose === "competition" ? form.submittedCompetitionId : null;
-  const seriesName = form.genre === "series" ? form.seriesName!.trim() : null;
-  const episodeNumber = form.genre === "series" ? form.episodeNumber! : null;
+  const seriesName = form.genre === "series" && form.seriesName?.trim() ? form.seriesName.trim() : null;
+  const episodeNumber = form.genre === "series" && form.episodeNumber ? form.episodeNumber : null;
+
+  const finalThumbnailUrl = form.thumbnailUrl
+    || (muxPlaybackId ? `https://image.mux.com/${muxPlaybackId}/thumbnail.jpg?width=1280&time=2` : "");
 
   const { error } = await supabase.from("videos").insert({
     id,
     title: form.title.trim(),
-    thumbnail_url: form.thumbnailUrl,
+    thumbnail_url: finalThumbnailUrl,
     backdrop_url: form.backdropUrl ?? null,
     vimeo_id: null,
     mux_playback_id: muxPlaybackId ?? null,
@@ -121,12 +109,12 @@ export async function createVideoAction(form: {
     mux_upload_id: muxUploadId ?? null,
     genre: form.genre,
     additional_genres: additionalGenres,
-    sub_genre: form.subGenre,
+    sub_genre: form.subGenre || null,
     purpose,
     creator_id: null,
     uploaded_by: user.id,
     visibility: form.visibility,
-    description: form.description.trim(),
+    description: (form.description ?? "").trim(),
     ai_tools: form.aiTools,
     tags: normalizedTags,
     series_name: seriesName,
@@ -371,4 +359,23 @@ export async function updateVideoAction(
   }
   revalidatePath("/competition");
   return { ok: true, videoId };
+}
+
+export async function getVideoForEdit(videoId: string) {
+  const supabase = await createServerSupabaseClient();
+  if (!supabase) return { ok: false as const, error: "Config error" };
+
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { ok: false as const, error: "Unauthorized" };
+
+  const { data: video, error } = await supabase
+    .from("videos")
+    .select("*")
+    .eq("id", videoId)
+    .eq("uploaded_by", user.id)
+    .single();
+
+  if (error || !video) return { ok: false as const, error: "Video not found" };
+
+  return { ok: true as const, video };
 }

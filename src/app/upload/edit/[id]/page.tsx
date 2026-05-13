@@ -1,7 +1,7 @@
 import { notFound, redirect } from "next/navigation";
 import { AnimateIn } from "@/components/animate-in";
-import { EditVideoForm } from "@/components/upload/edit-video-form";
-import { fetchCompetitionsForUpload } from "@/lib/queries";
+import { EditVideoFormSimple } from "@/components/upload/edit-video-form-simple";
+import { fetchCompetitionsForUpload, fetchCurrentCompetition } from "@/lib/queries";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 
 export default async function EditVideoPage({ params }: { params: Promise<{ id: string }> }) {
@@ -13,21 +13,28 @@ export default async function EditVideoPage({ params }: { params: Promise<{ id: 
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect("/auth");
 
-  const { data: video } = await supabase
-    .from("videos")
-    .select("*")
-    .eq("id", id)
-    .eq("uploaded_by", user.id)
-    .single();
+  const [{ data: video }, competitions, currentCompetition] = await Promise.all([
+    supabase
+      .from("videos")
+      .select("*")
+      .eq("id", id)
+      .eq("uploaded_by", user.id)
+      .single(),
+    fetchCompetitionsForUpload(),
+    fetchCurrentCompetition(),
+  ]);
 
   if (!video) notFound();
-
-  const competitions = await fetchCompetitionsForUpload();
 
   return (
     <div className="page-cinematic px-4 py-6 text-[#F8F7FF] sm:px-6">
       <AnimateIn delay={0}>
-        <EditVideoForm userId={user.id} video={video} competitions={competitions} />
+        <EditVideoFormSimple
+          video={video}
+          userId={user.id}
+          competitions={competitions}
+          activeCompetitionId={currentCompetition?.id}
+        />
       </AnimateIn>
     </div>
   );
