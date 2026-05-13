@@ -160,7 +160,7 @@ function HeroBanner({ videos, allVideos }: { videos: Video[]; allVideos: Video[]
   const genre = video.genre ? mainGenreLabel(video.genre, locale) : "";
 
   return (
-    <div className="relative w-full overflow-hidden" style={{ aspectRatio: "16/5.5" }}>
+    <div className="relative w-full overflow-hidden aspect-[16/5.5]">
       <img
         src={heroImage}
         alt=""
@@ -258,10 +258,8 @@ function HeroBanner({ videos, allVideos }: { videos: Video[]; allVideos: Video[]
             <HeroSaveButton videoId={video.id} />
           </div>
           {false && ( // TODO: 데이터 충분히 쌓이면 false 제거
-            <div
-              className="mt-6 flex w-fit items-stretch gap-0"
-              style={{ background: "transparent", backdropFilter: "none" }}
-            >
+            <div className="mt-6 flex w-fit items-stretch gap-0 bg-transparent backdrop-filter-none">
+
               {video.award && (
                 <div className="flex items-center gap-3 border-r border-white/10 px-5 py-3">
                   <svg className="h-6 w-6 shrink-0 text-white/55" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
@@ -410,7 +408,7 @@ function GenreTop10Row({ videos, genre }: { videos: Video[]; genre: string }) {
         onMouseLeave={() => setIsHovered(false)}
       >
         {/* Grid slide area */}
-        <div className="relative" style={{ overflow: "hidden", contain: "paint" }}>
+        <div className="relative overflow-hidden [contain:paint]">
           <div
             style={{
               transform: animating
