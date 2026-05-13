@@ -145,13 +145,14 @@ genova/
 │
 ├── middleware.ts                   # Supabase 세션 갱신
 ├── next.config.ts                  # 이미지 remotePatterns (unsplash, pravatar, picsum, supabase)
-├── tailwind.config.ts              # ⚠️ 최소 설정 (colors.genova.*만)
 ├── CLAUDE.md                       # 개발 지침 (Claude용)
 ├── AGENTS.md                       # Next 16 경고
 ├── README.md
-└── _head_home_page.txt             ⚠️ 임시 파일
-    tmp-en-keys.json                ⚠️ 임시 파일
+└── tmp-en-keys.json                ⚠️ 임시 파일 (정리 후보)
 ```
+
+> Tailwind 설정은 globals.css `@theme inline` 단독 source of truth (Tailwind v4 CSS-first).
+> `tailwind.config.ts` 는 Phase 2.4 에서 제거됨 (`68c1640`).
 
 ---
 
@@ -173,22 +174,12 @@ genova/
 | `--radius` | `0.625rem` | |
 | `--ring`, `--sidebar-*` | (대부분 #9d7dff 기반) | |
 
-#### 4-2. Tailwind 설정 (`tailwind.config.ts`)
+#### 4-2. ~~Tailwind 설정 (`tailwind.config.ts`)~~ ✅ 제거됨 (Phase 2.4 — `68c1640`)
 
-```ts
-colors: {
-  genova: {
-    bg: "#080618",         // CLAUDE.md와 일치
-    card: "#0F0D1E",
-    primary: "#534AB7",    // CLAUDE.md와 일치 (globals.css와 충돌)
-    secondary: "#7F77DD",
-    text: "#EEEDFE",
-    muted: "#AFA9EC",
-  },
-}
-```
-
-→ ⚠️ **거의 사용되지 않음**. 코드에서 `bg-genova-primary` 같은 클래스를 검색해보면 호출 빈도 매우 낮음.
+Tailwind v4 CSS-first 전환 — JS config 자동 로드 안 됨 확인 후 dead config 제거.
+당시 상태였던 `colors.genova.*` 는 사용처 0건, `fontFamily` 는 존재하지 않는 변수
+(`--font-inter`, `--font-dm-sans`) 참조 중 (layout.tsx 는 실제로는 `Plus_Jakarta_Sans` + `Syne` 사용).
+이후 모든 Tailwind 토큰은 `globals.css` `@theme inline` 단독으로 관리.
 
 #### 4-3. 인라인 스타일 (압도적 다수)
 
@@ -264,10 +255,10 @@ inline `style={{...}}` 사용:  535건 / 55개 파일
 
 ### 🔴 우선순위 높음
 
-1. **디자인 토큰 분열** (이미 합의된 작업 대기 중)
-   - `globals.css --primary: #9d7dff` vs `tailwind.config.ts genova.primary: #534AB7` vs `CLAUDE.md: #534AB7`
-   - 인라인 스타일 535건 → 토큰 시스템으로 마이그레이션 필요
-   - 텍스트 알파 8단계 난립 → 5단계 축약 합의됨
+1. **디자인 토큰 분열** ✅ 부분 해소 (Phase 2.1~2.4)
+   - ~~`globals.css --primary: #9d7dff` vs `tailwind.config.ts genova.primary: #534AB7` vs `CLAUDE.md: #534AB7`~~ → `tailwind.config.ts` 제거 (2.4). `--primary` legacy 는 보존 (Q4 결정).
+   - 인라인 스타일 535건 → 토큰 시스템으로 마이그레이션 필요 (Phase 3 작업)
+   - ~~텍스트 알파 8단계 난립 → 5단계 축약 합의됨~~ → 5단계 토큰 정의 완료 (2.1, `a39e677`)
 
 2. **Vimeo 코드 잔존** ⚠️ CLAUDE.md 주장과 불일치
    - CLAUDE.md: "Vimeo는 더 이상 사용하지 않음 (완전 Mux 전환됨)"
@@ -280,14 +271,16 @@ inline `style={{...}}` 사용:  535건 / 55개 파일
 
 ### 🟡 우선순위 중간
 
-4. **임시 파일 잔존**
-   - `_head_home_page.txt`, `tmp-en-keys.json`, `src/components/search/search-page-body.tsx.bak` — 정리 필요
+4. **임시 파일 잔존** ✅ 부분 해소
+   - ~~`_head_home_page.txt`~~ → 삭제 (`f995e49`)
+   - ~~`src/components/search/search-page-body.tsx.bak`~~ → 삭제 (`42f6cda`)
+   - `tmp-en-keys.json` — 남아 있음, 정리 후보
 
 5. **다국어 미완성**
    - CLAUDE.md: "번역은 나중에, 현재 한국어로만 개발"
    - 실제: 영어가 기본값, ko/ja overrides 일부만 채워짐 → 정책 정리 필요
 
-6. **`tailwind.config.ts`의 `colors.genova.*`** — 정의는 있는데 사용 안 됨. 새 토큰 시스템과 통합하거나 제거해야 함
+6. ~~**`tailwind.config.ts`의 `colors.genova.*`** — 정의는 있는데 사용 안 됨. 새 토큰 시스템과 통합하거나 제거해야 함~~ ✅ 해소 — Phase 2.4 (`68c1640`) 에서 `tailwind.config.ts` 전체 제거.
 
 7. **mock 데이터 잔존**
    - `genova-mock-videos.ts`, `mock-data.ts`, `profile-mock-grid-videos.ts` — 실제 DB로 전환됐는지 검증 필요
@@ -306,14 +299,23 @@ inline `style={{...}}` 사용:  535건 / 55개 파일
 
 ## 7. 다음 할 일
 
-### Phase A — 디자인 시스템 정합화 (진행 중)
+### Phase A — 디자인 시스템 정합화
 
-- [ ] CLAUDE.md vs `globals.css --primary` 충돌 해소 → `#534AB7` 채택 합의됨, 실행 대기
-- [ ] `globals.css`에 디자인 토큰 정의 (스케일 + 시맨틱)
-- [ ] `tailwind.config.ts` 정리 — 사용 안 하는 `colors.genova.*` 제거 또는 신토큰과 통합
-- [ ] 합성 유틸 클래스 신설 (`.surface-card`, `.cta-primary`, `.badge-featured` 등)
-- [ ] **홈** 페이지부터 인라인 스타일 → 토큰 마이그레이션 (reference 구현)
+#### Phase 2 (완료 ✅)
+
+- [x] **2.1** — `globals.css` `:root` 토큰 정의 (74개, Layer 1 SCALE / 2 SEMANTIC / 3 COMPOSITE) — `a39e677`
+- [x] **2.2** — `@theme inline` 매핑 (35개 Tailwind 유틸 노출, semantic naming `surface/accent/fg/line/tint/danger`) — `008c37c`
+- [x] **2.3** — 합성 유틸 클래스 (`@layer components` 도입, CLAUDE.md 4-tier 버튼 + `.surface-card` / `.badge-featured` 신설, 사용 0 클래스 10개 정리, `.btn-primary` 브랜드 토큰화) — `515bbb4`
+- [x] **2.4** — `tailwind.config.ts` 제거 (dead config, Tailwind v4 CSS-first 정착) — `68c1640`
+- [x] CLAUDE.md 컬러 팔레트 가이드 갱신 (4-tier 버튼 / 예외 컬러 / 사용 금지 명시) — `4b96058`
+
+#### Phase 3 (다음)
+
+- [ ] **홈** 페이지 인라인 style 535건 → 토큰 마이그레이션 (reference 구현)
 - [ ] 이후 `films`, `competition`, `watch`, `profile` 페이지 순차 마이그레이션
+- [ ] legacy shadcn 토큰 (`--primary` = `#9d7dff` 등) 신토큰 매핑 또는 제거
+- [ ] `sidebar-tint` 통일 검토 (gradient vs flat)
+- [ ] `hero-section.tsx` dead code 삭제 (Phase 2.3 메모)
 
 ### Phase B — 문서/코드 동기화
 
