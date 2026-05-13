@@ -159,7 +159,7 @@ export function EditCompetitionForm({ competition }: { competition: any }) {
               <button
                 type="button"
                 onClick={() => router.push("/admin")}
-                className="rounded-lg border border-white/[0.08] px-4 py-2 text-xs text-white/40 transition hover:text-white"
+                className="rounded-lg border border-white/[0.08] px-4 py-2 text-xs text-white/35 transition hover:text-white"
               >
                 ← 돌아가기
               </button>
@@ -347,9 +347,9 @@ export function EditCompetitionForm({ competition }: { competition: any }) {
                         {form.prize_info_en && (
                           <div className="rounded-lg border border-white/[0.06] bg-[#0d0b20] p-2">
                             <p className="text-[10px] text-white/30 mb-1">미리보기</p>
-                            <p className="text-[11px] text-white/60">🇺🇸 {form.prize_info_en}</p>
-                            <p className="text-[11px] text-white/60">🇰🇷 {form.prize_info_ko || form.prize_info_en}</p>
-                            <p className="text-[11px] text-white/60">🇯🇵 {form.prize_info_ja || form.prize_info_en}</p>
+                            <p className="text-[11px] text-white/55">🇺🇸 {form.prize_info_en}</p>
+                            <p className="text-[11px] text-white/55">🇰🇷 {form.prize_info_ko || form.prize_info_en}</p>
+                            <p className="text-[11px] text-white/55">🇯🇵 {form.prize_info_ja || form.prize_info_en}</p>
                           </div>
                         )}
                       </div>
@@ -569,12 +569,12 @@ export function EditCompetitionForm({ competition }: { competition: any }) {
                       }}
                     >
                       <div className="flex items-center justify-between">
-                        <span className="text-[10px] text-white/40">총 상금</span>
+                        <span className="text-[10px] text-white/35">총 상금</span>
                         <span className="text-[13px] font-bold text-white">{sym}{total.toLocaleString()}</span>
                       </div>
                       <div className="flex items-center justify-between mt-1.5">
-                        <span className="text-[10px] text-white/40">배분됨</span>
-                        <span className="text-[12px] font-semibold text-white/60">{sym}{allocated.toLocaleString()}</span>
+                        <span className="text-[10px] text-white/35">배분됨</span>
+                        <span className="text-[12px] font-semibold text-white/55">{sym}{allocated.toLocaleString()}</span>
                       </div>
                       <div className="mt-1.5 h-px bg-white/10" />
                       <div className="flex items-center justify-between mt-1.5">

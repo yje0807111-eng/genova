@@ -170,7 +170,7 @@ export function ReportManagement({
       <div className="max-h-[520px] min-h-0 space-y-1 overflow-y-auto pr-0.5">
         {filteredReports.length === 0 ? (
           <div className="rounded-lg border border-white/[0.06] bg-white/[0.01] py-12 text-center">
-            <p className="text-[12px] text-white/40">
+            <p className="text-[12px] text-white/35">
               {localReports.length === 0 ? "신고 내역이 없습니다" : "필터 조건에 맞는 신고가 없습니다"}
             </p>
           </div>
@@ -194,7 +194,7 @@ export function ReportManagement({
                   {report.status === "rejected" ? (
                     <span className={cn(adminTokens.badge, adminTokens.badgeNeutral)}>Rejected</span>
                   ) : null}
-                  <span className="text-[10px] uppercase tracking-wider text-white/40">{reportReasonLabel(report.reason)}</span>
+                  <span className="text-[10px] uppercase tracking-wider text-white/35">{reportReasonLabel(report.reason)}</span>
                   <span className="text-[9px] uppercase tracking-wider text-white/25">{reportScopeLabel(report.scope)}</span>
                 </div>
 
@@ -213,7 +213,7 @@ export function ReportManagement({
                     ) : null}
                   </div>
                   {report.detail ? (
-                    <p className="mt-0.5 line-clamp-1 text-[11px] text-white/40">{report.detail}</p>
+                    <p className="mt-0.5 line-clamp-1 text-[11px] text-white/35">{report.detail}</p>
                   ) : null}
                 </div>
 
@@ -270,7 +270,7 @@ export function ReportManagement({
                       type="button"
                       disabled={loading}
                       onClick={() => updateStatus(report.id, "rejected")}
-                      className={cn(adminTokens.buttonGhost, "h-8 px-2", report.status === "rejected" ? "text-white/60" : "")}
+                      className={cn(adminTokens.buttonGhost, "h-8 px-2", report.status === "rejected" ? "text-white/55" : "")}
                     >
                       기각
                     </button>

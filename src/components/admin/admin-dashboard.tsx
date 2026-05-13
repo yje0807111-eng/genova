@@ -85,7 +85,7 @@ function AdminDashboardInner({
       />
 
       <div
-        className="sticky top-0 z-30 -mx-4 mb-6 border-b border-white/[0.06] bg-[#080618]/95 px-4 backdrop-blur-md sm:-mx-6 sm:px-6"
+        className="sticky top-0 z-30 -mx-4 mb-6 border-b border-white/[0.06] bg-[#0a0a0a]/95 px-4 backdrop-blur-md sm:-mx-6 sm:px-6"
       >
         <div className="flex">
           {tabs.map((tab) => (
@@ -97,7 +97,7 @@ function AdminDashboardInner({
                 "-mb-px flex items-center gap-2 border-b-2 px-5 py-3 text-[13px] font-medium transition-all",
                 activeTab === tab.key
                   ? "border-white text-white"
-                  : "border-transparent text-white/40 hover:text-white/70",
+                  : "border-transparent text-white/35 hover:text-white/70",
               )}
             >
               {tab.label}

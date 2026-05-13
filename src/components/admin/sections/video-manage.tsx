@@ -176,7 +176,7 @@ export function VideoManage({
       <div className="max-h-[600px] min-h-0 space-y-1 overflow-y-auto pr-0.5">
         {filteredVideos.length === 0 ? (
           <div className="rounded-lg border border-white/[0.06] bg-white/[0.01] py-12 text-center">
-            <p className="text-[12px] text-white/40">영상이 없습니다</p>
+            <p className="text-[12px] text-white/35">영상이 없습니다</p>
           </div>
         ) : (
           filteredVideos.map((video) => (
@@ -204,7 +204,7 @@ export function VideoManage({
                   ) : null}
                   <p className="truncate text-[13px] font-medium text-white">{video.title}</p>
                 </div>
-                <div className="mt-0.5 flex flex-wrap items-center gap-2 text-[11px] text-white/40">
+                <div className="mt-0.5 flex flex-wrap items-center gap-2 text-[11px] text-white/35">
                   <span>{video.genre || "—"}</span>
                   <span className="text-white/20">·</span>
                   <span>{video.viewCount ?? 0} views</span>
@@ -276,7 +276,7 @@ export function VideoManage({
                         <button
                           type="button"
                           onClick={() => handleAward(video.id, "")}
-                          className="flex w-full items-center px-3 py-1.5 text-left text-[12px] text-white/40 transition hover:bg-white/[0.05] hover:text-white/70"
+                          className="flex w-full items-center px-3 py-1.5 text-left text-[12px] text-white/35 transition hover:bg-white/[0.05] hover:text-white/70"
                         >
                           수상 취소
                         </button>

@@ -92,7 +92,7 @@ export function SiteSettings({
                 onClick={() => setEyebrowLangTab(lang.code)}
                 className={cn(
                   "h-7 flex-1 rounded text-[11px] font-medium uppercase tracking-wider transition",
-                  eyebrowLangTab === lang.code ? "bg-white/10 text-white" : "text-white/40 hover:text-white/70",
+                  eyebrowLangTab === lang.code ? "bg-white/10 text-white" : "text-white/35 hover:text-white/70",
                 )}
               >
                 {lang.label}

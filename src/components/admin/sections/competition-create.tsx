@@ -154,7 +154,7 @@ export function CompetitionCreate({ onMessage }: { onMessage: (message: string) 
                 onClick={() => setForm((p) => ({ ...p, status: s }))}
                 className={cn(
                   "h-8 rounded-md px-3 text-[12px] font-medium transition",
-                  form.status === s ? "bg-white/10 text-white" : "text-white/40 hover:bg-white/[0.04] hover:text-white/70",
+                  form.status === s ? "bg-white/10 text-white" : "text-white/35 hover:bg-white/[0.04] hover:text-white/70",
                 )}
               >
                 {label}
@@ -205,7 +205,7 @@ export function CompetitionCreate({ onMessage }: { onMessage: (message: string) 
                   }}
                   className={cn(
                     "h-8 rounded-md px-3 text-[12px] font-medium transition",
-                    currency === c ? "bg-white/10 text-white" : "text-white/40 hover:bg-white/[0.04] hover:text-white/70",
+                    currency === c ? "bg-white/10 text-white" : "text-white/35 hover:bg-white/[0.04] hover:text-white/70",
                   )}
                 >
                   {c === "KRW" ? "₩ 원" : c === "USD" ? "$ 달러" : "¥ 엔"}
@@ -227,7 +227,7 @@ export function CompetitionCreate({ onMessage }: { onMessage: (message: string) 
                   key={value}
                   type="button"
                   onClick={() => applyPrizeAmount(String(value), "₩")}
-                  className="h-7 rounded-md border border-white/[0.08] px-2.5 text-[11px] text-white/60 transition hover:bg-white/[0.04] hover:text-white"
+                  className="h-7 rounded-md border border-white/[0.08] px-2.5 text-[11px] text-white/55 transition hover:bg-white/[0.04] hover:text-white"
                 >
                   {label}
                 </button>
@@ -279,7 +279,7 @@ export function CompetitionCreate({ onMessage }: { onMessage: (message: string) 
                 competitionThumbDragging && "border-white/[0.2] bg-white/[0.03]",
               )}
             >
-              <Upload size={16} className="mx-auto text-white/40" />
+              <Upload size={16} className="mx-auto text-white/35" />
               <p className="mt-1.5 text-[11px] text-white/50">클릭하거나 이미지 드래그</p>
               <p className="text-[10px] text-white/30">JPG, PNG, WebP</p>
             </button>

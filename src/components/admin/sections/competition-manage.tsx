@@ -212,7 +212,7 @@ export function CompetitionManage({
       <div className="space-y-1">
         {competitions.length === 0 ? (
           <div className="rounded-lg border border-white/[0.06] bg-white/[0.01] py-12 text-center">
-            <p className="text-[12px] text-white/40">공모전이 없습니다</p>
+            <p className="text-[12px] text-white/35">공모전이 없습니다</p>
           </div>
         ) : (
           sortedCompetitions.map((comp) => (
@@ -230,7 +230,7 @@ export function CompetitionManage({
                   onClick={() => void handleToggle(comp.id)}
                   className="flex min-w-0 flex-1 items-center gap-3 px-3 py-2.5 text-left transition hover:bg-white/[0.02]"
                 >
-                  <div className="shrink-0 text-white/40">
+                  <div className="shrink-0 text-white/35">
                     {expandedId === comp.id ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
                   </div>
 
@@ -257,7 +257,7 @@ export function CompetitionManage({
                       <p className="truncate text-[13px] font-medium text-white">{comp.title}</p>
                       <span className="max-w-[120px] shrink-0 truncate text-[10px] font-mono text-white/30">#{comp.id}</span>
                     </div>
-                    <div className="mt-0.5 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-[11px] text-white/40">
+                    <div className="mt-0.5 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-[11px] text-white/35">
                       <span>마감 {new Date(comp.deadline).toLocaleDateString("ko-KR")}</span>
                       {comp.genre ? (
                         <>
@@ -339,7 +339,7 @@ export function CompetitionManage({
                         e.stopPropagation();
                         updateCompetitionStatus(comp.id, "Closed");
                       }}
-                      className={cn(adminTokens.buttonGhost, "h-8 px-2", comp.status === "Closed" ? "text-white/60" : "")}
+                      className={cn(adminTokens.buttonGhost, "h-8 px-2", comp.status === "Closed" ? "text-white/55" : "")}
                     >
                       종료
                     </button>
@@ -375,10 +375,10 @@ export function CompetitionManage({
               </div>
 
               {expandedId === comp.id ? (
-                <div className="border-t border-white/[0.04] bg-[#080618]/40 px-3 py-3">
+                <div className="border-t border-white/[0.04] bg-[#0a0a0a]/40 px-3 py-3">
                   <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
                     <div className="flex flex-wrap items-center gap-2">
-                      <span className="text-[11px] text-white/40">
+                      <span className="text-[11px] text-white/35">
                         출품작 {(competitionVideos[comp.id] ?? []).length}개
                       </span>
                       {(() => {
@@ -405,7 +405,7 @@ export function CompetitionManage({
                           onClick={() => setSortBy(s.key)}
                           className={cn(
                             "h-7 rounded-md px-2.5 text-[11px] font-medium transition",
-                            sortBy === s.key ? "bg-white/10 text-white" : "text-white/40 hover:text-white/70",
+                            sortBy === s.key ? "bg-white/10 text-white" : "text-white/35 hover:text-white/70",
                           )}
                         >
                           {s.label}
@@ -415,9 +415,9 @@ export function CompetitionManage({
                   </div>
 
                   {loadingId === comp.id ? (
-                    <div className="py-6 text-center text-[11px] text-white/40">로딩 중...</div>
+                    <div className="py-6 text-center text-[11px] text-white/35">로딩 중...</div>
                   ) : (competitionVideos[comp.id] ?? []).length === 0 ? (
-                    <div className="py-6 text-center text-[11px] text-white/40">출품작이 없습니다</div>
+                    <div className="py-6 text-center text-[11px] text-white/35">출품작이 없습니다</div>
                   ) : (
                     <div className="space-y-1">
                       {sortVideos(competitionVideos[comp.id] ?? [], sortBy).map((video) => (
@@ -445,10 +445,10 @@ export function CompetitionManage({
                               ) : null}
                               <p className="truncate text-[12px] font-medium text-white">{video.title}</p>
                             </div>
-                            <p className="truncate text-[10px] text-white/40">{video.profiles?.display_name ?? "익명"}</p>
+                            <p className="truncate text-[10px] text-white/35">{video.profiles?.display_name ?? "익명"}</p>
                           </div>
 
-                          <div className="flex shrink-0 items-center gap-3 font-mono text-[10px] text-white/40">
+                          <div className="flex shrink-0 items-center gap-3 font-mono text-[10px] text-white/35">
                             <span title="조회수">{video.view_count ?? 0}</span>
                             <span title="좋아요" className="text-[#FF6B9D]/70">
                               ♥ {video.like_count}

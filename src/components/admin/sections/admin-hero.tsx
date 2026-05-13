@@ -20,7 +20,7 @@ export function AdminHero({
   return (
     <div className="mb-6">
       <div className="mb-1 flex items-center gap-3">
-        <p className="text-[11px] uppercase tracking-[0.2em] text-white/40">{t("admin.dashboard", "Dashboard")}</p>
+        <p className="text-[11px] uppercase tracking-[0.2em] text-white/35">{t("admin.dashboard", "Dashboard")}</p>
       </div>
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <h1 className="text-[24px] font-bold tracking-tight text-white">{t("admin.title", "Admin")}</h1>

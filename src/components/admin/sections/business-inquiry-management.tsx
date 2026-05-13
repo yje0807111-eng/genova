@@ -124,7 +124,7 @@ export function BusinessInquiryManagement({
       </div>
 
       {filtered.length === 0 ? (
-        <p className="py-8 text-center text-[12px] text-white/40">신청 내역이 없습니다.</p>
+        <p className="py-8 text-center text-[12px] text-white/35">신청 내역이 없습니다.</p>
       ) : (
         <div className="space-y-2">
           {filtered.map((item) => {
@@ -155,11 +155,11 @@ export function BusinessInquiryManagement({
                         <p className="truncate text-[13px] font-semibold text-white">
                           {item.contactName}
                           {item.companyName && (
-                            <span className="ml-1.5 text-white/40">· {item.companyName}</span>
+                            <span className="ml-1.5 text-white/35">· {item.companyName}</span>
                           )}
                         </p>
                       </div>
-                      <p className="mt-0.5 truncate text-[11px] text-white/40">
+                      <p className="mt-0.5 truncate text-[11px] text-white/35">
                         {item.email}
                         {item.budgetRange && ` · ${BUDGET_LABELS[item.budgetRange] ?? item.budgetRange}`}
                       </p>
@@ -186,7 +186,7 @@ export function BusinessInquiryManagement({
                         item.status === "new" && "border-amber-400/40 text-amber-300",
                         item.status === "contacted" && "border-sky-400/40 text-sky-300",
                         item.status === "in_progress" && "border-violet-400/40 text-violet-300",
-                        item.status === "closed" && "border-white/10 text-white/40",
+                        item.status === "closed" && "border-white/10 text-white/35",
                       )}
                     >
                       {Object.entries(STATUS_LABELS).map(([k, v]) => (
@@ -246,7 +246,7 @@ export function BusinessInquiryManagement({
                       )}
                     </div>
                     <div className="mt-4 border-t border-white/[0.06] pt-3">
-                      <p className="mb-1.5 text-[10px] font-bold uppercase tracking-wider text-white/40">
+                      <p className="mb-1.5 text-[10px] font-bold uppercase tracking-wider text-white/35">
                         어드민 메모
                       </p>
                       <textarea
@@ -307,7 +307,7 @@ function DetailField({
 }) {
   return (
     <div className={full ? "md:col-span-2" : undefined}>
-      <p className="mb-1 text-[10px] font-bold uppercase tracking-wider text-white/40">{label}</p>
+      <p className="mb-1 text-[10px] font-bold uppercase tracking-wider text-white/35">{label}</p>
       <div className="text-[12px] text-white/80">{children}</div>
     </div>
   );

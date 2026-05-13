@@ -48,7 +48,7 @@ export function TrophyManagement({
       <div className="space-y-4">
         <div>
           <h3 className="mb-2 text-[12px] font-semibold text-white/70">수동 트로피 지급</h3>
-          <p className="mb-3 text-[11px] leading-relaxed text-white/40">
+          <p className="mb-3 text-[11px] leading-relaxed text-white/35">
             수상자의 프로필 UUID와 공모전을 선택하고 수상 등급을 지정하세요.
             User UUID는 Supabase → Authentication → Users 에서 확인할 수 있습니다.
           </p>
@@ -102,7 +102,7 @@ export function TrophyManagement({
 
         <div>
           <h3 className="mb-2 text-[12px] font-semibold text-white/70">주간 장르 트로피</h3>
-          <p className="mb-3 text-[11px] leading-relaxed text-white/40">
+          <p className="mb-3 text-[11px] leading-relaxed text-white/35">
             매주 장르별 조회수 상위 크리에이터 3명에게 자동으로 트로피를 지급합니다.
             날짜를 비워두면 가장 최근 완료된 주(월요일 기준)가 자동 선택됩니다.
           </p>
