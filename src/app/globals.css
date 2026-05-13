@@ -129,31 +129,31 @@
      LEGACY shadcn tokens — out-of-scope this round
      별도 라운드에서 새 토큰과 매핑/정리 예정
      ============================================================ */
-  --background: #080614;
+  --background: #0a0a0a;
   --foreground: #f4f2ff;
-  --card: #12101f;
+  --card: #1a1a1a;
   --card-foreground: #f4f2ff;
-  --popover: #12101f;
+  --popover: #1a1a1a;
   --popover-foreground: #f4f2ff;
   --primary: #9d7dff;
   --primary-foreground: #ffffff;
-  --secondary: #171528;
+  --secondary: #1a1a1a;
   --secondary-foreground: #ebe8ff;
-  --muted: #171528;
+  --muted: #1a1a1a;
   --muted-foreground: #a59ecc;
   --accent: #8b5cf6;
   --accent-foreground: #ffffff;
-  --border: #2a2740;
-  --input: #171528;
+  --border: rgba(255, 255, 255, 0.06);
+  --input: #1a1a1a;
   --ring: #9d7dff;
   --radius: 0.625rem;
-  --sidebar: #131122;
+  --sidebar: #0a0a0a;
   --sidebar-foreground: #f8f8fc;
   --sidebar-primary: #9d7dff;
   --sidebar-primary-foreground: #ffffff;
-  --sidebar-accent: #1e1b32;
+  --sidebar-accent: #1a1a1a;
   --sidebar-accent-foreground: #f8f8fc;
-  --sidebar-border: #2d2a45;
+  --sidebar-border: rgba(255, 255, 255, 0.06);
   --sidebar-ring: #9d7dff;
 }
 
@@ -263,7 +263,7 @@ html {
 
 body {
   min-height: 100%;
-  background-color: #080614;
+  background-color: #0a0a0a;
   color: var(--foreground);
   font-family: var(--font-sans);
   font-size: 15px;
@@ -495,23 +495,18 @@ body {
   position: relative;
   border-radius: 0.75rem;
   padding: 1px;
-  background: linear-gradient(
-    135deg,
-    rgba(127, 119, 221, 0.5) 0%,
-    rgba(83, 74, 183, 0.2) 50%,
-    rgba(127, 119, 221, 0.4) 100%
-  );
+  background: rgba(255, 255, 255, 0.06);
   transition: all 0.3s ease;
 }
 
 .gradient-border-card:hover {
   background: linear-gradient(
     135deg,
-    rgba(127, 119, 221, 0.8) 0%,
-    rgba(83, 74, 183, 0.5) 50%,
-    rgba(127, 119, 221, 0.7) 100%
+    rgba(127, 119, 221, 0.55) 0%,
+    rgba(83, 74, 183, 0.28) 50%,
+    rgba(127, 119, 221, 0.45) 100%
   );
-  box-shadow: 0 0 20px rgba(83, 74, 183, 0.4);
+  box-shadow: 0 0 18px rgba(83, 74, 183, 0.28);
 }
 
 .gradient-border-card-inner {
@@ -519,7 +514,7 @@ body {
   height: 100%;
   border-radius: 0.65rem;
   overflow: hidden;
-  background: #0f0d24;
+  background: #1a1a1a;
 }
 
 @keyframes fade-in-up {
