@@ -333,11 +333,22 @@ inline `style={{...}}` 사용:  535건 / 55개 파일
 - [x] **5.1** — competition-detail design tokens 추가 (5 토큰 + 1 합성 클래스: `--shadow-card-soft`, `--shadow-hero-glow`/`-hover`, `--gradient-card-top-accent`, `--gradient-cta-solid`, `.surface-hero-glow`) — `bea037a`
 - [x] **5.2** — `competition-detail-client.tsx` 마이그레이션 (59 → 49 inline, 5개 완전 제거 + 6개 토큰화, JS hover handlers → CSS `:hover`) — `9c11770`
 
-#### Phase 6 (다음 — 이번 세션 진행 예정)
+#### Phase 6 (완료 ✅)
 
-- [ ] **6.1** — `profile-page-client.tsx` 마이그레이션 (~6 inline, 소량)
-- [ ] **6.2** — `competition-hero.tsx` 마이그레이션 (~24+ inline)
-- [ ] **6.3** — `watch-detail-client.tsx` 마이그레이션
+- [x] **6.1** — `profile-page-client.tsx` 마이그레이션 (6 → 4 inline, P1 → `--gradient-card-overlay`, width/aspect/height Tailwind) — `4873bdb`
+- [x] **6.2** — `competition/competition-hero.tsx` 마이그레이션 (24 → 21 inline, 보수적 — bespoke 패턴 다수) — `93ad259`
+- [x] **6.3** — `watch-detail-client.tsx` 자동 완료 (이미 inline 0개)
+- [x] **6.3.b** — watch 영역 단발성 inline 정리 (mux-player-client, recommendation-card, watch-meta-sidebar, watch-video-embed — 4 파일) — `5aff96b`
+- [x] **6.4** — tail inline cleanup (video-card, series-episodes-slider, up-next-section 잔여, genova/competition-hero — 4 파일 8 변환) — `8548891`
+
+#### 향후 후보 (별도 세션)
+
+- [ ] **4.1** 홈 잔여 25 inline (ROI 낮음)
+- [ ] **4.3** 사이드바 통일 검토 — 시각 영향
+- [ ] **4.4** legacy shadcn 토큰 마이그레이션 — `.eyebrow` 54 사용처 영향
+- [ ] **4.5** Q2 보류 토큰 4개 재검토
+- [ ] competition-hero / genova-competition-hero 잔여 bespoke 패턴 (`.btn-tertiary` adoption, JS hover handlers → CSS class, `--gradient-cta-hero` 신토큰 등) — 시각 미세 변화
+- [ ] Tailwind 마이그레이션 미진행 컴포넌트 잔여 식별 (admin, business, landing 등 — 이전 세션 G-E 시기 정리됨)
 
 ### Phase B — 문서/코드 동기화
 
