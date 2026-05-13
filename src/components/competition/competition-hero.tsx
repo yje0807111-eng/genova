@@ -50,12 +50,7 @@ export function CompetitionHero({
     };
   }, [rulesOpen]);
   return (
-    <div
-      className="relative w-full overflow-hidden -mt-16"
-      style={{
-        minHeight: "480px",
-      }}
-    >
+    <div className="relative w-full overflow-hidden -mt-16 min-h-[480px]">
       <div
         className="absolute inset-0 opacity-50"
         style={{
@@ -94,7 +89,7 @@ export function CompetitionHero({
       </div>
 
       {/* Films hero-style overlays (full-width edge-to-edge) */}
-      <div className="absolute inset-0" style={{ background: "rgba(6,4,15,0.15)" }} />
+      <div className="absolute inset-0 bg-[rgba(6,4,15,0.15)]" />
       <div
         className="absolute inset-0"
         style={{
@@ -342,8 +337,7 @@ export function CompetitionHero({
 
       {/* Seamless bottom/page fade */}
       <div
-        className="absolute bottom-0 left-0 right-0 h-32 z-20 pointer-events-none"
-        style={{ background: "linear-gradient(to bottom, transparent, #111111)" }}
+        className="absolute bottom-0 left-0 right-0 h-32 z-20 pointer-events-none bg-gradient-to-b from-transparent to-[#111111]"
       />
 
       {/* Left/right side fades */}
@@ -356,9 +350,8 @@ export function CompetitionHero({
       />
       {/* 상단 페이드 */}
       <div
-        className="absolute top-0 left-0 right-0 z-10 pointer-events-none"
+        className="absolute top-0 left-0 right-0 z-10 pointer-events-none h-[120px]"
         style={{
-          height: "120px",
           background: "linear-gradient(to bottom, rgba(6,4,15,0.95) 0%, rgba(6,4,15,0.4) 50%, transparent 100%)",
         }}
       />
