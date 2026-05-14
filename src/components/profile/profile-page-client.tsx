@@ -27,8 +27,6 @@ import {
   MessageCircle,
   MoreHorizontal,
   Pencil,
-  Plus,
-  Star,
   Trophy,
   UserCheck,
   UserPlus,
@@ -37,7 +35,7 @@ import {
 } from "lucide-react";
 import { followUserAction, unfollowUserAction } from "@/app/actions/profile";
 import { updateVideoVisibilityAction } from "@/app/actions/video";
-import type { FollowingPreviewUser, Profile, ProfileAwardBadge } from "@/lib/queries/profile-queries";
+import type { Profile } from "@/lib/queries/profile-queries";
 import { ProfileSettingsClient } from "@/components/profile/profile-settings-client";
 import type { Video } from "@/lib/types";
 import { AnimateIn } from "@/components/animate-in";
@@ -252,9 +250,6 @@ export function GenovaProfileClient({
   bioFull,
   mainGenre,
   country,
-  availableForCollab,
-  tagline,
-  pronouns,
   websiteUrl,
   twitterUrl,
   instagramUrl,
@@ -266,17 +261,12 @@ export function GenovaProfileClient({
   joinedLabel,
   followersCount,
   followingCount,
-  videoCount,
   works,
-  finalistVideos,
   competitionVideos,
   savedVideos,
   isOwner,
   showFollow,
   initialFollowing,
-  followingUsers,
-  activityVideos,
-  awardBadges,
   profile,
   userEmail,
   hasPassword,
@@ -290,9 +280,6 @@ export function GenovaProfileClient({
   bioFull: string;
   mainGenre: string | null;
   country: string | null;
-  availableForCollab: boolean;
-  tagline: string | null;
-  pronouns: string | null;
   websiteUrl: string | null;
   twitterUrl: string | null;
   instagramUrl: string | null;
@@ -304,17 +291,12 @@ export function GenovaProfileClient({
   joinedLabel: string | null;
   followersCount: number;
   followingCount: number;
-  videoCount: number;
   works: Video[];
-  finalistVideos: Video[];
   competitionVideos: CompetitionVideo[];
   savedVideos: Video[];
   isOwner: boolean;
   showFollow: boolean;
   initialFollowing: boolean;
-  followingUsers: FollowingPreviewUser[];
-  activityVideos: Video[];
-  awardBadges: ProfileAwardBadge[];
   profile: Profile;
   userEmail: string | null;
   hasPassword: boolean;
@@ -333,19 +315,15 @@ export function GenovaProfileClient({
   const [selectedVideoIds, setSelectedVideoIds] = useState<string[]>([]);
   const [showBulkHint, setShowBulkHint] = useState(false);
   const [localWorks, setLocalWorks] = useState<Video[]>(works);
-  const [localFinalistVideos, setLocalFinalistVideos] = useState<Video[]>(finalistVideos);
   const [localCompetitionVideos, setLocalCompetitionVideos] = useState<CompetitionVideo[]>(competitionVideos);
   const [bulkSaving, setBulkSaving] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
-  const [activeAwardFilter, setActiveAwardFilter] = useState<string | null>(null);
-  const [awardsModalOpen, setAwardsModalOpen] = useState(false);
   const [editModalOpen, setEditModalOpen] = useState(false);
   useEffect(() => {
     document.body.style.overflow = editModalOpen ? "hidden" : "";
     return () => { document.body.style.overflow = ""; };
   }, [editModalOpen]);
   const [expanded, setExpanded] = useState(false);
-  const [visibleAwardIds, setVisibleAwardIds] = useState<string[]>([]);
 
   const tabs = useMemo(() => {
     const base: TabKey[] = ["Videos", "Competition", "Series"];
@@ -353,18 +331,9 @@ export function GenovaProfileClient({
     return base;
   }, [isOwner]);
 
-  const listVideos =
-    activeTab === "Videos"
-      ? localWorks
-      : activeTab === "Competition"
-        ? localCompetitionVideos
-        : activeTab === "Series"
-          ? localWorks.filter((v) => v.seriesName)
-          : savedVideos;
-
   useEffect(() => {
     setCurrentPage(1);
-  }, [activeTab, sortBy, activeAwardFilter]);
+  }, [activeTab, sortBy]);
 
   useEffect(() => {
     window.dispatchEvent(new CustomEvent("profile-owner-status", { detail: isOwner }));
@@ -384,7 +353,6 @@ export function GenovaProfileClient({
   useEffect(() => setSelectedVideoIds([]), [bulkAction]);
 
   const sortedVideos = useMemo(() => {
-    const isGenreFilter = Boolean(activeAwardFilter?.startsWith("genre_"));
     const sourceList =
       activeTab === "Videos"
         ? localWorks
@@ -402,19 +370,7 @@ export function GenovaProfileClient({
             ? sourceList.filter((v) => v.visibility !== "private")
             : sourceList;
 
-    let sourceVideos = visibilityFiltered;
-
-    if (activeAwardFilter === "all") {
-      sourceVideos = visibilityFiltered.filter((video) => video.award !== null);
-    } else if (activeAwardFilter) {
-      if (activeTab === "Videos" && isGenreFilter) {
-        sourceVideos = visibilityFiltered.filter((video) => video.award === activeAwardFilter);
-      } else if (activeTab === "Competition" && !isGenreFilter) {
-        sourceVideos = visibilityFiltered.filter((video) => video.award === activeAwardFilter);
-      }
-    }
-
-    const arr = [...sourceVideos];
+    const arr = [...visibilityFiltered];
     arr.sort((a, b) => {
       const ta = new Date(a.createdAt).getTime();
       const tb = new Date(b.createdAt).getTime();
@@ -424,7 +380,7 @@ export function GenovaProfileClient({
       return sortBy === "Newest" ? tb - ta : ta - tb;
     });
     return arr;
-  }, [activeTab, sortBy, activeAwardFilter, bulkAction, editMode, localWorks, localCompetitionVideos, savedVideos]);
+  }, [activeTab, sortBy, bulkAction, editMode, localWorks, localCompetitionVideos, savedVideos]);
 
   useEffect(() => {
     setLocalCompetitionVideos(competitionVideos);
@@ -438,24 +394,6 @@ export function GenovaProfileClient({
 
   const totalVideoCount = useMemo(() => localWorks.length, [localWorks]);
 
-  const awardCounts = useMemo(() => {
-    const counts: Record<string, number> = {};
-
-    for (const video of localWorks) {
-      if (video.award && video.award.startsWith("genre_")) {
-        counts[video.award] = (counts[video.award] ?? 0) + 1;
-      }
-    }
-
-    for (const video of localFinalistVideos) {
-      if (video.award && !video.award.startsWith("genre_")) {
-        counts[video.award] = (counts[video.award] ?? 0) + 1;
-      }
-    }
-
-    return counts;
-  }, [localWorks, localFinalistVideos]);
-
   const onFollowToggle = () => {
     startTransition(async () => {
       if (following) {
@@ -467,153 +405,6 @@ export function GenovaProfileClient({
       }
       router.refresh();
     });
-  };
-
-  function GenreTrophySvg({ color, rank }: { color: string; rank: "1" | "2" | "3" }) {
-    return (
-      <svg width="36" height="36" viewBox="0 0 36 36" className="h-11 w-11" aria-hidden>
-        <defs>
-          <linearGradient id={`grad-${color.replace("#", "")}-${rank}`} x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor={color} stopOpacity="1" />
-            <stop offset="100%" stopColor={color} stopOpacity="0.6" />
-          </linearGradient>
-        </defs>
-        <circle cx="18" cy="16" r="11" fill={`url(#grad-${color.replace("#", "")}-${rank})`} />
-        <circle cx="18" cy="16" r="11" fill="none" stroke="white" strokeOpacity="0.2" strokeWidth="0.5" />
-        <text x="18" y="20" textAnchor="middle" fontSize="11" fontWeight="800" fill="white">
-          {rank}
-        </text>
-        <rect x="14" y="27" width="8" height="2" rx="1" fill={color} opacity="0.4" />
-      </svg>
-    );
-  }
-
-  function CompetitionTrophySvg({
-    cupColor,
-    gemColor,
-    showStar,
-  }: {
-    cupColor: string;
-    gemColor?: string;
-    showStar?: boolean;
-  }) {
-    const id = cupColor.replace("#", "") + (gemColor?.replace("#", "") ?? "") + (showStar ? "s" : "");
-    return (
-      <svg width="36" height="36" viewBox="0 0 36 36" className="h-11 w-11" aria-hidden>
-        <defs>
-          <linearGradient id={`cup-${id}`} x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor={cupColor} stopOpacity="1" />
-            <stop offset="100%" stopColor={cupColor} stopOpacity="0.5" />
-          </linearGradient>
-        </defs>
-        <path d="M11 5h14v9q0 7-7 9q-7-2-7-9z" fill={`url(#cup-${id})`} />
-        <path d="M11 7q-4 0-4 4q0 4 4 5" fill="none" stroke={cupColor} strokeWidth="1.5" strokeLinecap="round" />
-        <path d="M25 7q4 0 4 4q0 4-4 5" fill="none" stroke={cupColor} strokeWidth="1.5" strokeLinecap="round" />
-        <rect x="14" y="24" width="8" height="2.5" rx="1" fill={cupColor} opacity="0.7" />
-        <rect x="11" y="27" width="14" height="2" rx="1" fill={cupColor} opacity="0.5" />
-        {gemColor ? <circle cx="18" cy="11" r="2" fill={gemColor} opacity="0.95" /> : null}
-        {showStar ? (
-          <path d="M18 8l1.2 2.4 2.6.4-1.9 1.8.45 2.6L18 14l-2.35 1.2.45-2.6L14.2 10.8l2.6-.4z" fill="white" opacity="0.85" />
-        ) : null}
-      </svg>
-    );
-  }
-
-  const renderAwardIcon = (a: ProfileAwardBadge) => {
-    if (a.awardType === "weekly") {
-      if (a.awardTier === "gold") return <GenreTrophySvg color="#FFD700" rank="1" />;
-      if (a.awardTier === "silver") return <GenreTrophySvg color="#C0C0C0" rank="2" />;
-      return <GenreTrophySvg color="#CD7F32" rank="3" />;
-    }
-
-    if (a.awardTier === "1") {
-      return <CompetitionTrophySvg cupColor="#FFD700" gemColor="#6DA9FF" />;
-    }
-    if (a.awardTier === "2") {
-      return <CompetitionTrophySvg cupColor="#C0C0C0" gemColor="#E74C3C" />;
-    }
-    if (a.awardTier === "3") {
-      return <CompetitionTrophySvg cupColor="#CD7F32" gemColor="#2ECC71" />;
-    }
-    if (a.awardTier === "4-10") {
-      return <CompetitionTrophySvg cupColor="#9B59B6" showStar />;
-    }
-    return <CompetitionTrophySvg cupColor="#808080" />;
-  };
-
-  const competitionAwards = [
-    { tier: "gold", color: "#FFD700", count: awardCounts["gold"] ?? 0, tooltip: t("profile.tooltipCompetitionGrandPrize", "Competition · Grand Prize") },
-    { tier: "silver", color: "#C0C0C0", count: awardCounts["silver"] ?? 0, tooltip: t("profile.tooltipCompetitionRunnerUp", "Competition · Runner-up") },
-    { tier: "bronze", color: "#CD7F32", count: awardCounts["bronze"] ?? 0, tooltip: t("profile.tooltipCompetitionThird", "Competition · 3rd place") },
-    { tier: "special", color: "#7F77DD", count: awardCounts["special"] ?? 0, tooltip: t("profile.tooltipCompetitionSpecial", "Competition · Special award") },
-  ] as const;
-
-  const genreAwards = [
-    { place: "1st", color: "#FFD700", count: awardCounts["genre_1st"] ?? 0, tooltip: t("profile.tooltipGenreFirst", "Genre award · 1st") },
-    { place: "2nd", color: "#C0C0C0", count: awardCounts["genre_2nd"] ?? 0, tooltip: t("profile.tooltipGenreSecond", "Genre award · 2nd") },
-    { place: "3rd", color: "#CD7F32", count: awardCounts["genre_3rd"] ?? 0, tooltip: t("profile.tooltipGenreThird", "Genre award · 3rd") },
-  ] as const;
-
-  const awardFilterLabel = (filter: string | null) => {
-    if (filter === "all") return "🏆 " + t("profile.allAwards", "All awards");
-    if (filter === "gold") return "🏆 " + t("profile.awardGrandPrize", "Grand Prize");
-    if (filter === "silver") return "🏆 " + t("profile.awardRunnerUp", "Runner-up");
-    if (filter === "bronze") return "🏆 " + t("profile.awardThirdPlace", "3rd place");
-    if (filter === "special") return "🏆 " + t("profile.awardSpecial", "Special award");
-    if (filter === "genre_1st") return "⭐ " + t("profile.awardGenreFirst", "Genre 1st");
-    if (filter === "genre_2nd") return "⭐ " + t("profile.awardGenreSecond", "Genre 2nd");
-    if (filter === "genre_3rd") return "⭐ " + t("profile.awardGenreThird", "Genre 3rd");
-    return filter ?? "";
-  };
-
-  const totalAwardCount = useMemo(() => works.filter((v) => v.award !== null).length, [works]);
-  const getCount = (type: ProfileAwardBadge["awardType"], tier: ProfileAwardBadge["awardTier"]) =>
-    awardBadges.filter((a) => a.awardType === type && a.awardTier === tier).length;
-  const achievementItems = [
-    { id: "weekly-gold", awardType: "weekly" as const, awardTier: "gold" as const, count: getCount("weekly", "gold"), tooltip: t("profile.tooltipGenreFirst") },
-    { id: "weekly-silver", awardType: "weekly" as const, awardTier: "silver" as const, count: getCount("weekly", "silver"), tooltip: t("profile.tooltipGenreSecond") },
-    { id: "weekly-bronze", awardType: "weekly" as const, awardTier: "bronze" as const, count: getCount("weekly", "bronze"), tooltip: t("profile.tooltipGenreThird") },
-    { id: "competition-1", awardType: "competition" as const, awardTier: "1" as const, count: getCount("competition", "1"), tooltip: t("profile.tooltipCompetitionGrandPrize") },
-    { id: "competition-2", awardType: "competition" as const, awardTier: "2" as const, count: getCount("competition", "2"), tooltip: t("profile.tooltipCompetitionRunnerUp") },
-    { id: "competition-3", awardType: "competition" as const, awardTier: "3" as const, count: getCount("competition", "3"), tooltip: t("profile.tooltipCompetitionThird") },
-    { id: "competition-4-10", awardType: "competition" as const, awardTier: "4-10" as const, count: getCount("competition", "4-10"), tooltip: t("profile.tooltipCompetitionTop10") },
-  ].filter((item) => item.count > 0);
-  const sortedAwards = useMemo(() => {
-    const order: Record<string, number> = {
-      "competition-1": 1,
-      "competition-2": 2,
-      "competition-3": 3,
-      "competition-4-10": 4,
-      "weekly-gold": 5,
-      "weekly-silver": 6,
-      "weekly-bronze": 7,
-    };
-    return [...achievementItems].sort(
-      (a, b) => (order[`${a.awardType}-${a.awardTier}`] ?? 99) - (order[`${b.awardType}-${b.awardTier}`] ?? 99),
-    );
-  }, [achievementItems]);
-  useEffect(() => {
-    if (visibleAwardIds.length === 0 && sortedAwards.length > 0) {
-      setVisibleAwardIds(sortedAwards.map((a) => a.id));
-    }
-  }, [sortedAwards, visibleAwardIds.length]);
-  const visibleAwards = useMemo(
-    () => sortedAwards.filter((a) => visibleAwardIds.includes(a.id)),
-    [sortedAwards, visibleAwardIds],
-  );
-  const awardLabel = (a: ProfileAwardBadge): string => {
-    if (a.awardType === "competition") {
-      if (a.awardTier === "1") return "Grand Prize";
-      if (a.awardTier === "2") return "Runner-up";
-      if (a.awardTier === "3") return "3rd Place";
-      if (a.awardTier === "4-10") return "Special Award";
-    }
-    if (a.awardType === "weekly") {
-      if (a.awardTier === "gold") return "Weekly Gold";
-      if (a.awardTier === "silver") return "Weekly Silver";
-      if (a.awardTier === "bronze") return "Weekly Bronze";
-    }
-    return "";
   };
 
   return (
@@ -939,14 +730,8 @@ export function GenovaProfileClient({
                         setLocalWorks((prev) =>
                           prev.map((v) => (selectedVideoIds.includes(v.id) ? { ...v, visibility: "private" } : v)),
                         );
-                        setLocalFinalistVideos((prev) =>
-                          prev.map((v) => (selectedVideoIds.includes(v.id) ? { ...v, visibility: "private" } : v)),
-                        );
                       } else if (bulkAction === "public") {
                         setLocalWorks((prev) =>
-                          prev.map((v) => (selectedVideoIds.includes(v.id) ? { ...v, visibility: "public" } : v)),
-                        );
-                        setLocalFinalistVideos((prev) =>
                           prev.map((v) => (selectedVideoIds.includes(v.id) ? { ...v, visibility: "public" } : v)),
                         );
                       }
@@ -973,21 +758,6 @@ export function GenovaProfileClient({
                     {t("common.cancel", "Cancel")}
                   </button>
                 </div>
-              </div>
-            ) : null}
-
-            {activeAwardFilter ? (
-              <div className="mt-3 flex items-center gap-2">
-                <span className="flex items-center gap-1.5 rounded-full bg-purple-900/50 px-3 py-1 text-xs text-purple-300">
-                  {awardFilterLabel(activeAwardFilter)}
-                  <button
-                    type="button"
-                    onClick={() => setActiveAwardFilter(null)}
-                    aria-label={t("profile.clearAwardFilter")}
-                  >
-                    <X className="h-3 w-3" />
-                  </button>
-                </span>
               </div>
             ) : null}
 
@@ -1076,7 +846,7 @@ export function GenovaProfileClient({
                     <Film className="h-12 w-12 text-white/15" />
                     <div className="space-y-1">
                       <p className="text-[15px] font-bold text-white/70">
-                        {activeAwardFilter ? t("profile.noVideosForAward", "수상작이 없습니다") : t("profile.noVideosYet", "아직 작품이 없습니다")}
+                        {t("profile.noVideosYet", "아직 작품이 없습니다")}
                       </p>
                       {isOwner && (
                         <p className="text-[12px] text-white/35">
@@ -1241,62 +1011,6 @@ export function GenovaProfileClient({
         document.body,
       )}
 
-      {isOwner && awardsModalOpen ? (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
-          <div className="w-full max-w-lg rounded-xl border border-border bg-background p-4 shadow-2xl">
-            <div className="mb-3 flex items-center justify-between">
-              <h3 className="text-sm font-semibold text-foreground">{t("profile.chooseAchievements")}</h3>
-              <button
-                type="button"
-                onClick={() => setAwardsModalOpen(false)}
-                className="rounded-md p-1 text-muted-foreground hover:bg-secondary"
-                aria-label={t("common.close")}
-              >
-                <X className="h-4 w-4" />
-              </button>
-            </div>
-            <div className="max-h-[50vh] space-y-2 overflow-auto pr-1">
-              {sortedAwards.map((award) => {
-                const checked = visibleAwardIds.includes(award.id);
-                return (
-                  <label
-                    key={award.id}
-                    className="flex cursor-pointer items-center gap-3 rounded-lg border border-border/60 px-3 py-2 hover:bg-card/60"
-                  >
-                    <input
-                      type="checkbox"
-                      checked={checked}
-                      onChange={(e) => {
-                        setVisibleAwardIds((prev) =>
-                          e.target.checked ? [...prev, award.id] : prev.filter((id) => id !== award.id),
-                        );
-                      }}
-                    />
-                    <span className="flex h-8 w-8 items-center justify-center rounded-full border border-white/10 bg-white/5">
-                      {renderAwardIcon(award as unknown as Parameters<typeof renderAwardIcon>[0])}
-                    </span>
-                    <span className="text-sm text-foreground">
-                      {awardLabel(award as unknown as Parameters<typeof awardLabel>[0])}
-                    </span>
-                  </label>
-                );
-              })}
-              {sortedAwards.length === 0 ? (
-                <p className="text-sm text-muted-foreground">{t("profile.noTrophiesYet")}</p>
-              ) : null}
-            </div>
-            <div className="mt-4 flex justify-end">
-              <button
-                type="button"
-                onClick={() => setAwardsModalOpen(false)}
-                className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition hover:bg-primary/90"
-              >
-                {t("settings.saveChanges")}
-              </button>
-            </div>
-          </div>
-        </div>
-      ) : null}
       </div>
     </div>
   );

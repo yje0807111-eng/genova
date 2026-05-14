@@ -6,8 +6,6 @@ import { attachEngagementToVideos } from "@/lib/queries/engagement-queries";
 import {
   fetchFollowCounts,
   fetchIsFollowing,
-  fetchFollowingPreviewUsers,
-  fetchProfileAwardBadges,
 } from "@/lib/queries/profile-queries";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 
@@ -60,19 +58,12 @@ export default async function CreatorPage({
     currentUserId = user?.id ?? null;
   }
 
-  const works = await fetchVideosByCreator(creator.id);
-  const finalistVideos = works.filter((v) => v.isFinalist);
+  const rawWorks = await fetchVideosByCreator(creator.id);
 
-  const rawWorks = works.filter((v) => !v.isFinalist);
-  const rawFinalist = finalistVideos;
-
-  const [worksWithEng, finalistWithEng, counts, initialFollowing, followingUsers, awardBadges] = await Promise.all([
+  const [worksWithEng, counts, initialFollowing] = await Promise.all([
     attachEngagementToVideos(rawWorks),
-    attachEngagementToVideos(rawFinalist),
     fetchFollowCounts(creator.id),
     fetchIsFollowing(currentUserId ?? undefined, creator.id),
-    fetchFollowingPreviewUsers(creator.id),
-    fetchProfileAwardBadges(creator.id),
   ]);
 
   const displayName = creator.name?.trim() || `user_${creator.id.slice(0, 8)}`;
@@ -98,21 +89,13 @@ export default async function CreatorPage({
         joinedLabel={null}
         followersCount={counts.followers}
         followingCount={counts.following}
-        videoCount={rawWorks.length}
         works={worksWithEng}
-        finalistVideos={finalistWithEng}
         savedVideos={[]}
         isOwner={currentUserId === creator.id}
         showFollow={Boolean(currentUserId) && currentUserId !== creator.id}
         initialFollowing={initialFollowing}
-        followingUsers={followingUsers}
-        activityVideos={worksWithEng.slice(0, 5)}
-        awardBadges={awardBadges}
         mainGenre={null}
         country={null}
-        availableForCollab={false}
-        tagline={null}
-        pronouns={null}
         websiteUrl={null}
         twitterUrl={null}
         instagramUrl={null}
@@ -120,6 +103,10 @@ export default async function CreatorPage({
         tiktokUrl={null}
         vimeoUrl={null}
         competitionVideos={[]}
+        profile={null as unknown as import("@/lib/queries/profile-queries").Profile}
+        userEmail={null}
+        hasPassword={false}
+        authProvider="email"
       />
     </div>
   );

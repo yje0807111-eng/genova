@@ -207,53 +207,6 @@ export async function fetchUploadedVideos(userId: string): Promise<Video[]> {
   return data.map((row) => mapVideo(row));
 }
 
-/** 업로더 기준 파이널리스트(대회) 영상 */
-export async function fetchFinalistVideosByUploader(userId: string): Promise<Video[]> {
-  const supabase = await createServerSupabaseClient();
-  if (!supabase) return [];
-  const { data, error } = await supabase
-    .from("videos")
-    .select("*, creators(*)")
-    .eq("uploaded_by", userId)
-    .eq("is_finalist", true)
-    .order("created_at", { ascending: false });
-  if (error || !data) return [];
-  return data.map((row) => mapVideo(row));
-}
-
-export type FollowingPreviewUser = {
-  id: string;
-  displayName: string | null;
-  avatarUrl: string | null;
-};
-
-/** Users this profile follows (for Following sidebar). */
-export async function fetchFollowingPreviewUsers(userId: string, limit = 24): Promise<FollowingPreviewUser[]> {
-  const supabase = await createServerSupabaseClient();
-  if (!supabase) return [];
-  const { data: follows, error: e1 } = await supabase
-    .from("follows")
-    .select("following_id")
-    .eq("follower_id", userId)
-    .order("created_at", { ascending: false })
-    .limit(limit);
-  if (e1 || !follows?.length) return [];
-  const ids = follows.map((r) => r.following_id as string);
-  const { data: profs, error: e2 } = await supabase
-    .from("public_profiles")
-    .select("id, display_name, avatar_url")
-    .in("id", ids);
-  if (e2 || !profs?.length) return [];
-  const order = new Map(ids.map((id, i) => [id, i]));
-  return profs
-    .map((p) => ({
-      id: p.id as string,
-      displayName: (p.display_name as string | null) ?? null,
-      avatarUrl: (p.avatar_url as string | null) ?? null,
-    }))
-    .sort((a, b) => (order.get(a.id) ?? 0) - (order.get(b.id) ?? 0));
-}
-
 export async function fetchSavedVideos(userId: string): Promise<Video[]> {
   const supabase = await createServerSupabaseClient();
   if (!supabase) return [];
@@ -284,41 +237,3 @@ export async function fetchUserAwards(userId: string): Promise<UserAward[]> {
   return data.map(mapAward);
 }
 
-export type ProfileAwardBadge = {
-  id: string;
-  awardType: "weekly" | "competition";
-  awardTier: "gold" | "silver" | "bronze" | "1" | "2" | "3" | "4-10" | "11-20";
-  createdAt: string;
-};
-
-/** Compact awards for profile header badges from `user_awards`. */
-export async function fetchProfileAwardBadges(userId: string): Promise<ProfileAwardBadge[]> {
-  const supabase = await createServerSupabaseClient();
-  if (!supabase) return [];
-  const { data, error } = await supabase
-    .from("user_awards")
-    .select("id, award_type, award_tier, created_at")
-    .eq("user_id", userId)
-    .order("created_at", { ascending: false });
-  if (error || !data) return [];
-
-  const out: ProfileAwardBadge[] = [];
-  for (const row of data as Array<Record<string, unknown>>) {
-    const t = String(row.award_type ?? "");
-    const tier = String(row.award_tier ?? "");
-    const awardType = t === "weekly" || t === "competition" ? t : null;
-    const awardTier = (
-      ["gold", "silver", "bronze", "1", "2", "3", "4-10", "11-20"] as const
-    ).includes(tier as ProfileAwardBadge["awardTier"])
-      ? (tier as ProfileAwardBadge["awardTier"])
-      : null;
-    if (!awardType || !awardTier) continue;
-    out.push({
-      id: String(row.id ?? `${awardType}-${awardTier}-${String(row.created_at ?? "")}`),
-      awardType,
-      awardTier,
-      createdAt: String(row.created_at ?? new Date().toISOString()),
-    });
-  }
-  return out;
-}

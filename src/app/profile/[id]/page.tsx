@@ -7,10 +7,7 @@ import { profileHandle } from "@/lib/profile-handle";
 import { mergeVideoRows } from "@/lib/queries";
 import { attachEngagementToVideos } from "@/lib/queries/engagement-queries";
 import {
-  fetchFinalistVideosByUploader,
-  fetchProfileAwardBadges,
   fetchFollowCounts,
-  fetchFollowingPreviewUsers,
   fetchIsFollowing,
   fetchPublicProfileById,
   fetchSavedVideos,
@@ -121,23 +118,17 @@ export default async function ProfileByIdPage({ params }: { params: Promise<{ id
   const profile = await fetchPublicProfileById(id);
   if (!profile) notFound();
 
-  const [counts, rawWorks, rawFinalist, rawCompetitionVideos, initialFollowing, rawSaved, followingUsers, rawAwards] = await Promise.all([
+  const [counts, rawWorks, rawCompetitionVideos, initialFollowing, rawSaved] = await Promise.all([
     fetchFollowCounts(id),
     fetchUploadedVideos(id),
-    fetchFinalistVideosByUploader(id),
     fetchUserCompetitionVideos(id),
     fetchIsFollowing(currentUser?.id, id),
     isOwner ? fetchSavedVideos(id) : Promise.resolve([] as Video[]),
-    fetchFollowingPreviewUsers(id),
-    fetchProfileAwardBadges(id),
   ]);
 
-  const worksSource = rawWorks;
-  const finalistSource = rawFinalist;
   const savedSource = isOwner ? rawSaved : [];
 
-  const works = await attachEngagementToVideos(worksSource);
-  const finalistVideos = await attachEngagementToVideos(finalistSource);
+  const works = await attachEngagementToVideos(rawWorks);
   const competitionVideos = await attachEngagementToVideos(rawCompetitionVideos);
   const savedVideos = isOwner ? await attachEngagementToVideos(savedSource) : [];
 
@@ -152,9 +143,6 @@ export default async function ProfileByIdPage({ params }: { params: Promise<{ id
   const headerIntro = profile.bio.trim();
   const headerToolsLine = profile.tools.length ? profile.tools.join(" · ") : "";
   const joinedLabel = formatJoinedLabel(profile.joinedAt);
-  const activityVideos = (rawWorks.length ? rawWorks : works).slice(0, 5);
-  const videoCount = rawWorks.length;
-  const awardBadges = rawAwards;
 
   return (
     <div className="min-h-screen w-full text-[#F8F7FF]">
@@ -168,9 +156,6 @@ export default async function ProfileByIdPage({ params }: { params: Promise<{ id
           bioFull={profile.bio}
           mainGenre={profile.mainGenre}
           country={profile.country}
-          availableForCollab={profile.availableForCollab}
-          tagline={profile.tagline}
-          pronouns={profile.pronouns}
           websiteUrl={profile.websiteUrl}
           twitterUrl={profile.twitterUrl}
           instagramUrl={profile.instagramUrl}
@@ -182,17 +167,12 @@ export default async function ProfileByIdPage({ params }: { params: Promise<{ id
           joinedLabel={joinedLabel}
           followersCount={counts.followers}
           followingCount={counts.following}
-          videoCount={videoCount}
           works={works}
-          finalistVideos={finalistVideos}
           competitionVideos={competitionVideos}
           savedVideos={savedVideos}
           isOwner={isOwner}
           showFollow={showFollow}
           initialFollowing={initialFollowing}
-          followingUsers={followingUsers}
-          activityVideos={activityVideos}
-          awardBadges={awardBadges}
           profile={profile}
           userEmail={userEmail}
           hasPassword={hasPassword}
