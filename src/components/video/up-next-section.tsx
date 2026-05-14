@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import Image from "next/image";
 import Link from "next/link";
 import type { Video } from "@/lib/types";
 import { cn } from "@/lib/utils/cn";
@@ -97,7 +98,7 @@ function VideoCardStrip({ videos }: { videos: Video[] }) {
                   }}
                 />
                 <div className="absolute right-2 top-2 flex items-center justify-center opacity-0 transition-opacity duration-150 group-hover/card:opacity-100">
-                  <img src="/genova-play1.png" alt="" className="h-[38px] w-[38px] object-contain opacity-40" />
+                  <Image src="/genova-play1.png" alt="" width={38} height={38} className="h-[38px] w-[38px] object-contain opacity-40" />
                   <svg className="absolute h-[14px] w-[14px] ml-px" viewBox="0 0 24 24" fill="white">
                     <polygon points="6,3 20,12 6,21" />
                   </svg>

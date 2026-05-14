@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Image from "next/image";
 import Link from "next/link";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useI18n } from "@/components/genova/language-provider";
@@ -107,7 +108,7 @@ export function SeriesEpisodesSlider({
                   </div>
                   <div className="absolute bottom-2 left-2 scale-75 opacity-0 transition-all duration-200 group-hover:scale-90 group-hover:opacity-100">
                     <div className="relative flex h-8 w-8 items-center justify-center">
-                      <img src="/genova-play.png" alt="" className="h-full w-full" aria-hidden />
+                      <Image src="/genova-play.png" alt="" width={32} height={32} className="h-full w-full" aria-hidden />
                       <svg className="absolute h-3 w-3" viewBox="0 0 24 24" fill="white" aria-hidden>
                         <polygon points="6,3 20,12 6,21" />
                       </svg>
@@ -238,7 +239,7 @@ export function SeriesEpisodesSlider({
                       {/* Play button bottom left on hover */}
                       <div className="absolute bottom-2 left-2 scale-75 opacity-0 transition-all duration-200 group-hover:scale-90 group-hover:opacity-100">
                         <div className="relative flex h-8 w-8 items-center justify-center">
-                          <img src="/genova-play.png" alt="" className="h-full w-full" aria-hidden />
+                          <Image src="/genova-play.png" alt="" width={32} height={32} className="h-full w-full" aria-hidden />
                           <svg className="absolute h-3 w-3" viewBox="0 0 24 24" fill="white" aria-hidden>
                             <polygon points="6,3 20,12 6,21" />
                           </svg>

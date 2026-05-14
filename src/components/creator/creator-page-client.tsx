@@ -456,7 +456,7 @@ export function CreatorPageClient({
                     <div className="absolute inset-0 bg-black/0 transition-all duration-300 group-hover:bg-black/50" />
                     <div className="absolute inset-0 flex items-center justify-center">
                       <div className="relative flex h-12 w-12 scale-75 items-center justify-center opacity-0 transition-all duration-300 group-hover:scale-100 group-hover:opacity-100">
-                        <img src="/genova-play.png" alt="" className="h-full w-full" aria-hidden />
+                        <Image src="/genova-play.png" alt="" width={48} height={48} className="h-full w-full" aria-hidden />
                         <svg
                           className="absolute h-5 w-5"
                           viewBox="0 0 24 24"

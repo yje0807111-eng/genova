@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import Image from "next/image";
 import Link from "next/link";
 import { LayoutGrid, List } from "lucide-react";
 import { useI18n } from "@/components/genova/language-provider";
@@ -117,7 +118,7 @@ function CompetitionCard({ c }: { c: Competition }) {
             <img src={thumb} alt="" className="h-full w-full object-cover transition duration-500 group-hover:scale-105" />
           ) : (
             <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-[#1a1547] to-[#1a1a1a]">
-              <img src="/genova-logo.png" alt="Genova" className="h-28 w-28 object-contain opacity-15" />
+              <Image src="/genova-logo.png" alt="Genova" width={112} height={112} className="h-28 w-28 object-contain opacity-15" />
             </div>
           )}
           <div className="absolute left-[10px] top-[10px]">
@@ -189,7 +190,7 @@ function CompetitionTableRow({ c, idx, participantCount }: { c: Competition; idx
           <img src={thumb} alt="" className="h-full w-full object-cover transition group-hover:scale-105" />
         ) : (
           <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-[#1a1547] to-[#1a1a1a]">
-            <img src="/genova-logo.png" alt="Genova" className="h-20 w-20 object-contain opacity-15" />
+            <Image src="/genova-logo.png" alt="Genova" width={80} height={80} className="h-20 w-20 object-contain opacity-15" />
           </div>
         )}
       </div>

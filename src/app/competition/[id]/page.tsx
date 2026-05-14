@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation";
+import { mapVideo } from "@/lib/mappers";
 import { mergeVideoRows } from "@/lib/queries";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
-import type { mapVideo } from "@/lib/mappers";
 import { CompetitionDetailClient } from "@/components/competition/competition-detail-client";
 
 export const dynamic = "force-dynamic";

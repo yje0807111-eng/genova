@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useI18n } from "@/components/genova/language-provider";
@@ -220,7 +221,7 @@ export function CompetitionDetailClient({ competition, videos, featuredVideos }:
             className="absolute inset-0 flex items-center justify-center"
             style={{ background: "linear-gradient(135deg, #1a1547 0%, #0a0a0a 100%)" }}
           >
-            <img src="/genova-logo.png" alt="Genova" className="h-24 w-24 object-contain opacity-20" />
+            <Image src="/genova-logo.png" alt="Genova" width={96} height={96} className="h-24 w-24 object-contain opacity-20" />
             <div className="pointer-events-none absolute inset-0 overflow-hidden">
               <div
                 className="absolute -right-32 top-1/2 h-[140%] w-[60%] -translate-y-1/2 rounded-full opacity-40 blur-3xl"
