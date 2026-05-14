@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { Camera, Info, Paperclip, Phone, Pin, Search, Send, Smile, X } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
@@ -728,7 +729,7 @@ export function ChatDrawer({
               >
                 <div className="relative shrink-0">
                   <div className="h-9 w-9 overflow-hidden rounded-full bg-[#26215C] ring-1 ring-white/10 transition group-hover:ring-[#7F77DD]/40">
-                    <img src={activeTarget?.avatarUrl || "/default-avatar.png"} alt="" className="h-full w-full object-cover" />
+                    <Image src={activeTarget?.avatarUrl || "/default-avatar.png"} alt="" width={36} height={36} className="h-full w-full object-cover" />
                   </div>
                   <span
                     className={cn(
@@ -823,7 +824,7 @@ export function ChatDrawer({
                     <div className="mr-2 h-6 w-6 shrink-0 self-end">
                       {isGroupEnd ? (
                         <div className="h-6 w-6 overflow-hidden rounded-full bg-[#26215C]">
-                          <img src={activeTarget.avatarUrl || "/default-avatar.png"} alt="" className="h-full w-full object-cover" />
+                          <Image src={activeTarget.avatarUrl || "/default-avatar.png"} alt="" width={24} height={24} className="h-full w-full object-cover" />
                         </div>
                       ) : null}
                     </div>
@@ -1177,7 +1178,7 @@ export function ChatDrawer({
                           )}
                         >
                           <div className="relative shrink-0">
-                            <img src={conv.avatarUrl || "/default-avatar.png"} alt="" className="h-11 w-11 rounded-full object-cover ring-1 ring-white/[0.06]" />
+                            <Image src={conv.avatarUrl || "/default-avatar.png"} alt="" width={44} height={44} className="h-11 w-11 rounded-full object-cover ring-1 ring-white/[0.06]" />
                             {conv.unreadCount > 0 ? (
                               <span
                                 className="absolute -right-0.5 -top-0.5 h-3 w-3 rounded-full bg-[#7F77DD] ring-2 ring-[#0a0a0a]"
@@ -1313,7 +1314,7 @@ export function ChatDrawer({
                     {discoverUsers.map((user) => (
                       <div key={user.id} className="flex items-center gap-3 px-5 py-2.5 transition hover:bg-white/[0.02]">
                         <Link href={`/profile/${user.id}`} className="flex min-w-0 flex-1 items-center gap-3">
-                          <img src={user.avatarUrl || "/default-avatar.png"} alt="" className="h-9 w-9 shrink-0 rounded-full object-cover" />
+                          <Image src={user.avatarUrl || "/default-avatar.png"} alt="" width={36} height={36} className="h-9 w-9 shrink-0 rounded-full object-cover" />
                           <div className="min-w-0 flex-1">
                             <p className="truncate text-[13px] font-semibold text-white">{user.displayName ?? t("chat.unknownUser")}</p>
                             <p

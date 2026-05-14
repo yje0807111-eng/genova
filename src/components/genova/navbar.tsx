@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
@@ -189,7 +190,7 @@ function SearchBar() {
                         className="flex w-full items-center gap-3 px-4 py-2.5 text-left text-sm transition hover:bg-white/[0.05]"
                       >
                         <div className="h-8 w-8 shrink-0 overflow-hidden rounded-full border border-white/10 bg-[#26215C]">
-                          <img src={p.avatarUrl || "/default-avatar.png"} alt="" className="h-full w-full object-cover" />
+                          <Image src={p.avatarUrl || "/default-avatar.png"} alt="" width={32} height={32} className="h-full w-full object-cover" />
                         </div>
                         <span className="line-clamp-1 text-white/75">{p.displayName}</span>
                       </button>

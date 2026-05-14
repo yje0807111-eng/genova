@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { useEffect } from "react";
 import { AnimateIn } from "@/components/animate-in";
@@ -399,7 +400,7 @@ export function SearchPageBody({
                           }}
                         />
                         <div className="relative h-14 w-14 overflow-hidden rounded-full border border-white/10 ring-2 ring-[#534AB7]/30 transition group-hover:ring-[#7F77DD]/60">
-                          <img src={p.avatarUrl || "/default-avatar.png"} alt="" className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110" />
+                          <Image src={p.avatarUrl || "/default-avatar.png"} alt="" width={56} height={56} className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110" />
                         </div>
                       </div>
                       <div className="relative min-w-0 flex-1">

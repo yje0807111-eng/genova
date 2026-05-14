@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useEffect, useState } from "react";
 import { Check, Facebook, Link as LinkIcon, MessageCircle, Search, Send, Share2, Twitter, X } from "lucide-react";
 import { useI18n } from "@/components/genova/language-provider";
@@ -266,7 +267,7 @@ export function ShareButton({
                           <li key={u.userId}>
                             <div className="flex items-center gap-3 rounded-lg p-2 transition hover:bg-white/[0.04]">
                               <div className="h-9 w-9 shrink-0 overflow-hidden rounded-full bg-white/[0.05]">
-                                <img src={u.avatarUrl || "/default-avatar.png"} alt="" className="h-full w-full object-cover" />
+                                <Image src={u.avatarUrl || "/default-avatar.png"} alt="" width={36} height={36} className="h-full w-full object-cover" />
                               </div>
                               <p className="flex-1 min-w-0 truncate text-[13px] font-medium text-white">
                                 {u.displayName ?? "—"}

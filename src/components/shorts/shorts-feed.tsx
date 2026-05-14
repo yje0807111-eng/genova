@@ -1,6 +1,7 @@
 "use client";
 
 import type { CSSProperties } from "react";
+import Image from "next/image";
 import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { recordShortsViewAction } from "@/app/actions/video-views";
@@ -157,7 +158,7 @@ function ShortsSlide({
                 <div className="flex items-center gap-2">
                   <div className="h-10 w-10 shrink-0 overflow-hidden rounded-full border border-white/20 bg-[#26215C]">
                     {av ? (
-                      <img src={av} alt="" className="h-full w-full object-cover" />
+                      <Image src={av} alt="" width={40} height={40} className="h-full w-full object-cover" />
                     ) : (
                       <div className="flex h-full w-full items-center justify-center text-sm font-semibold text-[#AFA9EC]">{name.slice(0, 1)}</div>
                     )}

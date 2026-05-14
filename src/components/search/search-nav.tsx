@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { createPortal } from "react-dom";
@@ -336,7 +337,7 @@ export function SearchNav() {
                                     className="flex items-center gap-3 rounded-lg px-2 py-2 text-sm hover:bg-white/10"
                                   >
                                     <div className="h-10 w-10 shrink-0 overflow-hidden rounded-full bg-[#26215C]">
-                                      <img src={p.avatarUrl || "/default-avatar.png"} alt="" className="h-full w-full object-cover" />
+                                      <Image src={p.avatarUrl || "/default-avatar.png"} alt="" width={40} height={40} className="h-full w-full object-cover" />
                                     </div>
                                     <span className="font-medium text-[#EEEDFE]">
                                       <HighlightText text={p.displayName ?? "User"} query={debounced} />
@@ -428,7 +429,7 @@ export function SearchNav() {
                               style={{ background: "var(--border-white-02)" }}
                             >
                               <div className="mb-2 h-12 w-12 overflow-hidden rounded-full border border-white/10" style={{ boxShadow: "0 0 0 2px rgba(83,74,183,0.3)" }}>
-                                <img src={p.avatarUrl || "/default-avatar.png"} alt="" className="h-full w-full object-cover" />
+                                <Image src={p.avatarUrl || "/default-avatar.png"} alt="" width={48} height={48} className="h-full w-full object-cover" />
                               </div>
                               <p className="truncate text-sm font-bold text-white">{p.displayName ?? "Creator"}</p>
                               <p className="mt-0.5 text-[11px] text-white/35">{p.followerCount} followers</p>

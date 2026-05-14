@@ -2,6 +2,7 @@
 
 import { useEffect, useState, type ReactNode } from "react";
 import { Repeat } from "lucide-react";
+import Image from "next/image";
 import Link from "next/link";
 import {
   CommentInput,
@@ -128,7 +129,7 @@ export function WatchMetaSidebar({
             className="group flex min-w-0 items-center gap-2.5"
           >
             <div className="h-9 w-9 shrink-0 overflow-hidden rounded-full bg-white/[0.06] ring-1 ring-white/[0.08]">
-              <img src={creatorAvatarUrl || "/default-avatar.png"} alt={creatorName} className="h-full w-full object-cover" />
+              <Image src={creatorAvatarUrl || "/default-avatar.png"} alt={creatorName} width={36} height={36} className="h-full w-full object-cover" />
             </div>
             <div className="min-w-0">
               <p className="line-clamp-1 text-[13px] font-bold text-white transition group-hover:text-[#AFA9EC]">

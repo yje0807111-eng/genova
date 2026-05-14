@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import type { CSSProperties } from "react";
 import { useRef } from "react";
@@ -191,9 +192,11 @@ export function HomeAfterHero({
                   <div className="flex items-start gap-4">
                     <div className="relative shrink-0">
                       <div className="absolute -inset-1 rounded-full bg-gradient-to-br from-[#8E87E8] to-[#534AB7] opacity-70 blur-[1px]" />
-                      <img
+                      <Image
                         src={creator.avatarUrl}
                         alt={creator.name}
+                        width={72}
+                        height={72}
                         className="relative h-18 w-18 rounded-full border border-white/20 object-cover transition duration-300 group-hover:scale-105"
                       />
                     </div>

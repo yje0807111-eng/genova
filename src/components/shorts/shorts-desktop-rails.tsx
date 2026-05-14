@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { useMemo } from "react";
 import { formatGenreDisplay } from "@/lib/constants/genres";
@@ -154,7 +155,7 @@ export function ShortsRightRail({
       <div className="mt-3 flex items-center gap-3">
         <div className="h-11 w-11 shrink-0 overflow-hidden rounded-full border border-white/15 bg-[#26215C]">
           {av ? (
-            <img src={av} alt="" className="h-full w-full object-cover" />
+            <Image src={av} alt="" width={44} height={44} className="h-full w-full object-cover" />
           ) : (
             <div className="flex h-full w-full items-center justify-center text-sm font-semibold text-[#AFA9EC]">{name.slice(0, 1)}</div>
           )}

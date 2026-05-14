@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { updateProfileAction } from "@/app/actions/profile";
@@ -217,7 +218,7 @@ export function ProfileSettingsClient({
             <div className="relative flex flex-1 flex-col items-center justify-between rounded-lg border border-white/[0.06] bg-white/[0.02] p-2">
               <div className="relative">
                 <div className="group relative h-[72px] w-[72px] overflow-hidden rounded-full border border-white/[0.06] bg-white/[0.02] transition-transform duration-200 hover:scale-[2] hover:z-[200]">
-                  <img src={avatarUrl || "/default-avatar.png"} alt="" className="h-full w-full object-cover" />
+                  <Image src={avatarUrl || "/default-avatar.png"} alt="" width={72} height={72} className="h-full w-full object-cover" />
                 </div>
                 {avatarUrl && (
                   <button type="button" onClick={() => setAvatarUrl("")} title={t("settings.resetAvatar", "기본으로")} className="absolute -top-1 -right-1 z-[210] flex h-5 w-5 items-center justify-center rounded-full border border-white/[0.1] bg-[#0a0a0a]/90 text-white/65 transition hover:border-white/30 hover:text-white">

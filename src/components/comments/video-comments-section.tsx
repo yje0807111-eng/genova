@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState, useTransition } from "react";
@@ -180,7 +181,7 @@ function CommentBlock({
     >
       {/* Avatar */}
       <Link href={`/profile/${c.userId}`} className="h-7 w-7 shrink-0 overflow-hidden rounded-full bg-[#26215C]">
-        <img src={c.avatarUrl || "/default-avatar.png"} alt="" className="h-full w-full object-cover" />
+        <Image src={c.avatarUrl || "/default-avatar.png"} alt="" width={28} height={28} className="h-full w-full object-cover" />
       </Link>
 
       <div className="min-w-0 flex-1">

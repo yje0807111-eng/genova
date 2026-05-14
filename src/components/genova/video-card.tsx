@@ -266,7 +266,7 @@ export function VideoCard({
               <h3 className="mb-2 line-clamp-2 text-[13px] font-bold leading-snug text-white">{title}</h3>
               <div className="flex items-center gap-2">
                 {avatar ? (
-                  <img src={avatar} alt="" className="h-5 w-5 shrink-0 rounded-full object-cover border border-white/20" />
+                  <Image src={avatar} alt="" width={20} height={20} className="h-5 w-5 shrink-0 rounded-full object-cover border border-white/20" />
                 ) : (
                   <div className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-[#26215C] border border-white/20 text-[8px] font-bold text-white/55">
                     {creator.slice(0, 1).toUpperCase()}
