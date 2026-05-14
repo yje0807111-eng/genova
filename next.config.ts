@@ -1,3 +1,4 @@
+import path from "node:path";
 import type { NextConfig } from "next";
 
 const remotePatterns: NonNullable<NonNullable<NextConfig["images"]>["remotePatterns"]> = [
@@ -19,6 +20,12 @@ if (supabaseUrl) {
 }
 
 const nextConfig: NextConfig = {
+  turbopack: {
+    // Pin workspace root to this project dir so Turbopack does not select
+    // an outer lockfile (e.g. C:\Users\Home\package-lock.json) when
+    // multiple lockfiles are present on the machine.
+    root: path.resolve(__dirname),
+  },
   images: {
     remotePatterns,
   },
