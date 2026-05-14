@@ -159,10 +159,9 @@ src/
 | 컴포넌트              | 경로                                                         | 설명         |
 | ----------------- | ---------------------------------------------------------- | ---------- |
 | Navbar            | `src/components/genova/navbar.tsx`                         | 투명 상단 바    |
-| Sidebar           | `src/components/genova/genre-sidebar.tsx`                  | 좌측 장르 사이드바 |
-| HeroBanner (홈)    | `src/components/genova/home-page-client.tsx`               | 홈 히어로      |
-| HeroBanner (영화)   | `src/components/films/films-page-client.tsx`               | 영화 히어로     |
-| HeroBanner (공모전)  | `src/components/competition/competition-hero.tsx`          | 공모전 히어로    |
+| Sidebar           | `src/components/genova/slim-sidebar.tsx`                   | 좌측 슬림 사이드바 |
+| HeroBanner (홈)    | `src/components/genova/home-page-client.tsx`               | 홈 히어로 (영화 탭 포함 — `/films` 는 `/?tab=films` 로 redirect) |
+| HeroBanner (공모전)  | `src/components/genova/competition-hero.tsx`               | 공모전 히어로    |
 | CompetitionDetail | `src/components/competition/competition-detail-client.tsx` | 공모전 상세     |
 | VideoCard         | `src/components/genova/video-card.tsx`                     | 영상 카드      |
 

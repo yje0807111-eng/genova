@@ -13,14 +13,14 @@
 
 | 영역 | 라우트 | 핵심 컴포넌트 |
 |---|---|---|
-| **홈** | `/` | `home-page-client.tsx` (Hero, GenreCarousel, TabNav, Awards 등 포함) |
-| **영화 카탈로그** | `/films` | `films-page-client.tsx` |
+| **홈** | `/` | `home-page-client.tsx` (Hero, GenreCarousel, TabNav, Awards, 영화 탭 등 포함) |
+| **영화 카탈로그** | `/?tab=films` (`/films` → redirect) | `home-page-client.tsx` (탭 통합) |
 | **공모전** | `/competition`, `/competition/[id]` | `competition-list-client`, `competition-detail-client`, `featured-hero-carousel` |
 | **시청** | `/watch/[id]`, `/watch` | `mux-player-client`, `watch-video-embed`, `watch-meta-sidebar`, `up-next-section`, `series-episodes-slider` |
 | **업로드** | `/upload`, `/upload/edit/[id]` | `upload-video-form`, `selected-video-uploader`, Mux direct upload |
 | **인증** | `/auth`, `/auth/reset-password`, `/login` | `auth-form`, `auth-nav` |
-| **프로필** | `/profile`, `/profile/[id]`, `/profile/settings` | `profile-page-client`, `profile-settings-client` |
-| **크리에이터** | `/creator/[id]` | `creator-page-client` |
+| **프로필** | `/profile`, `/profile/[id]`, `/profile/settings` | `profile-page-client` (`GenovaProfileClient`), `profile-settings-client` |
+| **크리에이터** | `/creator/[id]` | `profile-page-client.tsx` (`GenovaProfileClient` 재사용) |
 | **장르** | `/genre/[genre]` | (장르별 그리드) |
 | **검색** | `/search` | `search-page-body`, `search-nav` |
 | **댓글** | (시청 페이지 내) | `video-comments-section` |
@@ -39,7 +39,7 @@
 | `/business`, `/business/apply` | B2B 진입 페이지 + 폼 존재 (`business-landing-client`, `business-apply-client`) |
 | `/tools/[slug]` | AI 도구 상세 페이지 (`tool-detail-client`) |
 | `/landing` | 별도 랜딩 (`landing-client`) — 홈과의 역할 분리 모호 |
-| `messages/`, `links/`, `feed/` 컴포넌트 폴더 | 디렉토리 존재, 라우트 미연결 또는 부분 노출 |
+| `links/`, `feed/` 컴포넌트 폴더 | `links/profile-text-link.tsx`, `feed/feed-youtube-layout.tsx` — 각 1 파일. `messages/` 폴더는 비어 있음 (모든 파일 정리됨 Phase A Batch 0). |
 | 시리즈/시즌 | 데이터 모델 (`series_name`, `episode_number`) + UI 일부 존재, 메뉴 미노출 |
 
 ### ⏳ 미구현 / 예정
@@ -321,7 +321,7 @@ inline `style={{...}}` 사용:  535건 / 55개 파일
 - [ ] **4.1** — 홈 잔여 인라인 25개 추가 마이그레이션 (선택 — ROI 낮음, 동적/일회성 위주)
 - [x] **4.2** — Films track reference 컴포넌트 마이그레이션:
   - [x] `--gradient-row-fade-l/r` 토큰 신설 — `6cbd465`
-  - [x] `films-page-client.tsx` (8 → 3 inline) — `09df29a`
+  - [x] ~~`films-page-client.tsx`~~ (8 → 3 inline) — `09df29a` (이후 파일 삭제 — Phase A Batch 0, `b88a3d2`)
   - [x] `films/continue-watching.tsx` row-fade 채택 — `90ec804`
   - [x] `video/up-next-section.tsx` row-fade 채택 — `c06723f`
 - [ ] **4.3** — 사이드바 통일 검토 (gradient `--gradient-sidebar` vs flat `--bg-base`) — **별도 세션 (시각 영향)**
@@ -449,6 +449,15 @@ inline `style={{...}}` 사용:  535건 / 55개 파일
 ### 기타
 - `193e653`: `sitemap.ts` + `robots.ts` 추가
 - `797121e`: default-avatar/banner PNG 압축 (-6.8MB)
+
+### Phase A — 페이지 server component 전환 (Batch 0 + 1)
+- A.1 (audit only): `*-client.tsx` 16 파일 분류 — C/W/S/U, ROI 매트릭스
+- Batch 0 (`b88a3d2`, -2,155줄): 5 orphan 파일 + dead export 제거
+  - `films-page-client.tsx`, `creator-page-client.tsx`, `competition-page-client.tsx`, `feed-page-client.tsx`, `public-profile-client.tsx`
+  - `watch-detail-client.tsx::WatchVideoMetaRow` 함수 + 7개 dead import 정리
+- Batch 1 (`c3c471b`, -4줄): `"use client"` 제거 → server component 전환
+  - `tools/tool-detail-client.tsx` (349줄), `business/business-landing-client.tsx` (299줄) — hook 0 / event 0 / 브라우저 API 0 확인됨
+- Batch 2/3 (보류): `useI18n` 서버 정책 결정 필요. `home-page-client` / `profile-page-client` 같은 대형 파일은 design carve-up 동반.
 
 ---
 
