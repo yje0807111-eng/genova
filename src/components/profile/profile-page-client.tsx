@@ -4,7 +4,6 @@ import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState, useTransition } from "react";
-import { createPortal } from "react-dom";
 import { useI18n } from "@/components/genova/language-provider";
 import { useUploadModal } from "@/components/upload/upload-modal-context";
 import { useEditModal } from "@/components/upload/edit-modal-context";
@@ -36,7 +35,7 @@ import {
 import { followUserAction, unfollowUserAction } from "@/app/actions/profile";
 import { updateVideoVisibilityAction } from "@/app/actions/video";
 import type { Profile } from "@/lib/queries/profile-queries";
-import { ProfileSettingsClient } from "@/components/profile/profile-settings-client";
+import { ProfileSettingsModal } from "@/components/profile/profile-settings-modal";
 import type { Video } from "@/lib/types";
 import { AnimateIn } from "@/components/animate-in";
 import { addWindowCustomListener } from "@/lib/dom/window-custom-events";
@@ -297,10 +296,14 @@ export function GenovaProfileClient({
   isOwner: boolean;
   showFollow: boolean;
   initialFollowing: boolean;
-  profile: Profile;
-  userEmail: string | null;
-  hasPassword: boolean;
-  authProvider: string;
+  /** Owner-only props (settings modal).  Optional so non-owner routes
+   *  (`/creator/[id]`) can omit them — the modal only mounts when
+   *  `isOwner` is true, at which point these are always supplied by
+   *  the `/profile/[id]` server page. */
+  profile?: Profile;
+  userEmail?: string | null;
+  hasPassword?: boolean;
+  authProvider?: string;
 }) {
   const { t } = useI18n();
   const router = useRouter();
@@ -319,10 +322,6 @@ export function GenovaProfileClient({
   const [bulkSaving, setBulkSaving] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [editModalOpen, setEditModalOpen] = useState(false);
-  useEffect(() => {
-    document.body.style.overflow = editModalOpen ? "hidden" : "";
-    return () => { document.body.style.overflow = ""; };
-  }, [editModalOpen]);
   const [expanded, setExpanded] = useState(false);
 
   const tabs = useMemo(() => {
@@ -976,40 +975,17 @@ export function GenovaProfileClient({
       </div>
       </AnimateIn>
 
-      {editModalOpen && typeof window !== "undefined" && createPortal(
-        <div
-          className="fixed inset-0 z-[100] flex items-start justify-center overflow-y-auto bg-black/70 backdrop-blur-sm p-4 pt-[10vh]"
-          onClick={() => setEditModalOpen(false)}
-        >
-          <div
-            className="relative w-full max-w-2xl rounded-2xl border border-white/[0.08] bg-[#0a0a0a] p-6 mb-[10vh]"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="mb-5 flex items-center justify-between">
-              <h2 className="text-[18px] font-bold text-white">
-                {t("settings.title", "프로필 편집")}
-              </h2>
-              <button
-                type="button"
-                onClick={() => setEditModalOpen(false)}
-                className="flex h-8 w-8 items-center justify-center rounded-full border border-white/[0.06] bg-white/[0.02] text-white/55 transition hover:border-white/[0.12] hover:text-white"
-              >
-                <X className="h-4 w-4" />
-              </button>
-            </div>
-            <ProfileSettingsClient
-              profile={profile}
-              userEmail={userEmail}
-              hasPassword={hasPassword}
-              authProvider={authProvider}
-              handle={handle}
-              isModal
-              onClose={() => setEditModalOpen(false)}
-            />
-          </div>
-        </div>,
-        document.body,
-      )}
+      {isOwner && profile ? (
+        <ProfileSettingsModal
+          open={editModalOpen}
+          onClose={() => setEditModalOpen(false)}
+          profile={profile}
+          userEmail={userEmail ?? null}
+          hasPassword={hasPassword ?? false}
+          authProvider={authProvider ?? "email"}
+          handle={handle}
+        />
+      ) : null}
 
       </div>
     </div>

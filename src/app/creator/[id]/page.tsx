@@ -103,10 +103,6 @@ export default async function CreatorPage({
         tiktokUrl={null}
         vimeoUrl={null}
         competitionVideos={[]}
-        profile={null as unknown as import("@/lib/queries/profile-queries").Profile}
-        userEmail={null}
-        hasPassword={false}
-        authProvider="email"
       />
     </div>
   );
