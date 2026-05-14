@@ -215,7 +215,14 @@ export function CompetitionDetailClient({ competition, videos, featuredVideos }:
             src={bannerImage}
           />
         ) : bannerImage ? (
-          <img src={bannerImage} alt="" className="absolute inset-0 h-full w-full object-cover" />
+          <Image
+            src={bannerImage}
+            alt=""
+            fill
+            priority
+            sizes="100vw"
+            className="object-cover"
+          />
         ) : (
           <div
             className="absolute inset-0 flex items-center justify-center"

@@ -194,7 +194,7 @@ export function ProfileSettingsClient({
               {t("settings.banner", "배너")}
             </label>
             <div className="relative h-[120px] overflow-hidden rounded-lg border border-white/[0.06]">
-              <img src={bannerUrl || "/default-banner.png"} alt="" className="h-full w-full object-cover" />
+              <Image src={bannerUrl || "/default-banner.png"} alt="" fill sizes="(max-width: 768px) 100vw, 600px" className="object-cover" />
               <div className="absolute top-1.5 right-1.5 flex items-center gap-1">
                 <label className="cursor-pointer rounded-md bg-[#0a0a0a]/80 px-2 py-0.5 text-[10px] font-semibold text-white/80 backdrop-blur-md transition hover:bg-[#534AB7] hover:text-white">
                   {t("settings.changeBanner", "변경")}
