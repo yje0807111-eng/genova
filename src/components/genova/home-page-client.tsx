@@ -1,15 +1,15 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Film, Heart } from "lucide-react";
+import { Film } from "lucide-react";
 import { usePathname, useSearchParams } from "next/navigation";
-import Link from "next/link";
 import type { Competition } from "@/lib/types";
 import type { Video } from "@/lib/types";
 import { useI18n } from "@/components/genova/language-provider";
 import { useGenreFilter } from "@/components/genova/genre-filter-context";
 import { AnimateIn } from "@/components/animate-in";
 import { HomeGenreCarousel } from "@/components/genova/home-genre-carousel";
+import { HoverPreviewCard } from "@/components/genova/hover-preview-card";
 import { parseRuntimeToSeconds } from "@/components/video/video-card";
 import { HeroInfoModal } from "@/components/genova/hero-info-modal";
 import { normalizeToMainGenre } from "@/lib/constants/genres";
@@ -18,12 +18,6 @@ import { HomeCompetitionBanner } from "@/components/genova/home-competition-bann
 import { HomeTabNav } from "@/components/genova/home-tab-nav";
 import type { MainTab, SubGenre, SortKey } from "@/components/genova/home-tab-nav";
 import { AwardsGallery } from "@/components/genova/awards-gallery";
-
-function formatRuntimeDisplay(seconds: number): string {
-  const m = Math.floor(seconds / 60);
-  const s = seconds % 60;
-  return `${m}:${s.toString().padStart(2, "0")}`;
-}
 
 type HeroAwardVideos = {
   grandPrize: Video | null;
@@ -72,7 +66,6 @@ export function HomePageClient(props: HomePageClientProps) {
   const [activeSubGenre, setActiveSubGenre] = useState<SubGenre>("all");
   const [activeSort, setActiveSort] = useState<SortKey>("latest");
   const [searchQuery, setSearchQuery] = useState("");
-  const [hoveredId, setHoveredId] = useState<string | null>(null);
   const moodBarRef = useRef<HTMLDivElement>(null);
   const isFirstMount = useRef(true);
 
@@ -289,60 +282,9 @@ export function HomePageClient(props: HomePageClientProps) {
             />
           ) : filteredVideos.length > 0 ? (
             <div className="relative z-0 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
-              {filteredVideos.map((v) => {
-                const creatorName =
-                  v.creatorName?.trim() || v.uploaderDisplayName?.trim() || "";
-                const runtimeSec = parseRuntimeToSeconds(v.runtime);
-                return (
-                  <Link
-                    key={v.id}
-                    href={`/watch/${v.id}`}
-                    className="group relative block overflow-hidden rounded-xl transition-all duration-300 hover:-translate-y-1"
-                    onMouseEnter={() => setHoveredId(v.id)}
-                    onMouseLeave={() => setHoveredId(null)}
-                  >
-                    <div className="relative aspect-[3/2] overflow-hidden bg-white/[0.02]">
-                      <img
-                        src={
-                          hoveredId === v.id && v.muxPlaybackId
-                            ? `https://image.mux.com/${v.muxPlaybackId}/animated.gif?width=640&fps=15`
-                            : v.thumbnailUrl || ""
-                        }
-                        alt={v.title}
-                        className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
-                      />
-                      <div
-                        className="absolute inset-0"
-                        style={{
-                          background: "var(--gradient-card-overlay)",
-                        }}
-                      />
-                      <div className="absolute inset-x-0 bottom-0 p-3">
-                        <p className="line-clamp-1 text-[13px] font-bold text-white">{v.title}</p>
-                        <div className="mt-1 flex items-center gap-2 text-[11px] text-white/55">
-                          {creatorName && <span className="line-clamp-1">{creatorName}</span>}
-                          {runtimeSec > 0 && (
-                            <>
-                              <span>·</span>
-                              <span>{formatRuntimeDisplay(runtimeSec)}</span>
-                            </>
-                          )}
-                          {typeof v.likeCount === "number" && v.likeCount > 0 && (
-                            <>
-                              <span>·</span>
-                              <span className="flex items-center gap-0.5">
-                                <Heart size={10} className="fill-current" />
-                                {v.likeCount}
-                              </span>
-                            </>
-                          )}
-                        </div>
-                      </div>
-                      <div className="absolute inset-0 rounded-xl ring-1 ring-inset ring-white/[0.06] transition group-hover:ring-white/15" />
-                    </div>
-                  </Link>
-                );
-              })}
+              {filteredVideos.map((v) => (
+                <HoverPreviewCard key={v.id} video={v} />
+              ))}
             </div>
           ) : (
             <div className="flex min-h-[600px] flex-col items-center justify-center text-center">
