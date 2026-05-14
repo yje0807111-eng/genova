@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { isAdminEmail } from "@/lib/auth/admin";
 import { createNotification } from "@/lib/notifications";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
+import { createServiceSupabaseClient } from "@/lib/supabase/service";
 
 type AdminResult = { ok: true } | { ok: false; message: string };
 
@@ -16,6 +17,24 @@ async function requireAdmin() {
   if (!user) return { error: "Please sign in." } as const;
   if (!isAdminEmail(user.email)) return { error: "Access denied." } as const;
   return { supabase, user } as const;
+}
+
+/**
+ * Same as requireAdmin() but also returns a service-role client.
+ * Use for writes to tables where admin needs to bypass RLS
+ * (competitions, site_settings, video_reports admin ops, etc.).
+ *
+ * The user-session `supabase` client is still returned for reads
+ * the action wants to perform under the caller's identity.
+ */
+async function requireAdminWithService() {
+  const auth = await requireAdmin();
+  if ("error" in auth) return auth;
+  const service = createServiceSupabaseClient();
+  if (!service) {
+    return { error: "Service role key not configured." } as const;
+  }
+  return { ...auth, service } as const;
 }
 
 export async function createCompetitionAction(form: {
@@ -35,11 +54,11 @@ export async function createCompetitionAction(form: {
   submissionGuidelines: string;
   currency?: string;
 }): Promise<AdminResult> {
-  const auth = await requireAdmin();
+  const auth = await requireAdminWithService();
   if ("error" in auth) return { ok: false, message: auth.error ?? "Unauthorized" };
-  const { supabase } = auth;
+  const { service } = auth;
   const id = form.id.trim() || crypto.randomUUID();
-  const { error } = await supabase.from("competitions").insert({
+  const { error } = await service.from("competitions").insert({
     id,
     title: form.title.trim(),
     description: form.subtitle?.trim() || null,
@@ -109,9 +128,9 @@ export async function updateCompetitionAction(
     base_currency?: string;
   },
 ): Promise<AdminResult> {
-  const auth = await requireAdmin();
+  const auth = await requireAdminWithService();
   if ("error" in auth) return { ok: false, message: auth.error ?? "Unauthorized" };
-  const { supabase } = auth;
+  const { service } = auth;
 
   const titleMain =
     form.title_ko?.trim() || form.title_en?.trim() || form.title_ja?.trim() || "";
@@ -121,7 +140,7 @@ export async function updateCompetitionAction(
     form.prize_info_ja?.trim() ||
     "";
 
-  const { error } = await supabase
+  const { error } = await service
     .from("competitions")
     .update({
       title: titleMain,
@@ -202,10 +221,10 @@ export async function updateCompetitionAction(
 }
 
 export async function updateCompetitionStatusAction(id: string, status: string): Promise<AdminResult> {
-  const auth = await requireAdmin();
+  const auth = await requireAdminWithService();
   if ("error" in auth) return { ok: false, message: auth.error ?? "Unauthorized" };
-  const { supabase } = auth;
-  const { error } = await supabase.from("competitions").update({ status }).eq("id", id);
+  const { service } = auth;
+  const { error } = await service.from("competitions").update({ status }).eq("id", id);
   if (error) return { ok: false, message: error.message };
   revalidatePath("/admin");
   revalidatePath("/competition");
@@ -213,12 +232,11 @@ export async function updateCompetitionStatusAction(id: string, status: string):
 }
 
 export async function deleteCompetitionAction(id: string): Promise<{ ok: boolean; message?: string }> {
-  const supabase = await createServerSupabaseClient();
-  if (!supabase) return { ok: false, message: "Configuration error." };
-  const auth = await requireAdmin();
+  const auth = await requireAdminWithService();
   if ("error" in auth) return { ok: false, message: auth.error ?? "Unauthorized" };
+  const { service } = auth;
 
-  const { error } = await supabase.from("competitions").delete().eq("id", id);
+  const { error } = await service.from("competitions").delete().eq("id", id);
   if (error) return { ok: false, message: error.message };
   revalidatePath("/admin");
   revalidatePath("/competition");
@@ -395,11 +413,11 @@ export async function toggleCompetitionFeaturedAction(videoId: string, featured:
 
 /** 공모전 행 `competitions.is_featured` (목록 추천). 영상용 `toggleCompetitionFeaturedAction`과 구분. */
 export async function toggleCompetitionFeaturedFlagAction(competitionId: string, featured: boolean): Promise<AdminResult> {
-  const auth = await requireAdmin();
+  const auth = await requireAdminWithService();
   if ("error" in auth) return { ok: false, message: auth.error ?? "Unauthorized" };
-  const { supabase } = auth;
+  const { service } = auth;
 
-  const { error } = await supabase.from("competitions").update({ is_featured: featured }).eq("id", competitionId);
+  const { error } = await service.from("competitions").update({ is_featured: featured }).eq("id", competitionId);
 
   if (error) {
     console.error("[toggleCompetitionFeaturedFlagAction]", error.message);
