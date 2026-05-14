@@ -1382,7 +1382,7 @@ export function CompetitionDetailClient({ competition, videos, featuredVideos }:
                         <span>{idx + 1}</span>
                       </span>
                       <div className="relative h-14 w-24 shrink-0 overflow-hidden rounded-lg">
-                        {video.thumbnail_url && <img src={video.thumbnail_url} alt="" className="h-full w-full object-cover" />}
+                        {video.thumbnail_url && <Image src={video.thumbnail_url} alt="" fill sizes="96px" className="object-cover" />}
                       </div>
                       <div className="min-w-0 flex-1">
                         <h3 className="line-clamp-1 text-[14px] font-semibold text-white">{video.title}</h3>

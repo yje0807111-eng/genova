@@ -79,7 +79,7 @@ export function ShortsLeftRail({
                 className="group flex w-full gap-3 rounded-lg border border-transparent p-1.5 text-left transition hover:border-[#534AB7]/40 hover:bg-white/[0.04]"
               >
                 <div className="relative h-14 w-10 shrink-0 overflow-hidden rounded-md bg-[#1a1a1a] ring-1 ring-white/10">
-                  <img src={v.thumbnailUrl} alt="" className="h-full w-full object-cover opacity-90 transition group-hover:opacity-100" />
+                  <Image src={v.thumbnailUrl} alt="" fill sizes="40px" className="object-cover opacity-90 transition group-hover:opacity-100" />
                 </div>
                 <div className="min-w-0 flex-1">
                   <p className="line-clamp-2 text-xs font-semibold leading-snug text-[#EEEDFE]">{v.title}</p>
@@ -217,7 +217,7 @@ export function ShortsRightRail({
                 className="group flex w-full gap-3 rounded-lg border border-transparent p-1.5 text-left transition hover:border-[#534AB7]/40 hover:bg-white/[0.04]"
               >
                 <div className="relative h-12 w-9 shrink-0 overflow-hidden rounded-md bg-[#1a1a1a] ring-1 ring-white/10">
-                  <img src={v.thumbnailUrl} alt="" className="h-full w-full object-cover opacity-90 transition group-hover:opacity-100" />
+                  <Image src={v.thumbnailUrl} alt="" fill sizes="36px" className="object-cover opacity-90 transition group-hover:opacity-100" />
                 </div>
                 <div className="min-w-0 flex-1">
                   <p className="line-clamp-2 text-[11px] font-semibold leading-snug text-[#EEEDFE]">{v.title}</p>

@@ -98,10 +98,12 @@ export function SeriesEpisodesSlider({
                 style={{ width: `${CARD_WIDTH}px` }}
               >
                 <div className="relative overflow-hidden bg-black/40 aspect-video">
-                  <img
+                  <Image
                     src={ep.thumbnailUrl || `https://picsum.photos/seed/${ep.id}/400/225`}
                     alt=""
-                    className="h-full w-full object-cover transition duration-300 group-hover:scale-105"
+                    fill
+                    sizes="180px"
+                    className="object-cover transition duration-300 group-hover:scale-105"
                   />
                   <div className="absolute left-2 top-2 rounded-md bg-black/60 px-1.5 py-0.5 text-xs font-bold text-purple-400 backdrop-blur-sm">
                     {episodeBadge(ep.episodeNumber ?? 0)}
@@ -227,10 +229,12 @@ export function SeriesEpisodesSlider({
                   >
                     {/* Thumbnail */}
                     <div className="relative aspect-video w-36 shrink-0 overflow-hidden rounded-lg bg-black/40">
-                      <img
+                      <Image
                         src={ep.thumbnailUrl || `https://picsum.photos/seed/${ep.id}/400/225`}
                         alt=""
-                        className="h-full w-full object-cover transition duration-300 group-hover:scale-105"
+                        fill
+                        sizes="144px"
+                        className="object-cover transition duration-300 group-hover:scale-105"
                       />
                       {/* Runtime bottom right */}
                       <div className="absolute bottom-1 right-1 rounded bg-black/70 px-1.5 py-0.5 text-[10px] text-white">

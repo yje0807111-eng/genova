@@ -165,9 +165,9 @@ function SearchBar() {
                         }}
                         className="flex w-full items-center gap-3 px-4 py-2.5 text-left text-sm transition hover:bg-white/[0.05]"
                       >
-                <div className="aspect-video h-10 shrink-0 overflow-hidden rounded-md border border-white/10 bg-[#1a1638]">
+                <div className="relative aspect-video h-10 shrink-0 overflow-hidden rounded-md border border-white/10 bg-[#1a1638]">
                           {v.thumbnailUrl ? (
-                            <img src={v.thumbnailUrl} alt="" className="h-full w-full object-cover" />
+                            <Image src={v.thumbnailUrl} alt="" fill sizes="71px" className="object-cover" />
                           ) : null}
                         </div>
                         <span className="line-clamp-1 text-white/75">{v.title}</span>

@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { Heart, Play } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
@@ -85,10 +86,12 @@ function VideoPosterCard({ video, rank }: { video: VideoCard; rank: number }) {
         className="relative block aspect-video overflow-hidden rounded-xl ring-0 transition-shadow duration-300 group-hover:ring-1 group-hover:ring-white/15"
       >
         {displaySrc ? (
-          <img
+          <Image
             src={displaySrc}
             alt={video.title}
-            className="absolute inset-0 z-0 h-full w-full object-cover transition-transform duration-300 group-hover:scale-[1.02]"
+            fill
+            sizes="(max-width: 768px) 100vw, (max-width: 1280px) 50vw, 33vw"
+            className="z-0 object-cover transition-transform duration-300 group-hover:scale-[1.02]"
           />
         ) : (
           <div className="absolute inset-0 z-0 bg-gradient-to-br from-[#1a1830] to-[#0a0a0a]" aria-hidden />

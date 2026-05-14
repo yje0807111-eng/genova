@@ -308,8 +308,8 @@ export function SearchNav() {
                                     }}
                                     className="flex items-center gap-3 rounded-lg px-2 py-2 text-sm text-[#EEEDFE] hover:bg-white/10"
                                   >
-                                    <div className="h-12 w-20 shrink-0 overflow-hidden rounded-md bg-black/30">
-                                      <img src={v.thumbnailUrl} alt="" className="h-full w-full object-cover" />
+                                    <div className="relative h-12 w-20 shrink-0 overflow-hidden rounded-md bg-black/30">
+                                      <Image src={v.thumbnailUrl} alt="" fill sizes="80px" className="object-cover" />
                                     </div>
                                     <span className="min-w-0 flex-1 truncate">
                                       <HighlightText text={v.title} query={debounced} />
@@ -402,7 +402,7 @@ export function SearchNav() {
                               className="group/card relative block overflow-hidden rounded-xl border border-white/[0.08] transition hover:scale-[1.03] hover:border-[#7F77DD]/40"
                             >
                               <div className="relative aspect-video w-full overflow-hidden">
-                                <img src={v.thumbnailUrl} alt="" className="h-full w-full object-cover transition-transform duration-500 group-hover/card:scale-105" />
+                                <Image src={v.thumbnailUrl} alt="" fill sizes="(max-width: 768px) 50vw, 25vw" className="object-cover transition-transform duration-500 group-hover/card:scale-105" />
                                 <div className="absolute inset-x-0 bottom-0 z-[1]" style={{ height: "75%", background: "linear-gradient(to top, rgba(10,10,10,1) 0%, rgba(10,10,10,0.8) 40%, transparent 100%)" }} />
                                 <div className="absolute bottom-0 left-0 right-0 z-[2] px-2.5 pb-2">
                                   <p className="line-clamp-1 text-[12px] font-bold text-white">{v.title}</p>

@@ -1,6 +1,7 @@
 "use client";
 
 import { ExternalLink, Eye, EyeOff, Star, Trash2, Trophy } from "lucide-react";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
 import { setVideoAwardAction, setVideoFinalistAction, setVideoOriginalAction } from "@/app/actions/admin";
@@ -191,7 +192,7 @@ export function VideoManage({
             >
               <div className="relative h-9 w-16 shrink-0 overflow-hidden rounded">
                 {video.thumbnailUrl?.trim() ? (
-                  <img src={video.thumbnailUrl} alt="" className="h-full w-full object-cover" />
+                  <Image src={video.thumbnailUrl} alt="" fill sizes="64px" className="object-cover" />
                 ) : (
                   <div className="h-full w-full bg-white/[0.04]" />
                 )}

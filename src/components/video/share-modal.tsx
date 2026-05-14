@@ -144,8 +144,8 @@ export function ShareButton({
             {view === "main" ? (
               <>
                 {thumbnailUrl ? (
-                  <div className="mb-3 overflow-hidden rounded-md border border-white/[0.06]">
-                    <img src={thumbnailUrl} alt="" className="aspect-video w-full object-cover" />
+                  <div className="relative mb-3 aspect-video w-full overflow-hidden rounded-md border border-white/[0.06]">
+                    <Image src={thumbnailUrl} alt="" fill sizes="(max-width: 640px) 100vw, 480px" className="object-cover" />
                   </div>
                 ) : null}
                 <p className="mb-4 line-clamp-1 text-xs text-white/45">{title}</p>

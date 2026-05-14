@@ -1,6 +1,7 @@
 "use client";
 
 import { ChevronDown, ChevronUp, Edit, ExternalLink, Star, Trash2 } from "lucide-react";
+import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
@@ -432,7 +433,7 @@ export function CompetitionManage({
                         >
                           <div className="relative h-10 w-[72px] shrink-0 overflow-hidden rounded">
                             {video.thumbnail_url?.trim() ? (
-                              <img src={video.thumbnail_url} alt="" className="h-full w-full object-cover" />
+                              <Image src={video.thumbnail_url} alt="" fill sizes="72px" className="object-cover" />
                             ) : (
                               <div className="h-full w-full bg-white/[0.04]" />
                             )}

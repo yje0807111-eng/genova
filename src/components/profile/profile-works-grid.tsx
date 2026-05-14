@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
@@ -56,7 +57,7 @@ export function ProfileWorksGrid({ videos, emptyLabel }: { videos: Video[]; empt
           >
             <Link href={`/watch/${v.id}`} className="block">
               <div className="relative aspect-video w-full">
-                <img src={v.thumbnailUrl} alt="" className="h-full w-full object-cover transition duration-200" />
+                <Image src={v.thumbnailUrl} alt="" fill sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw" className="object-cover transition duration-200" />
                 {isPrivate && (
                   <span
                     className="absolute right-2 top-2 rounded-full bg-black/60 p-1.5 text-[#EEEDFE]"

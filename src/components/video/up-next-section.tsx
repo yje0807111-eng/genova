@@ -82,10 +82,12 @@ function VideoCardStrip({ videos }: { videos: Video[] }) {
             >
               <div className="relative overflow-hidden aspect-video">
                 {item.thumbnailUrl ? (
-                  <img
+                  <Image
                     src={item.thumbnailUrl}
                     alt=""
-                    className="h-full w-full object-cover transition-transform duration-300 group-hover/card:scale-105"
+                    fill
+                    sizes="(max-width: 1280px) 20vw, 240px"
+                    className="object-cover transition-transform duration-300 group-hover/card:scale-105"
                   />
                 ) : (
                   <div className="h-full w-full bg-gradient-to-br from-[#1a1547] to-[#1a1a1a]" />

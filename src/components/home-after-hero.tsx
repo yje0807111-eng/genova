@@ -18,10 +18,12 @@ function FilmOverlayCard({ video, originalBadge = false }: { video: Video; origi
       className="ui-card ui-card-hover group relative block aspect-video overflow-hidden rounded-[2px] bg-[#0F0D24]"
     >
       {video.thumbnailUrl ? (
-        <img
+        <Image
           src={video.thumbnailUrl}
           alt={video.title}
-          className="h-full w-full object-cover transition duration-300 ease-out group-hover:scale-[1.05] group-hover:brightness-90"
+          fill
+          sizes="(max-width: 768px) 100vw, (max-width: 1280px) 50vw, 33vw"
+          className="object-cover transition duration-300 ease-out group-hover:scale-[1.05] group-hover:brightness-90"
         />
       ) : (
         <div className="h-full w-full bg-gradient-to-br from-[#1A1535] to-[#26215C]" />

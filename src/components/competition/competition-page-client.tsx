@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
@@ -158,7 +159,7 @@ export function CompetitionPageClient({
                     className="w-full text-left transition hover:bg-[#1A1535]/60"
                   >
                     <div className="relative aspect-video w-full overflow-hidden bg-black/30">
-                      <img src={video.thumbnailUrl} alt="" className="h-full w-full object-cover transition duration-200" />
+                      <Image src={video.thumbnailUrl} alt="" fill sizes="(max-width: 1024px) 50vw, 33vw" className="object-cover transition duration-200" />
                       <span className="absolute left-2 top-2 rounded bg-black/65 px-2 py-0.5 text-xs font-bold text-[#FFD873]">
                         #{rank}
                       </span>
@@ -200,7 +201,7 @@ export function CompetitionPageClient({
                     className="flex min-w-0 flex-1 gap-3 text-left transition hover:bg-white/[0.03]"
                   >
                     <div className="relative aspect-video w-36 shrink-0 overflow-hidden bg-black/30 sm:w-44">
-                      <img src={video.thumbnailUrl} alt="" className="h-full w-full object-cover transition duration-200" />
+                      <Image src={video.thumbnailUrl} alt="" fill sizes="(max-width: 640px) 144px, 176px" className="object-cover transition duration-200" />
                     </div>
                     <div className="flex min-w-0 flex-1 flex-col justify-center py-2 pr-2">
                       <p className="line-clamp-2 text-sm font-medium text-[#EEEDFE]">{video.title}</p>

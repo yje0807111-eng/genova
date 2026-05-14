@@ -145,7 +145,7 @@ function ShortsSlide({
             />
           ) : (
             <div className="absolute inset-0">
-              <img src={video.thumbnailUrl} alt="" className="h-full w-full object-cover opacity-45" />
+              <Image src={video.thumbnailUrl} alt="" fill sizes="100vw" className="object-cover opacity-45" />
               <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/25 to-black/50" />
             </div>
           )}

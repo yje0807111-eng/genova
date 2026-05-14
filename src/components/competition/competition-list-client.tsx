@@ -115,7 +115,7 @@ function CompetitionCard({ c }: { c: Competition }) {
       <Link href={`/competition/${c.id}`} className="block p-3 pb-0">
         <div className="relative w-full overflow-hidden rounded-lg" style={{ aspectRatio: "16/9" }}>
           {thumb ? (
-            <img src={thumb} alt="" className="h-full w-full object-cover transition duration-500 group-hover:scale-105" />
+            <Image src={thumb} alt="" fill sizes="(max-width: 768px) 100vw, (max-width: 1280px) 50vw, 33vw" className="object-cover transition duration-500 group-hover:scale-105" />
           ) : (
             <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-[#1a1547] to-[#1a1a1a]">
               <Image src="/genova-logo.png" alt="Genova" width={112} height={112} className="h-28 w-28 object-contain opacity-15" />
@@ -187,7 +187,7 @@ function CompetitionTableRow({ c, idx, participantCount }: { c: Competition; idx
       />
       <div className="relative z-10 h-[85px] w-44 shrink-0 overflow-hidden rounded-md">
         {thumb ? (
-          <img src={thumb} alt="" className="h-full w-full object-cover transition group-hover:scale-105" />
+          <Image src={thumb} alt="" fill sizes="176px" className="object-cover transition group-hover:scale-105" />
         ) : (
           <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-[#1a1547] to-[#1a1a1a]">
             <Image src="/genova-logo.png" alt="Genova" width={80} height={80} className="h-20 w-20 object-contain opacity-15" />
