@@ -36,13 +36,6 @@ export type Profile = {
   joinedAt: string | null;
 };
 
-export type UserAward = {
-  id: string;
-  competitionTitle: string | null;
-  awardTitle: string;
-  awardedAt: string | null;
-};
-
 function mapProfile(row: {
   id: string;
   display_name: string | null;
@@ -100,20 +93,6 @@ function mapProfile(row: {
     credits: row.credits ?? 0,
     points: row.points ?? 0,
     joinedAt: row.created_at ?? null,
-  };
-}
-
-function mapAward(row: {
-  id: string;
-  competition_title: string | null;
-  award_title: string;
-  awarded_at: string | null;
-}): UserAward {
-  return {
-    id: row.id,
-    competitionTitle: row.competition_title,
-    awardTitle: row.award_title,
-    awardedAt: row.awarded_at,
   };
 }
 
@@ -223,17 +202,5 @@ export async function fetchSavedVideos(userId: string): Promise<Video[]> {
     if (v) out.push(mapVideo(v));
   }
   return out;
-}
-
-export async function fetchUserAwards(userId: string): Promise<UserAward[]> {
-  const supabase = await createServerSupabaseClient();
-  if (!supabase) return [];
-  const { data, error } = await supabase
-    .from("user_awards")
-    .select("*")
-    .eq("user_id", userId)
-    .order("created_at", { ascending: false });
-  if (error || !data) return [];
-  return data.map(mapAward);
 }
 
