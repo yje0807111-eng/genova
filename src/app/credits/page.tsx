@@ -2,7 +2,7 @@ import { redirect } from "next/navigation";
 import { AnimateIn } from "@/components/animate-in";
 import { CreditsPurchaseGrid } from "@/components/credits/credits-purchase-grid";
 import { fetchCreditTransactionsForUser } from "@/lib/queries/credits-queries";
-import { fetchProfileById } from "@/lib/queries/profile-queries";
+import { fetchOwnProfile } from "@/lib/queries/profile-queries";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 
 export const dynamic = "force-dynamic";
@@ -38,7 +38,7 @@ export default async function CreditsPage() {
   } = await supabase.auth.getUser();
   if (!user) redirect("/auth");
 
-  const profile = await fetchProfileById(user.id);
+  const profile = await fetchOwnProfile(user.id);
   if (!profile) redirect("/auth");
 
   const transactions = await fetchCreditTransactionsForUser(user.id);

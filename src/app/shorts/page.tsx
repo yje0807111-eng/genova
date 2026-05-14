@@ -23,7 +23,7 @@ async function enrichForShorts(videos: Video[]): Promise<ShortsFeedItem[]> {
   const creatorAvMap = new Map<string, string>();
 
   if (supabase && uploaderIds.length > 0) {
-    const { data } = await supabase.from("profiles").select("id, avatar_url").in("id", uploaderIds);
+    const { data } = await supabase.from("public_profiles").select("id, avatar_url").in("id", uploaderIds);
     for (const p of data ?? []) profileMap.set(p.id as string, (p.avatar_url as string | null) ?? null);
   }
   if (supabase && creatorIds.length > 0) {

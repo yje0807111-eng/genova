@@ -36,7 +36,10 @@ export async function fetchCommentsForVideo(videoId: string): Promise<VideoComme
   }
 
   const userIds = [...new Set((rows as { user_id: string }[]).map((r) => r.user_id))];
-  const { data: profs } = await supabase.from("profiles").select("id, display_name, avatar_url").in("id", userIds);
+  const { data: profs } = await supabase
+    .from("public_profiles")
+    .select("id, display_name, avatar_url")
+    .in("id", userIds);
   const profMap = new Map((profs ?? []).map((p) => [p.id as string, p]));
 
   const flat = (rows as { id: string; user_id: string; video_id: string; parent_id: string | null; content: string; created_at: string }[]).map(

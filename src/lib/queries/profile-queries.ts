@@ -134,10 +134,37 @@ export async function ensureProfile(userId: string, emailHint?: string | null): 
   return false;
 }
 
-export async function fetchProfileById(userId: string): Promise<Profile | null> {
+/**
+ * Read the caller's OWN profile (full row including financial,
+ * preferences, and internal columns).  Use only when you have
+ * verified userId === caller's auth.uid().  For arbitrary profile
+ * reads (e.g. public profile pages, video uploader sidebar) use
+ * `fetchPublicProfileById` instead.
+ */
+export async function fetchOwnProfile(userId: string): Promise<Profile | null> {
   const supabase = await createServerSupabaseClient();
   if (!supabase) return null;
   const { data, error } = await supabase.from("profiles").select("*").eq("id", userId).maybeSingle();
+  if (error || !data) return null;
+  return mapProfile(data);
+}
+
+/**
+ * Read any profile through the `public_profiles` view (safe-public
+ * column subset only).  Credits, points, notify_*, custom_ai_tools,
+ * hidden_ai_tools, saved_hashtags, country, and updated_at columns
+ * are returned as their mapper defaults (0 / true / null) since the
+ * view does not expose them.  Survives phase 7c when the underlying
+ * `profiles.SELECT` is tightened to own-only.
+ */
+export async function fetchPublicProfileById(userId: string): Promise<Profile | null> {
+  const supabase = await createServerSupabaseClient();
+  if (!supabase) return null;
+  const { data, error } = await supabase
+    .from("public_profiles")
+    .select("*")
+    .eq("id", userId)
+    .maybeSingle();
   if (error || !data) return null;
   return mapProfile(data);
 }
@@ -213,7 +240,7 @@ export async function fetchFollowingPreviewUsers(userId: string, limit = 24): Pr
   if (e1 || !follows?.length) return [];
   const ids = follows.map((r) => r.following_id as string);
   const { data: profs, error: e2 } = await supabase
-    .from("profiles")
+    .from("public_profiles")
     .select("id, display_name, avatar_url")
     .in("id", ids);
   if (e2 || !profs?.length) return [];

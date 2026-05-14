@@ -59,7 +59,7 @@ export default async function AdminPage() {
       ? (service ?? supabase).from("videos").select("id, title").in("id", reportVideoIds)
       : Promise.resolve({ data: [] as { id: string; title: string }[], error: null }),
     reporterIds.length > 0
-      ? supabase.from("profiles").select("id, display_name").in("id", reporterIds)
+      ? supabase.from("public_profiles").select("id, display_name").in("id", reporterIds)
       : Promise.resolve({ data: [] as { id: string; display_name: string | null }[], error: null }),
   ]);
 

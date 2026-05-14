@@ -3,6 +3,7 @@ import { AnimateIn } from "@/components/animate-in";
 import { GenovaProfileClient } from "@/components/profile/profile-page-client";
 import { mapVideo } from "@/lib/mappers";
 import { profileHandle } from "@/lib/profile-handle";
+import { mergeVideoRows } from "@/lib/queries";
 import { attachEngagementToVideos } from "@/lib/queries/engagement-queries";
 import {
   fetchFinalistVideosByUploader,
@@ -10,7 +11,7 @@ import {
   fetchFollowCounts,
   fetchFollowingPreviewUsers,
   fetchIsFollowing,
-  fetchProfileById,
+  fetchPublicProfileById,
   fetchSavedVideos,
   fetchUploadedVideos,
 } from "@/lib/queries/profile-queries";
@@ -48,7 +49,7 @@ async function fetchUserCompetitionVideos(userId: string): Promise<CompetitionVi
 
   const { data, error } = await supabase
     .from("videos")
-    .select("*, profiles!videos_uploaded_by_fkey(display_name, avatar_url)")
+    .select("*")
     .eq("uploaded_by", userId)
     .eq("purpose", "competition")
     .not("submitted_competition_id", "is", null)
@@ -65,7 +66,9 @@ async function fetchUserCompetitionVideos(userId: string): Promise<CompetitionVi
     return [];
   }
 
-  return data.map((row) => mapVideo(row as Parameters<typeof mapVideo>[0]));
+  // Attach uploader display_name via public_profiles instead of FK embed.
+  const enriched = await mergeVideoRows(data as Parameters<typeof mapVideo>[0][]);
+  return enriched.map((row) => mapVideo(row));
 }
 
 export default async function ProfileByIdPage({ params }: { params: Promise<{ id: string }> }) {
@@ -82,7 +85,7 @@ export default async function ProfileByIdPage({ params }: { params: Promise<{ id
   }
 
   const isOwner = Boolean(currentUser?.id === id);
-  const profile = await fetchProfileById(id);
+  const profile = await fetchPublicProfileById(id);
   if (!profile) notFound();
 
   const [counts, rawWorks, rawFinalist, rawCompetitionVideos, initialFollowing, rawSaved, followingUsers, rawAwards] = await Promise.all([

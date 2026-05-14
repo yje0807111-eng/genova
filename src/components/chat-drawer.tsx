@@ -213,7 +213,7 @@ export function ChatDrawer({
       }
 
       const { data: profiles } = await supabase
-        .from("profiles")
+        .from("public_profiles")
         .select("id, display_name, avatar_url")
         .in("id", partnerIds);
 
@@ -287,7 +287,7 @@ export function ChatDrawer({
         }
 
         const { data: profiles } = await supabase
-          .from("profiles")
+          .from("public_profiles")
           .select("id, display_name, avatar_url")
           .in("id", partnerIds);
 
@@ -378,7 +378,7 @@ export function ChatDrawer({
 
         if (followingIds.length > 0) {
           const { data: profiles } = await supabase
-            .from("profiles")
+            .from("public_profiles")
             .select("id, display_name, avatar_url")
             .in("id", followingIds);
           const { data: watchHistory } = await supabase
@@ -434,7 +434,7 @@ export function ChatDrawer({
 
         const excluded = [currentUserId, ...followingIds].map((id) => `"${id}"`).join(",");
         const { data: allProfiles } = await supabase
-          .from("profiles")
+          .from("public_profiles")
           .select("id, display_name, avatar_url")
           .not("id", "in", `(${excluded})`)
           .limit(10);

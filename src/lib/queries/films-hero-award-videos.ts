@@ -1,4 +1,5 @@
 import { mapVideo } from "@/lib/mappers";
+import { mergeVideoRows } from "@/lib/queries";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import type { Video } from "@/lib/types";
 
@@ -36,12 +37,14 @@ export async function fetchHeroAwardVideosForCompetition(competitionId: string):
 
   const { data } = await supabase
     .from("videos")
-    .select("*, profiles!videos_uploaded_by_fkey(display_name)")
+    .select("*")
     .eq("submitted_competition_id", competitionId)
     .not("award", "is", null)
     .eq("visibility", "public");
 
-  const mapped = (data ?? []).map((row) => mapVideo(row));
+  // Attach uploader display_name via public_profiles instead of FK embed.
+  const enriched = await mergeVideoRows((data ?? []) as Parameters<typeof mapVideo>[0][]);
+  const mapped = enriched.map((row) => mapVideo(row));
 
   return {
     grandPrize: mapped.find((v) => awardIn(v.award, GRAND_AWARDS)) ?? null,

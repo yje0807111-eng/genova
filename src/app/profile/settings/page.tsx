@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
 import { ProfileSettingsClient } from "@/components/profile/profile-settings-client";
 import { profileHandle } from "@/lib/profile-handle";
-import { ensureProfile, fetchProfileById } from "@/lib/queries/profile-queries";
+import { ensureProfile, fetchOwnProfile } from "@/lib/queries/profile-queries";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 
 export const dynamic = "force-dynamic";
@@ -16,7 +16,7 @@ export default async function ProfileSettingsPage() {
   if (!user) redirect("/auth");
 
   await ensureProfile(user.id, user.email);
-  const profile = await fetchProfileById(user.id);
+  const profile = await fetchOwnProfile(user.id);
   if (!profile) redirect("/auth");
 
   const userEmail = user.email ?? null;

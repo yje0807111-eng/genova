@@ -1,5 +1,7 @@
 import { notFound } from "next/navigation";
+import { mergeVideoRows } from "@/lib/queries";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
+import type { mapVideo } from "@/lib/mappers";
 import { CompetitionDetailClient } from "@/components/competition/competition-detail-client";
 
 export const dynamic = "force-dynamic";
@@ -16,7 +18,7 @@ async function fetchCompetitionVideos(competitionId: string) {
   if (!supabase) return [];
   const { data, error } = await supabase
     .from("videos")
-    .select("*, profiles!videos_uploaded_by_fkey(display_name, avatar_url)")
+    .select("*")
     .eq("purpose", "competition")
     .eq("submitted_competition_id", competitionId)
     .eq("visibility", "public")
@@ -27,7 +29,8 @@ async function fetchCompetitionVideos(competitionId: string) {
     videos: data?.map((v) => ({ id: v.id, title: v.title })) ?? [],
     error: error ? { message: error.message, code: error.code } : null,
   });
-  return data ?? [];
+  // Attach uploader display_name / avatar_url via public_profiles.
+  return await mergeVideoRows((data ?? []) as Parameters<typeof mapVideo>[0][]);
 }
 
 async function fetchFeaturedVideos(competitionId: string) {
@@ -36,7 +39,7 @@ async function fetchFeaturedVideos(competitionId: string) {
 
   const { data, error } = await supabase
     .from("videos")
-    .select("*, profiles!videos_uploaded_by_fkey(display_name, avatar_url)")
+    .select("*")
     .eq("purpose", "competition")
     .eq("submitted_competition_id", competitionId)
     .eq("visibility", "public")
@@ -48,7 +51,7 @@ async function fetchFeaturedVideos(competitionId: string) {
     return [];
   }
 
-  return data ?? [];
+  return await mergeVideoRows((data ?? []) as Parameters<typeof mapVideo>[0][]);
 }
 
 export default async function CompetitionDetailPage({

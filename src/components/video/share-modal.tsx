@@ -59,7 +59,7 @@ export function ShareButton({
         return;
       }
       const { data: profs } = await supabase
-        .from("profiles")
+        .from("public_profiles")
         .select("id, display_name, avatar_url")
         .in("id", ids);
       setFollowing(

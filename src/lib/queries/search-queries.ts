@@ -14,6 +14,7 @@ import {
   filterMockVideosByGenreAndSub,
   filterMockVideosBySearch,
 } from "@/lib/mock-data";
+import { mergeVideoRows } from "@/lib/queries";
 import { attachEngagementToVideos } from "@/lib/queries/engagement-queries";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import type { Video } from "@/lib/types";
@@ -64,7 +65,9 @@ async function isVideosTableEmpty(): Promise<boolean> {
 async function isProfilesTableEmpty(): Promise<boolean> {
   const supabase = await createServerSupabaseClient();
   if (!supabase) return true;
-  const { count, error } = await supabase.from("profiles").select("id", { count: "exact", head: true });
+  const { count, error } = await supabase
+    .from("public_profiles")
+    .select("id", { count: "exact", head: true });
   if (error) return true;
   return (count ?? 0) === 0;
 }
@@ -152,12 +155,15 @@ export async function fetchTrendingVideosByLikes(limit = 4): Promise<Video[]> {
 
   const { data, error } = await supabase
     .from("videos")
-    .select("*, creators(*), profiles!videos_uploaded_by_fkey(display_name)")
+    .select("*, creators(*)")
     .limit(400);
   if (error || !data?.length) {
     return fallbackTrending();
   }
-  const mapped = dedupeVideos(data as Parameters<typeof mapVideo>[0][]);
+  // Attach uploader display_name via mergeVideoRows (public_profiles view)
+  // instead of the legacy `profiles!videos_uploaded_by_fkey(...)` FK embed.
+  const enriched = await mergeVideoRows(data as Parameters<typeof mapVideo>[0][]);
+  const mapped = dedupeVideos(enriched);
   const withE = applyMockLikeFallback(await attachEngagementToVideos(mapped));
   return withE.sort((a, b) => (b.likeCount ?? 0) - (a.likeCount ?? 0)).slice(0, limit);
 }
@@ -190,7 +196,7 @@ export async function fetchTrendingProfilesByFollowers(limit = 4): Promise<Searc
     .map(([id]) => id);
   if (topIds.length === 0) return [];
   const { data: profs } = await supabase
-    .from("profiles")
+    .from("public_profiles")
     .select("id, display_name, avatar_url, bio")
     .in("id", topIds);
   const rows = profs ?? [];
@@ -222,12 +228,12 @@ async function collectVideoCandidates(q: string, cap = 220): Promise<Video[]> {
   const [baseRes, creatorsRes, profileRes] = await Promise.all([
     supabase
       .from("videos")
-      .select("*, creators(*), profiles!videos_uploaded_by_fkey(display_name)")
+      .select("*, creators(*)")
       .or(`title.ilike.${like},genre.ilike.${like},sub_genre.ilike.${like}`)
       .order("created_at", { ascending: false })
       .limit(cap),
     supabase.from("creators").select("id").ilike("name", like).limit(40),
-    supabase.from("profiles").select("id").ilike("display_name", like).limit(40),
+    supabase.from("public_profiles").select("id").ilike("display_name", like).limit(40),
   ]);
 
   if (baseRes.error) {
@@ -237,7 +243,7 @@ async function collectVideoCandidates(q: string, cap = 220): Promise<Video[]> {
   // tags 별도 검색 (배열 컬럼이라 .or() 안에서 캐스팅 안 됨)
   const tagsRes = await supabase
     .from("videos")
-    .select("*, creators(*), profiles!videos_uploaded_by_fkey(display_name)")
+    .select("*, creators(*)")
     .contains("tags", [term.toLowerCase()])
     .order("created_at", { ascending: false })
     .limit(cap);
@@ -249,7 +255,7 @@ async function collectVideoCandidates(q: string, cap = 220): Promise<Video[]> {
   if (creatorIds.length) {
     const { data } = await supabase
       .from("videos")
-      .select("*, creators(*), profiles!videos_uploaded_by_fkey(display_name)")
+      .select("*, creators(*)")
       .in("creator_id", creatorIds)
       .order("created_at", { ascending: false })
       .limit(cap);
@@ -258,7 +264,7 @@ async function collectVideoCandidates(q: string, cap = 220): Promise<Video[]> {
   if (profileIds.length) {
     const { data } = await supabase
       .from("videos")
-      .select("*, creators(*), profiles!videos_uploaded_by_fkey(display_name)")
+      .select("*, creators(*)")
       .in("uploaded_by", profileIds)
       .order("created_at", { ascending: false })
       .limit(cap);
@@ -270,7 +276,9 @@ async function collectVideoCandidates(q: string, cap = 220): Promise<Video[]> {
     ...((tagsRes.data ?? []) as Parameters<typeof mapVideo>[0][]),
     ...extras.flat(),
   ];
-  const videos = dedupeVideos(merged);
+  // Attach uploader profiles via mergeVideoRows (public_profiles view).
+  const enriched = await mergeVideoRows(merged);
+  const videos = dedupeVideos(enriched);
   if (videos.length === 0 && (await isVideosTableEmpty())) {
     return filterMockVideosBySearch(term).slice(0, cap);
   }
@@ -382,7 +390,7 @@ export async function searchProfilesFull(q: string, limit = 24): Promise<SearchP
   }
   const like = toLike(term);
   const { data, error } = await supabase
-    .from("profiles")
+    .from("public_profiles")
     .select("id, display_name, avatar_url, bio")
     .ilike("display_name", like)
     .order("display_name", { ascending: true })
@@ -533,9 +541,12 @@ export async function fetchVideosByGenre(
     }
   }
   if (uploaderIds.length > 0) {
-    const { data: profiles, error: pErr } = await supabase.from("profiles").select("id, display_name").in("id", uploaderIds);
+    const { data: profiles, error: pErr } = await supabase
+      .from("public_profiles")
+      .select("id, display_name")
+      .in("id", uploaderIds);
     if (pErr) {
-      console.error("[fetchVideosByGenre] profiles fetch failed", { message: pErr.message, code: pErr.code });
+      console.error("[fetchVideosByGenre] public_profiles fetch failed", { message: pErr.message, code: pErr.code });
     } else {
       const profileMap = new Map((profiles ?? []).map((p) => [p.id as string, { display_name: p.display_name as string | null }]));
       for (let i = 0; i < mergedRows.length; i += 1) {

@@ -19,7 +19,7 @@ import {
   fetchVideoById,
   type SeriesEpisodesNav,
 } from "@/lib/queries";
-import { fetchFollowCounts, fetchIsFollowing, fetchProfileById } from "@/lib/queries/profile-queries";
+import { fetchFollowCounts, fetchIsFollowing, fetchPublicProfileById } from "@/lib/queries/profile-queries";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { WatchTracker } from "@/components/video/watch-tracker";
 import { WatchDesktopFlexRow } from "@/components/video/watch-comments-panel";
@@ -79,7 +79,7 @@ export default async function WatchDetailPage({
     video.creatorId ? fetchCreatorById(video.creatorId) : Promise.resolve(null),
     fetchSeriesEpisodesForVideo(video),
     fetchCommentsForVideo(video.id),
-    video.uploadedBy ? fetchProfileById(video.uploadedBy) : Promise.resolve(null),
+    video.uploadedBy ? fetchPublicProfileById(video.uploadedBy) : Promise.resolve(null),
     video.uploadedBy ? fetchIsFollowing(user?.id, video.uploadedBy) : Promise.resolve(false),
   ]);
   const seriesNav: SeriesEpisodesNav = seriesNavRaw;

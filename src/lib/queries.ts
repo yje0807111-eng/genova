@@ -28,11 +28,11 @@ export async function mergeVideoRows(
   const uploaderIds = [...new Set(rows.map((r) => r.uploaded_by).filter(Boolean))] as string[];
   if (uploaderIds.length > 0) {
     const { data: profiles, error: profilesErr } = await supabase
-      .from("profiles")
+      .from("public_profiles")
       .select("id, display_name, avatar_url")
       .in("id", uploaderIds);
     if (profilesErr) {
-      console.error("[mergeVideoRows] profiles fetch failed", { message: profilesErr.message, code: profilesErr.code });
+      console.error("[mergeVideoRows] public_profiles fetch failed", { message: profilesErr.message, code: profilesErr.code });
     } else {
       const profileMap = new Map(
         (profiles ?? []).map((p) => {
@@ -188,7 +188,11 @@ export async function fetchVideoById(id: string): Promise<Video | null> {
   let merged = data as Parameters<typeof mapVideo>[0];
   const uid = merged.uploaded_by;
   if (uid) {
-    const { data: prof } = await supabase.from("profiles").select("display_name").eq("id", uid).maybeSingle();
+    const { data: prof } = await supabase
+      .from("public_profiles")
+      .select("display_name")
+      .eq("id", uid)
+      .maybeSingle();
     if (prof) {
       merged = { ...merged, profiles: prof };
     }
@@ -260,8 +264,9 @@ export async function fetchRelatedVideos(excludeId: string, limit = 8): Promise<
     watchedIds = [...new Set((history ?? []).map((h) => h.video_id as string).filter(Boolean))];
   }
 
-  const selectRelated =
-    "*, profiles!videos_uploaded_by_fkey(display_name, avatar_url)";
+  // Profile data is attached below via mergeVideoRows (sourced from
+  // the public_profiles view), so the embed is dropped here.
+  const selectRelated = "*";
 
   let q1 = supabase
     .from("videos")
@@ -605,10 +610,10 @@ export async function fetchSpotlightCreators(): Promise<{
 
   if (sorted.length === 0) return [];
 
-  // 프로필 가져오기
+  // 프로필 가져오기 (public_profiles view — display_name / avatar_url only)
   const uploaderIds = sorted.map(([id]) => id);
   const { data: profiles } = await supabase
-    .from("profiles")
+    .from("public_profiles")
     .select("id, display_name, avatar_url")
     .in("id", uploaderIds);
 
