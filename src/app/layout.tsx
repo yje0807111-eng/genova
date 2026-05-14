@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Plus_Jakarta_Sans, Syne } from "next/font/google";
 import { LayoutWrapper } from "@/components/genova/layout-wrapper";
+import { getServerLocale } from "@/lib/i18n/server";
 import "./globals.css";
 import { Toaster } from "sonner";
 
@@ -55,13 +56,18 @@ export const metadata: Metadata = {
   },
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  // Read locale from the `genova-locale` cookie set by language-provider.tsx
+  // (see B.2-2).  First paint now matches the user's selected locale —
+  // no English flash on returning ko/ja sessions, no hydration mismatch.
+  const locale = await getServerLocale();
+
   return (
-    <html lang="en" className={`${plusJakarta.variable} ${syne.variable} h-full antialiased`}>
+    <html lang={locale} className={`${plusJakarta.variable} ${syne.variable} h-full antialiased`}>
       <head>
         <link rel="preconnect" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css" />
         <link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css" rel="stylesheet" />
