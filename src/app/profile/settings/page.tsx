@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { ProfileSettingsClient } from "@/components/profile/profile-settings-client";
 import { profileHandle } from "@/lib/profile-handle";
@@ -5,6 +6,11 @@ import { ensureProfile, fetchOwnProfile } from "@/lib/queries/profile-queries";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 
 export const dynamic = "force-dynamic";
+
+export const metadata: Metadata = {
+  title: "Profile Settings",
+  robots: { index: false, follow: false },
+};
 
 export default async function ProfileSettingsPage() {
   const supabase = await createServerSupabaseClient();

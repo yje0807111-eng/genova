@@ -1,6 +1,12 @@
+import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { isAdminEmail } from "@/lib/auth/admin";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
+
+export const metadata: Metadata = {
+  title: "Admin",
+  robots: { index: false, follow: false },
+};
 
 /**
  * Centralized auth guard for every /admin/** route.

@@ -1,7 +1,19 @@
+import type { Metadata } from "next";
 import { CompetitionListClient } from "@/components/competition/competition-list-client";
 import { FeaturedHeroCarousel } from "@/components/competition/featured-hero-carousel";
 import { fetchAllCompetitions } from "@/lib/queries";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
+
+export const metadata: Metadata = {
+  title: "Competitions",
+  description:
+    "Submit your AI-generated film to active competitions and compete for prizes. Discover ongoing contests across the Genova community.",
+  openGraph: {
+    title: "Competitions | Genova",
+    description:
+      "Submit your AI-generated film to active competitions and compete for prizes.",
+  },
+};
 
 function parsePrizeToUSD(prizeInfo: string): number {
   if (!prizeInfo) return 0;

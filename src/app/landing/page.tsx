@@ -1,8 +1,20 @@
+import type { Metadata } from "next";
 import { LandingClient } from "@/components/landing/landing-client";
 import { fetchTrendingVideosByLikes } from "@/lib/queries/search-queries";
 import { fetchActiveCompetitions } from "@/lib/queries";
 
 export const dynamic = "force-dynamic";
+
+export const metadata: Metadata = {
+  title: "About Genova",
+  description:
+    "Learn about Genova — the streaming home of AI filmmakers. Browse trending films, active competitions, and creator stories.",
+  openGraph: {
+    title: "About Genova",
+    description:
+      "Learn about Genova — the streaming home of AI filmmakers.",
+  },
+};
 
 export default async function LandingPage() {
   const trendingVideos = await fetchTrendingVideosByLikes(12);

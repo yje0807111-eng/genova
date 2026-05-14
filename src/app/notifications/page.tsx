@@ -1,8 +1,14 @@
+import type { Metadata } from "next";
 import { AnimateIn } from "@/components/animate-in";
 import { redirect } from "next/navigation";
 import { NotificationsList } from "@/components/notifications/notifications-list";
 import { fetchMyNotifications } from "@/lib/queries/notifications-queries";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
+
+export const metadata: Metadata = {
+  title: "Notifications",
+  robots: { index: false, follow: false },
+};
 
 export default async function NotificationsPage() {
   const supabase = await createServerSupabaseClient();

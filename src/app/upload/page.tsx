@@ -1,9 +1,15 @@
+import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { AnimateIn } from "@/components/animate-in";
 import { UploadVideoFormSimple } from "@/components/upload/upload-video-form-simple";
 import { fetchCompetitionsForUpload, fetchCurrentCompetition } from "@/lib/queries";
 import { ensureProfile } from "@/lib/queries/profile-queries";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
+
+export const metadata: Metadata = {
+  title: "Upload",
+  robots: { index: false, follow: false },
+};
 
 export default async function UploadPage({
   searchParams,

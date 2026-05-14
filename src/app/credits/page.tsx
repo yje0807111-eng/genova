@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { AnimateIn } from "@/components/animate-in";
 import { CreditsPurchaseGrid } from "@/components/credits/credits-purchase-grid";
@@ -6,6 +7,11 @@ import { fetchOwnProfile } from "@/lib/queries/profile-queries";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 
 export const dynamic = "force-dynamic";
+
+export const metadata: Metadata = {
+  title: "Credits",
+  robots: { index: false, follow: false },
+};
 
 function formatNum(n: number): string {
   return new Intl.NumberFormat("en-US").format(n);

@@ -1,8 +1,14 @@
+import type { Metadata } from "next";
 import { notFound, redirect } from "next/navigation";
 import { AnimateIn } from "@/components/animate-in";
 import { EditVideoFormSimple } from "@/components/upload/edit-video-form-simple";
 import { fetchCompetitionsForUpload, fetchCurrentCompetition } from "@/lib/queries";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
+
+export const metadata: Metadata = {
+  title: "Edit Film",
+  robots: { index: false, follow: false },
+};
 
 export default async function EditVideoPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
