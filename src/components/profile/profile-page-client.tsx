@@ -12,10 +12,6 @@ import {
   Bookmark,
   Check,
   ChevronDown,
-  ChevronLeft,
-  ChevronRight,
-  ChevronsLeft,
-  ChevronsRight,
   Eye,
   EyeOff,
   Film,
@@ -35,6 +31,7 @@ import {
 import { followUserAction, unfollowUserAction } from "@/app/actions/profile";
 import { updateVideoVisibilityAction } from "@/app/actions/video";
 import type { Profile } from "@/lib/queries/profile-queries";
+import { ProfilePaginator } from "@/components/profile/profile-paginator";
 import { ProfileSettingsModal } from "@/components/profile/profile-settings-modal";
 import type { Video } from "@/lib/types";
 import { AnimateIn } from "@/components/animate-in";
@@ -65,19 +62,6 @@ const GENRE_LABEL: Record<string, string> = {
   art: "Art",
   daily: "Daily",
 };
-
-function getVisiblePages(currentPage: number, totalPages: number): number[] {
-  const WINDOW = 9;
-  let start = Math.max(1, currentPage - Math.floor(WINDOW / 2));
-  let end = start + WINDOW - 1;
-  if (end > totalPages) {
-    end = totalPages;
-    start = Math.max(1, end - WINDOW + 1);
-  }
-  const pages: number[] = [];
-  for (let i = start; i <= end; i++) pages.push(i);
-  return pages;
-}
 
 function SocialLinks({
   websiteUrl,
@@ -901,76 +885,11 @@ export function GenovaProfileClient({
                 ))}
               </div>
             )}
-            {displayVideos.totalPages > 1 ? (
-              <div className="w-full px-0">
-                <div className="mt-8 flex items-center justify-center gap-2">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setCurrentPage(1);
-                      setTimeout(() => window.scrollTo({ top: 0, behavior: "smooth" }), 50);
-                    }}
-                    disabled={currentPage === 1}
-                    className="flex h-8 w-8 items-center justify-center rounded-lg border border-white/[0.08] bg-white/[0.02] text-white/50 transition hover:border-white/15 hover:bg-white/[0.05] hover:text-white disabled:opacity-30"
-                  >
-                    <ChevronsLeft className="h-3.5 w-3.5" />
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setCurrentPage((p) => Math.max(1, p - 1));
-                      setTimeout(() => window.scrollTo({ top: 0, behavior: "smooth" }), 50);
-                    }}
-                    disabled={currentPage === 1}
-                    className="flex h-8 w-8 items-center justify-center rounded-lg border border-white/[0.08] bg-white/[0.02] text-white/50 transition hover:border-white/15 hover:bg-white/[0.05] hover:text-white disabled:opacity-30"
-                  >
-                    <ChevronLeft className="h-3.5 w-3.5" />
-                  </button>
-                  <div className="flex items-center gap-2">
-                    {getVisiblePages(currentPage, displayVideos.totalPages).map((page) => (
-                      <button
-                        key={page}
-                        type="button"
-                        onClick={() => {
-                          setCurrentPage(page);
-                          window.scrollTo({ top: 0, behavior: "smooth" });
-                        }}
-                        className={cn(
-                          "h-8 w-8 rounded-lg border text-xs transition",
-                          currentPage === page
-                            ? "border-[#534AB7]/40 bg-[#534AB7]/20 font-medium text-[#AFA9EC]"
-                            : "border-white/[0.08] bg-white/[0.02] text-white/50 hover:border-white/15 hover:bg-white/[0.05] hover:text-white",
-                        )}
-                      >
-                        {page}
-                      </button>
-                    ))}
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setCurrentPage((p) => Math.min(displayVideos.totalPages, p + 1));
-                      setTimeout(() => window.scrollTo({ top: 0, behavior: "smooth" }), 50);
-                    }}
-                    disabled={currentPage === displayVideos.totalPages}
-                    className="flex h-8 w-8 items-center justify-center rounded-lg border border-white/[0.08] bg-white/[0.02] text-white/50 transition hover:border-white/15 hover:bg-white/[0.05] hover:text-white disabled:opacity-30"
-                  >
-                    <ChevronRight className="h-3.5 w-3.5" />
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setCurrentPage(displayVideos.totalPages);
-                      setTimeout(() => window.scrollTo({ top: 0, behavior: "smooth" }), 50);
-                    }}
-                    disabled={currentPage === displayVideos.totalPages}
-                    className="flex h-8 w-8 items-center justify-center rounded-lg border border-white/[0.08] bg-white/[0.02] text-white/50 transition hover:border-white/15 hover:bg-white/[0.05] hover:text-white disabled:opacity-30"
-                  >
-                    <ChevronsRight className="h-3.5 w-3.5" />
-                  </button>
-                </div>
-              </div>
-            ) : null}
+            <ProfilePaginator
+              currentPage={currentPage}
+              totalPages={displayVideos.totalPages}
+              onPageChange={setCurrentPage}
+            />
         </div>
       </div>
       </AnimateIn>
