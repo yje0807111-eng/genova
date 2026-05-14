@@ -1,7 +1,6 @@
 "use server";
 
-import { createServerSupabaseClient } from "@/lib/supabase/server";
-import { isAdminEmail } from "@/lib/auth/admin";
+import { requireAdminWithService } from "@/lib/auth/admin-actions";
 
 export type BusinessInquiryStatus = "new" | "contacted" | "in_progress" | "closed";
 
@@ -22,23 +21,12 @@ export type BusinessInquiryItem = {
   createdAt: string;
 };
 
-async function requireAdmin() {
-  const supabase = await createServerSupabaseClient();
-  if (!supabase) return { error: "Please check your Supabase configuration." } as const;
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) return { error: "Please sign in." } as const;
-  if (!isAdminEmail(user.email)) return { error: "Access denied." } as const;
-  return { supabase, user } as const;
-}
-
 export async function fetchBusinessInquiries(): Promise<BusinessInquiryItem[]> {
-  const result = await requireAdmin();
+  const result = await requireAdminWithService();
   if ("error" in result) return [];
-  const { supabase } = result;
+  const { service } = result;
 
-  const { data } = await supabase
+  const { data } = await service
     .from("business_inquiries")
     .select("*")
     .order("created_at", { ascending: false });
@@ -65,11 +53,11 @@ export async function updateBusinessInquiryStatusAction(
   id: string,
   status: BusinessInquiryStatus,
 ) {
-  const result = await requireAdmin();
+  const result = await requireAdminWithService();
   if ("error" in result) return { ok: false, message: result.error } as const;
-  const { supabase } = result;
+  const { service } = result;
 
-  const { error } = await supabase
+  const { error } = await service
     .from("business_inquiries")
     .update({ status })
     .eq("id", id);
@@ -79,11 +67,11 @@ export async function updateBusinessInquiryStatusAction(
 }
 
 export async function deleteBusinessInquiryAction(id: string) {
-  const result = await requireAdmin();
+  const result = await requireAdminWithService();
   if ("error" in result) return { ok: false, message: result.error } as const;
-  const { supabase } = result;
+  const { service } = result;
 
-  const { error } = await supabase
+  const { error } = await service
     .from("business_inquiries")
     .delete()
     .eq("id", id);
@@ -93,11 +81,11 @@ export async function deleteBusinessInquiryAction(id: string) {
 }
 
 export async function updateBusinessInquiryNotesAction(id: string, notes: string) {
-  const result = await requireAdmin();
+  const result = await requireAdminWithService();
   if ("error" in result) return { ok: false, message: result.error } as const;
-  const { supabase } = result;
+  const { service } = result;
 
-  const { error } = await supabase
+  const { error } = await service
     .from("business_inquiries")
     .update({ admin_notes: notes })
     .eq("id", id);
