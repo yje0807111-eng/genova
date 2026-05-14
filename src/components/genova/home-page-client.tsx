@@ -11,7 +11,6 @@ import { AnimateIn } from "@/components/animate-in";
 import { HomeGenreCarousel } from "@/components/genova/home-genre-carousel";
 import { HoverPreviewCard } from "@/components/genova/hover-preview-card";
 import { parseRuntimeToSeconds } from "@/components/video/video-card";
-import { HeroInfoModal } from "@/components/genova/hero-info-modal";
 import { normalizeToMainGenre } from "@/lib/constants/genres";
 import type { GenreFilter } from "@/lib/genova-genre";
 import { HomeCompetitionBanner } from "@/components/genova/home-competition-banner";
@@ -308,8 +307,6 @@ export function HomePageClient(props: HomePageClientProps) {
         )}
 
       </div>
-
-      <HeroInfoModal videos={videos} />
     </div>
   );
 }
