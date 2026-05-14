@@ -5,7 +5,7 @@
 Genova는 AI 생성 영상 전문 스트리밍 플랫폼이야.
 
 - **슬로건**: The Home of AI Filmmakers
-- **스택**: Next.js 15 + Tailwind CSS + Supabase + Mux + Vercel
+- **스택**: Next.js 16 + Tailwind CSS 4 + Supabase + Mux + Vercel
 - **경로**: `C:\Users\Home\Desktop\genova`
 - **배포**: Vercel (`genova-silk.vercel.app`)
 
@@ -30,7 +30,8 @@ Genova는 AI 생성 영상 전문 스트리밍 플랫폼이야.
 ### Mux (영상 호스팅)
 
 - Continue Watching: `setCurrentTime()` 사용
-- Vimeo는 더 이상 사용하지 않음 (완전 Mux 전환됨)
+- **신규 영상은 모두 Mux 직접 업로드** (`@mux/mux-uploader-react`)
+- **Vimeo는 legacy fallback만 유지** — `Video.vimeoId` field와 `watch-video-embed.tsx`의 vimeoId 분기는 과거 업로드 호환용. 신규 코드에서 Vimeo 추가 금지
 
 ### Tailwind CSS
 
@@ -262,9 +263,9 @@ export async function myAction(data: FormData): Promise<Result> {
 
 ## 주의사항
 
-1. **Mux 전환 완료** — Vimeo 코드 수정 금지
+1. **신규 영상은 Mux 전용** — `Video.vimeoId` 사용처는 legacy fallback (제거 결정 시 별도 라운드)
 2. **베타 2 오픈 시** — Films 페이지 Series/Award Winners 섹션을 상단으로, 사이드바에 메뉴 추가
-3. **번역은 나중에** — 현재 한국어로만 개발, 추후 일괄 번역
+3. **다국어 — 영어 기본값 + ko/ja overrides** — `translations.ts`(en) → `ko-overrides.ts` / `ja-overrides.ts` 순서로 fallback. 신규 키는 영어 기본값 먼저 추가, 한일 번역은 점진적
 4. **같은 문제 두 번 반복** — 파일 직접 읽어서 코드 확인 후 해결
 5. **DB 컬럼 추가 시** — 반드시 Supabase SQL Editor에서 ALTER TABLE 실행
 6. **schema cache 오류** — `NOTIFY pgrst, 'reload schema';` 실행 후 서버 재시작
