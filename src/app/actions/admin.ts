@@ -1,9 +1,8 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { requireAdmin, requireAdminWithService } from "@/lib/auth/admin-actions";
+import { requireAdminWithService } from "@/lib/auth/admin-actions";
 import { createNotification } from "@/lib/notifications";
-import { createServerSupabaseClient } from "@/lib/supabase/server";
 
 type AdminResult = { ok: true } | { ok: false; message: string };
 
@@ -214,10 +213,10 @@ export async function deleteCompetitionAction(id: string): Promise<{ ok: boolean
 }
 
 export async function setVideoFinalistAction(videoId: string, finalist: boolean): Promise<AdminResult> {
-  const auth = await requireAdmin();
+  const auth = await requireAdminWithService();
   if ("error" in auth) return { ok: false, message: auth.error ?? "Unauthorized" };
-  const { supabase, user } = auth;
-  const { data, error } = await supabase
+  const { service, user } = auth;
+  const { data, error } = await service
     .from("videos")
     .update({ is_finalist: finalist })
     .eq("id", videoId)
@@ -242,12 +241,11 @@ export async function setVideoFinalistAction(videoId: string, finalist: boolean)
 }
 
 export async function setVideoOriginalAction(videoId: string, isOriginal: boolean): Promise<{ ok: boolean; message?: string }> {
-  const supabase = await createServerSupabaseClient();
-  if (!supabase) return { ok: false, message: "Configuration error." };
-  const auth = await requireAdmin();
+  const auth = await requireAdminWithService();
   if ("error" in auth) return { ok: false, message: auth.error ?? "Unauthorized" };
+  const { service } = auth;
 
-  const { error } = await supabase.from("videos").update({ is_original: isOriginal }).eq("id", videoId);
+  const { error } = await service.from("videos").update({ is_original: isOriginal }).eq("id", videoId);
   if (error) return { ok: false, message: error.message };
   revalidatePath("/");
   revalidatePath("/films");
@@ -255,11 +253,11 @@ export async function setVideoOriginalAction(videoId: string, isOriginal: boolea
 }
 
 export async function setVideoAwardAction(videoId: string, award: string): Promise<AdminResult> {
-  const auth = await requireAdmin();
+  const auth = await requireAdminWithService();
   if ("error" in auth) return { ok: false, message: auth.error ?? "Unauthorized" };
-  const { supabase, user } = auth;
+  const { service, user } = auth;
   const value = award.trim() || null;
-  const { data, error } = await supabase
+  const { data, error } = await service
     .from("videos")
     .update({ award: value })
     .eq("id", videoId)
@@ -300,13 +298,15 @@ export type CompetitionSubmissionVideo = {
 };
 
 export async function getCompetitionVideosAction(competitionId: string): Promise<CompetitionSubmissionVideo[]> {
-  const auth = await requireAdmin();
+  const auth = await requireAdminWithService();
   if ("error" in auth) return [];
-  const { supabase } = auth;
+  // Admin needs to see private competition submissions too — service role
+  // is required because videos_select_visible only exposes public + own.
+  const { service, supabase } = auth;
   const cid = competitionId.trim();
   if (!cid) return [];
 
-  const { data, error } = await supabase
+  const { data, error } = await service
     .from("videos")
     .select(
       "id, title, thumbnail_url, view_count, created_at, is_finalist, is_original, is_competition_featured, award, visibility, profiles!videos_uploaded_by_fkey(display_name, avatar_url)",
@@ -352,11 +352,11 @@ export async function getCompetitionVideosAction(competitionId: string): Promise
 }
 
 export async function toggleCompetitionFeaturedAction(videoId: string, featured: boolean): Promise<AdminResult> {
-  const auth = await requireAdmin();
+  const auth = await requireAdminWithService();
   if ("error" in auth) return { ok: false, message: auth.error ?? "Unauthorized" };
-  const { supabase } = auth;
+  const { service } = auth;
 
-  const { data: video, error: fetchErr } = await supabase
+  const { data: video, error: fetchErr } = await service
     .from("videos")
     .select("id, submitted_competition_id, purpose")
     .eq("id", videoId)
@@ -368,7 +368,7 @@ export async function toggleCompetitionFeaturedAction(videoId: string, featured:
     return { ok: false, message: "공모전 출품작이 아닙니다." };
   }
 
-  const { error } = await supabase.from("videos").update({ is_competition_featured: featured }).eq("id", videoId);
+  const { error } = await service.from("videos").update({ is_competition_featured: featured }).eq("id", videoId);
 
   if (error) {
     console.error("[toggleCompetitionFeaturedAction]", error.message);
