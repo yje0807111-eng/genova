@@ -8,6 +8,11 @@ import {
   fetchIsFollowing,
 } from "@/lib/queries/profile-queries";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
+import { getServerLocale } from "@/lib/i18n/server";
+
+function ogLocaleFor(loc: "en" | "ko" | "ja"): "en_US" | "ko_KR" | "ja_JP" {
+  return loc === "ko" ? "ko_KR" : loc === "ja" ? "ja_JP" : "en_US";
+}
 
 export async function generateMetadata({
   params,
@@ -15,7 +20,7 @@ export async function generateMetadata({
   params: Promise<{ id: string }>;
 }): Promise<Metadata> {
   const { id } = await params;
-  const creator = await fetchCreatorById(id);
+  const [creator, locale] = await Promise.all([fetchCreatorById(id), getServerLocale()]);
   if (!creator) return { title: "Creator not found" };
   const name = creator.name?.trim() || "Creator";
   const description =
@@ -29,6 +34,7 @@ export async function generateMetadata({
       title: `${name} on Genova`,
       description,
       type: "profile",
+      locale: ogLocaleFor(locale),
       images: ogImage ? [{ url: ogImage, alt: name }] : undefined,
     },
     twitter: {

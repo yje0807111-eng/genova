@@ -3,13 +3,19 @@ import { notFound } from "next/navigation";
 import { fetchVideosWithCreators } from "@/lib/queries";
 import { ToolDetailClient } from "@/components/tools/tool-detail-client";
 import { TOOL_CATEGORY } from "@/lib/constants/tool-category";
+import { getServerLocale } from "@/lib/i18n/server";
 
 type PageProps = {
   params: Promise<{ slug: string }>;
 };
 
+function ogLocaleFor(loc: "en" | "ko" | "ja"): "en_US" | "ko_KR" | "ja_JP" {
+  return loc === "ko" ? "ko_KR" : loc === "ja" ? "ja_JP" : "en_US";
+}
+
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { slug } = await params;
+  const locale = await getServerLocale();
   const toolName = decodeURIComponent(slug);
   const category = TOOL_CATEGORY[toolName];
   const title = `Films made with ${toolName}`;
@@ -19,7 +25,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   return {
     title,
     description,
-    openGraph: { title: `${title} | Genova`, description },
+    openGraph: { title: `${title} | Genova`, description, locale: ogLocaleFor(locale) },
     twitter: { card: "summary_large_image", title: `${title} | Genova`, description },
   };
 }

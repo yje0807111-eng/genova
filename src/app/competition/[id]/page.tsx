@@ -4,8 +4,29 @@ import { mapVideo } from "@/lib/mappers";
 import { mergeVideoRows } from "@/lib/queries";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { CompetitionDetailClient } from "@/components/competition/competition-detail-client";
+import { getServerLocale } from "@/lib/i18n/server";
 
 export const dynamic = "force-dynamic";
+
+function ogLocaleFor(loc: "en" | "ko" | "ja"): "en_US" | "ko_KR" | "ja_JP" {
+  return loc === "ko" ? "ko_KR" : loc === "ja" ? "ja_JP" : "en_US";
+}
+
+// Competitions table carries `title_ko/title_en/title_ja` + `prize_info_*`
+// localized columns (see CLAUDE.md DB schema).  Pick the column matching
+// the caller's locale, fall through to base `title` / `prize_info` if the
+// localized variant is empty.
+function pickLocalized<T extends Record<string, unknown>>(
+  row: T,
+  base: string,
+  loc: "en" | "ko" | "ja",
+): string | null {
+  const localizedKey = `${base}_${loc}` as keyof T;
+  const localized = (row[localizedKey] as string | null | undefined)?.trim();
+  if (localized) return localized;
+  const fallback = (row[base as keyof T] as string | null | undefined)?.trim();
+  return fallback || null;
+}
 
 export async function generateMetadata({
   params,
@@ -13,11 +34,11 @@ export async function generateMetadata({
   params: Promise<{ id: string }>;
 }): Promise<Metadata> {
   const { id } = await params;
-  const competition = await fetchCompetitionById(id);
+  const [competition, locale] = await Promise.all([fetchCompetitionById(id), getServerLocale()]);
   if (!competition) return { title: "Competition not found" };
-  const title = (competition.title as string) || "Competition";
+  const title = pickLocalized(competition, "title", locale) || "Competition";
   const sponsor = (competition.sponsor as string | null)?.trim();
-  const prize = (competition.prize_info as string | null)?.trim();
+  const prize = pickLocalized(competition, "prize_info", locale);
   const description =
     (competition.description as string | null)?.trim() ||
     [sponsor ? `Hosted by ${sponsor}.` : null, prize ? `Prize pool: ${prize}.` : null, "Submit your AI film and compete on Genova."]
@@ -33,6 +54,7 @@ export async function generateMetadata({
     openGraph: {
       title: `${title} | Genova Competition`,
       description,
+      locale: ogLocaleFor(locale),
       images: ogImage ? [{ url: ogImage, alt: title }] : undefined,
     },
     twitter: {

@@ -15,6 +15,11 @@ import {
 } from "@/lib/queries/profile-queries";
 import type { Video } from "@/lib/types";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
+import { getServerLocale } from "@/lib/i18n/server";
+
+function ogLocaleFor(loc: "en" | "ko" | "ja"): "en_US" | "ko_KR" | "ja_JP" {
+  return loc === "ko" ? "ko_KR" : loc === "ja" ? "ja_JP" : "en_US";
+}
 
 export async function generateMetadata({
   params,
@@ -23,7 +28,7 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { id } = await params;
   if (!UUID_RE.test(id)) return { title: "Profile not found" };
-  const profile = await fetchPublicProfileById(id);
+  const [profile, locale] = await Promise.all([fetchPublicProfileById(id), getServerLocale()]);
   if (!profile) return { title: "Profile not found" };
   const displayName = profile.displayName?.trim() || `user_${id.slice(0, 8)}`;
   const description =
@@ -37,6 +42,7 @@ export async function generateMetadata({
       title: `${displayName} on Genova`,
       description,
       type: "profile",
+      locale: ogLocaleFor(locale),
       images: ogImage ? [{ url: ogImage, alt: displayName }] : undefined,
     },
     twitter: {

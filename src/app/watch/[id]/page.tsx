@@ -26,6 +26,14 @@ import { WatchTracker } from "@/components/video/watch-tracker";
 import { WatchDesktopFlexRow } from "@/components/video/watch-comments-panel";
 import { MuxPlayerClient } from "@/components/video/mux-player-client";
 import { getVideoProgress } from "@/app/actions/video-progress";
+import { getServerLocale } from "@/lib/i18n/server";
+
+// Map our internal Locale codes to BCP-47 OpenGraph locale strings.  Kept
+// inline (not exported) because every generateMetadata in B.2-4 needs the
+// same 3-row table and duplicating is cheaper than a one-import helper.
+function ogLocaleFor(loc: "en" | "ko" | "ja"): "en_US" | "ko_KR" | "ja_JP" {
+  return loc === "ko" ? "ko_KR" : loc === "ja" ? "ja_JP" : "en_US";
+}
 
 export async function generateMetadata({
   params,
@@ -33,10 +41,13 @@ export async function generateMetadata({
   params: Promise<{ id: string }>;
 }): Promise<Metadata> {
   const { id } = await params;
-  const video = await fetchVideoById(id);
+  const [video, locale] = await Promise.all([fetchVideoById(id), getServerLocale()]);
   if (!video) return { title: "Film not found" };
   const title = video.title || "Untitled film";
   const creator = video.uploaderDisplayName || video.creatorName || "a Genova creator";
+  // Description fallback stays English — search engines accept mixed-locale
+  // metadata, and most films don't have translated descriptions.  Real
+  // user-authored `video.description` is locale-agnostic content.
   const description =
     video.description?.trim() ||
     `Watch "${title}" by ${creator} on Genova — AI-generated film streaming.`;
@@ -48,6 +59,7 @@ export async function generateMetadata({
       title,
       description,
       type: "video.other",
+      locale: ogLocaleFor(locale),
       images: ogImage ? [{ url: ogImage, alt: title }] : undefined,
     },
     twitter: {
