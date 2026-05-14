@@ -175,3 +175,38 @@ export async function updateSavedHashtagsAction(hashtags: string[]): Promise<Act
   if (error) return { ok: false, message: error.message };
   return { ok: true };
 }
+
+/**
+ * Persist the user's UI language preference (B.2-7) so it follows
+ * them across devices.  Fired-and-forgotten from
+ * `language-provider.tsx#setLocale` when the user toggles the
+ * language switcher.  Silent no-op for signed-out users — the cookie
+ * + localStorage flow continues to drive their locale on this device
+ * alone.
+ *
+ * Validation is intentionally narrow (the three known locale codes)
+ * and matches the DB CHECK constraint; passing anything else returns
+ * `ok:false` without writing.
+ */
+export async function updateProfileLocaleAction(
+  locale: "en" | "ko" | "ja",
+): Promise<ActionResult> {
+  if (locale !== "en" && locale !== "ko" && locale !== "ja") {
+    return { ok: false, message: "Invalid locale." };
+  }
+  const supabase = await createServerSupabaseClient();
+  if (!supabase) return { ok: false, message: "Configuration error." };
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  // Signed-out: treat as success-noop.  The cookie has already been
+  // updated client-side; the DB column is meaningless without a user
+  // row to attach it to.
+  if (!user) return { ok: true };
+  const { error } = await supabase
+    .from("profiles")
+    .update({ locale })
+    .eq("id", user.id);
+  if (error) return { ok: false, message: error.message };
+  return { ok: true };
+}

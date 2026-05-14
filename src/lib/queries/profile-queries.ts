@@ -34,6 +34,15 @@ export type Profile = {
   points: number;
   /** `profiles.created_at` for “Joined …” */
   joinedAt: string | null;
+  /**
+   * User's UI language preference (B.2-7).  `null` means "no explicit
+   * preference yet" — server falls through to the request cookie.
+   * Constrained at the DB level via a CHECK (en/ko/ja).  The wider
+   * `string` type here keeps the mapper simple; callers should narrow
+   * with the helper `narrowLocale()` in `src/lib/i18n/translations.ts`
+   * when they hand it back to client code.
+   */
+  locale: "en" | "ko" | "ja" | null;
 };
 
 function mapProfile(row: {
@@ -64,6 +73,7 @@ function mapProfile(row: {
   credits?: number | null;
   points?: number | null;
   created_at?: string | null;
+  locale?: string | null;
 }): Profile {
   return {
     id: row.id,
@@ -93,6 +103,15 @@ function mapProfile(row: {
     credits: row.credits ?? 0,
     points: row.points ?? 0,
     joinedAt: row.created_at ?? null,
+    // `public_profiles` view doesn't currently expose locale; reads
+    // through that path return null until the view is widened.  Direct
+    // reads (`fetchOwnProfile`) go to `profiles.*` so they get the
+    // column.  The B.2-7 server-locale fallback intentionally uses
+    // `fetchOwnProfile`-grade access via the auth.getUser() id.
+    locale:
+      row.locale === "en" || row.locale === "ko" || row.locale === "ja"
+        ? row.locale
+        : null,
   };
 }
 

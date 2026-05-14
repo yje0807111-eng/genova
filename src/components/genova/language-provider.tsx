@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { createContext, useContext, useEffect, useMemo, useState } from "react";
 import { Locale, translate } from "@/lib/i18n/translations";
 import { LOCALE_COOKIE_NAME } from "@/lib/i18n/server";
+import { updateProfileLocaleAction } from "@/app/actions/profile";
 
 const STORAGE_KEY = "genova-locale";
 // Cookie name MUST match the server-side LOCALE_COOKIE_NAME so server and
@@ -82,6 +83,15 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
     if (typeof document !== "undefined") {
       document.documentElement.lang = next;
     }
+    // B.2-7: fire-and-forget the server action so the choice follows
+    // the user across devices.  Signed-out callers get an ok:true
+    // no-op (the action returns success without writing) so we never
+    // need to gate on auth state here.  Promise rejection is swallowed
+    // because the cookie write above already covers this device — a
+    // DB hiccup must not block the UI.
+    void updateProfileLocaleAction(next).catch(() => {
+      /* network/RLS failure — cookie persists this device's choice */
+    });
     // Re-run the server tree so newly-server-rendered fragments (e.g.,
     // converted i18n-only components, locale-aware generateMetadata)
     // pick up the new locale without a full page reload.  Keeps client
