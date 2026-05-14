@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { formatGenreDisplay } from "@/lib/constants/genres";
 import { hrefForVideoCreator } from "@/lib/creator-links";
@@ -15,8 +16,14 @@ export function VideoCard({ video }: { video: Video }) {
 
   return (
     <div className="group relative overflow-hidden rounded-xl border border-white/10 bg-[#0F0D1E] transition duration-300 hover:scale-[1.03] hover:border-[#7F77DD]">
-      <Link href={`/watch/${video.id}`} className="block aspect-video">
-        <img src={video.thumbnailUrl} alt={video.title} className="h-full w-full object-cover" />
+      <Link href={`/watch/${video.id}`} className="relative block aspect-video">
+        <Image
+          src={video.thumbnailUrl}
+          alt={video.title}
+          fill
+          sizes="(max-width: 768px) 100vw, (max-width: 1280px) 50vw, 33vw"
+          className="object-cover"
+        />
       </Link>
       <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/85 via-black/30 to-transparent opacity-0 transition-opacity duration-200 group-hover:opacity-100" />
       <div className="pointer-events-none absolute inset-x-0 bottom-0 z-10 translate-y-2 p-4 opacity-0 transition duration-200 group-hover:translate-y-0 group-hover:opacity-100">
