@@ -1,11 +1,13 @@
-"use client";
-
 import Link from "next/link";
 import { ArrowRight, PlayCircle, Calendar, Users } from "lucide-react";
-import { useI18n } from "@/components/genova/language-provider";
+import { getServerLocale, getServerT } from "@/lib/i18n/server";
+import { BrowseFilmsButton } from "@/components/genova/browse-films-button";
 
 type Props = {
-  competition: any;
+  // Kept loose to mirror the previous client signature; this banner
+  // doesn't actually read competition fields today but the caller
+  // passes one for forward-compat.
+  competition: unknown;
   stats: {
     activeCount: number;
     totalPrizeUSD: number;
@@ -13,8 +15,17 @@ type Props = {
   };
 };
 
-export function HomeCompetitionBanner({ stats }: Props) {
-  const { t } = useI18n();
+/**
+ * Server component (B.2-8a).  Previously a "use client" leaf whose only
+ * client-side need was the smooth-scroll onClick for the secondary CTA.
+ * That handler now lives in `<BrowseFilmsButton>` (~25 LOC), and the
+ * rest of the banner — eyebrow, gradient title, three stat cards, three
+ * info rows — renders fully on the server.  Removes ~250 LOC of
+ * translation-heavy JSX from the home-page client bundle.
+ */
+export async function HomeCompetitionBanner({ stats }: Props) {
+  const locale = await getServerLocale();
+  const t = getServerT(locale);
 
   return (
     <section className="relative w-full overflow-hidden border-b border-white/[0.06] bg-[#0a0a0a]">
@@ -98,16 +109,11 @@ export function HomeCompetitionBanner({ stats }: Props) {
               {t("home.hero.cta.primary", "공모전 참여하기")}
               <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" />
             </Link>
-            <button
-              type="button"
-              onClick={() => {
-                const el = document.querySelector("[data-content-start]");
-                if (el) el.scrollIntoView({ behavior: "smooth" });
-              }}
-              className="inline-flex items-center gap-1.5 rounded-full border border-white/[0.15] bg-white/[0.03] px-5 py-2.5 text-[13px] font-semibold text-white/80 backdrop-blur-md transition hover:border-white/[0.3] hover:bg-white/[0.06] hover:text-white"
-            >
+            {/* Client island — only the scrollIntoView handler needs to
+                live in the browser bundle; label remains server-rendered. */}
+            <BrowseFilmsButton>
               {t("home.hero.cta.secondary", "작품 둘러보기")}
-            </button>
+            </BrowseFilmsButton>
           </div>
 
           <div className="grid max-w-[680px] grid-cols-3 gap-3 pt-4 sm:gap-3.5">

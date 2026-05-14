@@ -7,6 +7,7 @@ import {
 import { fetchHeroAwardVideosForCompetition } from "@/lib/queries/films-hero-award-videos";
 import { fetchCompetitionStats } from "@/lib/queries/competition-stats";
 import { HomePageClient } from "@/components/genova/home-page-client";
+import { HomeCompetitionBanner } from "@/components/genova/home-competition-banner";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 
 export const dynamic = "force-dynamic";
@@ -60,6 +61,12 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ t
       isLoggedIn={isLoggedIn}
       heroAwardVideos={heroAwardVideos}
       initialTab={initialTab}
+      competitionBannerSlot={
+        /* B.2-8a: banner is async server now.  Render once on the
+           server so the locale-aware copy + stat cards ship as
+           static HTML, then thread through the client shell. */
+        <HomeCompetitionBanner competition={competition} stats={competitionStats} />
+      }
     />
   );
 }

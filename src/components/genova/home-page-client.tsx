@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { Film } from "lucide-react";
 import { usePathname, useSearchParams } from "next/navigation";
 import type { Competition } from "@/lib/types";
@@ -13,7 +13,8 @@ import { HoverPreviewCard } from "@/components/genova/hover-preview-card";
 import { parseRuntimeToSeconds } from "@/components/video/video-card";
 import { normalizeToMainGenre } from "@/lib/constants/genres";
 import type { GenreFilter } from "@/lib/genova-genre";
-import { HomeCompetitionBanner } from "@/components/genova/home-competition-banner";
+// HomeCompetitionBanner is now async server (B.2-8a); composed by the
+// route page and threaded down through `competitionBannerSlot`.
 import { HomeTabNav } from "@/components/genova/home-tab-nav";
 import type { MainTab, SubGenre, SortKey } from "@/components/genova/home-tab-nav";
 import { AwardsGallery } from "@/components/genova/awards-gallery";
@@ -41,6 +42,14 @@ type HomePageClientProps = {
     totalPrizeUSD: number;
     participantCount: number;
   };
+  /**
+   * Server-rendered `<HomeCompetitionBanner>` (B.2-8a).  Composed by
+   * `src/app/page.tsx` and threaded through as ReactNode so the banner
+   * — eyebrow, gradient title, three stat cards, three info rows — can
+   * render with locale-aware text on the server without forcing the
+   * filter/sort/search shell here back into a server component.
+   */
+  competitionBannerSlot: ReactNode;
 };
 
 export function HomePageClient(props: HomePageClientProps) {
@@ -55,6 +64,7 @@ export function HomePageClient(props: HomePageClientProps) {
     heroAwardVideos,
     initialTab,
     competitionStats,
+    competitionBannerSlot,
   } = props;
   const { t, locale } = useI18n();
   const pathname = usePathname();
@@ -245,9 +255,7 @@ export function HomePageClient(props: HomePageClientProps) {
 
   return (
     <div className="min-h-screen bg-background">
-      <AnimateIn delay={0.05}>
-        <HomeCompetitionBanner competition={competition} stats={competitionStats} />
-      </AnimateIn>
+      <AnimateIn delay={0.05}>{competitionBannerSlot}</AnimateIn>
 
       <div data-content-start className="w-full space-y-2 px-6 pb-12 pt-4 sm:space-y-3 sm:px-8">
         <AnimateIn delay={0.07}>
