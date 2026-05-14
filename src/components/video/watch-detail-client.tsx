@@ -1,58 +1,12 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
 import Link from "next/link";
-import { Heart } from "lucide-react";
-import { LocalizedGenreText } from "@/components/genova/localized-genre";
 import { useI18n } from "@/components/genova/language-provider";
 import { AiToolsCollapsible } from "@/components/video/ai-tools-collapsible";
-import { formatGenreDisplay } from "@/lib/constants/genres";
 import { trackHashtagEvent } from "@/lib/hashtags/client-track";
-import { intlDateLocale } from "@/lib/i18n/browser-locale";
 import type { Video } from "@/lib/types";
-import { cn } from "@/lib/utils/cn";
-import { formatViewCountShort } from "@/lib/view-count";
 import { RecommendationCard } from "./recommendation-card";
-
-export function WatchVideoMetaRow({
-  genre,
-  subGenre,
-  runtime,
-  viewCount,
-  createdAt,
-}: {
-  genre: string | null | undefined;
-  subGenre?: string | null | undefined;
-  runtime?: string | null;
-  viewCount: number;
-  createdAt: string;
-}) {
-  const { locale, t } = useI18n();
-  const dateLocale = intlDateLocale(locale);
-  const dateStr = new Date(createdAt).toLocaleDateString(dateLocale, {
-    year: "numeric",
-    month: "short",
-    day: "numeric",
-  });
-
-  return (
-    <div className="mt-1.5 flex flex-wrap items-center gap-2 text-sm text-white/50">
-      <LocalizedGenreText genre={genre} subGenre={subGenre} />
-      {runtime ? (
-        <>
-          <span className="text-white/20">·</span>
-          <span>{runtime}</span>
-        </>
-      ) : null}
-      <span className="text-white/20">·</span>
-      <span>
-        {formatViewCountShort(viewCount)} {t("feed.views")}
-      </span>
-      <span className="text-white/20">·</span>
-      <span>{dateStr}</span>
-    </div>
-  );
-}
 
 export function WatchDescriptionInner({
   description,
