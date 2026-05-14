@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { fetchVideosWithCreators } from "@/lib/queries";
 import { ToolDetailClient } from "@/components/tools/tool-detail-client";
@@ -6,6 +7,22 @@ import { TOOL_CATEGORY } from "@/lib/constants/tool-category";
 type PageProps = {
   params: Promise<{ slug: string }>;
 };
+
+export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
+  const { slug } = await params;
+  const toolName = decodeURIComponent(slug);
+  const category = TOOL_CATEGORY[toolName];
+  const title = `Films made with ${toolName}`;
+  const description = category
+    ? `Discover AI-generated films created with ${toolName} (${category}) — curated on Genova.`
+    : `Discover AI-generated films created with ${toolName} — curated on Genova.`;
+  return {
+    title,
+    description,
+    openGraph: { title: `${title} | Genova`, description },
+    twitter: { card: "summary_large_image", title: `${title} | Genova`, description },
+  };
+}
 
 export default async function ToolDetailPage({ params }: PageProps) {
   const { slug } = await params;

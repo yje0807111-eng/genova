@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { GenovaProfileClient } from "@/components/profile/profile-page-client";
 import { fetchCreatorById, fetchVideosByCreator } from "@/lib/queries";
@@ -9,6 +10,37 @@ import {
   fetchProfileAwardBadges,
 } from "@/lib/queries/profile-queries";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}): Promise<Metadata> {
+  const { id } = await params;
+  const creator = await fetchCreatorById(id);
+  if (!creator) return { title: "Creator not found" };
+  const name = creator.name?.trim() || "Creator";
+  const description =
+    creator.bio?.trim() ||
+    `${name} — AI filmmaker on Genova. Browse their films and recent work.`;
+  const ogImage = creator.avatarUrl?.trim() || undefined;
+  return {
+    title: name,
+    description,
+    openGraph: {
+      title: `${name} on Genova`,
+      description,
+      type: "profile",
+      images: ogImage ? [{ url: ogImage, alt: name }] : undefined,
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: `${name} on Genova`,
+      description,
+      images: ogImage ? [ogImage] : undefined,
+    },
+  };
+}
 
 export default async function CreatorPage({
   params,

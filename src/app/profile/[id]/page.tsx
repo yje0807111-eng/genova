@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { AnimateIn } from "@/components/animate-in";
 import { GenovaProfileClient } from "@/components/profile/profile-page-client";
@@ -17,6 +18,38 @@ import {
 } from "@/lib/queries/profile-queries";
 import type { Video } from "@/lib/types";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}): Promise<Metadata> {
+  const { id } = await params;
+  if (!UUID_RE.test(id)) return { title: "Profile not found" };
+  const profile = await fetchPublicProfileById(id);
+  if (!profile) return { title: "Profile not found" };
+  const displayName = profile.displayName?.trim() || `user_${id.slice(0, 8)}`;
+  const description =
+    profile.bio?.trim() ||
+    `${displayName} — AI filmmaker on Genova. Explore their films, awards, and collaborations.`;
+  const ogImage = profile.bannerUrl?.trim() || profile.avatarUrl?.trim() || undefined;
+  return {
+    title: displayName,
+    description,
+    openGraph: {
+      title: `${displayName} on Genova`,
+      description,
+      type: "profile",
+      images: ogImage ? [{ url: ogImage, alt: displayName }] : undefined,
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: `${displayName} on Genova`,
+      description,
+      images: ogImage ? [ogImage] : undefined,
+    },
+  };
+}
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;

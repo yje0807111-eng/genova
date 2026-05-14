@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { WatchMoreMenu } from "@/components/video/watch-more-menu";
@@ -25,6 +26,38 @@ import { WatchTracker } from "@/components/video/watch-tracker";
 import { WatchDesktopFlexRow } from "@/components/video/watch-comments-panel";
 import { MuxPlayerClient } from "@/components/video/mux-player-client";
 import { getVideoProgress } from "@/app/actions/video-progress";
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}): Promise<Metadata> {
+  const { id } = await params;
+  const video = await fetchVideoById(id);
+  if (!video) return { title: "Film not found" };
+  const title = video.title || "Untitled film";
+  const creator = video.uploaderDisplayName || video.creatorName || "a Genova creator";
+  const description =
+    video.description?.trim() ||
+    `Watch "${title}" by ${creator} on Genova — AI-generated film streaming.`;
+  const ogImage = video.thumbnailUrl?.trim() || undefined;
+  return {
+    title,
+    description,
+    openGraph: {
+      title,
+      description,
+      type: "video.other",
+      images: ogImage ? [{ url: ogImage, alt: title }] : undefined,
+    },
+    twitter: {
+      card: "summary_large_image",
+      title,
+      description,
+      images: ogImage ? [ogImage] : undefined,
+    },
+  };
+}
 
 export default async function WatchDetailPage({
   params,
