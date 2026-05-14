@@ -5,6 +5,9 @@ const remotePatterns: NonNullable<NonNullable<NextConfig["images"]>["remotePatte
   { protocol: "https", hostname: "images.unsplash.com", pathname: "/**" },
   { protocol: "https", hostname: "picsum.photos", pathname: "/**" },
   { protocol: "https", hostname: "i.pravatar.cc", pathname: "/**" },
+  // Mux thumbnail/animated-gif previews (image.mux.com/<playback_id>/...)
+  // — used by home-genre-carousel and other video thumbnail surfaces.
+  { protocol: "https", hostname: "image.mux.com", pathname: "/**" },
 ];
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
