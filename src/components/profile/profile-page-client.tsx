@@ -1,5 +1,6 @@
 "use client";
 
+import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState, useTransition } from "react";
@@ -7,12 +8,9 @@ import { useI18n } from "@/components/genova/language-provider";
 import { useUploadModal } from "@/components/upload/upload-modal-context";
 import { useEditModal } from "@/components/upload/edit-modal-context";
 import {
-  ArrowLeft,
   Bookmark,
   Check,
   ChevronDown,
-  Eye,
-  EyeOff,
   Film,
   Globe,
   Grid,
@@ -28,7 +26,6 @@ import {
   Youtube,
 } from "lucide-react";
 import { followUserAction, unfollowUserAction } from "@/app/actions/profile";
-import { updateVideoVisibilityAction } from "@/app/actions/video";
 import type { Profile } from "@/lib/queries/profile-queries";
 import { ProfilePaginator } from "@/components/profile/profile-paginator";
 import { ProfileSettingsModal } from "@/components/profile/profile-settings-modal";
@@ -38,6 +35,16 @@ import {
   ProfileHandleRow,
   ProfilePageGlow,
 } from "@/components/profile/profile-static-header";
+
+/**
+ * Bulk-edit toolbar.  Lazy-loaded because only profile owners in
+ * edit mode ever render it — most visits never need this code.
+ */
+const ProfileBulkToolbar = dynamic(
+  () =>
+    import("@/components/profile/profile-bulk-toolbar").then((m) => m.ProfileBulkToolbar),
+  { ssr: false },
+);
 import type { Video } from "@/lib/types";
 import { AnimateIn } from "@/components/animate-in";
 import { addWindowCustomListener } from "@/lib/dom/window-custom-events";
@@ -592,108 +599,18 @@ export function GenovaProfileClient({
             </div>
 
             {isOwner && editMode ? (
-              <div className="mt-3 flex flex-wrap items-center gap-3 rounded-lg border border-border bg-card px-4 py-2.5">
-                <span className="text-xs text-muted-foreground">{t("profile.selectVideosTo", "Select videos, then:")}</span>
-                <button
-                  type="button"
-                  onClick={() => setBulkAction(bulkAction === "private" ? null : "private")}
-                  className={cn(
-                    "flex items-center gap-1.5 rounded-md border px-3 py-1 text-xs transition",
-                    bulkAction === "private"
-                      ? "border-primary bg-primary/20 text-primary"
-                      : showBulkHint
-                        ? "border-amber-400/50 text-white/70 hover:bg-white/5 hover:text-white ring-1 ring-amber-400/30"
-                        : "border-border text-white/70 hover:bg-white/5 hover:text-white",
-                  )}
-                >
-                  <EyeOff className="h-3 w-3" />
-                  {t("profile.setPrivate", "Make private")}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setBulkAction(bulkAction === "public" ? null : "public")}
-                  className={cn(
-                    "flex items-center gap-1.5 rounded-md border px-3 py-1 text-xs transition",
-                    bulkAction === "public"
-                      ? "border-primary bg-primary/20 text-primary"
-                      : showBulkHint
-                        ? "border-amber-400/50 text-white/70 hover:bg-white/5 hover:text-white ring-1 ring-amber-400/30"
-                        : "border-border text-white/70 hover:bg-white/5 hover:text-white",
-                  )}
-                >
-                  <Eye className="h-3 w-3" />
-                  {t("profile.setPublic", "Make public")}
-                </button>
-                {showBulkHint ? (
-                  <span className="flex items-center gap-1.5 animate-pulse text-xs text-amber-400">
-                    <ArrowLeft className="h-3 w-3" />
-                    {t("profile.selectBulkActionFirst", "Choose a public/private action first")}
-                  </span>
-                ) : null}
-                <div className="ml-auto flex items-center gap-2">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      const eligibleIds = displayVideos.videos.map((v) => v.id);
-                      const allSelected = eligibleIds.every((id) => selectedVideoIds.includes(id));
-                      setSelectedVideoIds(allSelected ? [] : eligibleIds);
-                    }}
-                    className="text-xs text-muted-foreground transition hover:text-white"
-                  >
-                    {displayVideos.videos
-                      .every((v) => selectedVideoIds.includes(v.id))
-                      ? t("profile.deselectAll", "Deselect all")
-                      : t("profile.selectAll", "Select all")}
-                  </button>
-                  <button
-                    type="button"
-                    disabled={bulkSaving}
-                    onClick={async () => {
-                      if (!bulkAction || selectedVideoIds.length === 0) {
-                        setEditMode(false);
-                        setBulkAction(null);
-                        setSelectedVideoIds([]);
-                        return;
-                      }
-                      setBulkSaving(true);
-                      await Promise.all(
-                        selectedVideoIds.map((id) =>
-                          updateVideoVisibilityAction(id, bulkAction === "private" ? "private" : "public"),
-                        ),
-                      );
-                      if (bulkAction === "private") {
-                        setLocalWorks((prev) =>
-                          prev.map((v) => (selectedVideoIds.includes(v.id) ? { ...v, visibility: "private" } : v)),
-                        );
-                      } else if (bulkAction === "public") {
-                        setLocalWorks((prev) =>
-                          prev.map((v) => (selectedVideoIds.includes(v.id) ? { ...v, visibility: "public" } : v)),
-                        );
-                      }
-                      setBulkSaving(false);
-                      setEditMode(false);
-                      setBulkAction(null);
-                      setSelectedVideoIds([]);
-                      router.refresh();
-                      setTimeout(() => router.refresh(), 500);
-                    }}
-                    className="rounded-md bg-primary px-3 py-1 text-xs font-medium text-white transition hover:bg-primary/90"
-                  >
-                    {bulkSaving ? t("settings.saving", "Saving…") : selectedVideoIds.length > 0 ? `${t("profile.apply", "Apply")} (${selectedVideoIds.length})` : t("profile.bulkConfirm")}
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setEditMode(false);
-                      setBulkAction(null);
-                      setSelectedVideoIds([]);
-                    }}
-                    className="rounded-md border border-border px-3 py-1 text-xs text-white/70 transition hover:bg-white/5 hover:text-white"
-                  >
-                    {t("common.cancel", "Cancel")}
-                  </button>
-                </div>
-              </div>
+              <ProfileBulkToolbar
+                bulkAction={bulkAction}
+                setBulkAction={setBulkAction}
+                selectedVideoIds={selectedVideoIds}
+                setSelectedVideoIds={setSelectedVideoIds}
+                showBulkHint={showBulkHint}
+                bulkSaving={bulkSaving}
+                setBulkSaving={setBulkSaving}
+                setEditMode={setEditMode}
+                displayedVideoIds={displayVideos.videos.map((v) => v.id)}
+                setLocalWorks={setLocalWorks}
+              />
             ) : null}
 
             {activeTab === "Series" ? (
