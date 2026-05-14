@@ -2,7 +2,6 @@
 
 import { useEffect, type ReactNode } from "react";
 import { WatchMetaSidebar } from "@/components/video/watch-meta-sidebar";
-import { UpNextMiniRail } from "@/components/video/up-next-mini-rail";
 import type { Video, VideoComment } from "@/lib/types";
 
 /** Server page wraps description + sidebar in one client boundary. */
@@ -11,7 +10,7 @@ export function WatchDesktopFlexRow({
   belowPlayerSlot,
   descriptionInner,
   leftAfterDescription,
-  related,
+  upNextSlot,
   videoId,
   commentCount,
   initialComments,
@@ -30,7 +29,10 @@ export function WatchDesktopFlexRow({
   belowPlayerSlot?: ReactNode;
   descriptionInner: ReactNode;
   leftAfterDescription: ReactNode;
-  related: Video[];
+  // Pre-rendered "Up next" rail — server component (B.2-5) composed by the
+  // watch page and passed through as ReactNode so this client boundary
+  // doesn't have to re-render the rail on every state change.
+  upNextSlot: ReactNode;
   videoId: string;
   commentCount: number;
   initialComments: VideoComment[];
@@ -86,7 +88,7 @@ export function WatchDesktopFlexRow({
 
         <aside className="relative">
           <div className="absolute inset-0 flex flex-col gap-1.5 overflow-x-hidden overflow-y-auto">
-            <UpNextMiniRail related={related} currentVideoId={videoId} />
+            {upNextSlot}
           </div>
         </aside>
       </div>

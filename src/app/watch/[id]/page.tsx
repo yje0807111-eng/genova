@@ -27,6 +27,7 @@ import { WatchDesktopFlexRow } from "@/components/video/watch-comments-panel";
 import { MuxPlayerClient } from "@/components/video/mux-player-client";
 import { getVideoProgress } from "@/app/actions/video-progress";
 import { getServerLocale } from "@/lib/i18n/server";
+import { UpNextMiniRail } from "@/components/video/up-next-mini-rail";
 
 // Map our internal Locale codes to BCP-47 OpenGraph locale strings.  Kept
 // inline (not exported) because every generateMetadata in B.2-4 needs the
@@ -237,7 +238,13 @@ export default async function WatchDetailPage({
             />
           ) : null
         }
-        related={related}
+        upNextSlot={
+          /* Server-rendered: B.2-5 canary — UpNextMiniRail is async and
+             reads locale via getServerLocale; composed here as a slot
+             so the client `WatchDesktopFlexRow` doesn't need to
+             re-render it on state changes. */
+          <UpNextMiniRail related={related} currentVideoId={video.id} />
+        }
         videoId={video.id}
         commentCount={displayComments.length}
         initialComments={displayComments}

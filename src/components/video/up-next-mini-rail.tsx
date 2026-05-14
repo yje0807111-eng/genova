@@ -1,8 +1,6 @@
-"use client";
-
 import Image from "next/image";
 import Link from "next/link";
-import { useI18n } from "@/components/genova/language-provider";
+import { getServerLocale, getServerT } from "@/lib/i18n/server";
 import { cn } from "@/lib/utils/cn";
 import type { Video } from "@/lib/types";
 
@@ -11,8 +9,16 @@ interface Props {
   currentVideoId: string;
 }
 
-export function UpNextMiniRail({ related, currentVideoId }: Props) {
-  const { t } = useI18n();
+/**
+ * Server component — first canary of the Phase B.2 useI18n server
+ * migration.  Renders the "Up next" thumbnail rail beside the player
+ * with a localized "now playing" badge.  Composed into the watch page
+ * via `WatchDesktopFlexRow#upNextSlot` so the parent client component
+ * stays a server-rendered subtree.
+ */
+export async function UpNextMiniRail({ related, currentVideoId }: Props) {
+  const locale = await getServerLocale();
+  const t = getServerT(locale);
 
   return (
     <div className="flex flex-col gap-1.5">
