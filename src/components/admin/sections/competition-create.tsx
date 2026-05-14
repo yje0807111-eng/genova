@@ -257,6 +257,7 @@ export function CompetitionCreate({ onMessage }: { onMessage: (message: string) 
           <label className={adminTokens.inputLabel}>공모전 썸네일</label>
           {competitionThumbPreview ? (
             <div className="relative mt-1.5 overflow-hidden rounded-md border border-white/[0.08]">
+              {/* eslint-disable-next-line @next/next/no-img-element -- blob: URI from file input preview, next/image not applicable */}
               <img src={competitionThumbPreview} alt="" className="aspect-video max-h-40 w-full object-cover" />
             </div>
           ) : (

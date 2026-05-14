@@ -1020,6 +1020,7 @@ export function UploadVideoForm({
               ) : (
                 <div className="relative mx-auto overflow-hidden rounded-xl border border-white/[0.08]" style={{ maxWidth: "240px" }}>
                   <div className="aspect-[3/4] w-full bg-black">
+                    {/* eslint-disable-next-line @next/next/no-img-element -- blob: URI from file input preview, next/image not applicable */}
                     <img src={thumbnailPreview} alt="" className="h-full w-full object-cover" />
                   </div>
                   <button
@@ -1083,6 +1084,7 @@ export function UploadVideoForm({
               ) : (
                 <div className="relative overflow-hidden rounded-xl border border-white/[0.08]">
                   <div className="w-full bg-black" style={{ aspectRatio: "16/5.5" }}>
+                    {/* eslint-disable-next-line @next/next/no-img-element -- blob: URI from file input preview, next/image not applicable */}
                     <img src={backdropPreview} alt="" className="h-full w-full object-cover" />
                   </div>
                   <button
@@ -1151,6 +1153,7 @@ export function UploadVideoForm({
                         style={{ maxWidth: "180px", aspectRatio: "3/4" }}
                       >
                         {thumbnailPreview ? (
+                          // eslint-disable-next-line @next/next/no-img-element -- blob: URI from file input preview, next/image not applicable
                           <img src={thumbnailPreview} alt="" className="absolute inset-0 h-full w-full object-cover" />
                         ) : (
                           <div className="absolute inset-0 bg-gradient-to-br from-[#1a1547] to-[#1a1a1a]" />

@@ -1,6 +1,6 @@
 # Genova — Project Status
 
-> **Last verified**: 2026-05-13
+> **Last verified**: 2026-05-14
 > AI 생성 영상 스트리밍 플랫폼 — *The Home of AI Filmmakers*
 >
 > 이 문서는 코드를 직접 검증해서 작성됨. CLAUDE.md와 차이나는 항목은 ⚠️ 로 표시.
@@ -260,21 +260,19 @@ inline `style={{...}}` 사용:  535건 / 55개 파일
    - 인라인 스타일 535건 → 토큰 시스템으로 마이그레이션 필요 (Phase 3 작업)
    - ~~텍스트 알파 8단계 난립 → 5단계 축약 합의됨~~ → 5단계 토큰 정의 완료 (2.1, `a39e677`)
 
-2. **Vimeo 코드 잔존** ⚠️ CLAUDE.md 주장과 불일치
-   - CLAUDE.md: "Vimeo는 더 이상 사용하지 않음 (완전 Mux 전환됨)"
-   - 실제: 20개 파일에 vimeo 참조 남아있음 (`src/lib/vimeo.ts`, `types.ts`의 `vimeoId`, `watch-video-embed.tsx` 분기 등)
-   - 판단 필요: 진짜로 제거할지 / fallback으로 명시적으로 유지할지
+2. **Vimeo 코드 잔존** ✅ 정책 확정 (CLAUDE.md 동기화됨)
+   - ~~`src/lib/vimeo.ts`~~ → 제거 (K2, `fe7758b`) — extractVimeoId 사용처 0개
+   - CLAUDE.md 업데이트: "Vimeo는 legacy fallback만 유지" — `Video.vimeoId` field 와 `watch-video-embed.tsx` 분기는 과거 업로드 호환용. 신규 코드에서 Vimeo 추가 금지.
 
-3. **CLAUDE.md vs 실제 코드 불일치**
-   - Next.js 버전: 문서는 15, 실제는 16.2.3
-   - `AGENTS.md`는 "Next 16의 새 API 사용" 명시 → CLAUDE.md가 outdated
+3. **CLAUDE.md vs 실제 코드 불일치** ✅ 해소
+   - Next.js 버전, Vimeo 정책, 다국어 정책 — 모두 동기화됨
 
 ### 🟡 우선순위 중간
 
-4. **임시 파일 잔존** ✅ 부분 해소
+4. **임시 파일 잔존** ✅ 해소
    - ~~`_head_home_page.txt`~~ → 삭제 (`f995e49`)
    - ~~`src/components/search/search-page-body.tsx.bak`~~ → 삭제 (`42f6cda`)
-   - `tmp-en-keys.json` — 남아 있음, 정리 후보
+   - ~~`tmp-en-keys.json`~~ → 삭제됨 (root에 부재 확인 2026-05-14)
 
 5. **다국어 미완성**
    - CLAUDE.md: "번역은 나중에, 현재 한국어로만 개발"
@@ -282,8 +280,10 @@ inline `style={{...}}` 사용:  535건 / 55개 파일
 
 6. ~~**`tailwind.config.ts`의 `colors.genova.*`** — 정의는 있는데 사용 안 됨. 새 토큰 시스템과 통합하거나 제거해야 함~~ ✅ 해소 — Phase 2.4 (`68c1640`) 에서 `tailwind.config.ts` 전체 제거.
 
-7. **mock 데이터 잔존**
-   - `genova-mock-videos.ts`, `mock-data.ts`, `profile-mock-grid-videos.ts` — 실제 DB로 전환됐는지 검증 필요
+7. **mock 데이터 잔존** ✅ 정리 (K3, `59403c7`)
+   - ~~`genova-mock-videos.ts`~~, ~~`profile-mock-grid-videos.ts`~~ → 제거 (사용처 0개, 5 파일 / 817줄)
+   - ~~3개 dead grid 컴포넌트 (ForYouGrid, TrendingGrid, VideoGrid)~~ → 제거
+   - `mock-data.ts` — **유지**. `search-queries.ts`의 production fallback (env 부재 / 빈 DB / 에러 복구).
 
 ### 🟢 우선순위 낮음
 
@@ -381,13 +381,10 @@ inline `style={{...}}` 사용:  535건 / 55개 파일
 - [ ] 단발성 잔여 inline (대부분 동적/bespoke/계산값)
 - [ ] 추가 cross-file 패턴 (rgba(255,255,255,0.05) 6사이트, rgba(0,0,0,0.5/0.6) 등) — 단발성 알파, 가치 미미
 
-### Phase B — 문서/코드 동기화
+### Phase B — 문서/코드 동기화 ✅ 완료
 
-- [ ] `CLAUDE.md` 업데이트
-  - Next.js 16 명시
-  - Vimeo 처리 정책 명확화 (제거 vs fallback)
-  - 다국어 정책 (영어 기본 + 한일 overrides)
-- [ ] 임시 파일 정리 (`_head_home_page.txt`, `tmp-en-keys.json`, `*.bak`)
+- [x] `CLAUDE.md` 업데이트 — Next 16, Vimeo legacy, 다국어 정책 동기화
+- [x] 임시 파일 정리 — `_head_home_page.txt`, `tmp-en-keys.json`, `*.bak` 모두 제거됨
 
 ### Phase C — 기능 갭 메우기
 
@@ -396,22 +393,72 @@ inline `style={{...}}` 사용:  535건 / 55개 파일
 - [ ] 다국어 실제 번역 (현재 상당수 영어 폴백)
 - [ ] 트로피/어워드 표시 UI 완성도 점검
 
-### Phase D — 검증 / 청소
+### Phase D — 검증 / 청소 (대부분 완료 ✅)
 
-- [ ] mock 데이터 vs 실 DB 분리 검증
-- [ ] 사용 안 되는 컴포넌트 식별 및 제거
-- [ ] RLS 정책 회귀 테스트 (특히 video_reports, saved_videos)
+- [x] mock 데이터 vs 실 DB 분리 검증 — K3 (`59403c7`): dead mock 5개 제거, prod fallback만 보존
+- [x] 사용 안 되는 컴포넌트 식별 및 제거 — K3에 포함 (ForYouGrid/TrendingGrid/VideoGrid 0 importer)
+- [x] **RLS 정책 회귀 테스트** — S3 (`ce462c8` audit + 9 commit 보안 fix) — §8 참조
 - [ ] Mux schema cache 이슈 (`NOTIFY pgrst, 'reload schema'`) 정기 운영 메모
+
+---
+
+## 8. 2026-05-14 세션 진행 사항
+
+### K3 — Mock 데이터 정리 (`59403c7`)
+- Dead mock 파일 + 컴포넌트 5개 제거 (817줄): `profile-mock-grid-videos.ts`, `genova-mock-videos.ts`, `ForYouGrid`, `TrendingGrid`, `VideoGrid`
+- `mock-data.ts`는 production fallback으로 보존 (search-queries.ts에서 사용)
+
+### S3 — RLS audit + 보안 fix (9 commits + 7 마이그레이션)
+**Audit:** `docs/rls-audit.md` (`ce462c8`) — 19 테이블 perspective-별 정책 매트릭스 + 검증 SQL.
+
+**HIGH 보안 fix (모두 라이브 DB 적용됨):**
+| # | Commit | 내용 | 마이그레이션 |
+|---|--------|------|-------|
+| 1 | `8f9520e` | competitions admin writes → service role | `..._competitions_service_role_writes_only.sql` |
+| 2 | `e1dce92` | video_reports admin SELECT/UPDATE/DELETE → service role | `..._video_reports_service_role_admin_ops.sql` |
+| 3 | `689995d` | business_inquiries admin → service role | `..._business_inquiries_service_role_admin_ops.sql` |
+| 4 | `426fe60` | **CRITICAL**: `POST /api/site-settings`에 admin guard 추가 + RLS 정리 (이전엔 anon이 site_settings 변조 가능) | `..._site_settings_service_role_writes_only.sql` |
+| 5 | `8966341` | notifications INSERT 스푸핑 차단 (`createNotification` service role 내부화, 8 호출처 업데이트) | `..._notifications_service_role_inserts.sql` |
+| 6 | `29a23d5` | videos RLS 구멍 4개 폐쇄 (`videos_select using(true)`, `videos_insert with check(true)`, 중복 delete/update 정책) + 어드민 video write 5개 service role 전환 | `..._videos_drop_overpermissive_policies.sql` |
+
+**Profiles lockdown (phase 7a/b/c):**
+- 7a (`d829941`): `public_profiles` view 생성 — 안전 컬럼 20개만 노출. credits/points/notify_*/country/updated_at 제외.
+- 7b (`5e98bc7`): 30 호출처 audit + `public_profiles` 마이그레이션 (14 파일). `fetchProfileById` → `fetchOwnProfile` + `fetchPublicProfileById` 분리.
+- 7c (`df4e44d`): `profiles.SELECT` 정책을 `auth.uid() = id`로 잠금. 익명/타인 직접 read 차단, view 경유만 허용.
+
+**공용 헬퍼:** `src/lib/auth/admin-actions.ts` (`requireAdmin`, `requireAdminWithService`) — admin.ts/reports.ts/business-inquiries.ts가 공유.
+
+**환경 세팅:**
+- `SUPABASE_SERVICE_ROLE_KEY` — `.env.local` + Vercel (Production/Preview/Development) 모두 세팅 완료
+- `.gitignore` `.env*` 검증됨, 트래킹 이력 없음
+
+### P2 — `<img>` → `next/image` (5 commits, 48 sites)
+- P2-1 (`ca7a015`): 정적 로고/아이콘 8개 (auth, competition, creator, series-episodes, up-next)
+- P2-2 (`ad6eb8b`): 아바타 16개 (chat-drawer, comments, search, navbar, video-card, shorts, profile-settings, share-modal, watch-meta-sidebar)
+- P2-3 (`ad138a8`): 공유 `video-card.tsx` 썸네일 (1)
+- P2-4 (`14ad487`): 22 썸네일 (admin sections, competition list/detail/page, home carousel, navbar, home-after-hero, profile grids, search-nav, shorts, series-episodes, up-next, share-modal)
+- P2-5 (`59f7bad`): 히어로 배너 3개 + `priority` (LCP 핵심) — competition-hero, competition-detail, profile-settings banner
+- 핫픽스 (`7a7f213`): `image.mux.com` 호스트 추가 (Mux animated GIF)
+
+**보존:** 폼 preview 12 사이트 — `blob:`/`data:` URI 사용으로 `next/image` 부적합. P2-6에서 `eslint-disable` 주석 추가 예정 (이 commit).
+
+### M1 + M2 — Metadata + Dynamic OG
+- M1-1 (`086c17b`): 정적 페이지 11개 metadata. public 3개 (competition, landing, business), private 6개 (`robots: noindex`), 2개 layout (auth, admin).
+- M1-2 + M2 (`513de3e`): 5 dynamic route generateMetadata + per-row OG images (watch, competition, profile, creator, tools).
+
+### 기타
+- `193e653`: `sitemap.ts` + `robots.ts` 추가
+- `797121e`: default-avatar/banner PNG 압축 (-6.8MB)
 
 ---
 
 ## 부록: CLAUDE.md와의 차이 요약
 
-| 항목 | CLAUDE.md | 실제 코드 |
-|---|---|---|
-| Next.js 버전 | 15 | **16.2.3** |
-| 브랜드 primary | `#534AB7` | `globals.css`는 `#9d7dff`, tailwind는 `#534AB7` (혼재) |
-| Vimeo | "완전 Mux 전환됨" | 20개 파일에 vimeo 참조 잔존 |
-| 페이지 데이터 fetch | "서버 컴포넌트에서" | 다수 페이지가 `*-client.tsx`로 클라이언트 처리 (Hydration 비용 큼) |
-| 베타 2 Films 구조 | 명시 | 미구현 |
-| 다국어 | "한국어로만 개발" | 영어 기본 + ko/ja override 부분 구현 |
+| 항목 | CLAUDE.md | 실제 코드 | 상태 |
+|---|---|---|---|
+| Next.js 버전 | **16.2.3** | **16.2.3** | ✅ 동기화 |
+| 브랜드 primary | `#534AB7` (semantic 토큰) | `globals.css` `:root` 토큰 통일 (`72d9df4`) | ✅ 동기화 |
+| Vimeo | "legacy fallback만 유지" | `vimeo.ts` 제거. `Video.vimeoId` field + `watch-video-embed.tsx` 분기는 보존 | ✅ 동기화 |
+| 페이지 데이터 fetch | "서버 컴포넌트에서" | 다수 페이지가 `*-client.tsx`로 클라이언트 처리 (Hydration 비용 큼) | 🟡 부분 |
+| 베타 2 Films 구조 | 명시 | 미구현 — Phase C 대기 |
+| 다국어 | "영어 기본 + ko/ja overrides" | 일치 (ko/ja 일부만 채워짐) | ✅ 정책 동기화 (번역 완성도는 별개 작업) |

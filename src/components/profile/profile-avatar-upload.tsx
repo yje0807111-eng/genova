@@ -67,6 +67,7 @@ export function ProfileAvatarUpload({ userId, avatarUrl, displayName, editable }
   const face = (
     <>
       {preview ? (
+        // eslint-disable-next-line @next/next/no-img-element -- blob: URI initially, then persisted URL after upload; next/image not applicable to blob
         <img src={preview} alt="" className="h-full w-full object-cover" />
       ) : (
         <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-[#534AB7] to-[#26215C] text-2xl font-bold text-[#EEEDFE]">

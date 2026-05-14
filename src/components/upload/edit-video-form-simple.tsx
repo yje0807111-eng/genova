@@ -238,6 +238,7 @@ export function EditVideoFormSimple({ video, userId, competitions, activeCompeti
           </label>
           {thumbnailPreview ? (
             <div className="relative aspect-video w-full overflow-hidden rounded-xl border border-white/[0.08]">
+              {/* eslint-disable-next-line @next/next/no-img-element -- blob: URI or persisted URL after upload; next/image not applicable to blob */}
               <img src={thumbnailPreview} alt="" className="h-full w-full object-cover" />
               <button
                 type="button"

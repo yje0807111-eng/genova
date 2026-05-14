@@ -432,6 +432,7 @@ export function EditCompetitionForm({ competition }: { competition: any }) {
                     <label className={adminTokens.inputLabel}>공모전 썸네일</label>
                     {thumbnailPreview ? (
                       <div className="relative overflow-hidden rounded-xl border border-white/[0.08]">
+                        {/* eslint-disable-next-line @next/next/no-img-element -- blob: URI or persisted URL after upload; next/image not applicable to blob */}
                         <img src={thumbnailPreview} alt="" className="aspect-video w-full object-cover" />
                         <button
                           type="button"
@@ -471,6 +472,7 @@ export function EditCompetitionForm({ competition }: { competition: any }) {
                     <label className={adminTokens.inputLabel}>스폰서 로고</label>
                     {sponsorLogoPreview ? (
                       <div className="relative overflow-hidden rounded-xl border border-white/[0.08] p-3">
+                        {/* eslint-disable-next-line @next/next/no-img-element -- blob: URI or persisted URL after upload; next/image not applicable to blob */}
                         <img src={sponsorLogoPreview} alt="" className="h-16 object-contain" />
                         <button
                           type="button"
