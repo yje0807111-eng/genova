@@ -2,7 +2,6 @@ import { attachEngagementToVideos } from "@/lib/queries/engagement-queries";
 import {
   fetchCurrentCompetition,
   fetchOriginalVideos,
-  fetchSpotlightCreators,
   fetchVideosWithCreators,
 } from "@/lib/queries";
 import { fetchHeroAwardVideosForCompetition } from "@/lib/queries/films-hero-award-videos";
@@ -49,13 +48,6 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ t
     ? await fetchHeroAwardVideosForCompetition(competition.id)
     : { grandPrize: null, excellence: null, merit: null, audience: null };
 
-  let spotlightCreators: Awaited<ReturnType<typeof fetchSpotlightCreators>> = [];
-  try {
-    spotlightCreators = (await fetchSpotlightCreators()).slice(0, 5);
-  } catch {
-    spotlightCreators = [];
-  }
-
   return (
     <HomePageClient
       videosFromDb={uploadedFirst}
@@ -63,7 +55,6 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ t
       competition={competition}
       competitionStats={competitionStats}
       originals={originalsWithE}
-      spotlightCreators={spotlightCreators}
       followingVideos={followingVideos}
       becauseYouWatched={[]}
       isLoggedIn={isLoggedIn}

@@ -25,16 +25,6 @@ function formatRuntimeDisplay(seconds: number): string {
   return `${m}:${s.toString().padStart(2, "0")}`;
 }
 
-type SpotlightCreator = {
-  uploadedBy: string;
-  displayName: string;
-  avatarUrl: string | null;
-  videoCount: number;
-  totalLikes: number;
-  recentVideos: { id: string; title: string; thumbnailUrl: string | null; genre?: string | null }[];
-  aiTools: string[];
-};
-
 type HeroAwardVideos = {
   grandPrize: Video | null;
   excellence: Video | null;
@@ -48,7 +38,6 @@ type HomePageClientProps = {
   competitionDeadlineIso: string | null;
   competition: Competition | null;
   originals: Video[];
-  spotlightCreators: SpotlightCreator[];
   followingVideos: Video[];
   becauseYouWatched: Video[];
   isLoggedIn: boolean;
@@ -67,7 +56,6 @@ export function HomePageClient(props: HomePageClientProps) {
     competitionDeadlineIso,
     competition,
     originals,
-    spotlightCreators,
     followingVideos,
     becauseYouWatched,
     isLoggedIn,
