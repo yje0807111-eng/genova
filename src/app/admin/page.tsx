@@ -5,6 +5,7 @@ import { AdminDashboard } from "@/components/admin/admin-dashboard";
 import { isAdminEmail } from "@/lib/auth/admin";
 import { fetchVideosWithCreators } from "@/lib/queries";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
+import { createServiceSupabaseClient } from "@/lib/supabase/service";
 
 export default async function AdminPage() {
   const supabase = await createServerSupabaseClient();
@@ -15,10 +16,16 @@ export default async function AdminPage() {
   if (!user) redirect("/auth");
   if (!isAdminEmail(user.email)) redirect("/");
 
+  // Admin-only reads (video_reports, plus private video titles for the
+  // reports dashboard) must bypass RLS — see docs/rls-audit.md §5.2.
+  const service = createServiceSupabaseClient();
+
   const [videos, competitionsRes, reportsRes] = await Promise.all([
     fetchVideosWithCreators(),
     supabase.from("competitions").select("*").order("deadline", { ascending: false }),
-    supabase.from("video_reports").select("*").order("created_at", { ascending: false }).limit(200),
+    service
+      ? service.from("video_reports").select("*").order("created_at", { ascending: false }).limit(200)
+      : Promise.resolve({ data: [] as Record<string, unknown>[], error: null }),
   ]);
   const competitions = (competitionsRes.data ?? []).map((r) => ({
     id: r.id as string,
@@ -49,7 +56,7 @@ export default async function AdminPage() {
 
   const [reportVideosRes, reportersRes] = await Promise.all([
     reportVideoIds.length > 0
-      ? supabase.from("videos").select("id, title").in("id", reportVideoIds)
+      ? (service ?? supabase).from("videos").select("id, title").in("id", reportVideoIds)
       : Promise.resolve({ data: [] as { id: string; title: string }[], error: null }),
     reporterIds.length > 0
       ? supabase.from("profiles").select("id, display_name").in("id", reporterIds)

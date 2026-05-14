@@ -1,41 +1,11 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { isAdminEmail } from "@/lib/auth/admin";
+import { requireAdmin, requireAdminWithService } from "@/lib/auth/admin-actions";
 import { createNotification } from "@/lib/notifications";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
-import { createServiceSupabaseClient } from "@/lib/supabase/service";
 
 type AdminResult = { ok: true } | { ok: false; message: string };
-
-async function requireAdmin() {
-  const supabase = await createServerSupabaseClient();
-  if (!supabase) return { error: "Please check your Supabase configuration." } as const;
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) return { error: "Please sign in." } as const;
-  if (!isAdminEmail(user.email)) return { error: "Access denied." } as const;
-  return { supabase, user } as const;
-}
-
-/**
- * Same as requireAdmin() but also returns a service-role client.
- * Use for writes to tables where admin needs to bypass RLS
- * (competitions, site_settings, video_reports admin ops, etc.).
- *
- * The user-session `supabase` client is still returned for reads
- * the action wants to perform under the caller's identity.
- */
-async function requireAdminWithService() {
-  const auth = await requireAdmin();
-  if ("error" in auth) return auth;
-  const service = createServiceSupabaseClient();
-  if (!service) {
-    return { error: "Service role key not configured." } as const;
-  }
-  return { ...auth, service } as const;
-}
 
 export async function createCompetitionAction(form: {
   id: string;

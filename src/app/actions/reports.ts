@@ -1,7 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { isAdminEmail } from "@/lib/auth/admin";
+import { requireAdminWithService } from "@/lib/auth/admin-actions";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 
 export type ReportActionResult = { ok: true } | { ok: false; needAuth?: boolean; message: string };
@@ -77,24 +77,12 @@ export async function createVideoReportAction({
 }
 
 type AdminResult = { ok: true } | { ok: false; message: string };
-type RequireAdminResult = { supabase: NonNullable<Awaited<ReturnType<typeof createServerSupabaseClient>>> } | { error: string };
-
-async function requireAdmin(): Promise<RequireAdminResult> {
-  const supabase = await createServerSupabaseClient();
-  if (!supabase) return { error: "Please check your Supabase configuration." };
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) return { error: "Please sign in." };
-  if (!isAdminEmail(user.email)) return { error: "Access denied." };
-  return { supabase };
-}
 
 export async function updateVideoReportStatusAction(reportId: string, status: VideoReportStatus): Promise<AdminResult> {
-  const auth = await requireAdmin();
+  const auth = await requireAdminWithService();
   if ("error" in auth) return { ok: false, message: auth.error };
-  const { supabase } = auth;
-  const { data, error } = await supabase
+  const { service } = auth;
+  const { data, error } = await service
     .from("video_reports")
     .update({ status })
     .eq("id", reportId)
@@ -106,10 +94,10 @@ export async function updateVideoReportStatusAction(reportId: string, status: Vi
 }
 
 export async function deleteVideoReportAction(reportId: string): Promise<AdminResult> {
-  const auth = await requireAdmin();
+  const auth = await requireAdminWithService();
   if ("error" in auth) return { ok: false, message: auth.error };
-  const { supabase } = auth;
-  const { data, error } = await supabase.from("video_reports").delete().eq("id", reportId).select("id");
+  const { service } = auth;
+  const { data, error } = await service.from("video_reports").delete().eq("id", reportId).select("id");
   if (error) return { ok: false, message: error.message };
   if (!data || data.length === 0) return { ok: false, message: "Delete failed (not found or no permission)." };
   revalidatePath("/admin");
@@ -117,10 +105,10 @@ export async function deleteVideoReportAction(reportId: string): Promise<AdminRe
 }
 
 export async function deleteAllVideoReportsAction(): Promise<AdminResult> {
-  const auth = await requireAdmin();
+  const auth = await requireAdminWithService();
   if ("error" in auth) return { ok: false, message: auth.error };
-  const { supabase } = auth;
-  const { data, error } = await supabase.from("video_reports").delete().not("id", "is", null).select("id");
+  const { service } = auth;
+  const { data, error } = await service.from("video_reports").delete().not("id", "is", null).select("id");
   if (error) return { ok: false, message: error.message };
   if (!data || data.length === 0) return { ok: false, message: "No reports were deleted (already empty or no permission)." };
   revalidatePath("/admin");
