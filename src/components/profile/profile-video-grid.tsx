@@ -1,13 +1,16 @@
-"use client";
-
 import Image from "next/image";
 import Link from "next/link";
-import { useI18n } from "@/components/genova/language-provider";
+import { getServerLocale } from "@/lib/i18n/server";
 import { formatGenreDisplay } from "@/lib/constants/genres";
 import type { Video } from "@/lib/types";
 
-export function ProfileVideoGrid({ videos, emptyLabel }: { videos: Video[]; emptyLabel: string }) {
-  const { locale } = useI18n();
+/**
+ * Server component — Phase B.2-6.  Only used `useI18n()` to read the
+ * locale for `formatGenreDisplay`; no event handlers, no state.  Now
+ * async and reads the locale on the server.
+ */
+export async function ProfileVideoGrid({ videos, emptyLabel }: { videos: Video[]; emptyLabel: string }) {
+  const locale = await getServerLocale();
   if (videos.length === 0) {
     const label = emptyLabel.trim() || "No films yet.";
     return <p className="rounded-xl bg-[#1A1535]/80 p-8 text-center text-sm text-[#AFA9EC]">{label}</p>;

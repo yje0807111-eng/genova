@@ -1,9 +1,11 @@
-"use client";
+import { getServerLocale, getServerT } from "@/lib/i18n/server";
 
-import { useI18n } from "@/components/genova/language-provider";
-
-export function UploadPageHeading({ variant }: { variant: "upload" | "edit" }) {
-  const { t } = useI18n();
+/**
+ * Server component — Phase B.2-6.  Pure text headings; no client APIs.
+ */
+export async function UploadPageHeading({ variant }: { variant: "upload" | "edit" }) {
+  const locale = await getServerLocale();
+  const t = getServerT(locale);
   if (variant === "upload") {
     return (
       <div className="space-y-2">

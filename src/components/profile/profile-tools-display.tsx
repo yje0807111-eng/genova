@@ -1,9 +1,22 @@
 import { getOrphanTools, groupSelectedToolsForView } from "@/lib/constants/ai-tools";
-import { useI18n } from "@/components/genova/language-provider";
+import { getServerLocale, getServerT } from "@/lib/i18n/server";
 
-/** View mode: show selected tools grouped by category */
-export function ProfileToolsDisplay({ tools }: { tools: string[] }) {
-  const { t } = useI18n();
+/**
+ * Server component — shows the user's AI-tool selections grouped by
+ * category (with an "Other" bucket for orphan tools).  Previously
+ * a client component, but it never had the `"use client"` directive
+ * and used `useI18n()` directly (latent React Server Components bug
+ * caught in the Phase B.1 audit).  B.2-6 fixes it by moving the
+ * translation lookup to the server.
+ *
+ * Note: the inner `.map((t) => ...)` callback parameter shadowed the
+ * `t` translator returned by `useI18n()`.  The new code keeps the
+ * same shadowing — both `t`s are unambiguous at their use sites and
+ * renaming would be a noisy diff.
+ */
+export async function ProfileToolsDisplay({ tools }: { tools: string[] }) {
+  const locale = await getServerLocale();
+  const t = getServerT(locale);
   const groups = groupSelectedToolsForView(tools);
   const orphans = getOrphanTools(tools);
 

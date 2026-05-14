@@ -1,13 +1,16 @@
-"use client";
-
 import Link from "next/link";
-import { useI18n } from "@/components/genova/language-provider";
+import { getServerLocale, getServerT } from "@/lib/i18n/server";
 import { formatGenreDisplay } from "@/lib/constants/genres";
 import type { Video } from "@/lib/types";
 
 type Size = "hero" | "large" | "medium";
 
-export function FilmsVideoCard({
+/**
+ * Server component — Phase B.2-6.  Hover overlay uses CSS group-hover
+ * only, no JS handlers; safe to render server-side.  Async because
+ * both `locale` and `t` come from `getServerLocale()`.
+ */
+export async function FilmsVideoCard({
   video,
   size = "medium",
   awardLabel,
@@ -16,7 +19,8 @@ export function FilmsVideoCard({
   size?: Size;
   awardLabel?: string | null;
 }) {
-  const { locale, t } = useI18n();
+  const locale = await getServerLocale();
+  const t = getServerT(locale);
   const aspect =
     size === "hero"
       ? "aspect-[21/9]"
@@ -120,8 +124,10 @@ export function FilmsVideoCard({
   );
 }
 
-export function FilmsComingSoon({ className = "" }: { className?: string }) {
-  const { t } = useI18n();
+/** Server component — placeholder block when a films lineup is empty. */
+export async function FilmsComingSoon({ className = "" }: { className?: string }) {
+  const locale = await getServerLocale();
+  const t = getServerT(locale);
   return (
     <div
       className={`flex min-h-[200px] flex-col items-center justify-center rounded-xl border border-dashed border-white/10 bg-white/[0.02] px-6 py-16 text-center ${className}`}
