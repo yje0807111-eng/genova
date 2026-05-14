@@ -40,7 +40,7 @@ export async function createCommentAction(videoId: string, content: string, pare
     .maybeSingle();
 
   if (video?.uploaded_by && video.uploaded_by !== user.id) {
-    await createNotification(supabase, {
+    await createNotification({
       userId: video.uploaded_by,
       actorId: user.id,
       type: "comment",

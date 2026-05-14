@@ -85,7 +85,7 @@ export async function followUserAction(targetUserId: string): Promise<FollowActi
     if (error.code === "23505") return { ok: true, alreadyFollowing: true };
     return { ok: false, message: error.message };
   }
-  await createNotification(supabase, {
+  await createNotification({
     userId: targetUserId,
     actorId: user.id,
     type: "follow",

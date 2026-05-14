@@ -225,7 +225,7 @@ export async function setVideoFinalistAction(videoId: string, finalist: boolean)
     .maybeSingle();
   if (error) return { ok: false, message: error.message };
   if (data?.uploaded_by && finalist) {
-    await createNotification(supabase, {
+    await createNotification({
       userId: data.uploaded_by as string,
       actorId: user.id,
       type: "competition_result",
@@ -267,7 +267,7 @@ export async function setVideoAwardAction(videoId: string, award: string): Promi
     .maybeSingle();
   if (error) return { ok: false, message: error.message };
   if (data?.uploaded_by && value) {
-    await createNotification(supabase, {
+    await createNotification({
       userId: data.uploaded_by as string,
       actorId: user.id,
       type: "competition_result",

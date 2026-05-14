@@ -96,7 +96,7 @@ export async function grantCompetitionTrophyAction(input: {
   }
 
   const compTitle = comp.title as string;
-  await createNotification(svc, {
+  await createNotification({
     userId,
     actorId: null,
     type: "trophy",
@@ -176,7 +176,7 @@ export async function runWeeklyGenreTrophiesAction(weekStartInput?: string): Pro
         continue;
       }
 
-      await createNotification(svc, {
+      await createNotification({
         userId,
         actorId: null,
         type: "trophy",

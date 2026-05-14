@@ -38,7 +38,7 @@ export async function toggleLikeAction(videoId: string): Promise<ToggleEngagemen
       .maybeSingle();
 
     if (video?.uploaded_by && video.uploaded_by !== user.id) {
-      await createNotification(supabase, {
+      await createNotification({
         userId: video.uploaded_by,
         actorId: user.id,
         type: "like",
@@ -89,7 +89,7 @@ export async function toggleSaveAction(videoId: string): Promise<ToggleSaveResul
       .maybeSingle();
 
     if (video?.uploaded_by && video.uploaded_by !== user.id) {
-      await createNotification(supabase, {
+      await createNotification({
         userId: video.uploaded_by,
         actorId: user.id,
         type: "like",
