@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import Image from "next/image";
 import Link from "next/link";
 import { ArrowRight, ChevronLeft, ChevronRight } from "lucide-react";
 import { useI18n } from "@/components/genova/language-provider";
@@ -91,10 +92,17 @@ export function FeaturedHeroCarousel({ competitions }: Props) {
             }}
           >
             {c.thumbnail_url && (
-              <img
+              <Image
                 src={c.thumbnail_url}
                 alt=""
-                className="absolute inset-0 h-full w-full object-cover"
+                fill
+                // LCP candidate on /competition — the first slide is the
+                // initial above-the-fold image, so prioritize it.  Other
+                // slides lazy-load.
+                priority={i === 0}
+                // Hero spans full viewport width on every breakpoint.
+                sizes="100vw"
+                className="object-cover"
               />
             )}
 

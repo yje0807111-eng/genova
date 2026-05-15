@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { useI18n } from "@/components/genova/language-provider";
 import type { Video } from "@/lib/types";
@@ -71,10 +72,15 @@ export function VideoCard({
     >
       {video.thumbnailUrl ? (
         <div className="absolute inset-0">
-          <img
+          <Image
             src={video.thumbnailUrl}
             alt=""
-            className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105 brightness-105"
+            fill
+            // Grid renders 2 cards on mobile, 3 on tablet, 4-5 on
+            // desktop — sizes hint lets the optimizer pick the right
+            // srcset bucket per breakpoint.
+            sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, (max-width: 1536px) 25vw, 20vw"
+            className="object-cover transition-transform duration-700 group-hover:scale-105 brightness-105"
           />
           <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-black/20" />
         </div>
