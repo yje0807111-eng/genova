@@ -903,6 +903,7 @@ const en: Messages = {
 
   // Phase 4: competition entry-count badge + results page copy.
   "lottery.entryCount": "Total entries: {n}",
+  "lottery.entriesLabel": "Entries",
   "lottery.lotteryHint": "Every qualifying upload is automatically pooled into all running competitions.",
   "lottery.results.title": "Winners",
   "lottery.results.heading": "Lottery winners",

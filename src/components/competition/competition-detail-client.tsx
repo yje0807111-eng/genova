@@ -103,6 +103,11 @@ type CompetitionDetailProps = {
   competition: Competition;
   videos: Video[];
   featuredVideos: Video[];
+  /** Phase 4-B: total eligible lottery entries for this competition. */
+  entryCount?: number;
+  /** Phase 4-B: at least one live (non-invalidated) winner row exists →
+   *  show the "winners announced" banner linking to /results. */
+  winnersAnnounced?: boolean;
 };
 
 function competitionRowToAppVideo(video: Video): AppVideo {
@@ -146,7 +151,13 @@ function dDay(deadline: string) {
   return Math.max(0, Math.ceil((new Date(deadline).getTime() - Date.now()) / 86400000));
 }
 
-export function CompetitionDetailClient({ competition, videos, featuredVideos }: CompetitionDetailProps) {
+export function CompetitionDetailClient({
+  competition,
+  videos,
+  featuredVideos,
+  entryCount = 0,
+  winnersAnnounced = false,
+}: CompetitionDetailProps) {
   const { t, locale } = useI18n();
   const { open: openUploadModal } = useUploadModal();
   const dateLocale = intlDateLocale(locale);
@@ -220,6 +231,28 @@ export function CompetitionDetailClient({ competition, videos, featuredVideos }:
 
   return (
     <div className="min-h-screen text-white">
+
+      {/* Phase 4-B: winners-announced banner.  Renders only once
+          the admin has triggered a draw.  Links to the dedicated
+          results page where the 5 winner cards live. */}
+      {winnersAnnounced ? (
+        <Link
+          href={`/competition/${competition.id}/results`}
+          className="group/banner relative z-30 mx-4 mb-4 mt-20 flex items-center justify-between gap-4 rounded-2xl border border-amber-400/30 bg-gradient-to-r from-amber-500/15 via-amber-500/10 to-transparent px-5 py-3 backdrop-blur-md transition hover:border-amber-400/50 sm:mx-6 md:mx-8 lg:mx-12"
+        >
+          <div className="flex items-center gap-3 min-w-0">
+            <span className="rounded-full bg-amber-400/20 px-2 py-0.5 text-[10px] font-bold uppercase tracking-[0.18em] text-amber-200">
+              🏆 {t("lottery.results.bannerTitle", "Winners announced")}
+            </span>
+            <span className="truncate text-[13px] font-semibold text-amber-100/90">
+              {t("lottery.results.bannerCta", "See the winners →")}
+            </span>
+          </div>
+          <span className="shrink-0 text-[12px] font-bold text-amber-200/80 transition-transform group-hover/banner:translate-x-0.5">
+            →
+          </span>
+        </Link>
+      ) : null}
 
       {/* ── Hero ─────────────────────────────────── */}
       <div
@@ -381,6 +414,20 @@ export function CompetitionDetailClient({ competition, videos, featuredVideos }:
                     </span>
                   </div>
                 )}
+                {/* Phase 4-B: total eligible lottery entries.
+                    Only renders when at least one ticket entered
+                    the pool — keeps the stat row clean for fresh
+                    competitions. */}
+                {entryCount > 0 ? (
+                  <div className="flex flex-col">
+                    <span className="text-[10px] font-bold uppercase tracking-[0.18em] text-white/40">
+                      {t("lottery.entriesLabel", "Entries")}
+                    </span>
+                    <span className="mt-0.5 inline-flex items-center gap-1.5 text-[14px] font-bold tabular-nums text-[#AFA9EC]">
+                      {entryCount.toLocaleString()}
+                    </span>
+                  </div>
+                ) : null}
               </div>
 
               {/* CTA Buttons */}

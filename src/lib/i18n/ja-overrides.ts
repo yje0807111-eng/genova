@@ -114,6 +114,7 @@ export const jaOverrides: Record<string, string> = {
 
   // Phase 4: コンペページ応募数 + 抽選結果ページ
   "lottery.entryCount": "総応募数: {n}",
+  "lottery.entriesLabel": "応募",
   "lottery.lotteryHint": "条件を満たすすべてのアップロードは、進行中のすべてのコンペプールに自動で参加します。",
   "lottery.results.title": "当選者",
   "lottery.results.heading": "応募券抽選結果",

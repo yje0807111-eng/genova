@@ -114,6 +114,7 @@ export const koOverrides: Record<string, string> = {
 
   // Phase 4: 콘테스트 페이지 응모 수 + 추첨 결과 페이지
   "lottery.entryCount": "총 응모 수: {n}",
+  "lottery.entriesLabel": "응모",
   "lottery.lotteryHint": "조건을 충족한 모든 업로드는 진행 중인 모든 콘테스트 풀에 자동 입력됩니다.",
   "lottery.results.title": "당첨자",
   "lottery.results.heading": "응모권 추첨 결과",

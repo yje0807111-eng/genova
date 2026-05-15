@@ -5,6 +5,10 @@ import { mergeVideoRows } from "@/lib/queries";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { CompetitionDetailClient } from "@/components/competition/competition-detail-client";
 import { getServerLocale } from "@/lib/i18n/server";
+import {
+  fetchCompetitionEntryCounts,
+  fetchCompetitionWinners,
+} from "@/lib/queries/lottery-queries";
 
 export const dynamic = "force-dynamic";
 
@@ -122,14 +126,23 @@ export default async function CompetitionDetailPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const [competition, videos, featuredVideos] = await Promise.all([
-    fetchCompetitionById(id),
-    fetchCompetitionVideos(id),
-    fetchFeaturedVideos(id),
-  ]);
+  const [competition, videos, featuredVideos, entryCounts, winners] =
+    await Promise.all([
+      fetchCompetitionById(id),
+      fetchCompetitionVideos(id),
+      fetchFeaturedVideos(id),
+      fetchCompetitionEntryCounts(id),
+      fetchCompetitionWinners(id),
+    ]);
   if (!competition) notFound();
 
   return (
-    <CompetitionDetailClient competition={competition} videos={videos} featuredVideos={featuredVideos} />
+    <CompetitionDetailClient
+      competition={competition}
+      videos={videos}
+      featuredVideos={featuredVideos}
+      entryCount={entryCounts.eligibleCount}
+      winnersAnnounced={winners.length > 0}
+    />
   );
 }
