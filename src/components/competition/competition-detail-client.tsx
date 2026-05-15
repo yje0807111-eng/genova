@@ -453,7 +453,12 @@ export function CompetitionDetailClient({
                   <button
                     type="button"
                     onClick={() => openUploadModal({ competitionId: competition.id })}
-                    className="inline-flex items-center gap-2 rounded-lg px-6 py-2.5 text-[14px] font-bold text-white bg-accent-core hover:bg-[#6b5fd4] transition-colors duration-200 shadow-[0_8px_24px_rgba(83,74,183,0.4)]"
+                    className="inline-flex items-center gap-2 rounded-lg px-6 py-2.5 text-[14px] font-bold text-white transition hover:opacity-90"
+                    style={{
+                      backgroundImage: "var(--gradient-cta-primary)",
+                      border: "1px solid var(--border-emphasis)",
+                      boxShadow: "var(--shadow-cta)",
+                    }}
                   >
                     {t("competition.detail.submitNowCta")}
                   </button>
@@ -602,7 +607,7 @@ export function CompetitionDetailClient({
                     <span
                       className="text-[11px] font-black"
                       style={{
-                        backgroundImage: "linear-gradient(135deg, #534AB7 0%, #3D35A0 100%)",
+                        backgroundImage: "linear-gradient(135deg, var(--accent-primary) 0%, var(--accent-light) 100%)",
                         WebkitBackgroundClip: "text",
                         WebkitTextFillColor: "transparent",
                         backgroundClip: "text",
@@ -611,7 +616,7 @@ export function CompetitionDetailClient({
                     <p
                       className="text-[11px] font-black uppercase tracking-[0.2em]"
                       style={{
-                        backgroundImage: "linear-gradient(135deg, #3D35A0 0%, #534AB7 60%, #4A42A8 100%)",
+                        backgroundImage: "linear-gradient(135deg, var(--accent-primary) 0%, var(--accent-light) 100%)",
                         WebkitBackgroundClip: "text",
                         WebkitTextFillColor: "transparent",
                         backgroundClip: "text",

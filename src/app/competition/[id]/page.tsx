@@ -87,12 +87,7 @@ async function fetchCompetitionVideos(competitionId: string) {
     .eq("submitted_competition_id", competitionId)
     .eq("visibility", "public")
     .order("view_count", { ascending: false });
-  console.log("[COMP_VIDEOS_DEBUG]", {
-    competitionId,
-    count: data?.length ?? 0,
-    videos: data?.map((v) => ({ id: v.id, title: v.title })) ?? [],
-    error: error ? { message: error.message, code: error.code } : null,
-  });
+  if (error) console.error("[fetchCompetitionVideos]", error);
   // Attach uploader display_name / avatar_url via public_profiles.
   // Returns raw rows (snake_case) — CompetitionDetailClient owns its own
   // row→AppVideo mapping via competitionRowToAppVideo().
