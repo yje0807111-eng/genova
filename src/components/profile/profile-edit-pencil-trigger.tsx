@@ -1,17 +1,38 @@
 "use client";
 
 import { useState } from "react";
+import dynamic from "next/dynamic";
 import { Pencil } from "lucide-react";
 import { useI18n } from "@/components/genova/language-provider";
-import { ProfileSettingsModal } from "@/components/profile/profile-settings-modal";
 import type { Profile } from "@/lib/queries/profile-queries";
 
 /**
+ * Lazy-loaded modal wrapper + form.  Two levels of laziness here:
+ *   1. `next/dynamic({ssr:false})` defers the modal-wrapper chunk
+ *      (~98 LOC + createPortal + lucide X + body-overflow effect)
+ *      until first render of the modal.
+ *   2. The `{open && …}` gate below means the wrapper itself is
+ *      never even mounted while the pencil is unclicked — so the
+ *      dynamic chunk only fetches on the first open click.
+ *   3. The wrapper THEN lazy-loads the heavier `<ProfileSettingsClient>`
+ *      form (~456 LOC) inside itself, as before.
+ *
+ * Net: zero settings-modal code in the bundle until an owner clicks
+ * the pencil.
+ */
+const ProfileSettingsModal = dynamic(
+  () =>
+    import("@/components/profile/profile-settings-modal").then(
+      (m) => m.ProfileSettingsModal,
+    ),
+  { ssr: false },
+);
+
+/**
  * Owner-only edit-profile trigger.  Self-contained: owns its own
- * `open` state and mounts the heavy `<ProfileSettingsModal>` itself,
- * so the surrounding profile header can render server-side
- * (C-2 server slot pattern).  The non-owner case never imports
- * this file, so the modal code stays out of visitor bundles too.
+ * `open` state and mounts the modal on first click.  The non-owner
+ * case never imports this file, so neither the wrapper nor the form
+ * code ship on visitor bundles.
  *
  * Props mirror what `<ProfileSettingsModal>` needs: profile + auth
  * shape used inside the modal for the Account / Security / Email
@@ -43,15 +64,17 @@ export function ProfileEditPencilTrigger({
       >
         <Pencil className="h-3.5 w-3.5" />
       </button>
-      <ProfileSettingsModal
-        open={open}
-        onClose={() => setOpen(false)}
-        profile={profile}
-        userEmail={userEmail}
-        hasPassword={hasPassword}
-        authProvider={authProvider}
-        handle={handle}
-      />
+      {open ? (
+        <ProfileSettingsModal
+          open
+          onClose={() => setOpen(false)}
+          profile={profile}
+          userEmail={userEmail}
+          hasPassword={hasPassword}
+          authProvider={authProvider}
+          handle={handle}
+        />
+      ) : null}
     </>
   );
 }
