@@ -25,6 +25,15 @@ type VideoRow = {
   is_original: boolean;
   is_finalist: boolean;
   is_competition_featured?: boolean | null;
+  /**
+   * Competition the video was submitted to (FK → competitions.id).
+   * Schema column created in migration 20260413160000.  Several call
+   * sites read this directly off the raw row (edit form,
+   * competition queries) — declared here so those reads type-check.
+   * Intentionally NOT projected into the camelCase `Video` type:
+   * the UI currently treats it as a raw-row-only concern.
+   */
+  submitted_competition_id?: string | null;
   award: string | null;
   runtime: string;
   created_at: string;
