@@ -28,6 +28,10 @@ export type LotteryCompetitionSummary = {
     expired: number;
     invalidated: number;
   };
+  /** H2-A.4: total USD amount across winners with claim_status='paid'. */
+  paidUsdTotal: number;
+  /** H2-A.4: total USD amount on live (non-invalidated) winners. */
+  liveUsdTotal: number;
 };
 
 /**
@@ -50,7 +54,7 @@ export async function fetchLotteryCompetitionSummaries(
         .select("competition_id, eligible_count"),
       service
         .from("competition_winners")
-        .select("competition_id, claim_status"),
+        .select("competition_id, claim_status, prize_amount_usd"),
     ]);
 
   const entryMap = new Map<string, number>();
@@ -58,11 +62,14 @@ export async function fetchLotteryCompetitionSummaries(
     entryMap.set(r.competition_id as string, (r.eligible_count as number) ?? 0);
   }
 
-  // Group winners by competition_id + claim_status.
+  // Group winners by competition_id + claim_status.  Also accumulate
+  // USD totals (H2-A.4) so the admin row can show "paid X / live Y".
   const winnerBuckets = new Map<
     string,
     LotteryCompetitionSummary["winners"]
   >();
+  const paidUsdTotals = new Map<string, number>();
+  const liveUsdTotals = new Map<string, number>();
   for (const w of winnerRows ?? []) {
     const cid = w.competition_id as string;
     const status = w.claim_status as keyof LotteryCompetitionSummary["winners"];
@@ -76,6 +83,14 @@ export async function fetchLotteryCompetitionSummaries(
     };
     if (status in bucket) bucket[status] += 1;
     winnerBuckets.set(cid, bucket);
+
+    const amount = Number(w.prize_amount_usd ?? 0) || 0;
+    if (status === "paid") {
+      paidUsdTotals.set(cid, (paidUsdTotals.get(cid) ?? 0) + amount);
+    }
+    if (status !== "invalidated") {
+      liveUsdTotals.set(cid, (liveUsdTotals.get(cid) ?? 0) + amount);
+    }
   }
 
   return (compRows ?? []).map((c) => {
@@ -102,6 +117,8 @@ export async function fetchLotteryCompetitionSummaries(
       entryCount: entryMap.get(c.id as string) ?? 0,
       winnersDrawn: liveCount > 0,
       winners: bucket,
+      paidUsdTotal: paidUsdTotals.get(c.id as string) ?? 0,
+      liveUsdTotal: liveUsdTotals.get(c.id as string) ?? 0,
     };
   });
 }

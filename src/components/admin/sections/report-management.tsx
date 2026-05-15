@@ -60,6 +60,10 @@ export function ReportManagement({
   // videoId / reporter id.  Matches the work-queue scan operators do
   // when looking up a specific report from a Slack ping.
   const [reportSearch, setReportSearch] = useState("");
+  // H2-A.8: collapse multiple reports on the same video into one row
+  // so a 10x-reported video isn't 10 rows.  Default off (per-row view
+  // is still useful for status transitions and detail diff).
+  const [groupByVideo, setGroupByVideo] = useState(false);
 
   useEffect(() => setLocalReports(reports), [reports]);
 
@@ -82,8 +86,23 @@ export function ReportManagement({
       }
       return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
     });
+    if (groupByVideo) {
+      // H2-A.8: collapse rows sharing the same videoId.  The first
+      // matching report keeps its place; an extra `duplicateCount` is
+      // stamped onto it so the row can render "+N more" inline.
+      const seen = new Map<string, VideoReportItem & { duplicateCount?: number }>();
+      for (const r of result) {
+        const existing = seen.get(r.videoId);
+        if (!existing) {
+          seen.set(r.videoId, { ...r, duplicateCount: 0 });
+        } else {
+          existing.duplicateCount = (existing.duplicateCount ?? 0) + 1;
+        }
+      }
+      return Array.from(seen.values());
+    }
     return result;
-  }, [localReports, reportStatusFilter, reportReasonFilter, reportSort, reportSearch]);
+  }, [localReports, reportStatusFilter, reportReasonFilter, reportSort, reportSearch, groupByVideo]);
 
   const openCount = useMemo(() => localReports.filter((r) => r.status === "open").length, [localReports]);
 
@@ -236,6 +255,18 @@ export function ReportManagement({
             <option value="open_first">정렬: Open 우선</option>
             <option value="latest">정렬: 최신순</option>
           </select>
+          {/* H2-A.8: collapse-by-video toggle */}
+          <button
+            type="button"
+            onClick={() => setGroupByVideo((v) => !v)}
+            className={cn(
+              adminTokens.buttonSecondary,
+              groupByVideo && "border-[#7F77DD]/30 bg-[#7F77DD]/[0.1] text-[#AFA9EC]",
+            )}
+            title="동일 영상의 여러 신고를 한 행으로 그룹화"
+          >
+            {groupByVideo ? "✓ 영상별" : "영상별 그룹"}
+          </button>
           {localReports.length > 0 ? (
             <button type="button" disabled={loading} onClick={handleDeleteAll} className={adminTokens.buttonDanger}>
               전체 삭제
@@ -280,6 +311,12 @@ export function ReportManagement({
                     <p className="truncate text-[13px] font-medium text-white">
                       {report.videoTitle?.trim() ? report.videoTitle : "삭제된 영상"}
                     </p>
+                    {/* H2-A.8: extra-report count when grouping */}
+                    {(report as VideoReportItem & { duplicateCount?: number }).duplicateCount ? (
+                      <span className={cn(adminTokens.badge, adminTokens.badgeDanger)}>
+                        +{(report as VideoReportItem & { duplicateCount?: number }).duplicateCount} more
+                      </span>
+                    ) : null}
                     <span className="hidden text-white/20 sm:inline">·</span>
                     <span className="truncate text-[11px] text-white/50">{report.reporterName?.trim() || "익명"}</span>
                     {typeof report.timestampSec === "number" ? (

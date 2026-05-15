@@ -111,11 +111,17 @@ function CompetitionRow({
     if (!confirm(`Draw 5 winners for "${c.title}"? This cannot be undone except by redraw.`)) return;
     startTransition(async () => {
       const res = await triggerCompetitionDrawAction(c.id);
-      onMessage(
-        res.ok
-          ? `Drew ${res.winnersCount ?? 5} winners for "${c.title}"`
-          : `Draw failed: ${res.message}`,
-      );
+      if (res.ok) {
+        // H2-D.6: surface dispatch failure counts.  Silent partial
+        // notification delivery used to require log diving.
+        const warnings: string[] = [];
+        if (res.notifFailed) warnings.push(`${res.notifFailed} notif fail`);
+        if (res.emailFailed) warnings.push(`${res.emailFailed} email fail`);
+        const suffix = warnings.length ? ` · ⚠ ${warnings.join(" · ")}` : "";
+        onMessage(`Drew ${res.winnersCount ?? 5} winners for "${c.title}"${suffix}`);
+      } else {
+        onMessage(`Draw failed: ${res.message}`);
+      }
       router.refresh();
     });
   };
@@ -132,7 +138,16 @@ function CompetitionRow({
       </td>
       <td className="px-2 py-3">
         {c.winnersDrawn ? (
-          <WinnerBuckets buckets={c.winners} />
+          <div className="flex flex-col gap-1">
+            <WinnerBuckets buckets={c.winners} />
+            {/* H2-A.4: paid / total payout summary so operators can see
+                the disbursement progress at a glance. */}
+            {c.liveUsdTotal > 0 ? (
+              <span className="text-[10px] tabular-nums text-white/40">
+                ${c.paidUsdTotal.toLocaleString()} / ${c.liveUsdTotal.toLocaleString()} paid
+              </span>
+            ) : null}
+          </div>
         ) : (
           <span className="text-white/35">—</span>
         )}
@@ -335,13 +350,44 @@ function WinnerCard({
         prizeTier: w.prizeTier,
         reason: trimmed,
       });
-      onMessage(res.ok ? "Redraw successful" : `Redraw failed: ${res.message}`);
+      if (res.ok) {
+        // H2-D.6: dispatch failure surface
+        const warnings: string[] = [];
+        if (res.notifFailed) warnings.push(`${res.notifFailed} notif fail`);
+        if (res.emailFailed) warnings.push(`${res.emailFailed} email fail`);
+        const suffix = warnings.length ? ` · ⚠ ${warnings.join(" · ")}` : "";
+        onMessage(`Redraw successful${suffix}`);
+      } else {
+        onMessage(`Redraw failed: ${res.message}`);
+      }
       router.refresh();
     });
   };
 
   const pay = () => setPayModalOpen(true);
   const redraw = () => setRedrawModalOpen(true);
+
+  // H2-A.1: deadline countdown for pending claims.  Only render when
+  // the winner hasn't submitted yet — submitted/confirmed/paid rows
+  // already cleared the deadline.
+  const daysToDeadline =
+    w.claimStatus === "pending"
+      ? Math.ceil(
+          (new Date(w.infoDeadline).getTime() - Date.now()) / 86_400_000,
+        )
+      : null;
+  const deadlineRibbon =
+    daysToDeadline !== null
+      ? daysToDeadline < 0
+        ? { tone: "danger" as const, text: `Overdue ${-daysToDeadline}d` }
+        : daysToDeadline === 0
+          ? { tone: "danger" as const, text: "Deadline today" }
+          : daysToDeadline <= 1
+            ? { tone: "danger" as const, text: `D-${daysToDeadline}` }
+            : daysToDeadline <= 3
+              ? { tone: "warning" as const, text: `D-${daysToDeadline}` }
+              : null
+      : null;
 
   return (
     <article className="rounded-lg border border-white/[0.06] bg-white/[0.01] px-3 py-3">
@@ -355,6 +401,19 @@ function WinnerCard({
           Tier {w.prizeTier} · ${w.prizeAmountUsd}
         </span>
         <ClaimStatusBadge status={w.claimStatus} />
+        {deadlineRibbon ? (
+          <span
+            className={cn(
+              adminTokens.badge,
+              deadlineRibbon.tone === "danger"
+                ? adminTokens.badgeDanger
+                : adminTokens.badgeWarning,
+            )}
+            title={`info_deadline ${w.infoDeadline}`}
+          >
+            ⏰ {deadlineRibbon.text}
+          </span>
+        ) : null}
         <span className="min-w-0 truncate text-[12px] font-bold text-white">
           {w.userDisplayName ?? `user_${w.userId.slice(0, 8)}`}
         </span>

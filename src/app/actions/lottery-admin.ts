@@ -28,7 +28,14 @@ export type AdminResult = { ok: true } | { ok: false; message: string };
 
 export async function triggerCompetitionDrawAction(
   competitionId: string,
-): Promise<AdminResult & { drawingLogId?: string; winnersCount?: number }> {
+): Promise<
+  AdminResult & {
+    drawingLogId?: string;
+    winnersCount?: number;
+    notifFailed?: number;
+    emailFailed?: number;
+  }
+> {
   const auth = await requireAdminWithService();
   if ("error" in auth) return { ok: false, message: auth.error };
 
@@ -47,7 +54,9 @@ export async function triggerCompetitionDrawAction(
   // drawn row.  Best-effort — failures here log but don't roll back
   // the draw (winners are already in DB and the cron can re-send if
   // notified_at is still NULL).
-  await dispatchWinnerNotifications(auth.service, competitionId);
+  // H2-D.6: surface failure counts to the admin UI so silent partial
+  // delivery is visible.
+  const dispatch = await dispatchWinnerNotifications(auth.service, competitionId);
 
   revalidatePath(`/competition/${competitionId}`);
   revalidatePath(`/competition/${competitionId}/results`);
@@ -56,6 +65,8 @@ export async function triggerCompetitionDrawAction(
     ok: true,
     drawingLogId: data.drawing_log_id,
     winnersCount: data.winners_count,
+    notifFailed: dispatch.notifFailed,
+    emailFailed: dispatch.emailFailed,
   };
 }
 
@@ -67,7 +78,14 @@ export async function redrawWinnerSlotAction(input: {
   competitionId: string;
   prizeTier: number;
   reason: string;
-}): Promise<AdminResult & { drawingLogId?: string; newWinnerId?: string }> {
+}): Promise<
+  AdminResult & {
+    drawingLogId?: string;
+    newWinnerId?: string;
+    notifFailed?: number;
+    emailFailed?: number;
+  }
+> {
   if (!input.reason.trim())
     return { ok: false, message: "Reason is required for redraw" };
 
@@ -90,7 +108,8 @@ export async function redrawWinnerSlotAction(input: {
   // A1-2: dispatch notification + email for the replacement winner.
   // dispatchWinnerNotifications filters on notified_at IS NULL so it
   // only hits the new row, not the prior (already-invalidated) one.
-  await dispatchWinnerNotifications(auth.service, input.competitionId);
+  // H2-D.6: surface failure counts.
+  const dispatch = await dispatchWinnerNotifications(auth.service, input.competitionId);
 
   revalidatePath(`/competition/${input.competitionId}`);
   revalidatePath(`/competition/${input.competitionId}/results`);
@@ -99,6 +118,8 @@ export async function redrawWinnerSlotAction(input: {
     ok: true,
     drawingLogId: data.drawing_log_id,
     newWinnerId: data.new_winner_id,
+    notifFailed: dispatch.notifFailed,
+    emailFailed: dispatch.emailFailed,
   };
 }
 
@@ -272,10 +293,18 @@ export async function revokeEntryTicketAction(input: {
  * a transient Resend / notifications issue — the cron / admin can
  * recover by re-issuing manually).
  */
+/** H2-D.6 result shape — surfaced to admin UI so failed notifications
+ *  aren't silently swallowed. */
+type NotificationDispatchResult = {
+  attempted: number;
+  notifFailed: number;
+  emailFailed: number;
+};
+
 async function dispatchWinnerNotifications(
   service: SupabaseClient,
   competitionId: string,
-) {
+): Promise<NotificationDispatchResult> {
   const siteUrl =
     process.env.NEXT_PUBLIC_SITE_URL ?? "https://genova-silk.vercel.app";
 
@@ -294,9 +323,11 @@ async function dispatchWinnerNotifications(
 
   if (error) {
     console.error("[lottery-admin] notify lookup failed", error);
-    return;
+    return { attempted: 0, notifFailed: 0, emailFailed: 0 };
   }
-  if (!winners || winners.length === 0) return;
+  if (!winners || winners.length === 0) {
+    return { attempted: 0, notifFailed: 0, emailFailed: 0 };
+  }
 
   // Resolve title (locale-neutral fallback — Resend body doesn't
   // need full i18n; the in-app notification href surfaces the
@@ -323,7 +354,9 @@ async function dispatchWinnerNotifications(
     }
   }
 
-  // Dispatch.
+  // Dispatch.  H2-D.6: count failures per channel.
+  let notifFailed = 0;
+  let emailFailed = 0;
   for (const w of winners) {
     const winnerId = w.id as string;
     const userId = w.user_id as string;
@@ -350,20 +383,27 @@ async function dispatchWinnerNotifications(
       metadata: { prize_tier: w.prize_tier, prize_amount_usd: w.prize_amount_usd },
     });
     if (notifResult.error) {
+      notifFailed += 1;
       console.error("[lottery-admin] notif insert failed", winnerId, notifResult.error);
     }
 
     // Email (skipped silently if RESEND_API_KEY isn't configured).
     const email = emailByUserId.get(userId);
     if (email) {
-      await sendWinnerNotificationEmail({
-        to: email,
-        competitionTitle,
-        prizeTier: w.prize_tier as number,
-        prizeAmountUsd: w.prize_amount_usd as number,
-        claimUrl,
-        deadlineIso: w.info_deadline as string,
-      });
+      try {
+        const sent = await sendWinnerNotificationEmail({
+          to: email,
+          competitionTitle,
+          prizeTier: w.prize_tier as number,
+          prizeAmountUsd: w.prize_amount_usd as number,
+          claimUrl,
+          deadlineIso: w.info_deadline as string,
+        });
+        if (sent === false) emailFailed += 1;
+      } catch (e) {
+        emailFailed += 1;
+        console.error("[lottery-admin] email send failed", winnerId, e);
+      }
     }
 
     // Mark dispatched so a follow-up trigger (or this fn re-running)
@@ -376,6 +416,8 @@ async function dispatchWinnerNotifications(
       console.error("[lottery-admin] notified_at update failed", winnerId, stampErr);
     }
   }
+
+  return { attempted: winners.length, notifFailed, emailFailed };
 }
 
 /* -----------------------------------------------------------------
