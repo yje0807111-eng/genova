@@ -90,6 +90,8 @@ async function fetchCompetitionVideos(competitionId: string) {
     error: error ? { message: error.message, code: error.code } : null,
   });
   // Attach uploader display_name / avatar_url via public_profiles.
+  // Returns raw rows (snake_case) — CompetitionDetailClient owns its own
+  // row→AppVideo mapping via competitionRowToAppVideo().
   return await mergeVideoRows((data ?? []) as Parameters<typeof mapVideo>[0][]);
 }
 

@@ -69,18 +69,34 @@ type Competition = {
   base_currency?: string | null;
 };
 
+/**
+ * Local raw-row shape received from `mergeVideoRows`.  Aligned with
+ * `Parameters<typeof mapVideo>[0]` for the fields this client reads,
+ * so the page can pass merged rows straight through without an extra
+ * mapping step (the component owns its own row→AppVideo conversion
+ * below via `competitionRowToAppVideo`).
+ *
+ * `view_count` / `uploaded_by` are optional to match the Supabase
+ * select result (column-omission case).  `profiles` can be an array
+ * (FK embed) or a single object — `mergeVideoRows` always writes the
+ * single shape, but the union admits both so the type stays
+ * structurally assignable from VideoRow.
+ */
 type Video = {
   id: string;
   title: string;
   description?: string | null;
   genre?: string | null;
   thumbnail_url: string | null;
-  view_count: number | null;
-  uploaded_by: string | null;
+  view_count?: number | null;
+  uploaded_by?: string | null;
   created_at: string;
   award: string | null;
   is_competition_featured?: boolean | null;
-  profiles?: { display_name: string | null; avatar_url: string | null } | null;
+  profiles?:
+    | { display_name: string | null; avatar_url?: string | null }
+    | { display_name: string | null; avatar_url?: string | null }[]
+    | null;
 };
 
 type CompetitionDetailProps = {
@@ -91,6 +107,12 @@ type CompetitionDetailProps = {
 
 function competitionRowToAppVideo(video: Video): AppVideo {
   const row = video as Video & { runtime?: string | null; like_count?: number | null; mux_playback_id?: string | null };
+  // `mergeVideoRows` writes profiles as a single object, but the type
+  // union still admits the array form (FK-embed shape).  Peel here so
+  // the field accesses below stay simple.
+  const profile = Array.isArray(video.profiles)
+    ? video.profiles[0] ?? null
+    : video.profiles ?? null;
   return {
     id: video.id,
     title: video.title,
@@ -114,8 +136,8 @@ function competitionRowToAppVideo(video: Video): AppVideo {
     seriesName: null,
     episodeNumber: null,
     uploadedBy: video.uploaded_by ?? null,
-    uploaderDisplayName: video.profiles?.display_name ?? null,
-    uploaderAvatarUrl: video.profiles?.avatar_url ?? null,
+    uploaderDisplayName: profile?.display_name ?? null,
+    uploaderAvatarUrl: profile?.avatar_url ?? null,
     viewCount: video.view_count ?? 0,
     likeCount: row.like_count ?? 0,
   };

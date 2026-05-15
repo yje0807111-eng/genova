@@ -1,4 +1,5 @@
 import { createServerSupabaseClient } from "@/lib/supabase/server";
+import { mapVideo } from "@/lib/mappers";
 import { mergeVideoRows } from "@/lib/queries";
 import { attachEngagementToVideos } from "@/lib/queries/engagement-queries";
 import type { Video } from "@/lib/types";
@@ -20,7 +21,8 @@ export async function fetchTrendingCompetitionVideos(limit = 10): Promise<Video[
 
   if (error || !rows) return [];
 
-  const videos = await mergeVideoRows(rows);
+  const enriched = await mergeVideoRows(rows);
+  const videos = enriched.map((row) => mapVideo(row));
   await attachEngagementToVideos(videos);
 
   return videos;
