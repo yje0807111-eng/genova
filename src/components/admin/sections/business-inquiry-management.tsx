@@ -56,11 +56,13 @@ export function BusinessInquiryManagement({
     if (q) {
       result = result.filter((i) =>
         [
-          i.name,
+          i.contactName,
           i.email,
           i.companyName,
           i.phone,
-          i.message,
+          i.productDescription,
+          i.competitionConcept,
+          i.notes,
         ]
           .filter((s): s is string => Boolean(s))
           .some((s) => s.toLowerCase().includes(q)),
@@ -228,6 +230,17 @@ export function BusinessInquiryManagement({
                       <DetailField label="이메일">
                         <a
                           href={`mailto:${item.email}`}
+                          // G9: when the operator opens mail-client from
+                          // a `new` inquiry, auto-flip the row to
+                          // 'contacted' optimistically.  No round-trip
+                          // gating — they're leaving the page anyway.
+                          // If the auto-flip fails, the manual select
+                          // beside the row is still the source of truth.
+                          onClick={() => {
+                            if (item.status === "new") {
+                              void handleStatusChange(item.id, "contacted");
+                            }
+                          }}
                           className="inline-flex items-center gap-1 text-sky-300 hover:underline"
                         >
                           <Mail className="h-3 w-3" />

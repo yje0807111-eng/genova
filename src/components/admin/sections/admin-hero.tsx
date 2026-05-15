@@ -4,16 +4,48 @@ import { useI18n } from "@/components/genova/language-provider";
 import { adminTokens } from "@/lib/admin-styles";
 import { cn } from "@/lib/utils/cn";
 
+/**
+ * Heuristic fallback when callers don't pass an explicit `kind`.
+ * Conservative — we only mark a message as error when it clearly
+ * announces failure.  Anything else (specific success copy in any
+ * locale, "Marked verified", etc.) defaults to success-green.
+ *
+ * Replaces the previous strict "Saved successfully." / "저장되었습니다."
+ * string match which mis-classified every other success message
+ * (and all of ja) as red error banners.  (G8)
+ */
+function classifyMessage(text: string): "success" | "error" {
+  const lower = text.toLowerCase();
+  if (
+    lower.includes("error") ||
+    lower.includes("failed") ||
+    lower.includes("fail") ||
+    text.includes("실패") ||
+    text.includes("오류") ||
+    text.includes("失敗") ||
+    text.includes("エラー")
+  ) {
+    return "error";
+  }
+  return "success";
+}
+
+export type AdminMessageKind = "success" | "error";
+
 export function AdminHero({
   totalVideos,
   totalCompetitions,
   activeCompetitions,
   message,
+  messageKind,
 }: {
   totalVideos: number;
   totalCompetitions: number;
   activeCompetitions: number;
   message: string | null;
+  /** Optional explicit success/error tone — falls through to a
+   *  keyword heuristic when omitted (G8). */
+  messageKind?: AdminMessageKind;
 }) {
   const { t } = useI18n();
 
@@ -47,7 +79,7 @@ export function AdminHero({
           <p
             className={cn(
               "rounded-md border px-3 py-2 text-[11px] font-medium",
-              message === "Saved successfully." || message === "저장되었습니다."
+              (messageKind ?? classifyMessage(message)) === "success"
                 ? "border-emerald-500/20 bg-emerald-500/[0.05] text-emerald-400"
                 : "border-red-500/20 bg-red-500/[0.05] text-red-400",
             )}

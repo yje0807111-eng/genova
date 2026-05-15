@@ -57,7 +57,16 @@ function AdminDashboardInner({
   const pathname = usePathname();
   const searchParams = useSearchParams();
 
-  const [message, setMessage] = useState<string | null>(null);
+  // G8: messages carry an optional success / error kind so
+  // AdminHero can theme without keyword-matching the body.  Callers
+  // can pass either a plain string (back-compat) or a tuple
+  // `[text, kind]` via the helper `setMessage`/`setMessageWithKind`.
+  const [message, setMessageRaw] = useState<string | null>(null);
+  const [messageKind, setMessageKind] = useState<"success" | "error" | undefined>(undefined);
+  const setMessage = (text: string | null, kind?: "success" | "error") => {
+    setMessageRaw(text);
+    setMessageKind(kind);
+  };
   const [localCompetitions, setLocalCompetitions] = useState(competitions);
   const [selectedCompetition, setSelectedCompetition] = useState<Competition | null>(null);
   const [videoFilter, setVideoFilter] = useState("all");
@@ -106,6 +115,7 @@ function AdminDashboardInner({
         totalCompetitions={localCompetitions.length}
         activeCompetitions={localCompetitions.filter((c) => c.status === "Open").length}
         message={message}
+        messageKind={messageKind}
       />
 
       <div

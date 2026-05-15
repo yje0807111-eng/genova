@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useState, useTransition } from "react";
+import { useEffect, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import {
   redrawWinnerSlotAction,
@@ -295,6 +295,10 @@ function WinnerCard({
   const router = useRouter();
   const [pending, startTransition] = useTransition();
   const [expanded, setExpanded] = useState(false);
+  // G10: replace native prompt() with branded modal — supports paste,
+  // multiline reasons, esc-to-cancel, and matches admin design tokens.
+  const [payModalOpen, setPayModalOpen] = useState(false);
+  const [redrawModalOpen, setRedrawModalOpen] = useState(false);
 
   const verify = (notes?: string) => {
     startTransition(async () => {
@@ -307,35 +311,37 @@ function WinnerCard({
     });
   };
 
-  const pay = () => {
-    const ref = prompt("Payment reference (PayPal/Wise transaction ID):");
-    if (!ref?.trim()) return;
+  const handlePayConfirm = (ref: string) => {
+    setPayModalOpen(false);
+    const trimmed = ref.trim();
+    if (!trimmed) return;
     startTransition(async () => {
       const res = await markWinnerInfoPaidAction({
         winnerId: w.winnerId,
-        paymentReference: ref.trim(),
+        paymentReference: trimmed,
       });
       onMessage(res.ok ? "Marked paid" : `Pay failed: ${res.message}`);
       router.refresh();
     });
   };
 
-  const redraw = () => {
-    const reason = prompt(
-      `Redraw tier ${w.prizeTier} for "${w.competitionTitle}"? Provide reason:`,
-    );
-    if (!reason?.trim()) return;
-    if (!confirm(`Confirm redraw for ${w.userDisplayName ?? "this user"}?`)) return;
+  const handleRedrawConfirm = (reason: string) => {
+    setRedrawModalOpen(false);
+    const trimmed = reason.trim();
+    if (!trimmed) return;
     startTransition(async () => {
       const res = await redrawWinnerSlotAction({
         competitionId: w.competitionId,
         prizeTier: w.prizeTier,
-        reason: reason.trim(),
+        reason: trimmed,
       });
       onMessage(res.ok ? "Redraw successful" : `Redraw failed: ${res.message}`);
       router.refresh();
     });
   };
+
+  const pay = () => setPayModalOpen(true);
+  const redraw = () => setRedrawModalOpen(true);
 
   return (
     <article className="rounded-lg border border-white/[0.06] bg-white/[0.01] px-3 py-3">
@@ -449,7 +455,138 @@ function WinnerCard({
           </button>
         ) : null}
       </footer>
+
+      {/* G10: branded prompt modals replacing native prompt() calls. */}
+      <PromptModal
+        open={payModalOpen}
+        title="Mark paid"
+        description={`Tier ${w.prizeTier} · $${w.prizeAmountUsd} USD · ${w.userDisplayName ?? "user"}`}
+        label="Payment reference"
+        placeholder="PayPal / Wise transaction ID"
+        confirmLabel="Mark paid"
+        onCancel={() => setPayModalOpen(false)}
+        onConfirm={handlePayConfirm}
+      />
+      <PromptModal
+        open={redrawModalOpen}
+        title={`Redraw tier ${w.prizeTier}`}
+        description={`"${w.competitionTitle}" — ${w.userDisplayName ?? "user"} will be permanently excluded from this competition's pool.`}
+        label="Reason (required, recorded in audit log)"
+        placeholder="Why is this slot being redrawn?"
+        confirmLabel="Redraw"
+        confirmDanger
+        multiline
+        onCancel={() => setRedrawModalOpen(false)}
+        onConfirm={handleRedrawConfirm}
+      />
     </article>
+  );
+}
+
+/**
+ * G10: branded admin prompt modal — replacement for native prompt()
+ * which has no styling, no paste-friendly behavior, no esc-to-cancel
+ * on all platforms, and breaks the dashboard look.
+ *
+ * Single-input or textarea variants via the `multiline` flag.  Empty
+ * confirm is blocked client-side (the caller's onConfirm receives
+ * the trimmed value, but we also short-circuit at the button level
+ * for visual feedback).
+ */
+function PromptModal({
+  open,
+  title,
+  description,
+  label,
+  placeholder,
+  confirmLabel,
+  confirmDanger,
+  multiline,
+  onCancel,
+  onConfirm,
+}: {
+  open: boolean;
+  title: string;
+  description?: string;
+  label: string;
+  placeholder?: string;
+  confirmLabel: string;
+  confirmDanger?: boolean;
+  multiline?: boolean;
+  onCancel: () => void;
+  onConfirm: (value: string) => void;
+}) {
+  const [value, setValue] = useState("");
+  // No explicit reset needed: when `open` flips false the component
+  // unmounts (`return null` below), so the next open mounts fresh
+  // with the useState initializer.  Prevents previous session's
+  // draft from leaking between different tier slots.
+
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onCancel();
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [onCancel]);
+
+  if (!open) return null;
+
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm"
+      onClick={onCancel}
+    >
+      <div
+        className={cn(adminTokens.card, "w-full max-w-md")}
+        onClick={(e) => e.stopPropagation()}
+      >
+        <h3 className="mb-2 text-[14px] font-bold text-white">{title}</h3>
+        {description ? (
+          <p className="mb-4 text-[12px] text-white/55">{description}</p>
+        ) : null}
+        <label className={adminTokens.inputLabel}>{label}</label>
+        {multiline ? (
+          <textarea
+            value={value}
+            onChange={(e) => setValue(e.target.value)}
+            placeholder={placeholder}
+            autoFocus
+            rows={3}
+            className={cn(adminTokens.input, "mt-1 h-auto w-full resize-y py-2")}
+          />
+        ) : (
+          <input
+            type="text"
+            value={value}
+            onChange={(e) => setValue(e.target.value)}
+            placeholder={placeholder}
+            autoFocus
+            className={cn(adminTokens.input, "mt-1 w-full")}
+          />
+        )}
+        <div className="mt-4 flex justify-end gap-2">
+          <button
+            type="button"
+            onClick={onCancel}
+            className={cn(adminTokens.buttonSecondary, "h-8 px-3 text-[12px]")}
+          >
+            Cancel
+          </button>
+          <button
+            type="button"
+            onClick={() => onConfirm(value)}
+            disabled={!value.trim()}
+            className={cn(
+              confirmDanger ? adminTokens.buttonDanger : adminTokens.buttonPrimary,
+              "h-8 px-3 text-[12px] disabled:opacity-40",
+            )}
+          >
+            {confirmLabel}
+          </button>
+        </div>
+      </div>
+    </div>
   );
 }
 
