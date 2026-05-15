@@ -6,6 +6,15 @@ import { createNotification } from "@/lib/notifications";
 
 type AdminResult = { ok: true } | { ok: false; message: string };
 
+/**
+ * Allowed characters for the slug-style competition id (E.5).  Forbids
+ * spaces, slashes, ampersands, and any character that would need
+ * URL-escaping or could collide with route segments.  UUIDs (generated
+ * via crypto.randomUUID when the operator leaves the field blank)
+ * also match this pattern.
+ */
+const COMPETITION_ID_PATTERN = /^[a-z0-9][a-z0-9_-]{1,63}$/i;
+
 export async function createCompetitionAction(form: {
   id: string;
   title: string;
@@ -26,7 +35,25 @@ export async function createCompetitionAction(form: {
   const auth = await requireAdminWithService();
   if ("error" in auth) return { ok: false, message: auth.error ?? "Unauthorized" };
   const { service } = auth;
+
+  // H1-B.7: server-side title guard.  UI required-mark is informational
+  // only; operators clicking save on an empty title silently inserted
+  // a blank row.
+  if (!form.title.trim()) {
+    return { ok: false, message: "Title is required." };
+  }
+
   const id = form.id.trim() || crypto.randomUUID();
+  // H1-E.5: validate operator-supplied competition id.  Random UUIDs
+  // always pass; only the manual-entry path needs guarding.  Rejecting
+  // here surfaces an error instead of a quiet collision / weird URL
+  // (e.g. ids with spaces or slashes would route-collide).
+  if (form.id.trim() && !COMPETITION_ID_PATTERN.test(id)) {
+    return {
+      ok: false,
+      message: "Competition id must be 2–64 chars, alphanumeric / dash / underscore only.",
+    };
+  }
   const { error } = await service.from("competitions").insert({
     id,
     title: form.title.trim(),
@@ -174,7 +201,13 @@ export async function updateCompetitionAction(
       prize_excellence: form.prize_excellence?.trim() || null,
       prize_merit: form.prize_merit?.trim() || null,
       prize_audience: form.prize_audience?.trim() || null,
-      prize_audience_count: form.prize_audience_count ?? 1,
+      // H1-B.6: clamp to [1, 100].  UI uses min/max attrs but those
+      // can be bypassed (paste, devtools, server-side bad input), so
+      // enforce the same bounds before insert.
+      prize_audience_count: Math.max(
+        1,
+        Math.min(100, Math.round(Number(form.prize_audience_count ?? 1)) || 1),
+      ),
       template_url: form.templateUrl.trim() || null,
       exchange_rate_usd_krw: form.exchange_rate_usd_krw ?? 1350,
       exchange_rate_usd_jpy: form.exchange_rate_usd_jpy ?? 148,

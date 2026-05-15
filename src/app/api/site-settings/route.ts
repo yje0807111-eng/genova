@@ -30,7 +30,16 @@ export async function POST(req: NextRequest) {
   const { service } = auth;
 
   const { key, value } = await req.json();
-  if (!key || !value) return NextResponse.json({ error: "Missing key or value" }, { status: 400 });
+  // H1-B.2: previously `!value` rejected empty strings, so the admin
+  // couldn't clear a hero-eyebrow setting through the UI (empty save
+  // silently failed).  Accept any string — including "" — as a
+  // legitimate cleared value.  Only reject when the type is wrong.
+  if (typeof key !== "string" || !key.trim()) {
+    return NextResponse.json({ error: "Missing key" }, { status: 400 });
+  }
+  if (typeof value !== "string") {
+    return NextResponse.json({ error: "Value must be a string" }, { status: 400 });
+  }
 
   await service
     .from("site_settings")
