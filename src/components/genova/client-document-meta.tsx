@@ -8,7 +8,6 @@ function segmentTitle(pathname: string, t: (k: string, fb?: string) => string): 
   if (pathname === "/" || pathname === "") return t("meta.title.home", "Home");
   if (pathname === "/films") return t("meta.title.films", "Films");
   if (pathname === "/feed") return t("meta.title.feed", "Feed");
-  if (pathname === "/shorts") return t("meta.title.shorts", "Shorts");
   if (pathname === "/competition" || pathname.startsWith("/competition/"))
     return t("meta.title.competition", "Competition");
   if (pathname === "/upload" || pathname.startsWith("/upload/"))

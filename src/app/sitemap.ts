@@ -11,7 +11,6 @@ const STATIC_ROUTES: {
   { path: "/",            changeFrequency: "daily",   priority: 1.0 },
   { path: "/films",       changeFrequency: "daily",   priority: 0.9 },
   { path: "/competition", changeFrequency: "daily",   priority: 0.9 },
-  { path: "/shorts",      changeFrequency: "daily",   priority: 0.7 },
   { path: "/landing",     changeFrequency: "monthly", priority: 0.5 },
   { path: "/business",    changeFrequency: "monthly", priority: 0.5 },
   { path: "/credits",     changeFrequency: "monthly", priority: 0.4 },

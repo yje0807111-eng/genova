@@ -94,7 +94,6 @@ export function SiteHeader() {
         </Link>
         <nav className="hidden items-center gap-4 md:flex">
             <NavItem href="/?tab=films" label={t("nav.films", "Films")} active={pathname === "/" || pathname.startsWith("/films")} />
-            <NavItem href="/shorts" label={t("nav.shorts", "Shorts")} active={pathname.startsWith("/shorts")} />
             <NavItem href="/competition" label={t("nav.competition", "Competition")} active={pathname.startsWith("/competition")} />
             <NavItem href="/creator/c1" label={t("nav.creators", "Creators")} active={pathname.startsWith("/creator")} />
           </nav>
@@ -160,7 +159,6 @@ export function SiteHeader() {
         >
           <nav className="flex flex-col gap-3">
             <NavItem href="/?tab=films" label={t("nav.films", "Films")} active={pathname === "/" || pathname.startsWith("/films")} />
-            <NavItem href="/shorts" label={t("nav.shorts", "Shorts")} active={pathname.startsWith("/shorts")} />
             <NavItem href="/competition" label={t("nav.competition", "Competition")} active={pathname.startsWith("/competition")} />
             <NavItem href="/creator/c1" label={t("nav.creators", "Creators")} active={pathname.startsWith("/creator")} />
             <form
@@ -195,10 +193,6 @@ export function SiteHeader() {
 
 export function SiteFooter() {
   const { t } = useI18n();
-  const pathname = usePathname();
-  if (pathname.startsWith("/shorts")) {
-    return null;
-  }
 
   return (
     <footer className="border-t border-white/[0.05] px-6 py-6 sm:px-8">
