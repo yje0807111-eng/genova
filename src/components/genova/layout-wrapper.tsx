@@ -6,10 +6,12 @@ import { ChatDrawer } from "@/components/chat-drawer";
 import { cn } from "@/lib/utils/cn";
 import { ClientDocumentMeta } from "@/components/genova/client-document-meta";
 import { GenreFilterProvider } from "./genre-filter-context";
+import { type Locale } from "@/lib/i18n/translations";
 import { LanguageProvider } from "./language-provider";
 import { UploadProvider } from "@/components/upload/upload-context";
 import { UploadModalProvider } from "@/components/upload/upload-modal-context";
 import { EditModalProvider } from "@/components/upload/edit-modal-context";
+import { LotteryGuideModalProvider } from "@/components/lottery/lottery-guide-modal";
 import { UploadProgressWidget } from "@/components/upload/upload-progress-widget";
 import { SlimSidebar } from "./slim-sidebar";
 import { SiteFooter } from "@/components/site-shell";
@@ -76,15 +78,23 @@ function LayoutChrome({ children }: { children: ReactNode }) {
   );
 }
 
-export function LayoutWrapper({ children }: { children: ReactNode }) {
+export function LayoutWrapper({
+  children,
+  initialLocale,
+}: {
+  children: ReactNode;
+  initialLocale: Locale;
+}) {
   return (
-    <LanguageProvider>
+    <LanguageProvider initialLocale={initialLocale}>
       <GenreFilterProvider>
         <UploadProvider>
           <UploadModalProvider>
             <EditModalProvider>
-              <LayoutChrome>{children}</LayoutChrome>
-              <UploadProgressWidget />
+              <LotteryGuideModalProvider>
+                <LayoutChrome>{children}</LayoutChrome>
+                <UploadProgressWidget />
+              </LotteryGuideModalProvider>
             </EditModalProvider>
           </UploadModalProvider>
         </UploadProvider>

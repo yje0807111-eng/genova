@@ -20,6 +20,7 @@ const en: Messages = {
   "nav.admin": "Admin",
   "nav.profile": "Profile",
   "nav.business": "Host a competition",
+  "nav.lottery": "Lottery",
   "nav.home": "Home",
   "sidebar.home": "Home",
   "sidebar.language": "Language",
@@ -771,6 +772,7 @@ const en: Messages = {
   // `{title}` / `{reason}` are runtime-substituted by the caller.
   "lottery.title": "Entry tickets this month",
   "lottery.guideLink": "How the entry lottery works",
+  "lottery.guideFullPage": "View full page",
   "lottery.resetIn": "Resets in {days} day(s)",
   "lottery.resetToday": "Resets today",
   "lottery.depleted": "You've used all your tickets this month",

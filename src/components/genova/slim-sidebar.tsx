@@ -4,12 +4,13 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import type { LucideIcon } from "lucide-react";
-import { Bell, Globe, Home, MessageCircle, Shield, Trophy, Upload, User, X } from "lucide-react";
+import { Bell, Globe, Home, MessageCircle, Shield, Ticket, Trophy, Upload, User, X } from "lucide-react";
 import { markAllNotificationsReadAction } from "@/app/actions/notifications";
 import { useI18n } from "@/components/genova/language-provider";
 import { getBrowserSupabaseClient } from "@/lib/supabase/browser";
 import { cn } from "@/lib/utils/cn";
 import { useUploadModal } from "@/components/upload/upload-modal-context";
+import { useLotteryGuideModal } from "@/components/lottery/lottery-guide-modal";
 import { getNotificationLabel } from "@/lib/notifications-i18n";
 
 export interface SlimSidebarProps {
@@ -56,6 +57,7 @@ export function SlimSidebar({ onOpenChat, unreadMessageCount = 0 }: SlimSidebarP
   const router = useRouter();
   const { t, locale, setLocale } = useI18n();
   const { open: openUploadModal } = useUploadModal();
+  const { open: openLotteryGuide } = useLotteryGuideModal();
 
   const [userId, setUserId] = useState<string | null | undefined>(undefined);
   const [isAdmin, setIsAdmin] = useState(false);
@@ -63,6 +65,8 @@ export function SlimSidebar({ onOpenChat, unreadMessageCount = 0 }: SlimSidebarP
   const [showNotifications, setShowNotifications] = useState(false);
   const [showLang, setShowLang] = useState(false);
   const [notifications, setNotifications] = useState<NotificationRow[]>([]);
+  // 사이드바 응모권 칸 — 로그인 사용자의 이번 달 잔여 응모권.
+  const [lotteryRemaining, setLotteryRemaining] = useState<number | null>(null);
 
   const notifBtnRef = useRef<HTMLButtonElement>(null);
   const notifPanelRef = useRef<HTMLDivElement>(null);
@@ -189,6 +193,29 @@ export function SlimSidebar({ onOpenChat, unreadMessageCount = 0 }: SlimSidebarP
 
     return () => subscription.unsubscribe();
   }, []);
+
+  // 응모권 잔여 수 — 로그인 사용자만.  /api/lottery/my-count 는
+  // current_month_ticket_counts 뷰(RLS 본인 클립)를 읽음.
+  useEffect(() => {
+    if (!userId) {
+      setLotteryRemaining(null);
+      return;
+    }
+    let cancelled = false;
+    fetch("/api/lottery/my-count")
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d) => {
+        if (cancelled) return;
+        const remaining = d?.count?.remaining;
+        setLotteryRemaining(
+          typeof remaining === "number" ? remaining : null,
+        );
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, [userId]);
 
   useEffect(() => {
     if (!userId) return;
@@ -335,6 +362,28 @@ export function SlimSidebar({ onOpenChat, unreadMessageCount = 0 }: SlimSidebarP
 
         <div className="flex w-full flex-col items-center gap-3">
           <div className="my-2 h-px w-6 bg-white/[0.05]" aria-hidden />
+
+          {/* 응모권 추첨 이벤트 — 클릭 시 안내 모달.  로그인 시
+              잔여 수 배지, 비로그인이면 라벨만. */}
+          <button
+            type="button"
+            onClick={openLotteryGuide}
+            className="relative flex h-12 w-12 flex-col items-center justify-center gap-0.5 rounded-xl text-white/35 transition-colors hover:bg-white/[0.04] hover:text-white/80"
+            aria-label={t("lottery.guideLink", "응모권 추첨 안내")}
+          >
+            <Ticket className="h-5 w-5 shrink-0" aria-hidden />
+            <span className="max-w-[64px] whitespace-nowrap text-center text-[9px] font-semibold uppercase tracking-wider">
+              {t("nav.lottery", "응모권")}
+            </span>
+            {lotteryRemaining !== null ? (
+              <span
+                className="absolute right-0.5 top-1 flex h-4 min-w-4 items-center justify-center rounded-full px-0.5 text-[9px] font-bold text-white"
+                style={{ background: "#534AB7" }}
+              >
+                {lotteryRemaining}
+              </span>
+            ) : null}
+          </button>
 
           <button
             ref={notifBtnRef}

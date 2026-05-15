@@ -11,6 +11,7 @@ export const jaOverrides: Record<string, string> = {
   "nav.admin": "管理",
   "nav.profile": "プロフィール",
   "nav.business": "コンペを開催",
+  "nav.lottery": "応募券",
 
   "common.searchAiFilms": "AI映画を検索…",
   "common.search": "検索",
@@ -53,6 +54,7 @@ export const jaOverrides: Record<string, string> = {
   // Phase 3: 応募券システム UI
   "lottery.title": "今月の応募券",
   "lottery.guideLink": "応募券抽選のご案内",
+  "lottery.guideFullPage": "全ページを見る",
   "lottery.resetIn": "{days}日後にリセット",
   "lottery.resetToday": "本日リセット",
   "lottery.depleted": "今月の応募券はすべて使用しました",

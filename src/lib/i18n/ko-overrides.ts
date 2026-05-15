@@ -11,6 +11,7 @@ export const koOverrides: Record<string, string> = {
   "nav.admin": "관리자",
   "nav.profile": "프로필",
   "nav.business": "공모전 열기",
+  "nav.lottery": "응모권",
 
   "common.searchAiFilms": "AI 영화 검색…",
   "common.search": "검색",
@@ -53,6 +54,7 @@ export const koOverrides: Record<string, string> = {
   // Phase 3: 응모권 시스템 UI
   "lottery.title": "이번 달 응모권",
   "lottery.guideLink": "응모권 추첨 안내",
+  "lottery.guideFullPage": "전체 페이지로 보기",
   "lottery.resetIn": "리셋까지 {days}일",
   "lottery.resetToday": "오늘 리셋",
   "lottery.depleted": "이번 달 응모권을 모두 사용했습니다",
