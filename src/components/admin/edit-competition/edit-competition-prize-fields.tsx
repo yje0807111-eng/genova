@@ -18,9 +18,7 @@ export function EditCompetitionPrizeFields({
   priceCurrency: "KRW" | "USD" | "JPY";
 }) {
   return (
-    <div className="rounded-xl border border-white/[0.06] p-4" style={{ background: "var(--border-white-02)" }}>
-      <h2 className="mb-3 text-[10px] font-bold uppercase tracking-widest text-[#AFA9EC]">상금 구성</h2>
-
+    <div>
       {/* 총상금 잔액 표시 */}
       {(() => {
         const sym = priceCurrency === "KRW" ? "₩" : priceCurrency === "USD" ? "$" : "¥";
@@ -51,7 +49,7 @@ export function EditCompetitionPrizeFields({
             <div className="mt-1.5 h-px bg-white/10" />
             <div className="flex items-center justify-between mt-1.5">
               <span className="text-[10px] font-bold" style={{ color: isOver ? "#ef4444" : "#AFA9EC" }}>
-                {isOver ? "⚠ 초과" : "남은 금액"}
+                {isOver ? "초과" : "남은 금액"}
               </span>
               <span
                 className="text-[13px] font-extrabold"
@@ -67,9 +65,9 @@ export function EditCompetitionPrizeFields({
 
       <div className="space-y-2">
         {[
-          { key: "prize_grand", label: "🥇 대상" },
-          { key: "prize_excellence", label: "🥈 우수상" },
-          { key: "prize_merit", label: "🥉 장려상" },
+          { key: "prize_grand", label: "대상" },
+          { key: "prize_excellence", label: "우수상" },
+          { key: "prize_merit", label: "장려상" },
         ].map((tier) => {
           const sym = priceCurrency === "KRW" ? "₩" : priceCurrency === "USD" ? "$" : "¥";
           const val = form[tier.key as "prize_grand" | "prize_excellence" | "prize_merit"];
@@ -120,7 +118,7 @@ export function EditCompetitionPrizeFields({
           const total = num * count;
           return (
             <div>
-              <label className={adminTokens.inputLabel}>🎖 관객상</label>
+              <label className={adminTokens.inputLabel}>관객상</label>
               <div className="flex items-center gap-2">
                 <div className="relative" style={{ flex: "3" }}>
                   <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[11px] text-white/30">{sym}</span>
