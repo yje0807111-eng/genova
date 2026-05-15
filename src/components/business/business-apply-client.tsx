@@ -26,8 +26,15 @@ const BUDGET_OPTION_DEFS = [
   { value: "tbd", tKey: "business.budgetTbd" },
 ] as const;
 
-export function BusinessApplyClient() {
+export function BusinessApplyClient({
+  variant = "page",
+  onClose,
+}: {
+  variant?: "page" | "modal";
+  onClose?: () => void;
+}) {
   const { t } = useI18n();
+  const isModal = variant === "modal";
   const [type, setType] = useState<"individual" | "business">("business");
   const [contactName, setContactName] = useState("");
   const [companyName, setCompanyName] = useState("");
@@ -72,8 +79,14 @@ export function BusinessApplyClient() {
 
   if (submitted) {
     return (
-      <div className="-mt-16 min-h-screen bg-[#0a0a0a] pt-16">
-        <div className="mx-auto flex min-h-[calc(100vh-4rem)] max-w-2xl flex-col items-center justify-center px-6 py-20 text-center">
+      <div className={isModal ? "px-2 py-6" : "-mt-16 min-h-screen bg-[#0a0a0a] pt-16"}>
+        <div
+          className={
+            isModal
+              ? "mx-auto flex max-w-2xl flex-col items-center justify-center text-center"
+              : "mx-auto flex min-h-[calc(100vh-4rem)] max-w-2xl flex-col items-center justify-center px-6 py-20 text-center"
+          }
+        >
           <AnimateIn delay={0.05}>
             <div
               className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-full"
@@ -98,6 +111,7 @@ export function BusinessApplyClient() {
             <div className="mt-10 flex flex-wrap items-center justify-center gap-3">
               <Link
                 href="/competition"
+                onClick={onClose}
                 className="inline-flex items-center gap-2 rounded-full px-6 py-3 text-[13px] font-bold text-white transition-all duration-300 hover:scale-105"
                 style={{
                   background: "linear-gradient(135deg, #534AB7 0%, #7B6FE8 100%)",
@@ -106,12 +120,22 @@ export function BusinessApplyClient() {
               >
                 진행 중인 공모전 보기
               </Link>
-              <Link
-                href="/"
-                className="inline-flex items-center gap-2 rounded-full border border-white/[0.12] bg-white/[0.03] px-6 py-3 text-[13px] font-bold text-white/70 transition hover:border-white/25 hover:bg-white/[0.06] hover:text-white"
-              >
-                홈으로
-              </Link>
+              {isModal ? (
+                <button
+                  type="button"
+                  onClick={onClose}
+                  className="inline-flex items-center gap-2 rounded-full border border-white/[0.12] bg-white/[0.03] px-6 py-3 text-[13px] font-bold text-white/70 transition hover:border-white/25 hover:bg-white/[0.06] hover:text-white"
+                >
+                  닫기
+                </button>
+              ) : (
+                <Link
+                  href="/"
+                  className="inline-flex items-center gap-2 rounded-full border border-white/[0.12] bg-white/[0.03] px-6 py-3 text-[13px] font-bold text-white/70 transition hover:border-white/25 hover:bg-white/[0.06] hover:text-white"
+                >
+                  홈으로
+                </Link>
+              )}
             </div>
           </AnimateIn>
         </div>
@@ -120,34 +144,40 @@ export function BusinessApplyClient() {
   }
 
   return (
-    <div className="-mt-16 min-h-screen bg-[#0a0a0a]">
-      <div className="relative pt-16">
-        <div className="pointer-events-none absolute inset-0 overflow-hidden">
-          <div
-            className="absolute left-1/2 top-0 h-[400px] w-[800px] -translate-x-1/2 rounded-full"
-            style={{
-              background: "radial-gradient(ellipse, var(--tint-purple-12) 0%, transparent 70%)",
-              filter: "blur(60px)",
-            }}
-          />
-        </div>
-        <div
-          className="pointer-events-none absolute left-0 right-0 top-16 h-px"
-          style={{
-            background:
-              "linear-gradient(to right, transparent, rgba(127,119,221,0.5) 30%, rgba(175,169,236,0.3) 60%, transparent)",
-          }}
-        />
+    <div className={isModal ? "" : "-mt-16 min-h-screen bg-[#0a0a0a]"}>
+      <div className={isModal ? "" : "relative pt-16"}>
+        {!isModal && (
+          <>
+            <div className="pointer-events-none absolute inset-0 overflow-hidden">
+              <div
+                className="absolute left-1/2 top-0 h-[400px] w-[800px] -translate-x-1/2 rounded-full"
+                style={{
+                  background: "radial-gradient(ellipse, var(--tint-purple-12) 0%, transparent 70%)",
+                  filter: "blur(60px)",
+                }}
+              />
+            </div>
+            <div
+              className="pointer-events-none absolute left-0 right-0 top-16 h-px"
+              style={{
+                background:
+                  "linear-gradient(to right, transparent, rgba(127,119,221,0.5) 30%, rgba(175,169,236,0.3) 60%, transparent)",
+              }}
+            />
+          </>
+        )}
 
-        <div className="relative mx-auto max-w-3xl px-6 pb-24 pt-12">
+        <div className={isModal ? "" : "relative mx-auto max-w-3xl px-6 pb-24 pt-12"}>
           <AnimateIn delay={0.05}>
-            <Link
-              href="/business"
-              className="mb-8 inline-flex items-center gap-2 text-[12px] font-semibold uppercase tracking-[0.2em] text-white/35 transition hover:text-white/70"
-            >
-              <ArrowLeft className="h-3.5 w-3.5" />
-              뒤로
-            </Link>
+            {!isModal && (
+              <Link
+                href="/business"
+                className="mb-8 inline-flex items-center gap-2 text-[12px] font-semibold uppercase tracking-[0.2em] text-white/35 transition hover:text-white/70"
+              >
+                <ArrowLeft className="h-3.5 w-3.5" />
+                뒤로
+              </Link>
+            )}
 
             <div className="mb-3 flex items-center gap-2">
               <Sparkles className="h-3.5 w-3.5 text-[#7F77DD]" />
@@ -325,12 +355,22 @@ export function BusinessApplyClient() {
 
               {/* Submit */}
               <div className="flex items-center justify-end gap-3 pt-4">
-                <Link
-                  href="/business"
-                  className="rounded-full border border-white/[0.12] bg-white/[0.03] px-6 py-3 text-[13px] font-bold text-white/70 transition hover:border-white/25 hover:bg-white/[0.06] hover:text-white"
-                >
-                  취소
-                </Link>
+                {isModal ? (
+                  <button
+                    type="button"
+                    onClick={onClose}
+                    className="rounded-full border border-white/[0.12] bg-white/[0.03] px-6 py-3 text-[13px] font-bold text-white/70 transition hover:border-white/25 hover:bg-white/[0.06] hover:text-white"
+                  >
+                    취소
+                  </button>
+                ) : (
+                  <Link
+                    href="/business"
+                    className="rounded-full border border-white/[0.12] bg-white/[0.03] px-6 py-3 text-[13px] font-bold text-white/70 transition hover:border-white/25 hover:bg-white/[0.06] hover:text-white"
+                  >
+                    취소
+                  </Link>
+                )}
                 <button
                   type="button"
                   onClick={() => void handleSubmit()}

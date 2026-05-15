@@ -12,6 +12,7 @@ import { UploadProvider } from "@/components/upload/upload-context";
 import { UploadModalProvider } from "@/components/upload/upload-modal-context";
 import { EditModalProvider } from "@/components/upload/edit-modal-context";
 import { LotteryGuideModalProvider } from "@/components/lottery/lottery-guide-modal";
+import { BusinessApplyModalProvider } from "@/components/business/business-apply-modal-context";
 import { UploadProgressWidget } from "@/components/upload/upload-progress-widget";
 import { SlimSidebar } from "./slim-sidebar";
 import { SiteFooter } from "@/components/site-shell";
@@ -103,8 +104,10 @@ export function LayoutWrapper({
           <UploadModalProvider>
             <EditModalProvider>
               <LotteryGuideModalProvider>
-                <LayoutChrome>{children}</LayoutChrome>
-                <UploadProgressWidget />
+                <BusinessApplyModalProvider>
+                  <LayoutChrome>{children}</LayoutChrome>
+                  <UploadProgressWidget />
+                </BusinessApplyModalProvider>
               </LotteryGuideModalProvider>
             </EditModalProvider>
           </UploadModalProvider>

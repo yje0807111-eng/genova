@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { ArrowRight, Sparkles, Users, Zap, Trophy, CheckCircle2 } from "lucide-react";
 import { AnimateIn } from "@/components/animate-in";
+import { BusinessApplyButton } from "./business-apply-button";
 
 const VALUE_PROPS = [
   {
@@ -108,8 +109,7 @@ export function BusinessLandingClient() {
             </p>
 
             <div className="mt-10 flex flex-wrap items-center gap-3">
-              <Link
-                href="/business/apply"
+              <BusinessApplyButton
                 className="group inline-flex items-center gap-2 rounded-full px-6 py-3 text-[14px] font-bold text-white transition-all duration-300 hover:scale-105"
                 style={{
                   background: "linear-gradient(135deg, #534AB7 0%, #7B6FE8 100%)",
@@ -118,7 +118,7 @@ export function BusinessLandingClient() {
               >
                 간단한 폼 작성하기
                 <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
-              </Link>
+              </BusinessApplyButton>
               <Link
                 href="/competition"
                 className="inline-flex items-center gap-2 rounded-full border border-white/[0.12] bg-white/[0.03] px-6 py-3 text-[14px] font-bold text-white/70 transition hover:border-white/25 hover:bg-white/[0.06] hover:text-white"
@@ -277,8 +277,7 @@ export function BusinessLandingClient() {
               <p className="mt-3 text-[14px] text-white/55">
                 1분이면 끝납니다. 24시간 내 담당자가 연락드립니다.
               </p>
-              <Link
-                href="/business/apply"
+              <BusinessApplyButton
                 className="group mt-8 inline-flex items-center gap-2 rounded-full px-8 py-3.5 text-[14px] font-bold text-white transition-all duration-300 hover:scale-105"
                 style={{
                   background: "linear-gradient(135deg, #534AB7 0%, #7B6FE8 100%)",
@@ -287,7 +286,7 @@ export function BusinessLandingClient() {
               >
                 폼 작성하기
                 <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
-              </Link>
+              </BusinessApplyButton>
             </div>
           </div>
         </AnimateIn>
