@@ -2,6 +2,66 @@ import { Resend } from "resend";
 
 const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null;
 
+/**
+ * Sends the 6-digit verification code to a lottery winner who
+ * opened their claim link.  Called from `requestWinnerEmailCodeAction`
+ * after `request_winner_email_code()` returns the code + the
+ * winner's auth.users.email.
+ *
+ * Returns true on dispatch, false on missing config / send failure
+ * — caller decides whether to surface a user-visible error.  The
+ * code itself is NOT logged.
+ */
+export async function sendWinnerCodeEmail(input: {
+  to: string;
+  code: string;
+  expiresAt: string; // ISO timestamp
+}): Promise<boolean> {
+  if (!resend) {
+    console.warn("RESEND_API_KEY not set, skipping winner code email");
+    return false;
+  }
+
+  const from = process.env.NOTIFY_FROM_EMAIL ?? "onboarding@resend.dev";
+  const expiresLabel = (() => {
+    try {
+      return new Date(input.expiresAt).toUTCString();
+    } catch {
+      return input.expiresAt;
+    }
+  })();
+
+  const subject = `[Genova] Your lottery claim verification code`;
+  const html = `
+    <div style="font-family: -apple-system, sans-serif; max-width: 480px; margin: 0 auto; padding: 32px; background: #0a0a0a; color: #fff;">
+      <div style="border-left: 3px solid #7F77DD; padding-left: 16px; margin-bottom: 24px;">
+        <p style="margin: 0; font-size: 11px; color: #AFA9EC; text-transform: uppercase; letter-spacing: 0.2em; font-weight: 700;">Genova Lottery</p>
+        <h1 style="margin: 6px 0 0; font-size: 22px; line-height: 1.3;">Verification code</h1>
+      </div>
+      <p style="margin: 0 0 12px; color: #ccc; line-height: 1.6; font-size: 14px;">
+        Enter this 6-digit code in your claim form to verify your email and continue:
+      </p>
+      <div style="margin: 24px 0; padding: 18px; background: linear-gradient(135deg, #16142a 0%, #0a0a0a 100%); border: 1px solid #7F77DD33; border-radius: 12px; text-align: center;">
+        <p style="margin: 0; font-size: 32px; font-weight: 800; letter-spacing: 0.4em; color: #fff; font-family: 'SFMono-Regular', Menlo, Consolas, monospace;">${input.code}</p>
+      </div>
+      <p style="margin: 0; color: #888; line-height: 1.6; font-size: 12px;">
+        Code expires at ${expiresLabel} (5 minutes from issue).
+      </p>
+      <p style="margin: 16px 0 0; color: #888; line-height: 1.6; font-size: 12px;">
+        Didn't request this? You can ignore this email — no action will be taken.
+      </p>
+    </div>
+  `;
+
+  try {
+    await resend.emails.send({ from, to: input.to, subject, html });
+    return true;
+  } catch (error) {
+    console.error("Winner code email send failed:", error);
+    return false;
+  }
+}
+
 export async function sendBusinessInquiryNotification(input: {
   type: "individual" | "business";
   contactName: string;
