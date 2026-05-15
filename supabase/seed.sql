@@ -11,7 +11,6 @@ create table if not exists videos (
   id text primary key,
   title text not null,
   thumbnail_url text not null,
-  vimeo_id text not null,
   genre text not null,
   creator_id text not null references creators(id),
   is_original boolean default false,
@@ -47,12 +46,12 @@ insert into creators (id, name, avatar_url, bio, is_partner, award_count) values
 on conflict (id) do nothing;
 
 insert into videos (
-  id, title, thumbnail_url, vimeo_id, genre, creator_id, is_original, is_finalist, award, runtime, created_at
+  id, title, thumbnail_url, genre, creator_id, is_original, is_finalist, award, runtime, created_at
 ) values
-  ('v1', '네온 파도', 'https://images.unsplash.com/photo-1478720568477-152d9b164e26?w=1000&q=80', '76979871', 'short_film', 'c1', true, true, '대상', '12분', now()),
-  ('v2', '오로라 시티 챕터1', 'https://images.unsplash.com/photo-1505761671935-60b3a7427bad?w=1000&q=80', '22439234', 'series', 'c3', true, true, null, '18분', now()),
-  ('v3', '광고: Beyond Taste', 'https://images.unsplash.com/photo-1466978913421-dad2ebd01d17?w=1000&q=80', '146022717', 'commercial_brand', 'c2', false, false, null, '2분', now()),
-  ('v4', '폴라리스 MV', 'https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=1000&q=80', '357274789', 'mv', 'c2', false, true, '관객상', '4분', now())
+  ('v1', '네온 파도', 'https://images.unsplash.com/photo-1478720568477-152d9b164e26?w=1000&q=80', 'short_film', 'c1', true, true, '대상', '12분', now()),
+  ('v2', '오로라 시티 챕터1', 'https://images.unsplash.com/photo-1505761671935-60b3a7427bad?w=1000&q=80', 'series', 'c3', true, true, null, '18분', now()),
+  ('v3', '광고: Beyond Taste', 'https://images.unsplash.com/photo-1466978913421-dad2ebd01d17?w=1000&q=80', 'commercial_brand', 'c2', false, false, null, '2분', now()),
+  ('v4', '폴라리스 MV', 'https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=1000&q=80', 'mv', 'c2', false, true, '관객상', '4분', now())
 on conflict (id) do nothing;
 
 insert into competitions (

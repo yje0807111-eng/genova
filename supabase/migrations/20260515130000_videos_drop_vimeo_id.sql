@@ -1,0 +1,18 @@
+-- Drop the legacy `videos.vimeo_id` column.
+--
+-- History:
+--   - Pre-Mux: vimeo_id was the only video source; column was NOT NULL.
+--   - 20260502120000_videos_mux_columns: dropped NOT NULL so Mux-only
+--     uploads could store NULL.
+--   - This migration: column has no remaining readers in app code
+--     (commit 1d98584 removed Video.vimeoId, VideoRow.vimeo_id, the
+--     mapVideo mapping, the createVideoAction insert payload, and
+--     <WatchVideoEmbed>; commit 2945b76 retired the /shorts route
+--     which was the only remaining UI surface that read it).  Safe
+--     to drop.
+--
+-- Run in Supabase SQL Editor.  Existing rows lose their `vimeo_id`
+-- value irreversibly — that's intentional; the Mux-era uploads
+-- already have it NULL, and the pre-Mux rows aren't playable
+-- through the current player anyway.
+alter table public.videos drop column if exists vimeo_id;
