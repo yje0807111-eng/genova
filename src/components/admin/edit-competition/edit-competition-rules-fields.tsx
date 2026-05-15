@@ -4,7 +4,7 @@ import { adminTokens } from "@/lib/admin-styles";
 import type { EditCompetitionFormState } from "./types";
 
 const inp =
-  "w-full rounded-lg border border-white/[0.08] bg-[#0a0a0a] px-3 py-2 text-[13px] text-white outline-none transition-colors placeholder:text-white/25 focus:border-[#7F77DD]/45";
+  "w-full rounded-lg border border-white/[0.08] bg-[#0a0a0a] px-3.5 py-2.5 text-[13px] text-white outline-none transition-colors placeholder:text-white/25 focus:border-[#7F77DD]/45";
 
 export function EditCompetitionRulesFields({
   form,

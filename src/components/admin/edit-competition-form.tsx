@@ -11,7 +11,7 @@ import { EditCompetitionPrizeFields } from "./edit-competition/edit-competition-
 import { EditCompetitionRulesFields } from "./edit-competition/edit-competition-rules-fields";
 
 const inp =
-  "w-full rounded-lg border border-white/[0.08] bg-[#0a0a0a] px-3 py-2 text-[13px] text-white outline-none transition-colors placeholder:text-white/25 focus:border-[#7F77DD]/45";
+  "w-full rounded-lg border border-white/[0.08] bg-[#0a0a0a] px-3.5 py-2.5 text-[13px] text-white outline-none transition-colors placeholder:text-white/25 focus:border-[#7F77DD]/45";
 
 function Section({ title, hint, children }: { title: string; hint?: string; children: ReactNode }) {
   return (
@@ -268,10 +268,9 @@ export function EditCompetitionForm({ competition }: { competition: any }) {
           <div>
             {activeStep === 1 && (
               <Section title={current.title} hint={current.short}>
-                <div className="space-y-3">
-                  <div className="grid gap-3 sm:grid-cols-2">
-                    <div>
-                      <label className={adminTokens.inputLabel}>제목 {langSuffix}</label>
+                <div className="space-y-4">
+                  <div>
+                    <label className={adminTokens.inputLabel}>제목 {langSuffix}</label>
                       <input
                         value={form[`title_${langTab}` as "title_ko" | "title_en" | "title_ja"]}
                         onChange={(e) => setForm((p) => ({ ...p, [`title_${langTab}`]: e.target.value } as typeof p))}
@@ -293,7 +292,6 @@ export function EditCompetitionForm({ competition }: { competition: any }) {
                         className={inp}
                         placeholder="예: AI 영상 창작자를 위한 글로벌 공모전"
                       />
-                    </div>
                   </div>
                   <div>
                     <label className={adminTokens.inputLabel}>공모전 소개 {langSuffix}</label>
@@ -311,7 +309,7 @@ export function EditCompetitionForm({ competition }: { competition: any }) {
                       }
                     />
                   </div>
-                  <div className="grid gap-3 sm:grid-cols-3">
+                  <div className="grid gap-4 sm:grid-cols-2">
                     <div>
                       <label className={adminTokens.inputLabel}>장르</label>
                       <select
@@ -340,15 +338,15 @@ export function EditCompetitionForm({ competition }: { competition: any }) {
                         <option value="Closed">종료</option>
                       </select>
                     </div>
-                    <div>
-                      <label className={adminTokens.inputLabel}>스폰서</label>
-                      <input
-                        value={form.sponsor}
-                        onChange={(e) => setForm((p) => ({ ...p, sponsor: e.target.value }))}
-                        className={inp}
-                        placeholder="예: Runway"
-                      />
-                    </div>
+                  </div>
+                  <div>
+                    <label className={adminTokens.inputLabel}>스폰서</label>
+                    <input
+                      value={form.sponsor}
+                      onChange={(e) => setForm((p) => ({ ...p, sponsor: e.target.value }))}
+                      className={inp}
+                      placeholder="예: Runway, Kling AI"
+                    />
                   </div>
                 </div>
               </Section>
@@ -356,7 +354,7 @@ export function EditCompetitionForm({ competition }: { competition: any }) {
 
             {activeStep === 2 && (
               <Section title={current.title} hint={current.short}>
-                <div className="grid gap-3 sm:grid-cols-3">
+                <div className="grid gap-4 sm:grid-cols-3">
                   <div>
                     <label className={adminTokens.inputLabel}>접수 시작일</label>
                     <input
@@ -390,10 +388,9 @@ export function EditCompetitionForm({ competition }: { competition: any }) {
 
             {activeStep === 3 && (
               <Section title={current.title} hint={current.short}>
-                <div className="grid gap-4 lg:grid-cols-2">
-                  <div className="space-y-4">
-                    <div>
-                      <label className={adminTokens.inputLabel}>총 상금</label>
+                <div className="space-y-5">
+                  <div>
+                    <label className={adminTokens.inputLabel}>총 상금</label>
                       <div className="flex gap-1.5">
                         <div className="flex gap-1">
                           {(["KRW", "USD", "JPY"] as const).map((c) => (
@@ -479,10 +476,9 @@ export function EditCompetitionForm({ competition }: { competition: any }) {
                         )}
                       </div>
                     </div>
-                  </div>
 
                   <div>
-                    <p className="mb-2 text-[11px] font-bold text-white/45">상금 배분</p>
+                    <p className="mb-3 text-[12px] font-bold text-white/55">상금 배분</p>
                     <EditCompetitionPrizeFields
                       form={form}
                       setForm={setForm}
