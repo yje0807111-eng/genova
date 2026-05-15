@@ -19,10 +19,10 @@ export async function LotteryCounter({
   variant = "card",
 }: {
   count: MonthlyTicketCount | null;
-  /** "card" gives a full bordered surface (profile page).
-   *  "inline" is borderless for embedding inside another section
-   *  (upload form). */
-  variant?: "card" | "inline";
+  /** "card"    — full bordered surface (upload page).
+   *  "inline"  — borderless, embedded in another section.
+   *  "compact" — single-line pill, width = content (profile page). */
+  variant?: "card" | "inline" | "compact";
 }) {
   if (!count) return null;
   const locale = await getServerLocale();
@@ -37,6 +37,28 @@ export async function LotteryCounter({
           "{days}",
           String(count.resetInDays),
         );
+
+  // Compact: one-line pill sized to its content.  Keeps the profile
+  // header tight instead of a 360px-wide two-row card.
+  if (variant === "compact") {
+    return (
+      <div className="inline-flex items-center gap-2 rounded-full border border-white/[0.08] bg-white/[0.02] px-3 py-1 text-[11px]">
+        <span className="text-white/45">
+          {t("lottery.title", "Entry tickets this month")}
+        </span>
+        <span className="font-bold tabular-nums text-white">
+          {used}
+          <span className="font-normal text-white/40">/5</span>
+        </span>
+        <span className="text-white/20">·</span>
+        <span className={depleted ? "text-amber-300/85" : "text-white/40"}>
+          {depleted
+            ? t("lottery.depleted", "You've used all your tickets this month")
+            : resetCopy}
+        </span>
+      </div>
+    );
+  }
 
   const wrapperClass =
     variant === "card"

@@ -152,10 +152,11 @@ export async function ProfileHeader(props: Props) {
                 </div>
 
                 {/* Owner-only entry-lottery counter (Phase 3). Renders
-                    nothing when lotteryCount is null/undefined. */}
+                    nothing when lotteryCount is null/undefined.  Compact
+                    one-line pill so it doesn't dominate the header. */}
                 {props.isOwner && props.lotteryCount ? (
-                  <div className="mt-5 w-full max-w-[360px]">
-                    <LotteryCounter count={props.lotteryCount} variant="card" />
+                  <div className="mt-3">
+                    <LotteryCounter count={props.lotteryCount} variant="compact" />
                   </div>
                 ) : null}
               </div>
