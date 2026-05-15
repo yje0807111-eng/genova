@@ -51,6 +51,10 @@ function dDay(deadline: string): number {
   );
 }
 
+function isVoting(c: Competition): boolean {
+  return ["Voting", "투표중"].includes(c.status);
+}
+
 function formatPrize(prizeInfo: string, _t: (key: string, fallback?: string) => string): string {
   const base = prizeInfo.split("+")[0].trim();
   const cleaned = base
@@ -354,7 +358,7 @@ export function CompetitionListClient({
   participantCounts?: Record<string, number>;
 }) {
   const { t, locale } = useI18n();
-  const [activeTab, setActiveTab] = useState<"all" | "open" | "upcoming" | "closed">("all");
+  const [activeTab, setActiveTab] = useState<"all" | "open" | "voting" | "upcoming" | "closed">("all");
   const [sortMode, setSortMode] = useState<"deadline" | "prize" | "participants">("deadline");
   const [gridMode, setGridMode] = useState<"grid" | "list">("grid");
   const [sortOpen, setSortOpen] = useState(false);
@@ -364,6 +368,7 @@ export function CompetitionListClient({
   void now;
 
   const allCompetitions = useMemo(() => [...active, ...upcoming, ...closed], [active, upcoming, closed]);
+  const votingCount = useMemo(() => allCompetitions.filter(isVoting).length, [allCompetitions]);
 
   const SORT_OPTIONS = useMemo(
     () => [
@@ -378,6 +383,7 @@ export function CompetitionListClient({
     const q = search.trim().toLowerCase();
     const byTab = allCompetitions.filter((c) => {
       if (activeTab === "open" && !active.some((a) => a.id === c.id)) return false;
+      if (activeTab === "voting" && !isVoting(c)) return false;
       if (activeTab === "upcoming" && !upcoming.some((u) => u.id === c.id)) return false;
       if (activeTab === "closed" && !closed.some((cl) => cl.id === c.id)) return false;
       if (q) {
@@ -450,13 +456,14 @@ export function CompetitionListClient({
           {[
             { key: "all", label: t("competition.allCompetitions"), count: allCompetitions.length },
             { key: "open", label: t("competition.nowOpen"), count: active.length },
+            { key: "voting", label: t("competition.statusVoting", "투표중"), count: votingCount },
             { key: "upcoming", label: t("competition.upcoming"), count: upcoming.length },
             { key: "closed", label: t("competition.past"), count: closed.length },
           ].map((tab) => (
             <button
               key={tab.key}
               type="button"
-              onClick={() => { setActiveTab(tab.key as "all" | "open" | "upcoming" | "closed"); setPage(1); }}
+              onClick={() => { setActiveTab(tab.key as "all" | "open" | "voting" | "upcoming" | "closed"); setPage(1); }}
               className={`-mb-px flex items-center gap-1 border-b-2 px-4 py-2.5 text-[13px] font-medium transition ${activeTab === tab.key ? "border-[#7F77DD] text-white" : "border-transparent text-white/35 hover:text-white/70"}`}
             >
               {tab.label}
