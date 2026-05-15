@@ -1,6 +1,20 @@
+import type { SupabaseClient, User } from "@supabase/supabase-js";
 import { isAdminEmail } from "@/lib/auth/admin";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { createServiceSupabaseClient } from "@/lib/supabase/service";
+
+/**
+ * Result shapes for the admin auth guards.  Declared explicitly so the
+ * inferred return type of `requireAdminWithService` stays a clean
+ * two-arm discriminated union (`error` vs.
+ * `{ supabase, user, service }`).  Without the annotation TS couldn't
+ * track the `{ ...auth, service }` spread across the inner narrowing
+ * and the success branch lost the `service` field at every call site
+ * (22× TS2339).
+ */
+export type AdminAuthError = { readonly error: string };
+export type AdminAuth = { readonly supabase: SupabaseClient; readonly user: User };
+export type AdminAuthWithService = AdminAuth & { readonly service: SupabaseClient };
 
 /**
  * Auth guard for admin Server Actions and admin server components.
@@ -9,15 +23,15 @@ import { createServiceSupabaseClient } from "@/lib/supabase/service";
  * Returns the user-session supabase client (for reads under caller
  * identity) plus the authenticated user record.
  */
-export async function requireAdmin() {
+export async function requireAdmin(): Promise<AdminAuthError | AdminAuth> {
   const supabase = await createServerSupabaseClient();
-  if (!supabase) return { error: "Please check your Supabase configuration." } as const;
+  if (!supabase) return { error: "Please check your Supabase configuration." };
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  if (!user) return { error: "Please sign in." } as const;
-  if (!isAdminEmail(user.email)) return { error: "Access denied." } as const;
-  return { supabase, user } as const;
+  if (!user) return { error: "Please sign in." };
+  if (!isAdminEmail(user.email)) return { error: "Access denied." };
+  return { supabase, user };
 }
 
 /**
@@ -29,12 +43,14 @@ export async function requireAdmin() {
  * The user-session `supabase` client is still returned for any reads
  * the action wants to perform under the caller's identity.
  */
-export async function requireAdminWithService() {
+export async function requireAdminWithService(): Promise<
+  AdminAuthError | AdminAuthWithService
+> {
   const auth = await requireAdmin();
   if ("error" in auth) return auth;
   const service = createServiceSupabaseClient();
   if (!service) {
-    return { error: "Service role key not configured." } as const;
+    return { error: "Service role key not configured." };
   }
-  return { ...auth, service } as const;
+  return { ...auth, service };
 }
