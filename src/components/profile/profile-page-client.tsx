@@ -45,6 +45,7 @@ const ProfileBulkToolbar = dynamic(
 );
 import type { Video } from "@/lib/types";
 import { AnimateIn } from "@/components/animate-in";
+import { useHoverThumbnail } from "@/components/video/use-hover-thumbnail";
 import { addWindowCustomListener } from "@/lib/dom/window-custom-events";
 import { cn } from "@/lib/utils/cn";
 
@@ -63,23 +64,23 @@ type CompetitionVideo = Video & {
 const VIDEOS_PER_PAGE = 32;
 
 function ProfileVideoCard({ video, t, isOwner, onEdit }: { video: any; t: (key: string, fallback?: string) => string; isOwner?: boolean; onEdit?: (videoId: string) => void }) {
-  const [isHovered, setIsHovered] = useState(false);
-  const muxPid = video.mux_playback_id ?? video.muxPlaybackId;
+  // Inline `video` is loosely-typed (`any`) at this call site — accept
+  // either snake_case (raw row) or camelCase (mapped Video) keys.
+  const { src, onMouseEnter, onMouseLeave } = useHoverThumbnail({
+    thumbnailUrl: video.thumbnail_url ?? video.thumbnailUrl,
+    muxPlaybackId: video.mux_playback_id ?? video.muxPlaybackId,
+  });
 
   return (
     <Link
       href={`/watch/${video.id}`}
       className="group/card relative block overflow-hidden rounded-xl transition-all duration-300 hover:-translate-y-1"
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
+      onMouseEnter={onMouseEnter}
+      onMouseLeave={onMouseLeave}
     >
       <div className="relative aspect-[3/2] overflow-hidden bg-white/[0.02]">
         <img
-          src={
-            isHovered && muxPid
-              ? `https://image.mux.com/${muxPid}/animated.gif?width=640&fps=15`
-              : video.thumbnail_url ?? video.thumbnailUrl ?? ""
-          }
+          src={src}
           alt={video.title ?? ""}
           className="h-full w-full object-cover transition-transform duration-500 group-hover/card:scale-105"
         />

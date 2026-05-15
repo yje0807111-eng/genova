@@ -1,9 +1,9 @@
 "use client";
 
-import { useState } from "react";
 import Link from "next/link";
 import { Heart } from "lucide-react";
 import { parseRuntimeToSeconds } from "@/components/video/video-card";
+import { useHoverThumbnail } from "@/components/video/use-hover-thumbnail";
 import type { Video } from "@/lib/types";
 
 function formatRuntimeDisplay(seconds: number): string {
@@ -19,21 +19,20 @@ function formatRuntimeDisplay(seconds: number): string {
  * mouse move don't bubble up to the home-page shell.
  */
 export function HoverPreviewCard({ video }: { video: Video }) {
-  const [hovered, setHovered] = useState(false);
   const creatorName =
     video.creatorName?.trim() || video.uploaderDisplayName?.trim() || "";
   const runtimeSec = parseRuntimeToSeconds(video.runtime);
-  const src =
-    hovered && video.muxPlaybackId
-      ? `https://image.mux.com/${video.muxPlaybackId}/animated.gif?width=640&fps=15`
-      : video.thumbnailUrl || "";
+  const { src, onMouseEnter, onMouseLeave } = useHoverThumbnail({
+    thumbnailUrl: video.thumbnailUrl,
+    muxPlaybackId: video.muxPlaybackId,
+  });
 
   return (
     <Link
       href={`/watch/${video.id}`}
       className="group relative block overflow-hidden rounded-xl transition-all duration-300 hover:-translate-y-1"
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
+      onMouseEnter={onMouseEnter}
+      onMouseLeave={onMouseLeave}
     >
       <div className="relative aspect-[3/2] overflow-hidden bg-white/[0.02]">
         {/* eslint-disable-next-line @next/next/no-img-element -- dynamic Mux animated.gif swap; next/image fill behind a state-controlled src caused layout shift in earlier tries */}

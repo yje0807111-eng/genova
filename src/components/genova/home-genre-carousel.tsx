@@ -5,6 +5,7 @@ import Link from "next/link";
 import { Heart, Play } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useI18n } from "@/components/genova/language-provider";
+import { useHoverThumbnail } from "@/components/video/use-hover-thumbnail";
 import { cn } from "@/lib/utils/cn";
 
 function formatRuntime(seconds: number | null | undefined): string {
@@ -57,12 +58,10 @@ function PlaceholderCard({ label }: { label: string }) {
 }
 
 function VideoPosterCard({ video, rank }: { video: VideoCard; rank: number }) {
-  const [isHovered, setIsHovered] = useState(false);
-  const muxId = video.muxPlaybackId?.trim();
-  const displaySrc =
-    isHovered && muxId
-      ? `https://image.mux.com/${muxId}/animated.gif?width=640&fps=15`
-      : video.thumbnailUrl?.trim() || "";
+  const { src: displaySrc, onMouseEnter, onMouseLeave } = useHoverThumbnail({
+    thumbnailUrl: video.thumbnailUrl,
+    muxPlaybackId: video.muxPlaybackId,
+  });
 
   return (
     <div
@@ -70,8 +69,8 @@ function VideoPosterCard({ video, rank }: { video: VideoCard; rank: number }) {
         "group relative flex flex-col transition-all duration-500 ease-out hover:z-[1] hover:-translate-y-1",
         rank === 1 && "scale-[1.02]",
       )}
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
+      onMouseEnter={onMouseEnter}
+      onMouseLeave={onMouseLeave}
     >
       <div
         className="pointer-events-none absolute -inset-1.5 z-[-1] rounded-2xl opacity-0 transition-opacity duration-500 group-hover:opacity-100"
