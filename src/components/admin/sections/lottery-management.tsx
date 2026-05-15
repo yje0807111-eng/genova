@@ -60,6 +60,23 @@ function maskReference(ref: string | null | undefined): string {
 }
 
 /**
+ * 응모권 claim_status → 한글 라벨.  배지 / 필터 / 버킷에서 공통 사용.
+ * 운영 핸드북 용어와 일치 (대기 / 제출됨 / 검수완료 / 지급완료 /
+ * 만료 / 무효).
+ */
+const CLAIM_STATUS_KO: Record<string, string> = {
+  pending: "대기",
+  submitted: "제출됨",
+  confirmed: "검수완료",
+  paid: "지급완료",
+  expired: "만료",
+  invalidated: "무효",
+};
+function claimStatusKo(status: string): string {
+  return CLAIM_STATUS_KO[status] ?? status;
+}
+
+/**
  * Phase 6-B + 6-C: combined admin lottery panel.
  *
  * Three stacked sections (no sub-tabs) so the operator can scroll
@@ -110,20 +127,20 @@ function CompetitionsSection({
   return (
     <section className="rounded-xl border border-white/[0.06] bg-white/[0.02] px-4 py-4">
       <h3 className={cn(adminTokens.sectionHeader, "mb-3")}>
-        Competitions ({competitions.length})
+        공모전 ({competitions.length})
       </h3>
       {competitions.length === 0 ? (
-        <p className="text-[12px] text-white/45">No competitions yet.</p>
+        <p className="text-[12px] text-white/45">공모전이 없습니다.</p>
       ) : (
         <div className="overflow-x-auto">
           <table className="w-full min-w-[760px] text-[12px]">
             <thead>
               <tr className="border-b border-white/[0.06] text-left text-[11px] font-semibold uppercase tracking-[0.12em] text-white/45">
-                <th className="px-2 py-2">Competition</th>
-                <th className="px-2 py-2">Status</th>
-                <th className="px-2 py-2 text-right">Entries</th>
-                <th className="px-2 py-2">Winners</th>
-                <th className="px-2 py-2 text-right">Action</th>
+                <th className="px-2 py-2">공모전</th>
+                <th className="px-2 py-2">상태</th>
+                <th className="px-2 py-2 text-right">응모</th>
+                <th className="px-2 py-2">당첨자</th>
+                <th className="px-2 py-2 text-right">작업</th>
               </tr>
             </thead>
             <tbody>
@@ -149,19 +166,18 @@ function CompetitionRow({
   const [pending, startTransition] = useTransition();
 
   const onDraw = () => {
-    if (!confirm(`Draw 5 winners for "${c.title}"? This cannot be undone except by redraw.`)) return;
+    if (!confirm(`"${c.title}" 공모전에서 당첨자 5명을 추첨합니다. 재추첨 외에는 되돌릴 수 없습니다. 계속할까요?`)) return;
     startTransition(async () => {
       const res = await triggerCompetitionDrawAction(c.id);
       if (res.ok) {
-        // H2-D.6: surface dispatch failure counts.  Silent partial
-        // notification delivery used to require log diving.
+        // H2-D.6: 알림 발송 실패 건수 노출 (이전엔 로그 확인 필요)
         const warnings: string[] = [];
-        if (res.notifFailed) warnings.push(`${res.notifFailed} notif fail`);
-        if (res.emailFailed) warnings.push(`${res.emailFailed} email fail`);
+        if (res.notifFailed) warnings.push(`알림 ${res.notifFailed}건 실패`);
+        if (res.emailFailed) warnings.push(`이메일 ${res.emailFailed}건 실패`);
         const suffix = warnings.length ? ` · ⚠ ${warnings.join(" · ")}` : "";
-        onMessage(`Drew ${res.winnersCount ?? 5} winners for "${c.title}"${suffix}`);
+        onMessage(`"${c.title}" 당첨자 ${res.winnersCount ?? 5}명 추첨 완료${suffix}`);
       } else {
-        onMessage(`Draw failed: ${res.message}`);
+        onMessage(`추첨 실패: ${res.message}`);
       }
       router.refresh();
     });
@@ -185,7 +201,7 @@ function CompetitionRow({
                 the disbursement progress at a glance. */}
             {c.liveUsdTotal > 0 ? (
               <span className="text-[10px] tabular-nums text-white/40">
-                ${c.paidUsdTotal.toLocaleString()} / ${c.liveUsdTotal.toLocaleString()} paid
+                ${c.paidUsdTotal.toLocaleString()} / ${c.liveUsdTotal.toLocaleString()} 지급
               </span>
             ) : null}
           </div>
@@ -200,17 +216,17 @@ function CompetitionRow({
             className={cn(adminTokens.buttonGhost, "inline-flex h-7 px-3 text-[11px]")}
             target="_blank"
           >
-            Results →
+            결과 →
           </Link>
         ) : (
           <button
             type="button"
             onClick={onDraw}
             disabled={pending || c.entryCount === 0}
-            // G7: admin token 통일 — Draw 는 primary action (솔리드 화이트).
+            // G7: admin token 통일 — 추첨은 primary action (솔리드 화이트).
             className={cn(adminTokens.buttonPrimary, "h-7 px-3 text-[11px] disabled:opacity-50")}
           >
-            {pending ? "Drawing…" : "Draw"}
+            {pending ? "추첨 중…" : "추첨"}
           </button>
         )}
       </td>
@@ -238,7 +254,7 @@ function WinnerBuckets({
         if (n === 0) return null;
         return (
           <span key={i.key} className={cn("tabular-nums", i.color)}>
-            {n} {i.key}
+            {claimStatusKo(i.key)} {n}
           </span>
         );
       })}
@@ -274,7 +290,7 @@ function WinnersSection({
     try {
       const res = await exportLotteryWinnersCsvAction();
       if (!res.ok) {
-        onMessage(`Export failed: ${res.message}`);
+        onMessage(`CSV 내보내기 실패: ${res.message}`);
         return;
       }
       const blob = new Blob([res.csv], { type: "text/csv;charset=utf-8;" });
@@ -286,9 +302,9 @@ function WinnersSection({
       a.click();
       a.remove();
       URL.revokeObjectURL(url);
-      onMessage("Winner CSV downloaded.");
+      onMessage("당첨자 CSV를 다운로드했습니다.");
     } catch (e) {
-      onMessage(e instanceof Error ? `Export failed: ${e.message}` : "Export failed.");
+      onMessage(e instanceof Error ? `CSV 내보내기 실패: ${e.message}` : "CSV 내보내기 실패");
     } finally {
       setExporting(false);
     }
@@ -298,7 +314,7 @@ function WinnersSection({
     <section className="rounded-xl border border-white/[0.06] bg-white/[0.02] px-4 py-4">
       <header className="mb-3 flex items-center justify-between gap-3">
         <h3 className={adminTokens.sectionHeader}>
-          Winners ({winners.length})
+          당첨자 ({winners.length})
         </h3>
         <div className="flex items-center gap-2">
           <button
@@ -306,29 +322,29 @@ function WinnersSection({
             onClick={handleExport}
             disabled={exporting || winners.length === 0}
             className={cn(adminTokens.buttonSecondary, "h-8 px-3 text-[11px] disabled:opacity-40")}
-            title="Download winners + submitted info as CSV (PII — handle carefully)"
+            title="당첨자 + 제출 정보를 CSV로 다운로드 (개인정보 — 취급 주의)"
           >
-            {exporting ? "Exporting..." : "Export CSV"}
+            {exporting ? "내보내는 중..." : "CSV 내보내기"}
           </button>
           <select
             value={filter}
             onChange={(e) => setFilter(e.target.value as typeof filter)}
             className="rounded-md border border-white/[0.08] bg-white/[0.02] px-2 py-1 text-[11px] text-white/80"
           >
-            <option value="all">All</option>
-            <option value="pending">Pending</option>
-            <option value="submitted">Submitted</option>
-            <option value="confirmed">Confirmed</option>
-            <option value="paid">Paid</option>
-            <option value="expired">Expired</option>
+            <option value="all">전체</option>
+            <option value="pending">대기</option>
+            <option value="submitted">제출됨</option>
+            <option value="confirmed">검수완료</option>
+            <option value="paid">지급완료</option>
+            <option value="expired">만료</option>
           </select>
         </div>
       </header>
       {filtered.length === 0 ? (
         <p className="text-[12px] text-white/45">
           {filter === "all"
-            ? "No winners drawn yet."
-            : `No winners in "${filter}" state.`}
+            ? "아직 추첨된 당첨자가 없습니다."
+            : `"${claimStatusKo(filter)}" 상태의 당첨자가 없습니다.`}
         </p>
       ) : (
         <div className="space-y-3">
@@ -362,7 +378,7 @@ function WinnerCard({
         winnerId: w.winnerId,
         notes,
       });
-      onMessage(res.ok ? "Marked verified" : `Verify failed: ${res.message}`);
+      onMessage(res.ok ? "검수 완료 처리됨" : `검수 실패: ${res.message}`);
       router.refresh();
     });
   };
@@ -376,7 +392,7 @@ function WinnerCard({
         winnerId: w.winnerId,
         paymentReference: trimmed,
       });
-      onMessage(res.ok ? "Marked paid" : `Pay failed: ${res.message}`);
+      onMessage(res.ok ? "지급 완료 처리됨" : `지급 처리 실패: ${res.message}`);
       router.refresh();
     });
   };
@@ -392,14 +408,14 @@ function WinnerCard({
         reason: trimmed,
       });
       if (res.ok) {
-        // H2-D.6: dispatch failure surface
+        // H2-D.6: 알림 발송 실패 건수 노출
         const warnings: string[] = [];
-        if (res.notifFailed) warnings.push(`${res.notifFailed} notif fail`);
-        if (res.emailFailed) warnings.push(`${res.emailFailed} email fail`);
+        if (res.notifFailed) warnings.push(`알림 ${res.notifFailed}건 실패`);
+        if (res.emailFailed) warnings.push(`이메일 ${res.emailFailed}건 실패`);
         const suffix = warnings.length ? ` · ⚠ ${warnings.join(" · ")}` : "";
-        onMessage(`Redraw successful${suffix}`);
+        onMessage(`재추첨 완료${suffix}`);
       } else {
-        onMessage(`Redraw failed: ${res.message}`);
+        onMessage(`재추첨 실패: ${res.message}`);
       }
       router.refresh();
     });
@@ -426,9 +442,9 @@ function WinnerCard({
   const deadlineRibbon =
     daysToDeadline !== null
       ? daysToDeadline < 0
-        ? { tone: "danger" as const, text: `Overdue ${-daysToDeadline}d` }
+        ? { tone: "danger" as const, text: `${-daysToDeadline}일 초과` }
         : daysToDeadline === 0
-          ? { tone: "danger" as const, text: "Deadline today" }
+          ? { tone: "danger" as const, text: "오늘 마감" }
           : daysToDeadline <= 1
             ? { tone: "danger" as const, text: `D-${daysToDeadline}` }
             : daysToDeadline <= 3
@@ -445,7 +461,7 @@ function WinnerCard({
             "shrink-0 bg-amber-400/15 text-amber-300",
           )}
         >
-          Tier {w.prizeTier} · ${w.prizeAmountUsd}
+          {w.prizeTier}등 · ${w.prizeAmountUsd}
         </span>
         <ClaimStatusBadge status={w.claimStatus} />
         {deadlineRibbon ? (
@@ -472,7 +488,7 @@ function WinnerCard({
           onClick={() => setExpanded((x) => !x)}
           className="ml-auto text-[11px] text-white/45 hover:text-white"
         >
-          {expanded ? "Hide info" : "Show info"}
+          {expanded ? "정보 숨기기" : "정보 보기"}
         </button>
       </header>
 
@@ -480,13 +496,13 @@ function WinnerCard({
         <div className="mt-3 grid grid-cols-1 gap-x-4 gap-y-2 text-[11px] text-white/70 sm:grid-cols-2">
           {w.info ? (
             <>
-              <Field k="Legal name" v={w.info.legalName} />
-              <Field k="Country" v={w.info.country} />
-              <Field k="Contact extra" v={w.info.contactExtra} />
+              <Field k="실명" v={w.info.legalName} />
+              <Field k="국가" v={w.info.country} />
+              <Field k="추가 연락처" v={w.info.contactExtra} />
               {/* H5-E.4: payment info masked until explicit reveal */}
               <div className="flex flex-col gap-0.5">
                 <span className="text-[10px] uppercase tracking-wider text-white/35">
-                  Payment
+                  결제 정보
                 </span>
                 <span className="font-medium text-white/80">
                   {paymentRevealed
@@ -501,12 +517,12 @@ function WinnerCard({
                     onClick={() => setPaymentRevealed((v) => !v)}
                     className="ml-2 text-[10px] text-white/45 underline-offset-2 hover:text-white hover:underline"
                   >
-                    {paymentRevealed ? "Hide" : "Reveal"}
+                    {paymentRevealed ? "숨기기" : "표시"}
                   </button>
                 </span>
               </div>
               <Field
-                k="Submitted at"
+                k="제출 시각"
                 // H5-E.3: mask the IP's last octet so over-the-shoulder
                 // screenshots leak less.  Full value is still in the
                 // DB for forensics.
@@ -515,25 +531,25 @@ function WinnerCard({
                 }`}
               />
               {w.info.adminVerified ? (
-                <Field k="Verified at" v={w.info.adminVerifiedAt ?? "—"} />
+                <Field k="검수 시각" v={w.info.adminVerifiedAt ?? "—"} />
               ) : null}
               {w.info.paidAt ? (
                 <Field
-                  k="Paid"
+                  k="지급"
                   v={
                     paymentRevealed
-                      ? `${w.info.paidAt} · ref ${w.info.paymentReference ?? ""}`
-                      : `${w.info.paidAt} · ref ${maskReference(w.info.paymentReference)}`
+                      ? `${w.info.paidAt} · 참조 ${w.info.paymentReference ?? ""}`
+                      : `${w.info.paidAt} · 참조 ${maskReference(w.info.paymentReference)}`
                   }
                 />
               ) : null}
               {w.info.adminNotes ? (
-                <Field k="Admin notes" v={w.info.adminNotes} />
+                <Field k="운영 메모" v={w.info.adminNotes} />
               ) : null}
             </>
           ) : (
             <p className="col-span-full text-white/45">
-              No info submitted yet (deadline {w.infoDeadline}).
+              아직 정보 미제출 (마감 {w.infoDeadline}).
             </p>
           )}
         </div>
@@ -550,7 +566,7 @@ function WinnerCard({
               "h-7 px-3 text-[11px] text-sky-300",
             )}
           >
-            Mark verified
+            검수 완료
           </button>
         ) : null}
         {w.claimStatus === "confirmed" ? (
@@ -563,7 +579,7 @@ function WinnerCard({
               "h-7 px-3 text-[11px] text-emerald-300",
             )}
           >
-            Mark paid
+            지급 완료
           </button>
         ) : null}
         {/* Redraw is available for pending / submitted / confirmed; refused
@@ -580,7 +596,7 @@ function WinnerCard({
               "h-7 px-3 text-[11px] text-amber-300",
             )}
           >
-            Redraw tier
+            재추첨
           </button>
         ) : null}
       </footer>
@@ -588,21 +604,21 @@ function WinnerCard({
       {/* G10: branded prompt modals replacing native prompt() calls. */}
       <PromptModal
         open={payModalOpen}
-        title="Mark paid"
-        description={`Tier ${w.prizeTier} · $${w.prizeAmountUsd} USD · ${w.userDisplayName ?? "user"}`}
-        label="Payment reference"
-        placeholder="PayPal / Wise transaction ID"
-        confirmLabel="Mark paid"
+        title="지급 완료 처리"
+        description={`${w.prizeTier}등 · $${w.prizeAmountUsd} USD · ${w.userDisplayName ?? "사용자"}`}
+        label="결제 참조번호"
+        placeholder="PayPal / Wise 거래 ID"
+        confirmLabel="지급 완료"
         onCancel={() => setPayModalOpen(false)}
         onConfirm={handlePayConfirm}
       />
       <PromptModal
         open={redrawModalOpen}
-        title={`Redraw tier ${w.prizeTier}`}
-        description={`"${w.competitionTitle}" — ${w.userDisplayName ?? "user"} will be permanently excluded from this competition's pool.`}
-        label="Reason (required, recorded in audit log)"
-        placeholder="Why is this slot being redrawn?"
-        confirmLabel="Redraw"
+        title={`${w.prizeTier}등 재추첨`}
+        description={`"${w.competitionTitle}" — ${w.userDisplayName ?? "사용자"}님은 이 공모전 추첨 풀에서 영구 제외됩니다.`}
+        label="사유 (필수, 감사 로그에 기록됨)"
+        placeholder="이 슬롯을 재추첨하는 이유"
+        confirmLabel="재추첨"
         confirmDanger
         multiline
         onCancel={() => setRedrawModalOpen(false)}
@@ -700,7 +716,7 @@ function PromptModal({
             onClick={onCancel}
             className={cn(adminTokens.buttonSecondary, "h-8 px-3 text-[12px]")}
           >
-            Cancel
+            취소
           </button>
           <button
             type="button"
@@ -743,11 +759,11 @@ function ClaimStatusBadge({ status }: { status: string }) {
   return (
     <span
       className={cn(
-        "rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-[0.1em]",
+        "rounded-full px-2 py-0.5 text-[10px] font-bold tracking-[0.05em]",
         tone,
       )}
     >
-      {status}
+      {claimStatusKo(status)}
     </span>
   );
 }
@@ -760,21 +776,21 @@ function AuditLogSection({ rows }: { rows: LotteryAuditRow[] }) {
   return (
     <section className="rounded-xl border border-white/[0.06] bg-white/[0.02] px-4 py-4">
       <h3 className={cn(adminTokens.sectionHeader, "mb-3")}>
-        Drawing audit log ({rows.length})
+        추첨 감사 로그 ({rows.length})
       </h3>
       {rows.length === 0 ? (
-        <p className="text-[12px] text-white/45">No draws on record.</p>
+        <p className="text-[12px] text-white/45">추첨 기록이 없습니다.</p>
       ) : (
         <div className="overflow-x-auto">
           <table className="w-full min-w-[680px] text-[11px]">
             <thead>
               <tr className="border-b border-white/[0.06] text-left font-semibold uppercase tracking-[0.12em] text-white/45">
-                <th className="px-2 py-2">When</th>
-                <th className="px-2 py-2">Competition</th>
-                <th className="px-2 py-2">Kind</th>
-                <th className="px-2 py-2 text-right">Eligible</th>
-                <th className="px-2 py-2">Seed</th>
-                <th className="px-2 py-2">Reason</th>
+                <th className="px-2 py-2">시각</th>
+                <th className="px-2 py-2">공모전</th>
+                <th className="px-2 py-2">종류</th>
+                <th className="px-2 py-2 text-right">대상</th>
+                <th className="px-2 py-2">시드</th>
+                <th className="px-2 py-2">사유</th>
               </tr>
             </thead>
             <tbody>
@@ -792,10 +808,10 @@ function AuditLogSection({ rows }: { rows: LotteryAuditRow[] }) {
                   <td className="px-2 py-2">
                     {r.isRedraw ? (
                       <span className="text-amber-300">
-                        Redraw · tier {r.redrawPrizeTier}
+                        재추첨 · {r.redrawPrizeTier}등
                       </span>
                     ) : (
-                      <span className="text-emerald-300">Initial</span>
+                      <span className="text-emerald-300">최초</span>
                     )}
                   </td>
                   <td className="px-2 py-2 text-right tabular-nums text-white/70">
