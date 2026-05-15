@@ -41,8 +41,6 @@ export function SiteSettings({
   const [heroEyebrowJa, setHeroEyebrowJa] = useState("");
   const [eyebrowLangTab, setEyebrowLangTab] = useState<"ko" | "en" | "ja">("ko");
   const [heroEyebrowLoading, setHeroEyebrowLoading] = useState(false);
-  const [featuredCompetitionId, setFeaturedCompetitionId] = useState("");
-  const [featuredLoading, setFeaturedLoading] = useState(false);
   const [homeFeaturedCompId, setHomeFeaturedCompId] = useState("");
   const [homeFeaturedLoading, setHomeFeaturedLoading] = useState(false);
   const [savedMessage, setSavedMessage] = useState<string | null>(null);
@@ -70,15 +68,6 @@ export function SiteSettings({
         if (ko.value) setHeroEyebrowKo(ko.value);
         if (en.value) setHeroEyebrowEn(en.value);
         if (ja.value) setHeroEyebrowJa(ja.value);
-      })
-      .catch(() => {});
-  }, []);
-
-  useEffect(() => {
-    fetch("/api/site-settings?key=films_featured_competition_id")
-      .then((r) => r.json())
-      .then((d) => {
-        if (d.value) setFeaturedCompetitionId(d.value);
       })
       .catch(() => {});
   }, []);
@@ -162,43 +151,6 @@ export function SiteSettings({
               className={cn(adminTokens.buttonSecondary, "h-9 shrink-0 px-3")}
             >
               {heroEyebrowLoading ? "저장 중..." : "저장"}
-            </button>
-          </div>
-        </div>
-
-        <div>
-          <label className={adminTokens.inputLabel}>Films 히어로 배너 공모전</label>
-          <div className="flex items-end gap-2">
-            <select
-              value={featuredCompetitionId}
-              onChange={(e) => setFeaturedCompetitionId(e.target.value)}
-              className={inputFlex}
-            >
-              <option value="">공모전 선택 안함</option>
-              {competitions.map((c) => (
-                <option key={c.id} value={c.id}>
-                  {c.title}
-                </option>
-              ))}
-            </select>
-            <button
-              type="button"
-              disabled={featuredLoading}
-              onClick={async () => {
-                setFeaturedLoading(true);
-                try {
-                  await postSiteSetting("films_featured_competition_id", featuredCompetitionId);
-                  onMessage("저장되었습니다.");
-                  flashSaved();
-                } catch (e) {
-                  onMessage(e instanceof Error ? `저장 실패: ${e.message}` : "저장 실패");
-                } finally {
-                  setFeaturedLoading(false);
-                }
-              }}
-              className={cn(adminTokens.buttonSecondary, "h-9 shrink-0 px-3")}
-            >
-              {featuredLoading ? "저장 중..." : "저장"}
             </button>
           </div>
         </div>

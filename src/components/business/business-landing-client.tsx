@@ -2,53 +2,33 @@ import Link from "next/link";
 import { ArrowRight, Sparkles, Users, Zap, Trophy, CheckCircle2 } from "lucide-react";
 import { AnimateIn } from "@/components/animate-in";
 import { BusinessApplyButton } from "./business-apply-button";
+import { getServerLocale, getServerT } from "@/lib/i18n/server";
 
-const VALUE_PROPS = [
-  {
-    icon: Users,
-    title: "수백 명의 AI 크리에이터",
-    desc: "Genova의 검증된 AI 영상 크리에이터들이 당신의 브랜드를 위해 경쟁합니다.",
-  },
-  {
-    icon: Zap,
-    title: "기존 광고 비용의 1/10",
-    desc: "에이전시 의뢰 대신 공모전 형식으로 다양한 시안을 합리적인 비용에 확보합니다.",
-  },
-  {
-    icon: Trophy,
-    title: "독창적이고 다양한 결과물",
-    desc: "한 가지 답이 아닌, 수십 개의 서로 다른 크리에이티브를 받아보세요.",
-  },
-];
+export async function BusinessLandingClient() {
+  const locale = await getServerLocale();
+  const t = getServerT(locale);
 
-const PROCESS_STEPS = [
-  { num: "01", title: "상담 신청", desc: "예산, 일정, 컨셉을 알려주세요. 24시간 내 담당자가 연락드립니다." },
-  { num: "02", title: "기획 & 설계", desc: "Genova 팀이 공모전 요강, 심사 기준, 상금 구조를 함께 설계합니다." },
-  { num: "03", title: "공모전 오픈", desc: "Genova 플랫폼에서 공모전이 공개되고 크리에이터들의 출품이 시작됩니다." },
-  { num: "04", title: "심사 & 선정", desc: "전문 심사위원과 클라이언트가 함께 수상작을 선정합니다." },
-  { num: "05", title: "정산 & 인도", desc: "수상작 영상의 사용 권리와 함께 정산이 완료됩니다." },
-];
+  const VALUE_PROPS = [
+    { icon: Users, title: t("bizLanding.vp1Title"), desc: t("bizLanding.vp1Desc") },
+    { icon: Zap, title: t("bizLanding.vp2Title"), desc: t("bizLanding.vp2Desc") },
+    { icon: Trophy, title: t("bizLanding.vp3Title"), desc: t("bizLanding.vp3Desc") },
+  ];
 
-const FAQ = [
-  {
-    q: "최소 예산은 얼마인가요?",
-    a: "프로젝트 규모에 따라 다릅니다. 상담을 통해 적정 예산을 함께 산정해드립니다.",
-  },
-  {
-    q: "결과물 사용 권리는 누구에게 있나요?",
-    a: "수상작에 한해 클라이언트에게 광고/마케팅 사용 권리가 부여됩니다. 세부 조건은 계약 시 확정됩니다.",
-  },
-  {
-    q: "기간은 얼마나 걸리나요?",
-    a: "평균적으로 기획 1주, 모집 4주, 심사 2주로 총 7주 내외 소요됩니다.",
-  },
-  {
-    q: "개인도 신청 가능한가요?",
-    a: "네, 개인 크리에이터, 1인 사업자, 스타트업 모두 신청 가능합니다.",
-  },
-];
+  const PROCESS_STEPS = [
+    { num: "01", title: t("bizLanding.ps1Title"), desc: t("bizLanding.ps1Desc") },
+    { num: "02", title: t("bizLanding.ps2Title"), desc: t("bizLanding.ps2Desc") },
+    { num: "03", title: t("bizLanding.ps3Title"), desc: t("bizLanding.ps3Desc") },
+    { num: "04", title: t("bizLanding.ps4Title"), desc: t("bizLanding.ps4Desc") },
+    { num: "05", title: t("bizLanding.ps5Title"), desc: t("bizLanding.ps5Desc") },
+  ];
 
-export function BusinessLandingClient() {
+  const FAQ = [
+    { q: t("bizLanding.faq1Q"), a: t("bizLanding.faq1A") },
+    { q: t("bizLanding.faq2Q"), a: t("bizLanding.faq2A") },
+    { q: t("bizLanding.faq3Q"), a: t("bizLanding.faq3A") },
+    { q: t("bizLanding.faq4Q"), a: t("bizLanding.faq4A") },
+  ];
+
   return (
     <div className="-mt-16 min-h-screen bg-[#0a0a0a]">
       {/* Hero */}
@@ -83,12 +63,12 @@ export function BusinessLandingClient() {
             <div className="mb-6 flex items-center gap-2">
               <Sparkles className="h-3.5 w-3.5 text-[#7F77DD]" />
               <span className="text-[10px] font-bold uppercase tracking-[0.25em] text-[#AFA9EC]">
-                For Brands & Creators
+                For Brands &amp; Creators
               </span>
             </div>
 
             <h1 className="text-[56px] font-black leading-[1.05] tracking-[-0.02em] text-white">
-              당신의 제품으로
+              {t("bizLanding.titleLine1")}
               <br />
               <span
                 style={{
@@ -98,14 +78,14 @@ export function BusinessLandingClient() {
                   backgroundClip: "text",
                 }}
               >
-                AI 영상 공모전을 열어보세요
+                {t("bizLanding.titleLine2")}
               </span>
             </h1>
 
             <p className="mt-6 max-w-2xl text-[16px] leading-relaxed text-white/55">
-              Genova가 기획부터 운영, 심사, 정산까지 전담합니다.
+              {t("bizLanding.subtitle1")}
               <br />
-              수많은 AI 크리에이터들이 당신의 브랜드를 위해 경쟁하고, 가장 뛰어난 영상을 받아보세요.
+              {t("bizLanding.subtitle2")}
             </p>
 
             <div className="mt-10 flex flex-wrap items-center gap-3">
@@ -116,19 +96,17 @@ export function BusinessLandingClient() {
                   boxShadow: "0 8px 32px rgba(83,74,183,0.5)",
                 }}
               >
-                간단한 폼 작성하기
+                {t("bizLanding.ctaPrimary")}
                 <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
               </BusinessApplyButton>
               <Link
                 href="/competition"
                 className="inline-flex items-center gap-2 rounded-full border border-white/[0.12] bg-white/[0.03] px-6 py-3 text-[14px] font-bold text-white/70 transition hover:border-white/25 hover:bg-white/[0.06] hover:text-white"
               >
-                진행 중인 공모전 보기
+                {t("bizLanding.ctaSecondary")}
               </Link>
             </div>
-            <p className="mt-4 text-[12px] text-white/35">
-              ✓ 무료 · 1분이면 충분합니다 · 결정은 상담 후에
-            </p>
+            <p className="mt-4 text-[12px] text-white/35">{t("bizLanding.ctaNote")}</p>
           </AnimateIn>
         </div>
       </div>
@@ -186,7 +164,7 @@ export function BusinessLandingClient() {
                 className="text-[32px] font-black tracking-tight text-white"
                 style={{ letterSpacing: "-0.02em" }}
               >
-                진행 프로세스
+                {t("bizLanding.processHeading")}
               </h2>
             </div>
           </div>
@@ -272,11 +250,9 @@ export function BusinessLandingClient() {
                 className="text-[36px] font-black leading-tight tracking-tight text-white"
                 style={{ letterSpacing: "-0.02em" }}
               >
-                먼저 폼만 작성해보세요
+                {t("bizLanding.bottomHeading")}
               </h2>
-              <p className="mt-3 text-[14px] text-white/55">
-                1분이면 끝납니다. 24시간 내 담당자가 연락드립니다.
-              </p>
+              <p className="mt-3 text-[14px] text-white/55">{t("bizLanding.bottomSub")}</p>
               <BusinessApplyButton
                 className="group mt-8 inline-flex items-center gap-2 rounded-full px-8 py-3.5 text-[14px] font-bold text-white transition-all duration-300 hover:scale-105"
                 style={{
@@ -284,7 +260,7 @@ export function BusinessLandingClient() {
                   boxShadow: "0 8px 32px rgba(83,74,183,0.5)",
                 }}
               >
-                폼 작성하기
+                {t("bizLanding.bottomCta")}
                 <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
               </BusinessApplyButton>
             </div>

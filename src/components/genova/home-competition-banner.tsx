@@ -3,11 +3,17 @@ import { ArrowRight, PlayCircle, Calendar, Users } from "lucide-react";
 import { getServerLocale, getServerT } from "@/lib/i18n/server";
 import { BrowseFilmsButton } from "@/components/genova/browse-films-button";
 
+type HeroCompetition = {
+  title?: string | null;
+  titleKo?: string | null;
+  titleEn?: string | null;
+  titleJa?: string | null;
+} | null;
+
 type Props = {
-  // Kept loose to mirror the previous client signature; this banner
-  // doesn't actually read competition fields today but the caller
-  // passes one for forward-compat.
-  competition: unknown;
+  // 관리자 '홈 배너 공모전'에서 선택된 공모전. 로케일별 번역 제목을
+  // 히어로 eyebrow에 노출(없으면 i18n 기본 eyebrow로 폴백).
+  competition: HeroCompetition;
   stats: {
     activeCount: number;
     totalPrizeUSD: number;
@@ -23,9 +29,19 @@ type Props = {
  * info rows — renders fully on the server.  Removes ~250 LOC of
  * translation-heavy JSX from the home-page client bundle.
  */
-export async function HomeCompetitionBanner({ stats }: Props) {
+export async function HomeCompetitionBanner({ competition, stats }: Props) {
   const locale = await getServerLocale();
   const t = getServerT(locale);
+
+  const localizedCompTitle = competition
+    ? (locale === "ko"
+        ? competition.titleKo
+        : locale === "ja"
+          ? competition.titleJa
+          : competition.titleEn) ||
+      competition.title ||
+      null
+    : null;
 
   return (
     <section className="relative w-full overflow-hidden border-b border-white/[0.06] bg-[#0a0a0a]">
@@ -80,7 +96,7 @@ export async function HomeCompetitionBanner({ stats }: Props) {
 
           <div className="inline-flex w-fit items-center gap-2 rounded-full border border-emerald-400/25 bg-emerald-500/5 px-3 py-1 text-[10px] font-bold uppercase tracking-[0.2em] text-emerald-300/90 backdrop-blur-md">
             <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
-            {t("home.hero.eyebrow", "AI FILMS CONTEST · NOW LIVE")}
+            {localizedCompTitle ?? t("home.hero.eyebrow", "AI FILMS CONTEST · NOW LIVE")}
           </div>
 
           <div>
