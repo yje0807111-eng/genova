@@ -31,7 +31,7 @@ export async function createCompetitionAction(form: {
   eligibility: string;
   submissionGuidelines: string;
   currency?: string;
-}): Promise<AdminResult> {
+}): Promise<AdminResult & { id?: string }> {
   const auth = await requireAdminWithService();
   if ("error" in auth) return { ok: false, message: auth.error ?? "Unauthorized" };
   const { service } = auth;
@@ -74,7 +74,11 @@ export async function createCompetitionAction(form: {
   if (error) return { ok: false, message: error.message };
   revalidatePath("/admin");
   revalidatePath("/competition");
-  return { ok: true };
+  // H6-D.4: return the id so the create form can deep-link the
+  // operator straight into the full edit form (multilang / prize
+  // tiers / exchange rates) instead of making them hunt for the new
+  // row and click Edit.
+  return { ok: true, id };
 }
 
 export async function updateCompetitionAction(

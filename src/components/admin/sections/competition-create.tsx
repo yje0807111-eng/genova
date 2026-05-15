@@ -87,8 +87,21 @@ export function CompetitionCreate({ onMessage }: { onMessage: (message: string) 
     setLoading(true);
     try {
       const res = await createCompetitionAction(form);
-      onMessage(res.ok ? "저장되었습니다." : res.message ?? "실패했습니다.");
-      if (res.ok) router.refresh();
+      if (res.ok) {
+        // H6-D.4: this create form only captures the base (single-
+        // locale) fields.  Multilang titles / prize tiers / exchange
+        // rates live in the full edit form — deep-link there right
+        // after creation so the operator finishes in one flow instead
+        // of creating, hunting the row, then clicking Edit.
+        onMessage("생성되었습니다. 상세 편집 화면으로 이동합니다.");
+        if (res.id) {
+          router.push(`/admin/competition/${res.id}`);
+        } else {
+          router.refresh();
+        }
+      } else {
+        onMessage(res.message ?? "실패했습니다.");
+      }
     } finally {
       setLoading(false);
     }
