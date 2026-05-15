@@ -842,18 +842,18 @@ export function ChatDrawer({
                       <div
                         className="px-3 py-2 text-sm"
                         style={{
-                          // CLAUDE.md primary 퍼플 그라데이션(가독 위해
-                          // alpha 상향).  단색 #534AB7(글로우 베이스)
-                          // 직접 사용에서 교체.
+                          // 옅은 퍼플 틴트 그라데이션 — 어두운 채팅
+                          // 배경 위 흰 글자로 대비 충분.  채도 높은
+                          // 솔리드/진한 그라데이션은 너무 튀어 톤 다운.
                           background: m.isDeleted
                             ? "rgba(255,255,255,0.04)"
                             : isMine
-                              ? "linear-gradient(135deg, rgba(107,95,212,0.95) 0%, rgba(83,74,183,0.9) 50%, rgba(63,54,163,0.85) 100%)"
+                              ? "linear-gradient(135deg, rgba(127,119,221,0.20) 0%, rgba(83,74,183,0.14) 100%)"
                               : "rgba(255,255,255,0.05)",
                           border: m.isDeleted
                             ? "1px solid rgba(255,255,255,0.05)"
                             : isMine
-                              ? "1px solid rgba(175,169,236,0.25)"
+                              ? "1px solid rgba(127,119,221,0.20)"
                               : "1px solid rgba(255,255,255,0.08)",
                           color: m.isDeleted ? "rgba(255,255,255,0.4)" : "white",
                           // 말풍선 꼬리 — 보낸(우측)은 우하단, 받은
@@ -863,10 +863,7 @@ export function ChatDrawer({
                             : isMine
                               ? "16px 16px 4px 16px"
                               : "16px 16px 16px 4px",
-                          boxShadow:
-                            isMine && !m.isDeleted
-                              ? "0 2px 14px rgba(83,74,183,0.28)"
-                              : "none",
+                          boxShadow: "none",
                         }}
                       >
                         {m.isDeleted ? (
