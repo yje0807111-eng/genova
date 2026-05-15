@@ -1,21 +1,11 @@
 import { cookies } from "next/headers";
+import { LOCALE_COOKIE_NAME } from "@/lib/i18n/constants";
 import { type Locale, translate } from "@/lib/i18n/translations";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 
-/**
- * Cookie name carrying the user's selected locale.  Mirrored on the
- * client by `language-provider.tsx` (which also writes localStorage
- * for back-compat during the Phase B.2 migration window — see
- * docs / commit history).
- *
- * Intentionally NOT HttpOnly: the client locale switcher needs to
- * write it via `document.cookie`.  SameSite=Lax + 1-year Max-Age
- * is the recommended attribute set; the cookie value itself is
- * non-sensitive (one of three known strings).
- */
-export const LOCALE_COOKIE_NAME = "genova-locale";
+export { LOCALE_COOKIE_NAME } from "@/lib/i18n/constants";
 
-function narrowLocale(value: string | null | undefined): Locale | null {
+export function narrowLocale(value: string | null | undefined): Locale | null {
   if (value === "en" || value === "ko" || value === "ja") return value;
   return null;
 }

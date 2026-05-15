@@ -1,6 +1,75 @@
+import { cookies, headers } from "next/headers";
 import { mapVideo } from "@/lib/mappers";
+import { LOCALE_COOKIE_NAME } from "@/lib/i18n/constants";
+import type { Locale } from "@/lib/i18n/translations";
+import { narrowLocale } from "@/lib/i18n/server";
 import type { Video } from "@/lib/types";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
+
+/**
+ * Pick the best-matching supported locale out of a raw Accept-Language
+ * header.  Supports en / ko / ja only (the same set as the rest of the
+ * app).  Returns null if no supported tag is found — caller falls
+ * through to a default.
+ *
+ * Tolerant of malformed `q=` values (treats them as q=1) and ranks
+ * lazily — the spec allows shuffling, but in practice browsers send
+ * the user's preference order.
+ */
+function pickAcceptLanguage(header: string | null): Locale | null {
+  if (!header) return null;
+  const parts = header
+    .split(",")
+    .map((s) => {
+      const [tag, qPart] = s.trim().split(";");
+      const q =
+        qPart && qPart.startsWith("q=") && Number.isFinite(Number(qPart.slice(2)))
+          ? Number(qPart.slice(2))
+          : 1;
+      return { tag: tag.toLowerCase(), q };
+    })
+    .sort((a, b) => b.q - a.q);
+  for (const { tag } of parts) {
+    if (tag.startsWith("ko")) return "ko";
+    if (tag.startsWith("ja")) return "ja";
+    if (tag.startsWith("en")) return "en";
+  }
+  return null;
+}
+
+/**
+ * Resolve the locale to stamp onto a brand-new profiles row.
+ *
+ * Order (highest priority first):
+ *   1. `genova-locale` cookie — they've already toggled the language
+ *      picker before signup, so respect that.
+ *   2. `Accept-Language` browser header — best heuristic before any
+ *      explicit choice.
+ *   3. `"en"` default.
+ *
+ * Important: this is ONLY consulted at first-insert time (D3).
+ * Subsequent reads come from `profiles.locale` (cross-device sync) via
+ * getServerLocale().  Users editing their preference in /profile/settings
+ * overwrite the column directly.
+ */
+async function detectInitialLocale(): Promise<Locale> {
+  try {
+    const cookieStore = await cookies();
+    const cookieLocale = narrowLocale(cookieStore.get(LOCALE_COOKIE_NAME)?.value ?? null);
+    if (cookieLocale) return cookieLocale;
+  } catch {
+    /* request context may be unavailable in odd call sites */
+  }
+  try {
+    const h = await headers();
+    const accept = h.get("accept-language");
+    const headerLocale = pickAcceptLanguage(accept);
+    if (headerLocale) return headerLocale;
+  } catch {
+    /* same as above */
+  }
+  return "en";
+}
 
 export type Profile = {
   id: string;
@@ -115,16 +184,46 @@ function mapProfile(row: {
   };
 }
 
-/** Create profile row if missing. */
+/**
+ * Create profile row if missing.  Also backfills `locale` on existing
+ * trigger-created rows that still have it NULL — see D3 notes below.
+ */
 export async function ensureProfile(userId: string, emailHint?: string | null): Promise<boolean | null> {
   const supabase = await createServerSupabaseClient();
   if (!supabase) return null;
-  const { data: existing } = await supabase.from("profiles").select("id").eq("id", userId).maybeSingle();
-  if (existing) return true;
+
+  // D3: in practice every new signup gets a profiles row from the
+  // `handle_new_user()` Postgres trigger (see migration
+  // 20260413140000) BEFORE this helper ever runs — so the insert
+  // branch below is the cold path, not the hot one.  The hot path is
+  // "row exists, locale is NULL, stamp the user's preferred locale".
+  const { data: existing } = await supabase
+    .from("profiles")
+    .select("id, locale")
+    .eq("id", userId)
+    .maybeSingle();
+
+  if (existing) {
+    const row = existing as { id: string; locale: string | null };
+    if (row.locale == null) {
+      const initialLocale = await detectInitialLocale();
+      // Best-effort: failures here just leave locale NULL so the next
+      // ensureProfile() call retries.  Not worth raising.
+      await supabase
+        .from("profiles")
+        .update({ locale: initialLocale })
+        .eq("id", userId)
+        .is("locale", null);
+    }
+    return true;
+  }
+
   const displayName = emailHint?.split("@")[0] ?? "User";
+  const initialLocale = await detectInitialLocale();
   const { error } = await supabase.from("profiles").insert({
     id: userId,
     display_name: displayName,
+    locale: initialLocale,
   });
   if (!error) return true;
   // Already created by trigger or race condition
