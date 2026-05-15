@@ -8,13 +8,18 @@ import { createVideoReportAction } from "@/app/actions/reports";
 export function WatchMoreMenu({ videoId }: { videoId: string }) {
   const { t } = useI18n();
 
+  // `as const` so each entry's `value` is inferred as its literal
+  // string.  ReportScope / ReportReason below derive from these
+  // arrays, keeping the union in sync if a new option is added.
+  // Must match the inline literal unions in
+  // `createVideoReportAction(...)` (src/app/actions/reports.ts).
   const scopeOptions = [
     { value: "video", label: t("report.scope.video", "영상") },
     { value: "audio", label: t("report.scope.audio", "오디오") },
     { value: "thumbnail", label: t("report.scope.thumbnail", "썸네일") },
     { value: "caption", label: t("report.scope.caption", "자막") },
     { value: "comment", label: t("report.scope.comment", "댓글 영역") },
-  ];
+  ] as const;
 
   const reasonOptions = [
     { value: "spam", label: t("report.reason.spam", "스팸/사기") },
@@ -25,12 +30,15 @@ export function WatchMoreMenu({ videoId }: { videoId: string }) {
     { value: "hate", label: t("report.reason.hate", "혐오 발언") },
     { value: "misinfo", label: t("report.reason.misinfo", "허위 정보") },
     { value: "other", label: t("report.reason.other", "기타") },
-  ];
+  ] as const;
+
+  type ReportScope = (typeof scopeOptions)[number]["value"];
+  type ReportReason = (typeof reasonOptions)[number]["value"];
 
   const [open, setOpen] = useState(false);
   const [reportOpen, setReportOpen] = useState(false);
-  const [scope, setScope] = useState<string>("video");
-  const [reason, setReason] = useState<string>("spam");
+  const [scope, setScope] = useState<ReportScope>("video");
+  const [reason, setReason] = useState<ReportReason>("spam");
   const [detail, setDetail] = useState("");
   const [pending, setPending] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
@@ -112,7 +120,7 @@ export function WatchMoreMenu({ videoId }: { videoId: string }) {
               </label>
               <select
                 value={scope}
-                onChange={(e) => setScope(e.target.value)}
+                onChange={(e) => setScope(e.target.value as ReportScope)}
                 className="w-full rounded-lg border border-white/[0.08] bg-white/[0.02] px-3 py-2.5 text-[13px] text-white outline-none focus:border-[#7F77DD]/40"
               >
                 {scopeOptions.map((o) => (
@@ -129,7 +137,7 @@ export function WatchMoreMenu({ videoId }: { videoId: string }) {
               </label>
               <select
                 value={reason}
-                onChange={(e) => setReason(e.target.value)}
+                onChange={(e) => setReason(e.target.value as ReportReason)}
                 className="w-full rounded-lg border border-white/[0.08] bg-white/[0.02] px-3 py-2.5 text-[13px] text-white outline-none focus:border-[#7F77DD]/40"
               >
                 {reasonOptions.map((o) => (
