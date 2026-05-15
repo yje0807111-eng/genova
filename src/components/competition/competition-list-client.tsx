@@ -239,6 +239,10 @@ function CompetitionTableRow({ c, idx, participantCount }: { c: Competition; idx
     c.exchange_rate_usd_jpy ?? 148,
   );
   const urgent = isOpen && d >= 0 && d <= 3;
+  // "₩150,000 (약 ₩1,368,243)" → 원금 / 환산 두 줄로 분리.
+  const prizeMatch = prize.match(/^(.*?)\s*\((.*)\)\s*$/);
+  const prizeMain = prizeMatch ? prizeMatch[1] : prize;
+  const prizeSub = prizeMatch ? prizeMatch[2] : null;
 
   return (
     <Link
@@ -309,12 +313,13 @@ function CompetitionTableRow({ c, idx, participantCount }: { c: Competition; idx
           )}
           <span className="truncate">{deadlineLabel}</span>
           {/* sm 미만에서 상금 인라인 노출(우측 컬럼 숨김 보완) */}
-          <span className="font-bold text-[#F5D182] sm:hidden">· {prize}</span>
+          <span className="shrink-0 font-bold text-[#F5D182] sm:hidden">· {prizeMain}</span>
         </div>
       </div>
 
-      <div className="hidden w-28 shrink-0 text-right text-[13px] font-black text-[#F5D182] sm:block">
-        {prize}
+      <div className="hidden w-36 shrink-0 text-right sm:block">
+        <p className="truncate text-[13px] font-black text-[#F5D182]">{prizeMain}</p>
+        {prizeSub && <p className="truncate text-[10px] text-white/40">{prizeSub}</p>}
       </div>
       <div className="hidden w-24 shrink-0 text-center md:block">
         <p className="text-[12px] font-medium text-white/65">{deadlineLabel}</p>
@@ -535,7 +540,7 @@ export function CompetitionListClient({
           <div className="flex items-center gap-4 border-b border-white/[0.08] px-4 py-2 text-[10px] font-semibold uppercase tracking-wider text-white/30" style={{ background: "rgba(255,255,255,0.03)" }}>
             <div className="w-[104px] shrink-0" />
             <div className="min-w-0 flex-1 text-left">{t("competition.colCompetition")}</div>
-            <div className="hidden w-28 shrink-0 text-right sm:block">{t("competition.colPrize")}</div>
+            <div className="hidden w-36 shrink-0 text-right sm:block">{t("competition.colPrize")}</div>
             <div className="hidden w-24 shrink-0 text-center md:block">{t("competition.colDeadline")}</div>
             <div className="hidden w-16 shrink-0 text-center lg:block">{t("competition.colParticipants")}</div>
             <div className="w-6 shrink-0" />
