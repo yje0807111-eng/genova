@@ -1200,6 +1200,9 @@ export const jaOverrides: Record<string, string> = {
   "watchMore.submitting": "送信中...",
   "watchMore.submit": "報告を送信",
   "watchMore.reportThanks": "報告を受け付けました。ありがとうございます。",
+  "competition.brandCtaTitle": "あなたのブランドでコンテストを開催しましょう",
+  "competition.brandCtaDesc": "Genovaが企画から精算まで一括対応。24時間以内にご連絡します。",
+  "competition.brandCtaButton": "フォームに記入する",
 
   "common.confirm": "確認",
   "competition.peopleUnit": "人",

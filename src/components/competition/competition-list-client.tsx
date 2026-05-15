@@ -599,10 +599,13 @@ export function CompetitionListClient({
               className="text-[24px] font-black leading-tight text-white md:text-[28px]"
               style={{ letterSpacing: "-0.02em" }}
             >
-              당신의 제품으로 공모전을 열어보세요
+              {t("competition.brandCtaTitle", "Launch a contest with your brand")}
             </h2>
             <p className="mt-2 text-[13px] text-white/55">
-              Genova가 기획부터 정산까지 전담합니다. 24시간 내 상담 연결.
+              {t(
+                "competition.brandCtaDesc",
+                "Genova handles everything from planning to payout. Get connected within 24 hours.",
+              )}
             </p>
           </div>
           <Link
@@ -613,7 +616,7 @@ export function CompetitionListClient({
               boxShadow: "0 8px 32px rgba(83,74,183,0.5)",
             }}
           >
-            폼 작성하기
+            {t("competition.brandCtaButton", "Fill out the form")}
             <svg className="h-3.5 w-3.5 transition-transform duration-300 group-hover:translate-x-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5}>
               <path d="M5 12h14M12 5l7 7-7 7" strokeLinecap="round" strokeLinejoin="round" />
             </svg>

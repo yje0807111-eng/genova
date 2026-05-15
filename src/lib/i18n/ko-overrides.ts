@@ -1223,6 +1223,9 @@ export const koOverrides: Record<string, string> = {
   "watchMore.submitting": "제출 중...",
   "watchMore.submit": "신고 제출",
   "watchMore.reportThanks": "신고가 접수되었습니다. 감사합니다.",
+  "competition.brandCtaTitle": "당신의 제품으로 공모전을 열어보세요",
+  "competition.brandCtaDesc": "Genova가 기획부터 정산까지 전담합니다. 24시간 내 상담 연결.",
+  "competition.brandCtaButton": "폼 작성하기",
 
 
 

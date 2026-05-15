@@ -738,6 +738,9 @@ const en: Messages = {
   "watchMore.submitting": "Submitting...",
   "watchMore.submit": "Submit report",
   "watchMore.reportThanks": "Reported. Thank you.",
+  "competition.brandCtaTitle": "Launch a contest with your brand",
+  "competition.brandCtaDesc": "Genova handles everything from planning to payout. Get connected within 24 hours.",
+  "competition.brandCtaButton": "Fill out the form",
 
   "upload.aiCategory.image": "Image Generation",
   "upload.aiCategory.video": "Video Generation",
