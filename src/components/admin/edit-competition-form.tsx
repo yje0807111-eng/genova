@@ -6,6 +6,9 @@ import { updateCompetitionAction } from "@/app/actions/admin";
 import { adminTokens } from "@/lib/admin-styles";
 import { getBrowserSupabaseClient } from "@/lib/supabase/browser";
 import { cn } from "@/lib/utils/cn";
+import { EditCompetitionImageFields } from "./edit-competition/edit-competition-image-fields";
+import { EditCompetitionPrizeFields } from "./edit-competition/edit-competition-prize-fields";
+import { EditCompetitionRulesFields } from "./edit-competition/edit-competition-rules-fields";
 
 const inp =
   "w-full rounded-xl border border-white/[0.12] bg-[#0d0b20] px-3 py-2 text-[13px] text-white outline-none placeholder:text-white/20 focus:border-[#7F77DD]/60";
@@ -420,88 +423,15 @@ export function EditCompetitionForm({ competition }: { competition: any }) {
               </div>
 
               {/* 이미지 */}
-              <div className="rounded-xl border border-white/[0.06] p-4" style={{ background: "var(--border-white-02)" }}>
-                <h2 className="mb-3 text-[10px] font-bold uppercase tracking-widest text-[#AFA9EC]">이미지</h2>
-                <div className="space-y-3">
-                  <div>
-                    <label className={adminTokens.inputLabel}>공모전 썸네일</label>
-                    {thumbnailPreview ? (
-                      <div className="relative overflow-hidden rounded-xl border border-white/[0.08]">
-                        {/* eslint-disable-next-line @next/next/no-img-element -- blob: URI or persisted URL after upload; next/image not applicable to blob */}
-                        <img src={thumbnailPreview} alt="" className="aspect-video w-full object-cover" />
-                        <button
-                          type="button"
-                          onClick={() => thumbInputRef.current?.click()}
-                          className="absolute right-12 top-2 rounded-lg bg-black/70 px-3 py-1.5 text-xs font-semibold text-white backdrop-blur-sm transition hover:bg-black/90"
-                        >
-                          변경
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setThumbnailPreview(null);
-                            setForm((p) => ({ ...p, thumbnailUrl: "" }));
-                            if (thumbInputRef.current) thumbInputRef.current.value = "";
-                          }}
-                          className="absolute right-2 top-2 flex h-7 w-7 items-center justify-center rounded-lg bg-black/70 text-white/70 backdrop-blur-sm transition hover:bg-red-500/70 hover:text-white"
-                        >
-                          <svg viewBox="0 0 24 24" className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth={2}>
-                            <path d="M18 6L6 18M6 6l12 12" strokeLinecap="round" />
-                          </svg>
-                        </button>
-                      </div>
-                    ) : (
-                      <button
-                        type="button"
-                        onClick={() => thumbInputRef.current?.click()}
-                        className="flex h-32 w-full flex-col items-center justify-center gap-2 rounded-xl border border-dashed border-[#7F77DD]/25 bg-white/[0.02] transition hover:border-[#7F77DD]/50"
-                      >
-                        <svg className="h-6 w-6 text-[#7F77DD]/40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5}>
-                          <path d="M12 16v-8m0 0-3 3m3-3 3 3M4 17h16" strokeLinecap="round" strokeLinejoin="round" />
-                        </svg>
-                        <p className="text-xs text-white/30">썸네일 업로드</p>
-                      </button>
-                    )}
-                  </div>
-                  <div>
-                    <label className={adminTokens.inputLabel}>스폰서 로고</label>
-                    {sponsorLogoPreview ? (
-                      <div className="relative overflow-hidden rounded-xl border border-white/[0.08] p-3">
-                        {/* eslint-disable-next-line @next/next/no-img-element -- blob: URI or persisted URL after upload; next/image not applicable to blob */}
-                        <img src={sponsorLogoPreview} alt="" className="h-16 object-contain" />
-                        <button
-                          type="button"
-                          onClick={() => sponsorLogoInputRef.current?.click()}
-                          className="absolute right-12 top-2 rounded-lg bg-black/70 px-2 py-1 text-xs text-white"
-                        >
-                          변경
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setSponsorLogoPreview(null);
-                            setForm((p) => ({ ...p, sponsorLogoUrl: "" }));
-                            if (sponsorLogoInputRef.current) sponsorLogoInputRef.current.value = "";
-                          }}
-                          className="absolute right-2 top-2 flex h-7 w-7 items-center justify-center rounded-lg bg-black/70 text-white/70 backdrop-blur-sm transition hover:bg-red-500/70 hover:text-white"
-                        >
-                          <svg viewBox="0 0 24 24" className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth={2}>
-                            <path d="M18 6L6 18M6 6l12 12" strokeLinecap="round" />
-                          </svg>
-                        </button>
-                      </div>
-                    ) : (
-                      <button
-                        type="button"
-                        onClick={() => sponsorLogoInputRef.current?.click()}
-                        className="flex h-20 w-full flex-col items-center justify-center gap-2 rounded-xl border border-dashed border-white/[0.08] bg-white/[0.02] transition hover:border-white/20"
-                      >
-                        <p className="text-xs text-white/30">스폰서 로고 업로드</p>
-                      </button>
-                    )}
-                  </div>
-                </div>
-              </div>
+              <EditCompetitionImageFields
+                setForm={setForm}
+                thumbInputRef={thumbInputRef}
+                sponsorLogoInputRef={sponsorLogoInputRef}
+                thumbnailPreview={thumbnailPreview}
+                setThumbnailPreview={setThumbnailPreview}
+                sponsorLogoPreview={sponsorLogoPreview}
+                setSponsorLogoPreview={setSponsorLogoPreview}
+              />
             </div>
 
             {/* 오른쪽 */}
@@ -543,258 +473,15 @@ export function EditCompetitionForm({ competition }: { competition: any }) {
               </div>
 
               {/* 상금 구성 */}
-              <div className="rounded-xl border border-white/[0.06] p-4" style={{ background: "var(--border-white-02)" }}>
-                <h2 className="mb-3 text-[10px] font-bold uppercase tracking-widest text-[#AFA9EC]">상금 구성</h2>
-                
-                {/* 총상금 잔액 표시 */}
-                {(() => {
-                  const sym = priceCurrency === "KRW" ? "₩" : priceCurrency === "USD" ? "$" : "¥";
-                  const total = Number(prizeAmount) || 0;
-                  const allocated =
-                    (Number(form.prize_grand.replace(/[^0-9]/g, "")) || 0) +
-                    (Number(form.prize_excellence.replace(/[^0-9]/g, "")) || 0) +
-                    (Number(form.prize_merit.replace(/[^0-9]/g, "")) || 0) +
-                    ((Number(form.prize_audience.replace(/[^0-9]/g, "")) || 0) * (form.prize_audience_count || 1));
-                  const remaining = total - allocated;
-                  const isOver = remaining < 0;
-                  return (
-                    <div
-                      className="mb-4 rounded-xl p-3"
-                      style={{
-                        background: isOver ? "rgba(239,68,68,0.1)" : "rgba(83,74,183,0.1)",
-                        border: `1px solid ${isOver ? "rgba(239,68,68,0.3)" : "rgba(127,119,221,0.2)"}`,
-                      }}
-                    >
-                      <div className="flex items-center justify-between">
-                        <span className="text-[10px] text-white/35">총 상금</span>
-                        <span className="text-[13px] font-bold text-white">{sym}{total.toLocaleString()}</span>
-                      </div>
-                      <div className="flex items-center justify-between mt-1.5">
-                        <span className="text-[10px] text-white/35">배분됨</span>
-                        <span className="text-[12px] font-semibold text-white/55">{sym}{allocated.toLocaleString()}</span>
-                      </div>
-                      <div className="mt-1.5 h-px bg-white/10" />
-                      <div className="flex items-center justify-between mt-1.5">
-                        <span className="text-[10px] font-bold" style={{ color: isOver ? "#ef4444" : "#AFA9EC" }}>
-                          {isOver ? "⚠ 초과" : "남은 금액"}
-                        </span>
-                        <span
-                          className="text-[13px] font-extrabold"
-                          style={{ color: isOver ? "#ef4444" : remaining === 0 ? "#34d399" : "#AFA9EC" }}
-                        >
-                          {sym}{Math.abs(remaining).toLocaleString()}
-                          {remaining === 0 && " ✓"}
-                        </span>
-                      </div>
-                    </div>
-                  );
-                })()}
-
-                <div className="space-y-2">
-                  {[
-                    { key: "prize_grand", label: "🥇 대상" },
-                    { key: "prize_excellence", label: "🥈 우수상" },
-                    { key: "prize_merit", label: "🥉 장려상" },
-                  ].map((tier) => {
-                    const sym = priceCurrency === "KRW" ? "₩" : priceCurrency === "USD" ? "$" : "¥";
-                    const val = form[tier.key as "prize_grand" | "prize_excellence" | "prize_merit"];
-                    const num = Number(val.replace(/[^0-9]/g, "")) || 0;
-                    return (
-                      <div key={tier.key}>
-                        <label className={adminTokens.inputLabel}>{tier.label}</label>
-                        <div className="relative">
-                          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[11px] text-white/30">{sym}</span>
-                          <input
-                            type="number"
-                            value={val.replace(/[^0-9]/g, "")}
-                            onChange={(e) => {
-                              const n = e.target.value;
-                              const formatted = n ? `${sym}${Number(n).toLocaleString()}` : "";
-                              setForm((p) => ({ ...p, [tier.key]: formatted }));
-                            }}
-                            className={inp + " pl-7"}
-                            placeholder="0"
-                          />
-                        </div>
-                        {num > 0 && (
-                          <p className="mt-0.5 text-[10px] text-white/30">
-                            {sym}{num.toLocaleString()}
-                            {priceCurrency === "USD" && (
-                              <span className="ml-2">
-                                · ₩{(num * (form.exchange_rate_usd_krw || 1350)).toLocaleString()}
-                                · ¥{(num * (form.exchange_rate_usd_jpy || 148)).toLocaleString()}
-                              </span>
-                            )}
-                            {priceCurrency === "KRW" && (
-                              <span className="ml-2">
-                                · ${Math.round(num / (form.exchange_rate_usd_krw || 1350)).toLocaleString()}
-                              </span>
-                            )}
-                          </p>
-                        )}
-                      </div>
-                    );
-                  })}
-
-                  {/* 관객상 — 인원 수 설정 */}
-                  {(() => {
-                    const sym = priceCurrency === "KRW" ? "₩" : priceCurrency === "USD" ? "$" : "¥";
-                    const val = form.prize_audience;
-                    const num = Number(val.replace(/[^0-9]/g, "")) || 0;
-                    const count = form.prize_audience_count || 1;
-                    const total = num * count;
-                    return (
-                      <div>
-                        <label className={adminTokens.inputLabel}>🎖 관객상</label>
-                        <div className="flex items-center gap-2">
-                          <div className="relative" style={{ flex: "3" }}>
-                            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[11px] text-white/30">{sym}</span>
-                            <input
-                              type="number"
-                              value={val.replace(/[^0-9]/g, "")}
-                              onChange={(e) => {
-                                const n = e.target.value;
-                                const formatted = n ? `${sym}${Number(n).toLocaleString()}` : "";
-                                setForm((p) => ({ ...p, prize_audience: formatted }));
-                              }}
-                              className={inp + " pl-7"}
-                              placeholder="0"
-                            />
-                          </div>
-                          <span className="shrink-0 text-[11px] text-white/30">×</span>
-                          <div style={{ flex: "1" }}>
-                            <input
-                              type="number"
-                              min={1}
-                              max={100}
-                              value={count}
-                              onChange={(e) => setForm((p) => ({ ...p, prize_audience_count: Number(e.target.value) || 1 }))}
-                              className={inp + " text-center"}
-                              placeholder="1"
-                            />
-                          </div>
-                          <span className="shrink-0 text-[11px] text-white/30">명</span>
-                        </div>
-                        {num > 0 && (
-                          <p className="mt-0.5 text-[10px] text-white/30">
-                            1인당 {sym}{num.toLocaleString()} × {count}명 = <span className="text-[#AFA9EC]">{sym}{total.toLocaleString()}</span>
-                            {priceCurrency === "USD" && <span className="ml-2">· ₩{(total * (form.exchange_rate_usd_krw || 1350)).toLocaleString()}</span>}
-                          </p>
-                        )}
-                      </div>
-                    );
-                  })()}
-                </div>
-              </div>
+              <EditCompetitionPrizeFields
+                form={form}
+                setForm={setForm}
+                prizeAmount={prizeAmount}
+                priceCurrency={priceCurrency}
+              />
 
               {/* 규칙 및 심사 */}
-              <div className="rounded-xl border border-white/[0.06] p-4" style={{ background: "var(--border-white-02)" }}>
-                <h2 className="mb-3 text-[10px] font-bold uppercase tracking-widest text-[#AFA9EC]">규칙 및 심사</h2>
-                <div className="space-y-2">
-                  <div>
-                    <label className={adminTokens.inputLabel}>
-                      주제 {langTab === "ko" ? "(한국어)" : langTab === "en" ? "(영어)" : "(일본어)"}
-                    </label>
-                    <p className="mb-1.5 text-[10px] text-white/25">각 주제를 줄바꿈(Enter)으로 구분하면 번호가 자동으로 붙습니다.</p>
-                    <textarea
-                      value={form[`rules_${langTab}` as "rules_ko" | "rules_en" | "rules_ja"]}
-                      onChange={(e) =>
-                        setForm((p) => ({ ...p, [`rules_${langTab}`]: e.target.value } as typeof p))
-                      }
-                      rows={6}
-                      className={inp + " resize-none"}
-                      placeholder={
-                        langTab === "ko"
-                          ? "예:\nAI가 인간을 대신할 수 없는 순간을 담아주세요.\n장르와 형식에 제한이 없습니다.\n90초 이내로 완성해주세요."
-                          : langTab === "en"
-                            ? "e.g.:\nCapture a moment AI cannot replace.\nNo genre or format restrictions.\nComplete within 90 seconds."
-                            : "例:\nAIが人間に代われない瞬間を表現してください。\nジャンルや形式に制限はありません。\n90秒以内に仕上げてください。"
-                      }
-                    />
-                  </div>
-                  <div>
-                    <label className={adminTokens.inputLabel}>참가 자격 {langTab === "ko" ? "(한국어)" : langTab === "en" ? "(영어)" : "(일본어)"}</label>
-                    <textarea
-                      value={form[`eligibility_${langTab}` as "eligibility_ko" | "eligibility_en" | "eligibility_ja"]}
-                      onChange={(e) =>
-                        setForm((p) => ({ ...p, [`eligibility_${langTab}`]: e.target.value } as typeof p))
-                      }
-                      rows={2}
-                      className={inp + " resize-none"}
-                      placeholder={
-                        langTab === "ko"
-                          ? "예: 전 세계 AI 크리에이터 누구나"
-                          : langTab === "en"
-                            ? "e.g. Open to all AI creators worldwide"
-                            : "例: 世界中のAIクリエイター"
-                      }
-                    />
-                  </div>
-                  <div>
-                    <label className={adminTokens.inputLabel}>출품 가이드라인 {langTab === "ko" ? "(한국어)" : langTab === "en" ? "(영어)" : "(일본어)"}</label>
-                    <textarea
-                      value={
-                        form[
-                          `submission_guidelines_${langTab}` as
-                            | "submission_guidelines_ko"
-                            | "submission_guidelines_en"
-                            | "submission_guidelines_ja"
-                        ]
-                      }
-                      onChange={(e) =>
-                        setForm((p) => ({ ...p, [`submission_guidelines_${langTab}`]: e.target.value } as typeof p))
-                      }
-                      rows={2}
-                      className={inp + " resize-none"}
-                      placeholder={
-                        langTab === "ko"
-                          ? "예: 90초 이내 AI 생성 영상"
-                          : langTab === "en"
-                            ? "e.g. AI-generated video under 90 seconds"
-                            : "例: 90秒以内のAI生成動画"
-                      }
-                    />
-                  </div>
-                  <div>
-                    <label className={adminTokens.inputLabel}>심사 방법 {langTab === "ko" ? "(한국어)" : langTab === "en" ? "(영어)" : "(일본어)"}</label>
-                    <textarea
-                      value={
-                        form[`judging_criteria_${langTab}` as "judging_criteria_ko" | "judging_criteria_en" | "judging_criteria_ja"]
-                      }
-                      onChange={(e) =>
-                        setForm((p) => ({ ...p, [`judging_criteria_${langTab}`]: e.target.value } as typeof p))
-                      }
-                      rows={2}
-                      className={inp + " resize-none"}
-                      placeholder={
-                        langTab === "ko"
-                          ? "예: 심사위원 50% + 시청자 투표 50%"
-                          : langTab === "en"
-                            ? "e.g. Judges 50% + Audience vote 50%"
-                            : "例: 審査員50% + 視聴者投票50%"
-                      }
-                    />
-                  </div>
-                  <div>
-                    <label className={adminTokens.inputLabel}>규칙 {langTab === "ko" ? "(한국어)" : langTab === "en" ? "(영어)" : "(일본어)"}</label>
-                    <textarea
-                      value={form[`rules_${langTab}` as "rules_ko" | "rules_en" | "rules_ja"]}
-                      onChange={(e) =>
-                        setForm((p) => ({ ...p, [`rules_${langTab}`]: e.target.value } as typeof p))
-                      }
-                      rows={3}
-                      className={inp + " resize-none"}
-                      placeholder={
-                        langTab === "ko"
-                          ? "예: AI로 제작한 영상만 출품 가능"
-                          : langTab === "en"
-                            ? "e.g. Only AI-generated videos allowed"
-                            : "例: AI生成動画のみ出品可能"
-                      }
-                    />
-                  </div>
-                </div>
-              </div>
+              <EditCompetitionRulesFields form={form} setForm={setForm} langTab={langTab} />
             </div>
           </div>
         </div>
