@@ -249,12 +249,13 @@ export function VideoManage({
             <div
               key={video.id}
               className={cn(
-                "group flex flex-wrap items-center gap-3 rounded-lg border px-3 py-2.5 transition",
+                "group rounded-lg border transition",
                 video.isCompetitionFeatured
                   ? "border-[#7F77DD]/25 bg-[#7F77DD]/[0.04] hover:border-[#7F77DD]/35 hover:bg-[#7F77DD]/[0.06]"
                   : "border-white/[0.04] bg-white/[0.01] hover:border-white/[0.08] hover:bg-white/[0.03]",
               )}
             >
+              <div className="flex flex-wrap items-center gap-3 px-3 py-2.5">
               <div className="relative h-9 w-16 shrink-0 overflow-hidden rounded">
                 {video.thumbnailUrl?.trim() ? (
                   <Image src={video.thumbnailUrl} alt="" fill sizes="64px" className="object-cover" />
@@ -328,81 +329,19 @@ export function VideoManage({
                   <ExternalLink size={13} />
                 </button>
 
-                <div className="relative">
-                  <button
-                    type="button"
-                    disabled={loading}
-                    onClick={() => setShowAwardSelect(showAwardSelect === video.id ? null : video.id)}
-                    className={cn(adminTokens.iconButton, "disabled:opacity-40")}
-                    title="수상 지정"
-                  >
-                    <Trophy size={13} />
-                  </button>
-                  {showAwardSelect === video.id ? (
-                    <div className="absolute right-0 top-full z-50 mt-1 w-48 overflow-hidden rounded-md border border-white/[0.08] py-1 shadow-lg" style={{ background: "#0d0b1f" }}>
-                      <div className="max-h-[200px] overflow-y-auto">
-                        <button
-                          type="button"
-                          onClick={() => handleAward(video.id, "")}
-                          className="flex w-full items-center px-3 py-1.5 text-left text-[12px] text-white/35 transition hover:bg-white/[0.05] hover:text-white/70"
-                        >
-                          수상 취소
-                        </button>
-                        {awardOptions.map((award) => (
-                          <button
-                            key={award}
-                            type="button"
-                            onClick={() => handleAward(video.id, award)}
-                            className="flex w-full items-center justify-between px-3 py-1.5 text-left text-[12px] transition hover:bg-white/[0.05]"
-                            style={{ color: video.award === award ? "#94a3b8" : "rgba(255,255,255,0.65)" }}
-                          >
-                            <span>{award}</span>
-                          </button>
-                        ))}
-                      </div>
-                      <div className={cn(adminTokens.divider, "p-2")}>
-                        <div className="flex gap-1">
-                          <input
-                            value={newAwardOption}
-                            onChange={(e) => setNewAwardOption(e.target.value)}
-                            onKeyDown={(e) => {
-                              if (e.key === "Enter") {
-                                e.preventDefault();
-                                if (!newAwardOption.trim()) return;
-                                if (!awardOptions.includes(newAwardOption.trim())) {
-                                  persistAwardOptions([...awardOptions, newAwardOption.trim()]);
-                                }
-                                setNewAwardOption("");
-                              }
-                            }}
-                            className={cn(adminTokens.input, "h-8 flex-1 text-[11px]")}
-                            placeholder="새 수상 추가..."
-                          />
-                          <button
-                            type="button"
-                            onClick={() => {
-                              if (!newAwardOption.trim()) return;
-                              if (!awardOptions.includes(newAwardOption.trim())) {
-                                persistAwardOptions([...awardOptions, newAwardOption.trim()]);
-                              }
-                              setNewAwardOption("");
-                            }}
-                            className={adminTokens.buttonSecondary}
-                          >
-                            +
-                          </button>
-                        </div>
-                      </div>
-                      <button
-                        type="button"
-                        onClick={() => setShowAwardSelect(null)}
-                        className="absolute right-2 top-2 text-white/25 hover:text-white/50"
-                      >
-                        ×
-                      </button>
-                    </div>
-                  ) : null}
-                </div>
+                <button
+                  type="button"
+                  disabled={loading}
+                  onClick={() => setShowAwardSelect(showAwardSelect === video.id ? null : video.id)}
+                  className={cn(
+                    adminTokens.iconButton,
+                    "disabled:opacity-40",
+                    showAwardSelect === video.id && "bg-white/[0.06] text-white/80",
+                  )}
+                  title="수상 지정"
+                >
+                  <Trophy size={13} />
+                </button>
 
                 <button
                   type="button"
@@ -423,6 +362,71 @@ export function VideoManage({
                   <Trash2 size={13} />
                 </button>
               </div>
+              </div>
+
+              {/* 수상 등급 inline 펼침 — absolute 드롭다운은 목록의
+                  max-h overflow-y-auto 스크롤 컨테이너에 잘려서, 행
+                  아래 일반 흐름 줄로 펼친다. */}
+              {showAwardSelect === video.id ? (
+                <div className="flex flex-wrap items-center gap-1.5 border-t border-white/[0.06] px-3 py-2.5">
+                  <span className="mr-1 text-[10px] text-white/40">수상 등급</span>
+                  <button
+                    type="button"
+                    disabled={loading}
+                    onClick={() => handleAward(video.id, "")}
+                    className="h-7 rounded-md px-2.5 text-[11px] font-medium text-white/40 transition hover:bg-white/[0.06] hover:text-white/70"
+                  >
+                    수상 취소
+                  </button>
+                  {awardOptions.map((award) => (
+                    <button
+                      key={award}
+                      type="button"
+                      disabled={loading}
+                      onClick={() => handleAward(video.id, award)}
+                      className={cn(
+                        "h-7 rounded-md px-2.5 text-[11px] font-medium transition",
+                        video.award === award
+                          ? "border border-amber-400/40 bg-amber-400/20 text-amber-300"
+                          : "border border-white/[0.08] bg-white/[0.02] text-white/60 hover:bg-white/[0.06] hover:text-white/90",
+                      )}
+                    >
+                      {award}
+                    </button>
+                  ))}
+                  <div className="flex items-center gap-1">
+                    <input
+                      value={newAwardOption}
+                      onChange={(e) => setNewAwardOption(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") {
+                          e.preventDefault();
+                          if (!newAwardOption.trim()) return;
+                          if (!awardOptions.includes(newAwardOption.trim())) {
+                            persistAwardOptions([...awardOptions, newAwardOption.trim()]);
+                          }
+                          setNewAwardOption("");
+                        }
+                      }}
+                      className={cn(adminTokens.input, "h-7 w-[120px] text-[11px]")}
+                      placeholder="새 수상 추가…"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (!newAwardOption.trim()) return;
+                        if (!awardOptions.includes(newAwardOption.trim())) {
+                          persistAwardOptions([...awardOptions, newAwardOption.trim()]);
+                        }
+                        setNewAwardOption("");
+                      }}
+                      className={cn(adminTokens.buttonSecondary, "h-7 px-2 text-[11px]")}
+                    >
+                      +
+                    </button>
+                  </div>
+                </div>
+              ) : null}
             </div>
           ))
         )}
