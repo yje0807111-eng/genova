@@ -63,6 +63,52 @@ export function EditCompetitionPrizeFields({
         );
       })()}
 
+      {(() => {
+        const sym = priceCurrency === "KRW" ? "₩" : priceCurrency === "USD" ? "$" : "¥";
+        const total = Number(prizeAmount) || 0;
+        const allocated =
+          (Number(form.prize_grand.replace(/[^0-9]/g, "")) || 0) +
+          (Number(form.prize_excellence.replace(/[^0-9]/g, "")) || 0) +
+          (Number(form.prize_merit.replace(/[^0-9]/g, "")) || 0) +
+          (Number(form.prize_audience.replace(/[^0-9]/g, "")) || 0) * (form.prize_audience_count || 1);
+        const remaining = total - allocated;
+        const btn =
+          "rounded-md border border-white/[0.08] bg-white/[0.03] px-2.5 py-1.5 text-[10px] font-semibold text-white/55 transition hover:border-[#7F77DD]/40 hover:text-[#AFA9EC] disabled:opacity-30 disabled:hover:border-white/[0.08] disabled:hover:text-white/55";
+        return (
+          <div className="mb-3 flex flex-wrap gap-1.5">
+            <button
+              type="button"
+              className={btn}
+              disabled={remaining <= 0}
+              onClick={() =>
+                setForm((p) => {
+                  const cur = Number(p.prize_grand.replace(/[^0-9]/g, "")) || 0;
+                  const v = cur + remaining;
+                  return { ...p, prize_grand: v ? `${sym}${v.toLocaleString()}` : "" };
+                })
+              }
+            >
+              잔액 대상에 채우기
+            </button>
+            <button
+              type="button"
+              className={btn}
+              onClick={() =>
+                setForm((p) => ({
+                  ...p,
+                  prize_grand: "",
+                  prize_excellence: "",
+                  prize_merit: "",
+                  prize_audience: "",
+                }))
+              }
+            >
+              전체 지우기
+            </button>
+          </div>
+        );
+      })()}
+
       <div className="space-y-2">
         {[
           { key: "prize_grand", label: "대상" },
@@ -78,11 +124,12 @@ export function EditCompetitionPrizeFields({
               <div className="relative">
                 <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[11px] text-white/30">{sym}</span>
                 <input
-                  type="number"
-                  value={val.replace(/[^0-9]/g, "")}
+                  type="text"
+                  inputMode="numeric"
+                  value={num ? num.toLocaleString() : ""}
                   onChange={(e) => {
-                    const n = e.target.value;
-                    const formatted = n ? `${sym}${Number(n).toLocaleString()}` : "";
+                    const raw = e.target.value.replace(/[^0-9]/g, "");
+                    const formatted = raw ? `${sym}${Number(raw).toLocaleString()}` : "";
                     setForm((p) => ({ ...p, [tier.key]: formatted }));
                   }}
                   className={inp + " pl-7"}
@@ -123,11 +170,12 @@ export function EditCompetitionPrizeFields({
                 <div className="relative" style={{ flex: "3" }}>
                   <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[11px] text-white/30">{sym}</span>
                   <input
-                    type="number"
-                    value={val.replace(/[^0-9]/g, "")}
+                    type="text"
+                    inputMode="numeric"
+                    value={num ? num.toLocaleString() : ""}
                     onChange={(e) => {
-                      const n = e.target.value;
-                      const formatted = n ? `${sym}${Number(n).toLocaleString()}` : "";
+                      const raw = e.target.value.replace(/[^0-9]/g, "");
+                      const formatted = raw ? `${sym}${Number(raw).toLocaleString()}` : "";
                       setForm((p) => ({ ...p, prize_audience: formatted }));
                     }}
                     className={inp + " pl-7"}

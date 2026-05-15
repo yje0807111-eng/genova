@@ -100,6 +100,35 @@ export function EditCompetitionForm({ competition }: { competition: any }) {
     return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}T${p(d.getHours())}:${p(d.getMinutes())}`;
   };
 
+  // datetime-local 값을 안전하게 ISO로. 빈 값/부분 입력이면 ""을 반환해
+  // `new Date("").toISOString()` RangeError 크래시를 막는다.
+  const localToIso = (local: string) => {
+    if (!local) return "";
+    const d = new Date(local);
+    return Number.isNaN(d.getTime()) ? "" : d.toISOString();
+  };
+  // 기준 날짜(없으면 현재) + days. 상대 빠른설정 칩에 사용.
+  const shiftIso = (baseIso: string, days: number) => {
+    const base = baseIso ? new Date(baseIso) : new Date(nowMs);
+    const d = Number.isNaN(base.getTime()) ? new Date(nowMs) : base;
+    d.setDate(d.getDate() + days);
+    return d.toISOString();
+  };
+  const WEEKDAY_KO = ["일", "월", "화", "수", "목", "금", "토"];
+  const fmtDate = (iso: string) => {
+    if (!iso) return null;
+    const d = new Date(iso);
+    if (Number.isNaN(d.getTime())) return null;
+    const p = (n: number) => String(n).padStart(2, "0");
+    return `${d.getFullYear()}.${p(d.getMonth() + 1)}.${p(d.getDate())} (${WEEKDAY_KO[d.getDay()]}) ${p(d.getHours())}:${p(d.getMinutes())}`;
+  };
+  const relDays = (iso: string) => {
+    if (!iso) return null;
+    const t = new Date(iso).getTime();
+    if (Number.isNaN(t)) return null;
+    return Math.ceil((t - nowMs) / 86_400_000);
+  };
+
   const uploadImage = async (file: File, path: string): Promise<string | null> => {
     const supabase = getBrowserSupabaseClient();
     if (!supabase) return null;
@@ -465,35 +494,102 @@ export function EditCompetitionForm({ competition }: { competition: any }) {
 
             {activeStep === 2 && (
               <Section title={current.title} hint={current.short}>
-                <div className="grid gap-4 sm:grid-cols-3">
-                  <div>
-                    <label className={adminTokens.inputLabel}>접수 시작일</label>
-                    <input
-                      type="datetime-local"
-                      value={isoToLocal(form.start_date)}
-                      onChange={(e) => setForm((p) => ({ ...p, start_date: new Date(e.target.value).toISOString() }))}
-                      className={inp}
-                    />
-                  </div>
-                  <div>
-                    <label className={adminTokens.inputLabel}>접수 마감일</label>
-                    <input
-                      type="datetime-local"
-                      value={isoToLocal(form.deadline)}
-                      onChange={(e) => setForm((p) => ({ ...p, deadline: new Date(e.target.value).toISOString() }))}
-                      className={inp}
-                    />
-                  </div>
-                  <div>
-                    <label className={adminTokens.inputLabel}>투표 마감일</label>
-                    <input
-                      type="datetime-local"
-                      value={isoToLocal(form.voteEnd)}
-                      onChange={(e) => setForm((p) => ({ ...p, voteEnd: new Date(e.target.value).toISOString() }))}
-                      className={inp}
-                    />
-                  </div>
-                </div>
+                {(() => {
+                  const chip =
+                    "rounded-md border border-white/[0.08] bg-white/[0.03] px-2 py-1 text-[10px] font-semibold text-white/55 transition hover:border-[#7F77DD]/40 hover:text-[#AFA9EC]";
+                  const Preview = ({ iso }: { iso: string }) => {
+                    const f = fmtDate(iso);
+                    const rd = relDays(iso);
+                    if (!f) return <p className="mt-1 text-[10px] text-white/25">날짜를 선택하세요</p>;
+                    return (
+                      <p className="mt-1 text-[10px] text-white/40">
+                        {f}
+                        {rd != null && (
+                          <span className="ml-1 text-[#AFA9EC]">
+                            · {rd >= 0 ? `D-${rd}` : `${-rd}일 경과`}
+                          </span>
+                        )}
+                      </p>
+                    );
+                  };
+                  const Warn = ({ msg }: { msg: string }) => (
+                    <p className="mt-1 text-[10px] font-medium text-red-400">⚠ {msg}</p>
+                  );
+                  const startT = form.start_date ? new Date(form.start_date).getTime() : NaN;
+                  const deadT = form.deadline ? new Date(form.deadline).getTime() : NaN;
+                  const voteT = form.voteEnd ? new Date(form.voteEnd).getTime() : NaN;
+                  const deadBad = !Number.isNaN(startT) && !Number.isNaN(deadT) && deadT <= startT;
+                  const voteBad = !Number.isNaN(deadT) && !Number.isNaN(voteT) && voteT <= deadT;
+                  return (
+                    <div className="grid gap-5 sm:grid-cols-3">
+                      <div>
+                        <label className={adminTokens.inputLabel}>접수 시작일</label>
+                        <input
+                          type="datetime-local"
+                          value={isoToLocal(form.start_date)}
+                          onChange={(e) => setForm((p) => ({ ...p, start_date: localToIso(e.target.value) }))}
+                          className={inp}
+                        />
+                        <div className="mt-1.5 flex flex-wrap gap-1">
+                          <button type="button" className={chip} onClick={() => setForm((p) => ({ ...p, start_date: shiftIso("", 0) }))}>
+                            지금
+                          </button>
+                          <button type="button" className={chip} onClick={() => setForm((p) => ({ ...p, start_date: shiftIso("", 7) }))}>
+                            +1주
+                          </button>
+                          <button type="button" className={chip} onClick={() => setForm((p) => ({ ...p, start_date: shiftIso("", 30) }))}>
+                            +1달
+                          </button>
+                        </div>
+                        <Preview iso={form.start_date} />
+                      </div>
+                      <div>
+                        <label className={adminTokens.inputLabel}>접수 마감일</label>
+                        <input
+                          type="datetime-local"
+                          value={isoToLocal(form.deadline)}
+                          onChange={(e) => setForm((p) => ({ ...p, deadline: localToIso(e.target.value) }))}
+                          className={inp}
+                        />
+                        <div className="mt-1.5 flex flex-wrap gap-1">
+                          <button type="button" className={chip} onClick={() => setForm((p) => ({ ...p, deadline: shiftIso(p.start_date, 7) }))}>
+                            시작+1주
+                          </button>
+                          <button type="button" className={chip} onClick={() => setForm((p) => ({ ...p, deadline: shiftIso(p.start_date, 14) }))}>
+                            +2주
+                          </button>
+                          <button type="button" className={chip} onClick={() => setForm((p) => ({ ...p, deadline: shiftIso(p.start_date, 30) }))}>
+                            +1달
+                          </button>
+                        </div>
+                        <Preview iso={form.deadline} />
+                        {deadBad && <Warn msg="마감이 시작일보다 빠릅니다" />}
+                      </div>
+                      <div>
+                        <label className={adminTokens.inputLabel}>투표 마감일</label>
+                        <input
+                          type="datetime-local"
+                          value={isoToLocal(form.voteEnd)}
+                          onChange={(e) => setForm((p) => ({ ...p, voteEnd: localToIso(e.target.value) }))}
+                          className={inp}
+                        />
+                        <div className="mt-1.5 flex flex-wrap gap-1">
+                          <button type="button" className={chip} onClick={() => setForm((p) => ({ ...p, voteEnd: shiftIso(p.deadline, 3) }))}>
+                            마감+3일
+                          </button>
+                          <button type="button" className={chip} onClick={() => setForm((p) => ({ ...p, voteEnd: shiftIso(p.deadline, 7) }))}>
+                            +1주
+                          </button>
+                          <button type="button" className={chip} onClick={() => setForm((p) => ({ ...p, voteEnd: shiftIso(p.deadline, 14) }))}>
+                            +2주
+                          </button>
+                        </div>
+                        <Preview iso={form.voteEnd} />
+                        {voteBad && <Warn msg="투표 마감이 접수 마감보다 빠릅니다" />}
+                      </div>
+                    </div>
+                  );
+                })()}
               </Section>
             )}
 
@@ -524,14 +620,16 @@ export function EditCompetitionForm({ competition }: { competition: any }) {
                           ))}
                         </div>
                         <input
-                          type="number"
-                          value={prizeAmount}
+                          type="text"
+                          inputMode="numeric"
+                          value={prizeAmount ? Number(prizeAmount).toLocaleString() : ""}
                           onChange={(e) => {
-                            setPrizeAmount(e.target.value);
-                            applyPrize(priceCurrency, e.target.value);
+                            const raw = e.target.value.replace(/[^0-9]/g, "");
+                            setPrizeAmount(raw);
+                            applyPrize(priceCurrency, raw);
                           }}
                           className={inp}
-                          placeholder="금액 입력 (예: 1000000)"
+                          placeholder="금액 입력 (예: 1,000,000)"
                         />
                       </div>
                       {form.prizeInfo && <p className="mt-1 text-[10px] text-[#AFA9EC]">총 상금: {form.prizeInfo}</p>}
