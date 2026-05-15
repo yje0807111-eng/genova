@@ -83,24 +83,39 @@ export default async function WatchDetailPage({
     redirect("/?notice=video-removed");
   }
 
-  const didIncrementView = await incrementVideoViewCount(id);
+  // Parallelize the post-resolve I/O block.  All six are independent
+  // (they share no state beyond the resolved `video` and `id`) so
+  // running them concurrently shaves multiple round-trips off TTFB on
+  // the highest-traffic dynamic page.  Each helper creates its own
+  // request-cached server supabase client internally — no shared
+  // handle needed.
+  const supabase = await createServerSupabaseClient();
+  const [
+    didIncrementView,
+    userResult,
+    engagementResult,
+    progress,
+    cookieStore,
+    rawRelated,
+  ] = await Promise.all([
+    incrementVideoViewCount(id),
+    supabase
+      ? supabase.auth.getUser()
+      : Promise.resolve({ data: { user: null } }),
+    attachEngagementToVideos([video]),
+    getVideoProgress(video.id),
+    cookies(),
+    fetchRelatedVideos(video.id, 20),
+  ]);
+
+  const user = userResult.data?.user ?? null;
+  video = engagementResult[0];
   if (didIncrementView) {
     video = { ...video, viewCount: (video.viewCount ?? 0) + 1 };
   }
 
-  const supabase = await createServerSupabaseClient();
-  const { data: userData } = supabase ? await supabase.auth.getUser() : { data: { user: null } };
-  const user = userData?.user ?? null;
-
-  const [vWithE] = await attachEngagementToVideos([video]);
-  video = vWithE;
-  const progress = await getVideoProgress(video.id);
-
-  const cookieStore = await cookies();
   const watchedCookie = cookieStore.get("genova_watched")?.value;
   const cookieWatched: string[] = watchedCookie ? JSON.parse(watchedCookie) : [];
-
-  const rawRelated = await fetchRelatedVideos(video.id, 20);
   const watchedSet = new Set([...cookieWatched, video.id]);
 
   let related = rawRelated.filter((v) => !watchedSet.has(v.id));
@@ -114,44 +129,46 @@ export default async function WatchDetailPage({
 
   related = related.slice(0, 8);
 
-  console.log("[RELATED_FINAL]", {
-    raw: rawRelated.length,
-    cookieWatched: cookieWatched.length,
-    unwatched: rawRelated.filter((v) => !watchedSet.has(v.id)).length,
-    final: related.length,
-  });
-
-  const [creator, seriesNavRaw, comments, uploaderProfile, isFollowing] = await Promise.all([
+  // Second parallel block: detail-page dependencies that need the
+  // resolved user / video.
+  const [
+    creatorResult,
+    seriesNavRaw,
+    comments,
+    uploaderProfile,
+    isFollowing,
+    sameGenreRes,
+    trendingRes,
+  ] = await Promise.all([
     video.creatorId ? fetchCreatorById(video.creatorId) : Promise.resolve(null),
     fetchSeriesEpisodesForVideo(video),
     fetchCommentsForVideo(video.id),
     video.uploadedBy ? fetchPublicProfileById(video.uploadedBy) : Promise.resolve(null),
     video.uploadedBy ? fetchIsFollowing(user?.id, video.uploadedBy) : Promise.resolve(false),
+    supabase
+      ? supabase
+          .from("videos")
+          .select("*, creators(*)")
+          .eq("visibility", "public")
+          .eq("genre", video.genre)
+          .neq("id", video.id)
+          .order("view_count", { ascending: false })
+          .limit(12)
+      : Promise.resolve({ data: [] as unknown[] }),
+    supabase
+      ? supabase
+          .from("videos")
+          .select("*, creators(*)")
+          .eq("visibility", "public")
+          .neq("id", video.id)
+          .order("view_count", { ascending: false })
+          .limit(24)
+      : Promise.resolve({ data: [] as unknown[] }),
   ]);
+  const creator = creatorResult;
   const seriesNav: SeriesEpisodesNav = seriesNavRaw;
-
-  const { data: sameGenreRaw } = supabase
-    ? await supabase
-        .from("videos")
-        .select("*, creators(*)")
-        .eq("visibility", "public")
-        .eq("genre", video.genre)
-        .neq("id", video.id)
-        .order("view_count", { ascending: false })
-        .limit(12)
-    : { data: [] };
-  console.log("[SAMEGENRE_DEBUG]", sameGenreRaw?.length ?? 0);
-
-  const { data: trendingRaw } = supabase
-    ? await supabase
-        .from("videos")
-        .select("*, creators(*)")
-        .eq("visibility", "public")
-        .neq("id", video.id)
-        .order("view_count", { ascending: false })
-        .limit(24)
-    : { data: [] };
-  console.log("[TRENDING_DEBUG]", trendingRaw?.length ?? 0);
+  const sameGenreRaw = sameGenreRes.data;
+  const trendingRaw = trendingRes.data;
 
   const sameGenreVideos = (sameGenreRaw ?? []).map((v) => mapVideo(v));
   const sameGenreIds = new Set(sameGenreVideos.map((v) => v.id));
