@@ -174,6 +174,39 @@ export type RevokeReason =
   | "admin_manual"
   | "account_inactive";
 
+/**
+ * Convenience wrapper used by the report-management UI: looks up
+ * the ticket attached to a video (UNIQUE(video_id) → at most one
+ * row) and revokes it.  Returns `ok:true` with a `ticketId` so the
+ * caller can show a confirmation, or `ok:false` with
+ * `reason='no_ticket'` when the uploader never earned one.
+ */
+export async function revokeEntryTicketByVideoAction(input: {
+  videoId: string;
+  reason: RevokeReason;
+}): Promise<AdminResult & { ticketId?: string }> {
+  const auth = await requireAdminWithService();
+  if ("error" in auth) return { ok: false, message: auth.error };
+
+  // UNIQUE(video_id) on entry_tickets means at most one match.
+  const { data, error } = await auth.service
+    .from("entry_tickets")
+    .select("id, status")
+    .eq("video_id", input.videoId)
+    .maybeSingle();
+  if (error) return { ok: false, message: error.message };
+  if (!data) return { ok: false, message: "no_ticket" };
+  if (data.status === "revoked")
+    return { ok: false, message: "already_revoked" };
+
+  const result = await revokeEntryTicketAction({
+    ticketId: data.id as string,
+    reason: input.reason,
+  });
+  if (!result.ok) return result;
+  return { ok: true, ticketId: data.id as string };
+}
+
 export async function revokeEntryTicketAction(input: {
   ticketId: string;
   reason: RevokeReason;

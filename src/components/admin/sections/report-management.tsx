@@ -1,6 +1,6 @@
 "use client";
 
-import { ExternalLink, Trash2, User } from "lucide-react";
+import { ExternalLink, ShieldOff, Trash2, User } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
@@ -10,6 +10,7 @@ import {
   type VideoReportItem,
   type VideoReportStatus,
 } from "@/app/actions/reports";
+import { revokeEntryTicketByVideoAction } from "@/app/actions/lottery-admin";
 import { adminTokens } from "@/lib/admin-styles";
 import { cn } from "@/lib/utils/cn";
 
@@ -98,6 +99,40 @@ export function ReportManagement({
       () =>
         setLocalReports((prev) => prev.map((item) => (item.id === reportId ? { ...item, status } : item))),
     );
+  };
+
+  /**
+   * Phase 6-D: revoke the lottery ticket attached to the reported
+   * video.  Wraps revokeEntryTicketByVideoAction with a confirm
+   * dialog + surfaces the "no_ticket" / "already_revoked" paths
+   * as friendly toast messages instead of error noise.
+   */
+  const revokeTicket = async (videoId: string, videoTitle: string) => {
+    if (
+      !confirm(
+        `Revoke the lottery ticket attached to "${videoTitle}"? This excludes the video from all current + future draws.`,
+      )
+    )
+      return;
+    setLoading(true);
+    try {
+      const res = await revokeEntryTicketByVideoAction({
+        videoId,
+        reason: "report_violation",
+      });
+      if (res.ok) {
+        onMessage(`Ticket revoked for "${videoTitle}"`);
+      } else if (res.message === "no_ticket") {
+        onMessage("No lottery ticket was issued for this video.");
+      } else if (res.message === "already_revoked") {
+        onMessage("Ticket was already revoked.");
+      } else {
+        onMessage(`Revoke failed: ${res.message}`);
+      }
+      router.refresh();
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleDelete = (reportId: string) => {
@@ -240,6 +275,23 @@ export function ReportManagement({
                   >
                     <User size={13} />
                   </button>
+                  {/* Phase 6-D: lottery ticket revocation.  Visible only
+                      when the report is in a state where admin would
+                      typically act on it (reviewing or resolved). */}
+                  {report.status === "reviewing" || report.status === "resolved" ? (
+                    <button
+                      type="button"
+                      disabled={loading}
+                      className={cn(
+                        adminTokens.iconButton,
+                        "text-amber-400/80 hover:text-amber-300",
+                      )}
+                      title="응모권 회수 (Revoke lottery ticket)"
+                      onClick={() => revokeTicket(report.videoId, report.videoTitle)}
+                    >
+                      <ShieldOff size={13} />
+                    </button>
+                  ) : null}
 
                   <div className="ml-1 flex flex-wrap items-center gap-0.5 border-l border-white/[0.06] pl-2">
                     <button
