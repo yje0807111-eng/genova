@@ -1,6 +1,6 @@
 "use client";
 
-import { ChevronDown, ChevronUp, Edit, ExternalLink, Star, Trash2 } from "lucide-react";
+import { ChevronDown, ChevronUp, Edit, ExternalLink, Film, Star, Trash2 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
@@ -38,6 +38,7 @@ export function CompetitionManage({
   setVideoFilter,
   onCompetitionsChange,
   onMessage,
+  onViewCompetitionVideos,
 }: {
   competitions: Competition[];
   videos: Video[];
@@ -46,6 +47,12 @@ export function CompetitionManage({
   setVideoFilter: (value: string) => void;
   onCompetitionsChange: (next: Competition[]) => void;
   onMessage: (message: string) => void;
+  /**
+   * 연동 복구: 이 공모전 출품작을 "영상 관리" 화면에서 필터된 채로
+   * 열기.  대시보드 개편으로 영상/공모전 화면이 분리되며 끊긴 동선을
+   * 복구한다.  미전달 시 버튼을 렌더하지 않음(하위 호환).
+   */
+  onViewCompetitionVideos?: (competition: Competition) => void;
 }) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
@@ -296,6 +303,22 @@ export function CompetitionManage({
                     <Star size={10} className={comp.isFeatured ? "fill-[#AFA9EC] text-[#AFA9EC]" : "text-white/50"} aria-hidden />
                     {comp.isFeatured ? "추천중" : "추천"}
                   </button>
+
+                  {onViewCompetitionVideos ? (
+                    <button
+                      type="button"
+                      disabled={loading}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onViewCompetitionVideos(comp);
+                      }}
+                      className="flex h-7 items-center gap-1 rounded-md border border-white/[0.08] bg-white/[0.02] px-2 text-[11px] font-medium text-white/50 transition hover:bg-white/[0.06] hover:text-white/80"
+                      title="이 공모전 출품작을 영상 관리에서 보기"
+                    >
+                      <Film size={10} aria-hidden />
+                      출품작
+                    </button>
+                  ) : null}
 
                   <div
                     className={cn(

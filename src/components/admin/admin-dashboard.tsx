@@ -8,10 +8,10 @@ import {
   Trophy,
   Flag,
   Ticket,
-  Award,
   Briefcase,
   Settings as SettingsIcon,
   ChevronRight,
+  AlertTriangle,
 } from "lucide-react";
 import { type VideoReportItem } from "@/app/actions/reports";
 import type { BusinessInquiryItem } from "@/app/actions/business-inquiries";
@@ -44,13 +44,14 @@ import { cn } from "@/lib/utils/cn";
  * 기존 ?tab=content / competition 등 레거시 URL 은 매핑해 호환.
  */
 
+// 트로피는 공모전 부속 작업이라 독립 view 가 아니라 공모전 드릴다운
+// 하위 섹션으로 흡수 (정보 위계 정리).
 type AdminView =
   | "home"
   | "videos"
   | "competitions"
   | "reports"
   | "lottery"
-  | "trophies"
   | "business"
   | "settings";
 
@@ -60,16 +61,16 @@ const VALID_VIEWS: AdminView[] = [
   "competitions",
   "reports",
   "lottery",
-  "trophies",
   "business",
   "settings",
 ];
 
 // 레거시 ?tab= 값 → 새 view.  content 탭은 신고+영상이 섞여 있었으나
-// 가장 빈도 높은 영상 관리로 진입시킨다.
+// 가장 빈도 높은 영상 관리로, trophies 는 공모전으로 흡수.
 const LEGACY_TAB_MAP: Record<string, AdminView> = {
   content: "videos",
   competition: "competitions",
+  trophies: "competitions",
   lottery: "lottery",
   business: "business",
   settings: "settings",
@@ -87,7 +88,6 @@ const VIEW_LABEL: Record<Exclude<AdminView, "home">, string> = {
   competitions: "공모전 관리",
   reports: "신고 관리",
   lottery: "응모권",
-  trophies: "트로피",
   business: "비즈니스 문의",
   settings: "사이트 설정",
 };
@@ -167,12 +167,38 @@ function AdminDashboardInner({
   const openReportCount = reports.filter((r) => r.status === "open").length;
   const newInquiryCount = inquiries.filter((i) => i.status === "new").length;
   // 미처리 응모권 = submitted(검수 대기) + confirmed(지급 대기)
-  const lotteryPendingActionCount = lotteryWinners.filter(
-    (w) => w.claimStatus === "submitted" || w.claimStatus === "confirmed",
+  const verifyQueueCount = lotteryWinners.filter(
+    (w) => w.claimStatus === "submitted",
   ).length;
+  const payQueueCount = lotteryWinners.filter(
+    (w) => w.claimStatus === "confirmed",
+  ).length;
+  const lotteryPendingActionCount = verifyQueueCount + payQueueCount;
   const activeCompetitionCount = localCompetitions.filter(
     (c) => c.status === "Open",
   ).length;
+
+  // 액션 중심 홈 계산 — "오늘 뭘 해야 하나".
+  const now = Date.now();
+  const threeDaysMs = 3 * 86_400_000;
+  // 마감 임박 응모권: pending + info_deadline 까지 3일 이내(초과 포함).
+  const urgentLotteryCount = lotteryWinners.filter((w) => {
+    if (w.claimStatus !== "pending") return false;
+    const dl = new Date(w.infoDeadline).getTime();
+    return Number.isFinite(dl) && dl - now <= threeDaysMs;
+  }).length;
+  // 방치 미처리 신고: open + 생성 후 3일 경과.
+  const staleReportCount = reports.filter((r) => {
+    if (r.status !== "open") return false;
+    const t = new Date(r.createdAt).getTime();
+    return Number.isFinite(t) && now - t >= threeDaysMs;
+  }).length;
+  // 마감 임박 공모전: status Open + deadline 7일 이내.
+  const closingSoonCompCount = localCompetitions.filter((c) => {
+    if (c.status !== "Open") return false;
+    const dl = new Date(c.deadline).getTime();
+    return Number.isFinite(dl) && dl - now <= 7 * 86_400_000 && dl - now >= 0;
+  }).length;
 
   const navigate = (next: AdminView) => {
     setView(next);
@@ -184,6 +210,24 @@ function AdminDashboardInner({
     const qs = params.toString();
     router.replace(qs ? `${pathname}?${qs}` : pathname, { scroll: false });
   };
+
+  // 연동 복구: 공모전 관리 → 해당 출품작을 영상 관리에서 필터된 채로.
+  const openCompetitionVideos = (competition: Competition) => {
+    setSelectedCompetition(competition);
+    setVideoFilter(`competition_${competition.id}`);
+    navigate("videos");
+  };
+
+  // 액션 홈 항목 (0건은 숨김).
+  const actionItems = (
+    [
+      { label: "마감 임박 응모권", count: urgentLotteryCount, view: "lottery" },
+      { label: "검수 대기", count: verifyQueueCount, view: "lottery" },
+      { label: "지급 대기", count: payQueueCount, view: "lottery" },
+      { label: "3일+ 방치 신고", count: staleReportCount, view: "reports" },
+      { label: "신규 비즈니스 문의", count: newInquiryCount, view: "business" },
+    ] satisfies { label: string; count: number; view: AdminView }[]
+  ).filter((a) => a.count > 0);
 
   const cards: {
     view: Exclude<AdminView, "home">;
@@ -207,7 +251,10 @@ function AdminDashboardInner({
       icon: <Trophy className="h-5 w-5" />,
       stat: localCompetitions.length,
       statSuffix: "개",
-      sub: `진행 중 ${activeCompetitionCount}`,
+      sub:
+        closingSoonCompCount > 0
+          ? `진행 ${activeCompetitionCount} · 마감임박 ${closingSoonCompCount}`
+          : `진행 중 ${activeCompetitionCount}`,
     },
     {
       view: "reports",
@@ -224,11 +271,6 @@ function AdminDashboardInner({
       stat: lotteryPendingActionCount,
       statSuffix: "건 대기",
       alert: lotteryPendingActionCount > 0,
-    },
-    {
-      view: "trophies",
-      label: "트로피",
-      icon: <Award className="h-5 w-5" />,
     },
     {
       view: "business",
@@ -256,6 +298,42 @@ function AdminDashboardInner({
             message={null}
           />
           <AdminMessageBar message={message} kind={messageKind} />
+
+          {/* 오늘의 작업 — 액션 가능한 미처리 요약.  클릭 시 해당
+              영역으로 이동(연동 필터는 영역별 후속). */}
+          <div className={cn(adminTokens.card, "mb-5")}>
+            <div className="mb-3 flex items-center gap-2">
+              <AlertTriangle
+                className={cn(
+                  "h-4 w-4",
+                  actionItems.length > 0 ? "text-amber-400" : "text-white/30",
+                )}
+              />
+              <h2 className="text-[13px] font-bold text-white">오늘의 작업</h2>
+            </div>
+            {actionItems.length === 0 ? (
+              <p className="text-[12px] text-white/40">
+                처리할 작업이 없습니다. 👍
+              </p>
+            ) : (
+              <div className="flex flex-wrap gap-2">
+                {actionItems.map((a) => (
+                  <button
+                    key={a.label}
+                    type="button"
+                    onClick={() => navigate(a.view)}
+                    className="inline-flex items-center gap-2 rounded-lg border border-amber-500/20 bg-amber-500/[0.06] px-3 py-1.5 text-[12px] text-amber-200 transition hover:bg-amber-500/[0.12]"
+                  >
+                    {a.label}
+                    <span className="rounded bg-amber-400/20 px-1.5 py-0.5 text-[11px] font-bold tabular-nums">
+                      {a.count}
+                    </span>
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
             {cards.map((c) => (
               <button
@@ -338,25 +416,26 @@ function AdminDashboardInner({
             ) : null}
 
             {view === "competitions" ? (
-              <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-                <CompetitionManage
+              <>
+                <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+                  <CompetitionManage
+                    competitions={localCompetitions}
+                    videos={videos}
+                    selectedCompetition={selectedCompetition}
+                    setSelectedCompetition={setSelectedCompetition}
+                    setVideoFilter={setVideoFilter}
+                    onCompetitionsChange={setLocalCompetitions}
+                    onMessage={setMessage}
+                    onViewCompetitionVideos={openCompetitionVideos}
+                  />
+                  <CompetitionCreate onMessage={setMessage} />
+                </div>
+                {/* 트로피는 공모전 부속 작업 → 같은 드릴다운 하위 섹션 */}
+                <TrophyManagement
                   competitions={localCompetitions}
-                  videos={videos}
-                  selectedCompetition={selectedCompetition}
-                  setSelectedCompetition={setSelectedCompetition}
-                  setVideoFilter={setVideoFilter}
-                  onCompetitionsChange={setLocalCompetitions}
                   onMessage={setMessage}
                 />
-                <CompetitionCreate onMessage={setMessage} />
-              </div>
-            ) : null}
-
-            {view === "trophies" ? (
-              <TrophyManagement
-                competitions={localCompetitions}
-                onMessage={setMessage}
-              />
+              </>
             ) : null}
 
             {view === "business" ? (
