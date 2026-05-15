@@ -24,7 +24,7 @@ import { fetchFollowCounts, fetchIsFollowing, fetchPublicProfileById } from "@/l
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { WatchTracker } from "@/components/video/watch-tracker";
 import { WatchDesktopFlexRow } from "@/components/video/watch-comments-panel";
-import { MuxPlayerClient } from "@/components/video/mux-player-client";
+import { MuxPlayer } from "@/components/video/mux-player-lazy";
 import { getVideoProgress } from "@/app/actions/video-progress";
 import { getServerLocale } from "@/lib/i18n/server";
 import { UpNextMiniRail } from "@/components/video/up-next-mini-rail";
@@ -225,7 +225,7 @@ export default async function WatchDetailPage({
           <div className="aspect-video overflow-hidden rounded-2xl border border-white/10 bg-black">
             <WatchTracker videoId={video.id} />
             {video.muxPlaybackId && (
-              <MuxPlayerClient
+              <MuxPlayer
                 playbackId={video.muxPlaybackId}
                 title={video.title}
                 nextVideoId={related[0]?.id ?? null}
