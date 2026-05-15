@@ -3,7 +3,7 @@
 import { useMemo, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { ChevronRight, LayoutGrid, List } from "lucide-react";
+import { LayoutGrid, List } from "lucide-react";
 import { useI18n } from "@/components/genova/language-provider";
 import type { Locale } from "@/lib/i18n/translations";
 import { intlDateLocale } from "@/lib/i18n/browser-locale";
@@ -124,106 +124,75 @@ function CompetitionCard({ c, participantCount }: { c: Competition; participantC
   return (
     <Link
       href={`/competition/${c.id}`}
-      className="group relative block overflow-hidden rounded-2xl border border-white/[0.10] bg-[#0a0a0a] shadow-[0_2px_14px_rgba(0,0,0,0.45)] transition-all duration-300 hover:-translate-y-1 hover:border-[rgba(127,119,221,0.5)] hover:shadow-[0_16px_44px_rgba(83,74,183,0.32)]"
+      className="group relative flex flex-col overflow-hidden rounded-xl border border-white/[0.10] bg-[#0e0e14] shadow-[0_2px_12px_rgba(0,0,0,0.4)] transition-all duration-200 hover:-translate-y-0.5 hover:border-[rgba(127,119,221,0.5)] hover:shadow-[0_10px_30px_rgba(83,74,183,0.28)]"
     >
-      <div className="relative aspect-[4/5] w-full overflow-hidden">
+      <div className="relative aspect-video w-full overflow-hidden">
         {thumb ? (
           <Image
             src={thumb}
             alt=""
             fill
-            sizes="(max-width: 768px) 100vw, (max-width: 1280px) 50vw, 33vw"
-            className="object-cover transition duration-500 group-hover:scale-[1.06]"
+            sizes="(max-width: 768px) 100vw, (max-width: 1280px) 50vw, 25vw"
+            className="object-cover transition duration-500 group-hover:scale-[1.05]"
           />
         ) : (
           <div
             className="flex h-full w-full items-center justify-center"
             style={{ background: "linear-gradient(135deg, rgba(127,119,221,0.20) 0%, #0a0a0a 70%)" }}
           >
-            <Image src="/genova-logo.png" alt="Genova" width={120} height={120} className="h-28 w-28 object-contain opacity-[0.12]" />
+            <Image src="/genova-logo.png" alt="Genova" width={88} height={88} className="h-16 w-16 object-contain opacity-[0.12]" />
           </div>
         )}
-
-        {/* 시네마틱 스크림 — 하단 텍스트 가독성 */}
         <div
-          className="absolute inset-0"
-          style={{
-            background:
-              "linear-gradient(180deg, rgba(10,10,10,0.10) 0%, rgba(10,10,10,0.02) 32%, rgba(10,10,10,0.68) 68%, rgba(10,10,10,0.97) 100%)",
-          }}
+          className="absolute inset-x-0 bottom-0 h-1/2"
+          style={{ background: "linear-gradient(180deg, transparent 0%, rgba(14,14,20,0.85) 100%)" }}
         />
-
-        {/* 상단 칩 — 장르 / D-day */}
-        <div className="absolute inset-x-3 top-3 flex items-start justify-between gap-2">
-          <span className="rounded-full border border-white/15 bg-black/45 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-white/85 backdrop-blur-md">
+        <div className="absolute inset-x-2.5 top-2.5 flex items-start justify-between gap-2">
+          <span className="rounded-md border border-white/15 bg-black/50 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-white/85 backdrop-blur-md">
             {c.genre && c.genre !== "전체" ? genreUiLabel(c.genre, locale) : t("competition.allGenres")}
           </span>
           {!isClosed && (
             <span
-              className={`shrink-0 rounded-full px-2.5 py-1 text-[11px] font-black tabular-nums backdrop-blur-md ${
+              className={`shrink-0 rounded-md px-2 py-0.5 text-[11px] font-black tabular-nums backdrop-blur-md ${
                 urgent
-                  ? "border border-red-400/40 bg-red-500/25 text-red-200"
-                  : "border border-white/15 bg-black/50 text-white"
+                  ? "border border-red-400/40 bg-red-500/30 text-red-100"
+                  : "border border-white/15 bg-black/55 text-white"
               }`}
             >
               D-{d}
             </span>
           )}
         </div>
+      </div>
 
-        {/* 하단 정보 */}
-        <div className="absolute inset-x-0 bottom-0 flex flex-col gap-2 p-4">
-          <span
-            className={`inline-flex w-fit items-center gap-1.5 rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider ${
-              isOpen
-                ? "bg-emerald-500/20 text-emerald-300"
-                : isUpcoming
-                  ? "bg-sky-500/20 text-sky-300"
-                  : "bg-white/[0.08] text-white/40"
-            }`}
-          >
+      <div className="flex flex-1 flex-col gap-1.5 p-3.5">
+        <h3 className="line-clamp-1 text-[15px] font-bold text-white">
+          {getLangText(locale, c.title_ko, c.title_en, c.title_ja, c.title)}
+        </h3>
+        <p className="truncate text-[15px] font-black text-[#F5D182]">{prize}</p>
+        <div className="mt-0.5 flex items-center justify-between gap-2 text-[11px] text-white/40">
+          <span className="inline-flex items-center gap-1.5">
             <span
               className={`h-1.5 w-1.5 rounded-full ${
-                isOpen ? "animate-pulse bg-emerald-400" : isUpcoming ? "bg-sky-400" : "bg-white/30"
+                isOpen ? "animate-pulse bg-emerald-400" : isUpcoming ? "bg-sky-400" : "bg-white/25"
               }`}
             />
-            {isOpen ? t("competition.statusOpen") : isUpcoming ? t("competition.statusUpcoming") : t("competition.statusClosed")}
-          </span>
-
-          <h3
-            className="line-clamp-2 text-[18px] font-black leading-tight tracking-tight text-white"
-            style={{ textShadow: "0 2px 12px rgba(0,0,0,0.75)" }}
-          >
-            {getLangText(locale, c.title_ko, c.title_en, c.title_ja, c.title)}
-          </h3>
-
-          <div className="flex items-end justify-between gap-3">
-            <div className="min-w-0">
-              <p className="text-[9px] font-bold uppercase tracking-[0.18em] text-white/40">
-                {t("competition.colPrize")}
-              </p>
-              <p
-                className="truncate text-[16px] font-black text-[#F5D182]"
-                style={{ textShadow: "0 1px 8px rgba(0,0,0,0.6)" }}
-              >
-                {prize}
-              </p>
-            </div>
-            {participantCount > 0 ? (
-              <span className="shrink-0 pb-0.5 text-[11px] tabular-nums text-white/45">
-                {participantCount.toLocaleString()}
-                <span className="ml-0.5 text-white/30">{t("competition.peopleUnit")}</span>
-              </span>
-            ) : null}
-          </div>
-
-          <div className="flex items-center justify-between border-t border-white/[0.08] pt-2 text-[11px] text-white/40">
-            <span>{deadlineLabel}</span>
-            <span className="flex items-center gap-0.5 font-semibold text-[#AFA9EC] opacity-0 transition-opacity duration-200 group-hover:opacity-100">
-              {t("competition.viewDetails", "자세히 보기")}
-              <ChevronRight size={12} />
+            <span
+              className={
+                isOpen ? "font-semibold text-emerald-300" : isUpcoming ? "font-semibold text-sky-300" : "text-white/35"
+              }
+            >
+              {isOpen ? t("competition.statusOpen") : isUpcoming ? t("competition.statusUpcoming") : t("competition.statusClosed")}
             </span>
-          </div>
+            <span className="text-white/20">·</span>
+            <span>{deadlineLabel}</span>
+          </span>
+          {participantCount > 0 ? (
+            <span className="shrink-0 tabular-nums text-white/45">
+              {participantCount.toLocaleString()}
+              <span className="ml-0.5 text-white/30">{t("competition.peopleUnit")}</span>
+            </span>
+          ) : null}
         </div>
       </div>
     </Link>
@@ -556,7 +525,7 @@ export function CompetitionListClient({
           </div>
         </div>
       ) : (
-        <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {paginated.map((c) => <CompetitionCard key={c.id} c={c} participantCount={participantCounts[c.id] ?? 0} />)}
         </div>
       )}
