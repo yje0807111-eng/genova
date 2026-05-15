@@ -40,7 +40,13 @@ export function UploadModalProvider({
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    getBrowserSupabaseClient().auth.getUser().then(({ data }) => {
+    // getBrowserSupabaseClient() returns null when the public Supabase
+    // env vars are missing.  Bail then — `userId` stays null, the
+    // upload modal's `userId && createPortal(…)` gate ensures the form
+    // never mounts without an authenticated user.
+    const client = getBrowserSupabaseClient();
+    if (!client) return;
+    client.auth.getUser().then(({ data }) => {
       setUserId(data.user?.id ?? null);
     });
   }, []);

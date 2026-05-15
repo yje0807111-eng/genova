@@ -34,7 +34,13 @@ export function EditModalProvider({ children }: { children: React.ReactNode }) {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    getBrowserSupabaseClient().auth.getUser().then(({ data }) => {
+    // getBrowserSupabaseClient() returns null when the public Supabase
+    // env vars are missing.  Bail in that case — `userId` stays null and
+    // the edit modal will never reach the form (the `video && userId`
+    // gate below covers it).
+    const client = getBrowserSupabaseClient();
+    if (!client) return;
+    client.auth.getUser().then(({ data }) => {
       setUserId(data.user?.id ?? null);
     });
   }, []);
