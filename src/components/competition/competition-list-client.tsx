@@ -96,7 +96,7 @@ function formatGenreLabel(genre: string): string {
   return map[genre] ?? genre;
 }
 
-function CompetitionCard({ c }: { c: Competition }) {
+function CompetitionCard({ c, participantCount }: { c: Competition; participantCount: number }) {
   const { t, locale } = useI18n();
   const dateLocale = intlDateLocale(locale);
   const d = dDay(c.deadline);
@@ -142,6 +142,14 @@ function CompetitionCard({ c }: { c: Competition }) {
         </p>
         <div className="flex items-center justify-between text-[12px] text-white/35">
           <span>{deadlineLabel}</span>
+          {participantCount > 0 ? (
+            <span className="tabular-nums text-white/45">
+              {participantCount.toLocaleString()}
+              <span className="ml-0.5 text-white/30">
+                {t("competition.peopleUnit")}
+              </span>
+            </span>
+          ) : null}
         </div>
         <span className={`inline-flex w-fit rounded-full px-2 py-1 text-[11px] font-bold ${
           isOpen ? "bg-green-500/15 text-green-400" : isUpcoming ? "bg-blue-500/15 text-blue-400" : "bg-white/5 text-white/30"
@@ -287,6 +295,7 @@ export function CompetitionListClient({
   const [sortMode, setSortMode] = useState<"deadline" | "prize" | "participants">("deadline");
   const [gridMode, setGridMode] = useState<"grid" | "list">("list");
   const [sortOpen, setSortOpen] = useState(false);
+  const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
   const PER_PAGE = 10;
   void now;
@@ -303,29 +312,60 @@ export function CompetitionListClient({
   );
 
   const filtered = useMemo(() => {
+    const q = search.trim().toLowerCase();
     const byTab = allCompetitions.filter((c) => {
-      if (activeTab === "open") return active.some((a) => a.id === c.id);
-      if (activeTab === "upcoming") return upcoming.some((u) => u.id === c.id);
-      if (activeTab === "closed") return closed.some((cl) => cl.id === c.id);
+      if (activeTab === "open" && !active.some((a) => a.id === c.id)) return false;
+      if (activeTab === "upcoming" && !upcoming.some((u) => u.id === c.id)) return false;
+      if (activeTab === "closed" && !closed.some((cl) => cl.id === c.id)) return false;
+      if (q) {
+        const hay = [
+          c.title,
+          c.title_ko,
+          c.title_en,
+          c.title_ja,
+          c.sponsor,
+          c.id,
+        ]
+          .filter((s): s is string => Boolean(s))
+          .some((s) => s.toLowerCase().includes(q));
+        if (!hay) return false;
+      }
       return true;
     });
 
-    return byTab
-      .filter(() => true)
-      .sort((a, b) => {
-        const statusOrder = (c: Competition) => {
-          if (["Open", "접수중", "In Review", "Voting"].includes(c.status)) return 0;
-          if (["Upcoming", "예정"].includes(c.status)) return 1;
-          return 2;
-        };
-        const statusDiff = statusOrder(a) - statusOrder(b);
-        if (statusDiff !== 0) return statusDiff;
+    return byTab.sort((a, b) => {
+      const statusOrder = (c: Competition) => {
+        if (["Open", "접수중", "In Review", "Voting"].includes(c.status)) return 0;
+        if (["Upcoming", "예정"].includes(c.status)) return 1;
+        return 2;
+      };
+      const statusDiff = statusOrder(a) - statusOrder(b);
+      if (statusDiff !== 0) return statusDiff;
 
-        if (sortMode === "deadline") return new Date(a.deadline).getTime() - new Date(b.deadline).getTime();
-        if (sortMode === "prize") return (parseInt(b.prize_info.replace(/[^0-9]/g, "")) || 0) - (parseInt(a.prize_info.replace(/[^0-9]/g, "")) || 0);
-        return 0;
-      });
-  }, [allCompetitions, activeTab, sortMode, active, upcoming, closed]);
+      if (sortMode === "deadline")
+        return new Date(a.deadline).getTime() - new Date(b.deadline).getTime();
+      if (sortMode === "prize")
+        return (
+          (parseInt(b.prize_info.replace(/[^0-9]/g, "")) || 0) -
+          (parseInt(a.prize_info.replace(/[^0-9]/g, "")) || 0)
+        );
+      // participants — 실제 참가자 수 기준 (이전엔 미구현이라 정렬 무동작)
+      if (sortMode === "participants")
+        return (
+          (participantCounts?.[b.id] ?? 0) - (participantCounts?.[a.id] ?? 0)
+        );
+      return 0;
+    });
+  }, [
+    allCompetitions,
+    activeTab,
+    sortMode,
+    search,
+    active,
+    upcoming,
+    closed,
+    participantCounts,
+  ]);
 
   const totalPages = Math.ceil(filtered.length / PER_PAGE);
   const paginated = filtered.slice((page - 1) * PER_PAGE, page * PER_PAGE);
@@ -365,6 +405,13 @@ export function CompetitionListClient({
         </div>
 
         <div className="flex items-center gap-3 pb-2">
+          <input
+            type="search"
+            value={search}
+            onChange={(e) => { setSearch(e.target.value); setPage(1); }}
+            placeholder={t("competition.searchPlaceholder", "공모전 검색")}
+            className="h-8 w-[160px] rounded-md border border-white/10 bg-white/[0.04] px-3 text-sm text-white placeholder:text-white/30 outline-none transition focus:border-[#7F77DD]/40 focus:bg-white/[0.06] sm:w-[200px]"
+          />
           <div className="relative">
             <button
               type="button"
@@ -442,9 +489,19 @@ export function CompetitionListClient({
         </div>
       ) : (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-          {paginated.map((c) => <CompetitionCard key={c.id} c={c} />)}
+          {paginated.map((c) => <CompetitionCard key={c.id} c={c} participantCount={participantCounts[c.id] ?? 0} />)}
         </div>
       )}
+
+      {filtered.length === 0 ? (
+        <div className="rounded-2xl border border-white/[0.06] bg-white/[0.02] py-16 text-center">
+          <p className="text-[13px] text-white/45">
+            {search.trim()
+              ? t("competition.noSearchResults", "검색 결과가 없습니다")
+              : t("competition.noResults", "표시할 공모전이 없습니다")}
+          </p>
+        </div>
+      ) : null}
 
       <div
         className="relative mt-12 overflow-hidden rounded-3xl border border-white/[0.1] p-10 backdrop-blur-xl"

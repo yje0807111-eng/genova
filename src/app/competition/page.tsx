@@ -108,13 +108,13 @@ export default async function CompetitionPage() {
   const featuredCompetitions = (active as any[]).filter((c) => c.is_featured);
 
   return (
-    <div className="bg-[#111111] text-white">
+    <div className="bg-[#0a0a0a] text-white">
       {featuredCompetitions.length > 0 && (
         <FeaturedHeroCarousel competitions={featuredCompetitions} />
       )}
 
-      <div className="bg-[#111111]">
-        <div className="mx-auto max-w-[1680px] px-16 pt-8 pb-12">
+      <div className="bg-[#0a0a0a]">
+        <div className="mx-auto max-w-[1680px] px-4 pt-8 pb-12 sm:px-8 lg:px-12">
           <CompetitionListClient
             active={active as any[]}
             upcoming={upcoming as any[]}
