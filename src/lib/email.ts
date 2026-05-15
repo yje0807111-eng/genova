@@ -115,3 +115,141 @@ export async function sendBusinessInquiryNotification(input: {
     console.error("Email send failed:", error);
   }
 }
+
+/**
+ * A1-2: lottery winner announcement email.
+ *
+ * Fires from `triggerCompetitionDrawAction` (and
+ * `redrawWinnerSlotAction`) right after the RPC reports success,
+ * one send per winner.  Carries the claim URL so the recipient can
+ * jump straight into the 3-step submission flow (Phase 5).
+ *
+ * The claim token IS in the URL — same security model as the
+ * in-app notification's `href` field: the URL itself is the
+ * authenticator, transit is HTTPS, and there's no plaintext
+ * logging of the token in this function.
+ */
+export async function sendWinnerNotificationEmail(input: {
+  to: string;
+  competitionTitle: string;
+  prizeTier: number;
+  prizeAmountUsd: number;
+  claimUrl: string;
+  /** ISO timestamp for the info_deadline */
+  deadlineIso: string;
+}): Promise<boolean> {
+  if (!resend) {
+    console.warn("RESEND_API_KEY not set, skipping winner email");
+    return false;
+  }
+
+  const from = process.env.NOTIFY_FROM_EMAIL ?? "onboarding@resend.dev";
+  const deadlineLabel = (() => {
+    try {
+      return new Date(input.deadlineIso).toUTCString();
+    } catch {
+      return input.deadlineIso;
+    }
+  })();
+
+  const subject = `[Genova] 🎉 You won the lottery — ${input.competitionTitle}`;
+  const html = `
+    <div style="font-family: -apple-system, sans-serif; max-width: 520px; margin: 0 auto; padding: 32px; background: #0a0a0a; color: #fff;">
+      <div style="border-left: 3px solid #F5D182; padding-left: 16px; margin-bottom: 24px;">
+        <p style="margin: 0; font-size: 11px; color: #F5D182; text-transform: uppercase; letter-spacing: 0.2em; font-weight: 700;">Genova Lottery</p>
+        <h1 style="margin: 6px 0 0; font-size: 24px; line-height: 1.3;">Congratulations — you're a winner!</h1>
+      </div>
+      <p style="margin: 0 0 12px; color: #ccc; line-height: 1.6; font-size: 14px;">
+        Your entry was drawn in <strong style="color: #fff;">${input.competitionTitle}</strong>.
+      </p>
+      <div style="margin: 20px 0; padding: 16px; background: linear-gradient(135deg, #16142a 0%, #0a0a0a 100%); border: 1px solid #F5D18255; border-radius: 12px;">
+        <p style="margin: 0 0 4px; font-size: 11px; color: #F5D182AA; text-transform: uppercase; letter-spacing: 0.2em; font-weight: 700;">Tier ${input.prizeTier}</p>
+        <p style="margin: 0; font-size: 26px; font-weight: 800; color: #F5D182;">$${input.prizeAmountUsd} USD</p>
+      </div>
+      <p style="margin: 0 0 16px; color: #ccc; line-height: 1.6; font-size: 14px;">
+        Submit your payment info within <strong style="color: #fff;">1 month</strong> to claim your prize.
+        After that, the slot is forfeited.
+      </p>
+      <div style="margin: 24px 0; text-align: center;">
+        <a href="${input.claimUrl}" style="display: inline-block; background: linear-gradient(135deg, #6B5FD4 0%, #534AB7 50%, #3F36A3 100%); color: #fff; padding: 12px 28px; border-radius: 999px; text-decoration: none; font-weight: 700; font-size: 14px;">Submit info →</a>
+      </div>
+      <p style="margin: 16px 0 0; color: #888; line-height: 1.6; font-size: 12px;">
+        Deadline: ${deadlineLabel}
+      </p>
+      <p style="margin: 8px 0 0; color: #666; line-height: 1.6; font-size: 11px;">
+        The link above is unique to you. Don't share it.
+      </p>
+    </div>
+  `;
+
+  try {
+    await resend.emails.send({ from, to: input.to, subject, html });
+    return true;
+  } catch (error) {
+    console.error("Winner notification email send failed:", error);
+    return false;
+  }
+}
+
+/**
+ * A1-2: lottery claim-deadline reminder email.
+ *
+ * Sent by the `/api/cron/lottery-reminders` daily sweep when the
+ * winner is in claim_status='pending' and the deadline is within
+ * the D-3 or D-1 window.  Idempotency tracked by
+ * competition_winners.reminder_dN_at; cron only dispatches when
+ * the matching column is NULL.
+ */
+export async function sendWinnerReminderEmail(input: {
+  to: string;
+  competitionTitle: string;
+  prizeAmountUsd: number;
+  claimUrl: string;
+  daysLeft: number; // 3 or 1
+  deadlineIso: string;
+}): Promise<boolean> {
+  if (!resend) {
+    console.warn("RESEND_API_KEY not set, skipping reminder email");
+    return false;
+  }
+
+  const from = process.env.NOTIFY_FROM_EMAIL ?? "onboarding@resend.dev";
+  const deadlineLabel = (() => {
+    try {
+      return new Date(input.deadlineIso).toUTCString();
+    } catch {
+      return input.deadlineIso;
+    }
+  })();
+
+  const subject = `[Genova] ⏰ ${input.daysLeft} day${input.daysLeft > 1 ? "s" : ""} left to claim your prize`;
+  const html = `
+    <div style="font-family: -apple-system, sans-serif; max-width: 480px; margin: 0 auto; padding: 32px; background: #0a0a0a; color: #fff;">
+      <div style="border-left: 3px solid #ef4444; padding-left: 16px; margin-bottom: 24px;">
+        <p style="margin: 0; font-size: 11px; color: #fca5a5; text-transform: uppercase; letter-spacing: 0.2em; font-weight: 700;">Reminder · Genova Lottery</p>
+        <h1 style="margin: 6px 0 0; font-size: 22px; line-height: 1.3;">${input.daysLeft} day${input.daysLeft > 1 ? "s" : ""} left</h1>
+      </div>
+      <p style="margin: 0 0 12px; color: #ccc; line-height: 1.6; font-size: 14px;">
+        You still need to submit payment info for your <strong style="color: #fff;">$${input.prizeAmountUsd}</strong> win
+        in <strong style="color: #fff;">${input.competitionTitle}</strong>.
+      </p>
+      <p style="margin: 0 0 16px; color: #ccc; line-height: 1.6; font-size: 14px;">
+        After the deadline, the prize is forfeited.
+      </p>
+      <div style="margin: 24px 0; text-align: center;">
+        <a href="${input.claimUrl}" style="display: inline-block; background: linear-gradient(135deg, #6B5FD4 0%, #534AB7 50%, #3F36A3 100%); color: #fff; padding: 12px 28px; border-radius: 999px; text-decoration: none; font-weight: 700; font-size: 14px;">Submit info now →</a>
+      </div>
+      <p style="margin: 16px 0 0; color: #888; line-height: 1.6; font-size: 12px;">
+        Deadline: ${deadlineLabel}
+      </p>
+    </div>
+  `;
+
+  try {
+    await resend.emails.send({ from, to: input.to, subject, html });
+    return true;
+  } catch (error) {
+    console.error("Winner reminder email send failed:", error);
+    return false;
+  }
+}
