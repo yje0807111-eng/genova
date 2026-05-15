@@ -11,14 +11,26 @@ import { TrophyManagement } from "@/components/admin/sections/trophy-management"
 import { CompetitionCreate } from "@/components/admin/sections/competition-create";
 import { CompetitionManage } from "@/components/admin/sections/competition-manage";
 import { BusinessInquiryManagement } from "./sections/business-inquiry-management";
+import { LotteryManagement } from "@/components/admin/sections/lottery-management";
 import { VideoManage } from "@/components/admin/sections/video-manage";
 import { adminTokens } from "@/lib/admin-styles";
+import type {
+  LotteryAuditRow,
+  LotteryCompetitionSummary,
+  LotteryWinnerWorkRow,
+} from "@/lib/queries/lottery-admin-queries";
 import type { Competition, Video } from "@/lib/types";
 import { cn } from "@/lib/utils/cn";
 
-type AdminTab = "content" | "competition" | "business" | "settings";
+type AdminTab = "content" | "competition" | "lottery" | "business" | "settings";
 
-const VALID_TABS: AdminTab[] = ["content", "competition", "business", "settings"];
+const VALID_TABS: AdminTab[] = [
+  "content",
+  "competition",
+  "lottery",
+  "business",
+  "settings",
+];
 
 function isAdminTab(value: string | null): value is AdminTab {
   return value !== null && VALID_TABS.includes(value as AdminTab);
@@ -29,11 +41,17 @@ function AdminDashboardInner({
   videos,
   reports,
   inquiries,
+  lotteryCompetitions,
+  lotteryWinners,
+  lotteryAudit,
 }: {
   competitions: Competition[];
   videos: Video[];
   reports: VideoReportItem[];
   inquiries: BusinessInquiryItem[];
+  lotteryCompetitions: LotteryCompetitionSummary[];
+  lotteryWinners: LotteryWinnerWorkRow[];
+  lotteryAudit: LotteryAuditRow[];
 }) {
   const router = useRouter();
   const pathname = usePathname();
@@ -60,11 +78,17 @@ function AdminDashboardInner({
   const localReports = reports;
   const openReportCount = localReports.filter((r) => r.status === "open").length;
   const newInquiryCount = inquiries.filter((i) => i.status === "new").length;
+  // Phase 6-B/C: badge "needs admin attention" count = submitted (info
+  // awaiting verify) + confirmed (verified, awaiting payment).
+  const lotteryPendingActionCount = lotteryWinners.filter(
+    (w) => w.claimStatus === "submitted" || w.claimStatus === "confirmed",
+  ).length;
 
   const tabs = [
     { key: "content" as const, label: "콘텐츠", badge: openReportCount },
     { key: "competition" as const, label: "공모전" },
-  { key: "business" as const, label: "비즈니스", badge: newInquiryCount },
+    { key: "lottery" as const, label: "응모권", badge: lotteryPendingActionCount },
+    { key: "business" as const, label: "비즈니스", badge: newInquiryCount },
     { key: "settings" as const, label: "사이트 설정" },
   ] as const;
 
@@ -145,6 +169,14 @@ function AdminDashboardInner({
       {activeTab === "business" ? (
         <BusinessInquiryManagement inquiries={inquiries} onMessage={setMessage} />
       ) : null}
+        {activeTab === "lottery" ? (
+          <LotteryManagement
+            competitions={lotteryCompetitions}
+            winners={lotteryWinners}
+            auditLog={lotteryAudit}
+            onMessage={setMessage}
+          />
+        ) : null}
         {activeTab === "settings" ? (
           <SiteSettings competitions={localCompetitions} onMessage={setMessage} />
         ) : null}
@@ -168,6 +200,9 @@ export function AdminDashboard(props: {
   videos: Video[];
   reports: VideoReportItem[];
   inquiries: BusinessInquiryItem[];
+  lotteryCompetitions: LotteryCompetitionSummary[];
+  lotteryWinners: LotteryWinnerWorkRow[];
+  lotteryAudit: LotteryAuditRow[];
 }) {
   return (
     <Suspense fallback={<AdminDashboardFallback />}>

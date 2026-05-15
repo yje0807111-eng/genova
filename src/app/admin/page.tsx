@@ -4,6 +4,14 @@ import type { VideoReportItem } from "@/app/actions/reports";
 import { AdminDashboard } from "@/components/admin/admin-dashboard";
 import { isAdminEmail } from "@/lib/auth/admin";
 import { fetchVideosWithCreators } from "@/lib/queries";
+import {
+  fetchLotteryCompetitionSummaries,
+  fetchLotteryDrawingLogs,
+  fetchLotteryWinnersWorkQueue,
+  type LotteryAuditRow,
+  type LotteryCompetitionSummary,
+  type LotteryWinnerWorkRow,
+} from "@/lib/queries/lottery-admin-queries";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { createServiceSupabaseClient } from "@/lib/supabase/service";
 
@@ -81,9 +89,32 @@ export default async function AdminPage() {
   }));
   const inquiries = await fetchBusinessInquiries();
 
+  // Phase 6-B/C: lottery panel data.  Service-role bypass on the
+  // dashboard's read path is consistent with how reports +
+  // competitions are loaded above.  Each helper returns an empty
+  // array on missing service config (already validated above).
+  let lotteryCompetitions: LotteryCompetitionSummary[] = [];
+  let lotteryWinners: LotteryWinnerWorkRow[] = [];
+  let lotteryAudit: LotteryAuditRow[] = [];
+  if (service) {
+    [lotteryCompetitions, lotteryWinners, lotteryAudit] = await Promise.all([
+      fetchLotteryCompetitionSummaries(service),
+      fetchLotteryWinnersWorkQueue(service),
+      fetchLotteryDrawingLogs(service, 50),
+    ]);
+  }
+
   return (
     <div className="px-4 py-6 text-[#EEEDFE] sm:px-6">
-      <AdminDashboard competitions={competitions} videos={videos} reports={reports} inquiries={inquiries} />
+      <AdminDashboard
+        competitions={competitions}
+        videos={videos}
+        reports={reports}
+        inquiries={inquiries}
+        lotteryCompetitions={lotteryCompetitions}
+        lotteryWinners={lotteryWinners}
+        lotteryAudit={lotteryAudit}
+      />
     </div>
   );
 }
