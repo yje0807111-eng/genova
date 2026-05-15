@@ -665,6 +665,12 @@ export function UploadVideoForm({
         muxPlaybackId: muxPlaybackId,
         muxAssetId: muxAssetId,
         muxUploadId: muxUploadId,
+        // Phase 2B: raw seconds + attestation flag for lottery
+        // ticket issuance.  The attestation checkbox UI lands in
+        // Phase 3 — until then this form ships originalAttestation
+        // = false and no tickets are issued.
+        durationSeconds: finalDurationSeconds,
+        originalAttestation: false,
       });
 
       if (!res.ok) {

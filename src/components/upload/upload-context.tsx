@@ -116,6 +116,13 @@ export function UploadProvider({ children }: { children: React.ReactNode }) {
         muxPlaybackId: asset.playbackId,
         muxAssetId: asset.assetId,
         muxUploadId: uploadId,
+        // Phase 2B: pass the Mux-reported duration to the action so
+        // it can persist videos.duration_seconds and gate lottery
+        // ticket issuance. `originalAttestation` flips true once
+        // Phase 3 wires the checkbox on the multi-upload UI; until
+        // then this upload path issues no tickets.
+        durationSeconds: Math.round(asset.duration ?? 0),
+        originalAttestation: false,
       });
 
       if (!result.ok) throw new Error(result.message);

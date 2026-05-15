@@ -7,8 +7,22 @@ import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { MAIN_GENRE_KEYS, isValidSubGenre, needsSubGenre } from "@/lib/constants/genres";
 import { MAX_VIDEO_TAGS } from "@/lib/tags";
 
+export type LotteryIssuance =
+  | {
+      ok: true;
+      ticketId: string;
+      monthlyCount: number;
+      entriesCreated: number;
+    }
+  | {
+      ok: false;
+      /** machine-readable skip / failure reason — see Phase 2A
+       *  issue_lottery_ticket() for the full list */
+      reason: string;
+    };
+
 export type VideoActionResult =
-  | { ok: true; videoId: string }
+  | { ok: true; videoId: string; lottery?: LotteryIssuance | null }
   | { ok: false; message: string };
 
 function normalizeHashtags(tags: string[]): string[] {
@@ -46,6 +60,14 @@ export async function createVideoAction(form: {
   muxPlaybackId?: string | null;
   muxAssetId?: string | null;
   muxUploadId?: string | null;
+  /** Raw asset duration in seconds (Phase 2A: gated on >= 30 for
+   *  lottery ticket issuance).  Optional — callers that don't have
+   *  it yet pass undefined (treated as 0). */
+  durationSeconds?: number;
+  /** True iff the uploader checked the "본인 제작" attestation box.
+   *  Required by issue_lottery_ticket(); falsy means no ticket
+   *  attempt (video INSERT still succeeds). */
+  originalAttestation?: boolean;
 }): Promise<VideoActionResult> {
   const supabase = await createServerSupabaseClient();
   if (!supabase) return { ok: false, message: "Please check your Supabase configuration." };
@@ -98,6 +120,14 @@ export async function createVideoAction(form: {
   const finalThumbnailUrl = form.thumbnailUrl
     || (muxPlaybackId ? `https://image.mux.com/${muxPlaybackId}/thumbnail.jpg?width=1280&time=2` : "");
 
+  // Phase 2: lottery prerequisites.  Both fields are nullable on the
+  // row — the issuance function gates on attestation being non-NULL
+  // and duration being numerically >= 30, so a video uploaded
+  // without the attestation box still lives normally but never gets
+  // a ticket.
+  const durationSeconds = Math.max(0, Math.round(form.durationSeconds ?? 0));
+  const attestationAt = form.originalAttestation ? new Date().toISOString() : null;
+
   const { error } = await supabase.from("videos").insert({
     id,
     title: form.title.trim(),
@@ -119,12 +149,51 @@ export async function createVideoAction(form: {
     series_name: seriesName,
     episode_number: episodeNumber,
     runtime,
+    duration_seconds: durationSeconds,
+    original_attestation_at: attestationAt,
     is_original: false,
     is_finalist: false,
     submitted_competition_id: competitionId,
   });
 
   if (error) return { ok: false, message: error.message };
+
+  // Phase 2B: lottery issuance.  Best-effort — failures (validation,
+  // monthly cap, RPC error) don't roll back the video.  Skip the RPC
+  // entirely when the attestation isn't there or the clip is too
+  // short, both to avoid unnecessary round-trips and to give a clean
+  // `reason` string back to the UI instead of a raised exception.
+  let lottery: LotteryIssuance | null = null;
+  if (!form.originalAttestation) {
+    lottery = { ok: false, reason: "no_attestation" };
+  } else if (durationSeconds < 30) {
+    lottery = { ok: false, reason: "duration_below_threshold" };
+  } else {
+    const { data, error: lotteryErr } = await supabase
+      .rpc("issue_lottery_ticket", { p_user_id: user.id, p_video_id: id })
+      .single<{ ticket_id: string; monthly_count: number; entries_created: number }>();
+    if (lotteryErr) {
+      // Map the Phase 2A errcodes to a short reason string.  Anything
+      // we don't recognize falls back to the raw message so logs
+      // stay diagnostic.
+      const msg = lotteryErr.message ?? "";
+      const reason =
+        msg.includes("monthly_limit_reached") ? "monthly_limit_reached"
+        : msg.includes("not_owner") ? "not_owner"
+        : msg.includes("no_attestation") ? "no_attestation"
+        : msg.includes("duration_below_threshold") ? "duration_below_threshold"
+        : msg.includes("video_not_found") ? "video_not_found"
+        : msg;
+      lottery = { ok: false, reason };
+    } else if (data) {
+      lottery = {
+        ok: true,
+        ticketId: data.ticket_id,
+        monthlyCount: data.monthly_count,
+        entriesCreated: data.entries_created,
+      };
+    }
+  }
 
   revalidatePath("/profile");
   revalidatePath("/watch");
@@ -135,7 +204,7 @@ export async function createVideoAction(form: {
     revalidatePath(`/competition/${competitionId}`);
     revalidatePath("/competition");
   }
-  return { ok: true, videoId: id };
+  return { ok: true, videoId: id, lottery };
 }
 
 export type SimpleResult = { ok: true } | { ok: false; message: string };
