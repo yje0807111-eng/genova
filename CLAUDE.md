@@ -207,8 +207,21 @@ start_date, template_url
 id, title, thumbnail_url, mux_asset_id, mux_playback_id,
 genre, sub_genre, purpose, tags, ai_tools,
 series_name, episode_number, view_count, visibility,
-uploaded_by, creator_id, is_original, is_finalist, award, runtime, description
+uploaded_by, creator_id, is_original, is_finalist, award, runtime, description,
+original_attestation_at, duration_seconds
 ```
+
+### entry_tickets / competition_entries / competition_winners / winner_info / drawing_logs / winner_email_verifications
+
+응모권 추첨 시스템 (Phase 1~6, 2026-05-16 도입). 자세한 흐름은 `docs/lottery-operator-handbook.md` 참고.
+
+핵심 규칙:
+- 매월 1일 00:00 KST 기준 사용자당 5장 응모권 (revoked 포함 카운트, 페널티 정책)
+- 영상 업로드 → 본인 제작 체크 + duration >= 30s → 응모권 발급 + 진행 중 콘테스트 자동 응모
+- 추첨: 운영진이 admin panel에서 트리거. 5명 winner / $100 USD each. 결정론적 (seed 기록).
+- 1인 1상 (partial UNIQUE on `(competition_id, user_id) WHERE claim_status != 'invalidated'`)
+- 당첨자 정보 제출: `/winners/claim/[token]` 페이지, 이메일 인증 (6자리 코드, 5분 만료) 후 폼 제출
+- 정보 제출 마감 1달, D-3/D-1 사전 알림 (cron), 미제출 시 expired 자동 처리
 
 ---
 
@@ -268,4 +281,5 @@ export async function myAction(data: FormData): Promise<Result> {
 4. **같은 문제 두 번 반복** — 파일 직접 읽어서 코드 확인 후 해결
 5. **DB 컬럼 추가 시** — 반드시 Supabase SQL Editor에서 ALTER TABLE 실행
 6. **schema cache 오류** — `NOTIFY pgrst, 'reload schema';` 실행 후 서버 재시작
+7. **응모권 추첨 시스템** — 운영 절차는 `docs/lottery-operator-handbook.md` 참고. `claim_token`은 URL이 단일 인증자이므로 로깅/노출 금지.
 
