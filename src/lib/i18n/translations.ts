@@ -883,6 +883,24 @@ const en: Messages = {
 
   "meta.brand": "Genova",
   "meta.defaultDescription": "The Home of AI Filmmakers",
+
+  // Entry-lottery system (Phase 3 UI).  Counter card + attestation
+  // checkbox + post-upload toast feedback. `{days}` / `{used}` /
+  // `{title}` / `{reason}` are runtime-substituted by the caller.
+  "lottery.title": "Entry tickets this month",
+  "lottery.resetIn": "Resets in {days} day(s)",
+  "lottery.resetToday": "Resets today",
+  "lottery.depleted": "You've used all your tickets this month",
+  "lottery.attestationLabel": "This is my own original work",
+  "lottery.attestationHelp": "Checked clips at least 30s long earn one lottery ticket per upload",
+  "lottery.toastIssued": "\"{title}\" entered the lottery ({used}/5 this month)",
+  "lottery.toastSkipped": "No ticket issued",
+  "lottery.reason.monthlyLimit": "You've already used all 5 tickets this month",
+  "lottery.reason.duration": "Clip must be at least 30 seconds",
+  "lottery.reason.noAttestation": "The original-work attestation wasn't checked",
+  "lottery.reason.notOwner": "Only the uploader can earn a ticket",
+  "lottery.reason.videoNotFound": "Video record not found",
+
   "meta.title.home": "Home",
   "meta.title.films": "Films",
   "meta.title.feed": "Feed",

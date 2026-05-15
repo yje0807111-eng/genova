@@ -1,5 +1,6 @@
 import { AnimateIn } from "@/components/animate-in";
 import { getServerLocale, getServerT } from "@/lib/i18n/server";
+import { LotteryCounter } from "@/components/lottery/lottery-counter";
 import { ProfileBio } from "@/components/profile/profile-bio";
 import { ProfileCtaRow } from "@/components/profile/profile-cta-row";
 import { ProfileEditPencilTrigger } from "@/components/profile/profile-edit-pencil-trigger";
@@ -9,6 +10,7 @@ import {
   ProfileHandleRow,
   ProfilePageGlow,
 } from "@/components/profile/profile-static-header";
+import type { MonthlyTicketCount } from "@/lib/queries/lottery-queries";
 import type { Profile } from "@/lib/queries/profile-queries";
 
 type Props = {
@@ -50,6 +52,11 @@ type Props = {
   userEmail?: string | null;
   hasPassword?: boolean;
   authProvider?: string;
+
+  // Owner-only lottery snapshot for the in-header counter card.
+  // Same conditional render as the edit pencil — only the profile
+  // owner sees it; null/undefined hides the card entirely.
+  lotteryCount?: MonthlyTicketCount | null;
 };
 
 /**
@@ -143,6 +150,14 @@ export async function ProfileHeader(props: Props) {
                     value={props.followingCount}
                   />
                 </div>
+
+                {/* Owner-only entry-lottery counter (Phase 3). Renders
+                    nothing when lotteryCount is null/undefined. */}
+                {props.isOwner && props.lotteryCount ? (
+                  <div className="mt-5 w-full max-w-[360px]">
+                    <LotteryCounter count={props.lotteryCount} variant="card" />
+                  </div>
+                ) : null}
               </div>
             </div>
           </AnimateIn>

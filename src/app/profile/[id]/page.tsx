@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { AnimateIn } from "@/components/animate-in";
 import { GenovaProfileClient } from "@/components/profile/profile-page-client";
 import { ProfileHeader } from "@/components/profile/profile-header";
+import { fetchMyMonthlyTicketCount } from "@/lib/queries/lottery-queries";
 import { mapVideo } from "@/lib/mappers";
 import { profileHandle } from "@/lib/profile-handle";
 import { mergeVideoRows } from "@/lib/queries";
@@ -142,6 +143,10 @@ export default async function ProfileByIdPage({ params }: { params: Promise<{ id
   const competitionVideos = await attachEngagementToVideos(rawCompetitionVideos);
   const savedVideos = isOwner ? await attachEngagementToVideos(savedSource) : [];
 
+  // Owner-only lottery snapshot for the header card. Skip the RPC when
+  // the visitor isn't the owner — non-owners never see the counter.
+  const lotteryCount = isOwner ? await fetchMyMonthlyTicketCount(id) : null;
+
   const displayName = profile.displayName?.trim() || `user_${id.slice(0, 8)}`;
   const handle = profileHandle(displayName, id);
   const avatarUrl = profile.avatarUrl?.trim() || "/default-avatar.png";
@@ -197,6 +202,7 @@ export default async function ProfileByIdPage({ params }: { params: Promise<{ id
               userEmail={userEmail}
               hasPassword={hasPassword}
               authProvider={authProvider}
+              lotteryCount={lotteryCount}
             />
           }
         />

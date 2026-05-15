@@ -96,6 +96,22 @@ export const jaOverrides: Record<string, string> = {
 
   "meta.brand": "Genova",
   "meta.defaultDescription": "AI映画クリエイターのためのプラットフォーム",
+
+  // Phase 3: 応募券システム UI
+  "lottery.title": "今月の応募券",
+  "lottery.resetIn": "{days}日後にリセット",
+  "lottery.resetToday": "本日リセット",
+  "lottery.depleted": "今月の応募券はすべて使用しました",
+  "lottery.attestationLabel": "本人が制作したオリジナル作品です",
+  "lottery.attestationHelp": "チェック時、30秒以上の動画はアップロードごとに応募券1枚として自動登録されます",
+  "lottery.toastIssued": "「{title}」が応募券に登録されました ({used}/5)",
+  "lottery.toastSkipped": "応募券は登録されませんでした",
+  "lottery.reason.monthlyLimit": "今月の応募券をすべて使用しました",
+  "lottery.reason.duration": "動画は30秒以上である必要があります",
+  "lottery.reason.noAttestation": "オリジナル作品同意が必要です",
+  "lottery.reason.notOwner": "アップローダーのみ応募券を取得できます",
+  "lottery.reason.videoNotFound": "動画情報が見つかりません",
+
   "meta.title.home": "ホーム",
   "meta.title.films": "フィルム",
   "meta.title.feed": "フィード",

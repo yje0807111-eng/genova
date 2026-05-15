@@ -96,6 +96,22 @@ export const koOverrides: Record<string, string> = {
 
   "meta.brand": "Genova",
   "meta.defaultDescription": "AI 영화인을 위한 플랫폼",
+
+  // Phase 3: 응모권 시스템 UI
+  "lottery.title": "이번 달 응모권",
+  "lottery.resetIn": "리셋까지 {days}일",
+  "lottery.resetToday": "오늘 리셋",
+  "lottery.depleted": "이번 달 응모권을 모두 사용했습니다",
+  "lottery.attestationLabel": "본인이 직접 제작한 영상입니다",
+  "lottery.attestationHelp": "체크 시 30초 이상 영상은 응모권 1장으로 자동 등록됩니다",
+  "lottery.toastIssued": "\"{title}\" 영상이 응모권으로 등록되었습니다 ({used}/5)",
+  "lottery.toastSkipped": "응모권이 등록되지 않았습니다",
+  "lottery.reason.monthlyLimit": "이번 달 응모권을 모두 사용했습니다",
+  "lottery.reason.duration": "영상 길이가 30초 이상이어야 합니다",
+  "lottery.reason.noAttestation": "본인 제작 동의가 필요합니다",
+  "lottery.reason.notOwner": "업로더만 응모권을 받을 수 있습니다",
+  "lottery.reason.videoNotFound": "영상 정보를 찾을 수 없습니다",
+
   "meta.title.home": "홈",
   "meta.title.films": "영화",
   "meta.title.feed": "피드",
