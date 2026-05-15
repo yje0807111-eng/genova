@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import type { User } from "@supabase/supabase-js";
 import { notFound } from "next/navigation";
 import { AnimateIn } from "@/components/animate-in";
 import { GenovaProfileClient } from "@/components/profile/profile-page-client";
@@ -112,7 +113,9 @@ export default async function ProfileByIdPage({ params }: { params: Promise<{ id
   if (!UUID_RE.test(id)) notFound();
 
   const supabase = await createServerSupabaseClient();
-  let currentUser: { id: string } | null = null;
+  // Full Supabase User shape — owner-only blocks below read `email` and
+  // `app_metadata.provider` off this to decide which settings UI to render.
+  let currentUser: User | null = null;
   if (supabase) {
     const {
       data: { user },
