@@ -36,6 +36,25 @@ type VideoRow = {
   submitted_competition_id?: string | null;
   award: string | null;
   runtime: string;
+  /**
+   * Raw asset duration in seconds (migration 20260516160000).  Used by
+   * the lottery `issue_lottery_ticket()` RPC for the >= 30s eligibility
+   * gate.  `runtime` (text) is display-only and isn't safely parseable.
+   */
+  duration_seconds?: number | null;
+  /**
+   * Timestamp of the "본인 제작" attestation checkbox tick at upload
+   * (migration 20260516150000).  NULL means the uploader didn't
+   * consent — `issue_lottery_ticket()` requires non-NULL for ticket
+   * issuance.  Read-only from the client side.
+   */
+  original_attestation_at?: string | null;
+  /**
+   * First time the uploader changed the video's genre via the edit
+   * form.  Once set, the edit UI locks the genre controls (one-shot
+   * change policy).  Recovery migration 20260516190000.
+   */
+  genre_changed_at?: string | null;
   created_at: string;
   uploaded_by?: string | null;
   visibility?: string;
