@@ -110,7 +110,7 @@ function CompetitionCard({ c, participantCount }: { c: Competition; participantC
   const isUpcoming = ["Upcoming", "예정"].includes(c.status);
 
   return (
-    <div className="gradient-border-card group overflow-hidden rounded-xl border border-white/[0.09] bg-[#111118] transition-all duration-200 hover:-translate-y-[2px] hover:border-[rgba(127,119,221,0.3)] hover:shadow-[0_8px_32px_rgba(83,74,183,0.2)]">
+    <div className="gradient-border-card group overflow-hidden rounded-2xl border border-white/[0.12] bg-[#121219] shadow-[0_2px_14px_rgba(0,0,0,0.45)] transition-all duration-200 hover:-translate-y-1 hover:border-[rgba(127,119,221,0.45)] hover:shadow-[0_12px_36px_rgba(83,74,183,0.28)]">
       <div className="gradient-border-card-inner">
       <Link href={`/competition/${c.id}`} className="block p-3 pb-0">
         <div className="relative w-full overflow-hidden rounded-lg" style={{ aspectRatio: "16/9" }}>
@@ -152,7 +152,7 @@ function CompetitionCard({ c, participantCount }: { c: Competition; participantC
           ) : null}
         </div>
         <span className={`inline-flex w-fit rounded-full px-2 py-1 text-[11px] font-bold ${
-          isOpen ? "bg-green-500/15 text-green-400" : isUpcoming ? "bg-blue-500/15 text-blue-400" : "bg-white/5 text-white/30"
+          isOpen ? "bg-emerald-500/20 text-emerald-300" : isUpcoming ? "bg-sky-500/20 text-sky-300" : "bg-white/[0.06] text-white/40"
         }`}>
           {isOpen ? t("competition.statusOpen") : isUpcoming ? t("competition.statusUpcoming") : t("competition.statusClosed")}
         </span>
@@ -293,7 +293,7 @@ export function CompetitionListClient({
   const { t, locale } = useI18n();
   const [activeTab, setActiveTab] = useState<"all" | "open" | "upcoming" | "closed">("all");
   const [sortMode, setSortMode] = useState<"deadline" | "prize" | "participants">("deadline");
-  const [gridMode, setGridMode] = useState<"grid" | "list">("list");
+  const [gridMode, setGridMode] = useState<"grid" | "list">("grid");
   const [sortOpen, setSortOpen] = useState(false);
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
@@ -488,7 +488,7 @@ export function CompetitionListClient({
           </div>
         </div>
       ) : (
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+        <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
           {paginated.map((c) => <CompetitionCard key={c.id} c={c} participantCount={participantCounts[c.id] ?? 0} />)}
         </div>
       )}
