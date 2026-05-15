@@ -50,6 +50,14 @@ type HomePageClientProps = {
    * filter/sort/search shell here back into a server component.
    */
   competitionBannerSlot: ReactNode;
+  /**
+   * F4: server-rendered Films Beta 2 rails (Series / Award Winners /
+   * Continue Watching).  Only populated when initialTab === "films".
+   * Surfaced above the regular Films-tab grid when the user hasn't
+   * narrowed via sub-genre filter or search — i.e. the default Films
+   * landing view.
+   */
+  filmsRailsSlot?: ReactNode;
 };
 
 export function HomePageClient(props: HomePageClientProps) {
@@ -65,6 +73,7 @@ export function HomePageClient(props: HomePageClientProps) {
     initialTab,
     competitionStats,
     competitionBannerSlot,
+    filmsRailsSlot,
   } = props;
   const { t, locale } = useI18n();
   const pathname = usePathname();
@@ -280,6 +289,16 @@ export function HomePageClient(props: HomePageClientProps) {
 
         <AnimateIn delay={0.11} className="relative z-0">
          <div className="min-h-[800px]">
+          {/* F4: Films Beta 2 rails (Series / Award Winners / Continue
+              Watching).  Only on the default Films landing view —
+              hidden as soon as the user narrows via sub-genre filter
+              or search, where the focused grid below is the point. */}
+          {activeMainTab === "films" &&
+            activeSubGenre === "all" &&
+            !searchQuery.trim() &&
+            filmsRailsSlot && (
+              <div className="mb-10">{filmsRailsSlot}</div>
+            )}
           {activeSubGenre === "awards" && activeMainTab === "recommended" ? (
             <AwardsGallery
               heroAwardVideos={heroAwardVideos ?? { grandPrize: null, excellence: null, merit: null, audience: null }}

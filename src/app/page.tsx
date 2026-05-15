@@ -5,9 +5,15 @@ import {
   fetchVideosWithCreators,
 } from "@/lib/queries";
 import { fetchHeroAwardVideosForCompetition } from "@/lib/queries/films-hero-award-videos";
+import {
+  fetchSeriesRail,
+  fetchAwardWinnersRail,
+  fetchContinueWatchingRail,
+} from "@/lib/queries/films-rails";
 import { fetchCompetitionStats } from "@/lib/queries/competition-stats";
 import { HomePageClient } from "@/components/genova/home-page-client";
 import { HomeCompetitionBanner } from "@/components/genova/home-competition-banner";
+import { FilmsRails } from "@/components/films/films-rails";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 
 export const dynamic = "force-dynamic";
@@ -18,6 +24,7 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ t
   const initialTab = params.tab === "films" ? "films" : "recommended";
   const supabase = await createServerSupabaseClient();
   let isLoggedIn = false;
+  let currentUserId: string | null = null;
   let followingVideos: Awaited<ReturnType<typeof fetchVideosWithCreators>> = [];
 
   if (supabase) {
@@ -26,6 +33,7 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ t
         data: { user },
       } = await supabase.auth.getUser();
       isLoggedIn = Boolean(user);
+      currentUserId = user?.id ?? null;
     } catch {
       isLoggedIn = false;
     }
@@ -45,9 +53,27 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ t
 
   const uploadedFirst = [...videosWithE].sort((a, b) => (b.viewCount ?? 0) - (a.viewCount ?? 0));
 
-  const heroAwardVideos = competition?.id
-    ? await fetchHeroAwardVideosForCompetition(competition.id)
-    : { grandPrize: null, excellence: null, merit: null, audience: null };
+  // F4: Films Beta 2 rails — only prefetch when the user is actually
+  // landing on the Films tab.  Three parallel queries are tiny but the
+  // Recommended tab doesn't surface them, so saving the round-trips
+  // when not needed is the cleaner default.  Continue Watching is
+  // user-specific and returns [] for signed-out callers.
+  const [heroAwardVideos, seriesRail, awardWinnersRail, continueWatchingRail] =
+    await Promise.all([
+      competition?.id
+        ? fetchHeroAwardVideosForCompetition(competition.id)
+        : Promise.resolve({
+            grandPrize: null,
+            excellence: null,
+            merit: null,
+            audience: null,
+          }),
+      initialTab === "films" ? fetchSeriesRail() : Promise.resolve([]),
+      initialTab === "films" ? fetchAwardWinnersRail() : Promise.resolve([]),
+      initialTab === "films"
+        ? fetchContinueWatchingRail(currentUserId)
+        : Promise.resolve([]),
+    ]);
 
   return (
     <HomePageClient
@@ -66,6 +92,19 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ t
            server so the locale-aware copy + stat cards ship as
            static HTML, then thread through the client shell. */
         <HomeCompetitionBanner competition={competition} stats={competitionStats} />
+      }
+      filmsRailsSlot={
+        /* F4: only ship rails markup when initialTab === "films".
+           Empty arrays render nothing (FilmsRails returns null), so
+           this is also harmless for users with no series / awards /
+           watch history. */
+        initialTab === "films" ? (
+          <FilmsRails
+            series={seriesRail}
+            awardWinners={awardWinnersRail}
+            continueWatching={continueWatchingRail}
+          />
+        ) : null
       }
     />
   );
