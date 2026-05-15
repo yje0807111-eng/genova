@@ -146,7 +146,9 @@ export function EditVideoFormSimple({ video, userId, competitions, activeCompeti
         genre,
         additionalGenres: (video.additional_genres ?? []) as string[],
         subGenre: video.sub_genre ?? null,
-        purpose,
+        // `purpose` lives client-side only on edit — `updateVideoAction`
+        // doesn't accept it (the DB column isn't mutated on edit).
+        // It's still used locally below to gate `submittedCompetitionId`.
         aiTools: video.ai_tools ?? [],
         tags,
         seriesName: isSeriesMode ? seriesName.trim() : null,
