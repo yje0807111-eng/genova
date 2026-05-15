@@ -105,6 +105,10 @@ export async function grantCompetitionTrophyAction(input: {
     href: `/profile/${userId}`,
     entityType: "trophy",
     entityId: competitionId,
+    // F1: feeds notif.trophy.competitionBody (locale-aware) via the
+    // {title} / {award} placeholders.  Switch arm in
+    // notifications-i18n.ts.
+    metadata: { kind: "competition", competition_title: compTitle, award },
   });
 
   revalidatePath("/admin");
@@ -185,6 +189,8 @@ export async function runWeeklyGenreTrophiesAction(weekStartInput?: string): Pro
         href: `/profile/${userId}`,
         entityType: "trophy",
         entityId: `${genre}:${weekStart}:${rank}`,
+        // F1: feeds notif.trophy.weeklyBody via {genre} / {rank}.
+        metadata: { kind: "weekly", genre_label: label, rank, week_start: weekStart },
       });
     }
   }

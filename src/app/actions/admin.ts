@@ -233,6 +233,8 @@ export async function setVideoFinalistAction(videoId: string, finalist: boolean)
       href: `/watch/${videoId}`,
       entityType: "video",
       entityId: videoId,
+      // F1: feeds notif.competition.finalistBody via {title}.
+      metadata: { kind: "finalist", video_title: (data.title as string) ?? "" },
     });
   }
   revalidatePath("/admin");
@@ -274,6 +276,8 @@ export async function setVideoAwardAction(videoId: string, award: string): Promi
       href: `/watch/${videoId}`,
       entityType: "video",
       entityId: videoId,
+      // F1: feeds notif.competition.winnerBody via {title} / {award}.
+      metadata: { kind: "winner", video_title: (data.title as string) ?? "", award: value },
     });
   }
   revalidatePath("/admin");

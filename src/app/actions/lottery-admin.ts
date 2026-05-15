@@ -342,6 +342,12 @@ async function dispatchWinnerNotifications(
       href: `/winners/claim/${token}`,
       entityType: "competition_winner",
       entityId: winnerId,
+      // F1: structured fields for the locale-aware body in
+      // notifications-i18n.ts.  claim_token intentionally OMITTED —
+      // CLAUDE.md security policy (#7): the token is URL-only and
+      // must not appear in logs or row metadata.  The href already
+      // carries it.
+      metadata: { prize_tier: w.prize_tier, prize_amount_usd: w.prize_amount_usd },
     });
     if (notifResult.error) {
       console.error("[lottery-admin] notif insert failed", winnerId, notifResult.error);

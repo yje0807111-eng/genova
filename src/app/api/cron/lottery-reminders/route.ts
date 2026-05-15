@@ -148,6 +148,10 @@ async function dispatchWave(
       href: `/winners/claim/${w.claim_token}`,
       entityType: "competition_winner",
       entityId: w.id,
+      // F1: structured fields for locale-aware body.  claim_token
+      // intentionally OMITTED per CLAUDE.md security policy — only
+      // href carries it.
+      metadata: { prize_amount_usd: w.prize_amount_usd, days_left: cfg.daysLeft },
     });
     if (notifResult.error) {
       errors += 1;
