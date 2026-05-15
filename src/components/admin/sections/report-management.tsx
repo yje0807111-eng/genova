@@ -1,6 +1,6 @@
 "use client";
 
-import { ExternalLink, ShieldOff, Trash2, User } from "lucide-react";
+import { EyeOff, ExternalLink, ShieldOff, Trash2, User } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
@@ -10,6 +10,7 @@ import {
   type VideoReportItem,
   type VideoReportStatus,
 } from "@/app/actions/reports";
+import { bulkPrivateUploaderVideosAction } from "@/app/actions/admin";
 import { revokeEntryTicketByVideoAction } from "@/app/actions/lottery-admin";
 import { adminTokens } from "@/lib/admin-styles";
 import { cn } from "@/lib/utils/cn";
@@ -168,6 +169,32 @@ export function ReportManagement({
         onMessage("Ticket was already revoked.");
       } else {
         onMessage(`Revoke failed: ${res.message}`);
+      }
+      router.refresh();
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  /**
+   * H6-A.6: hide every public video by the offending uploader.
+   * Two-step confirm — this is a broad moderation hammer.
+   */
+  const bulkPrivateUploader = async (videoId: string, videoTitle: string) => {
+    if (
+      !confirm(
+        `"${videoTitle}" 업로더의 공개 영상 전체를 비공개 처리합니다.\n` +
+          `(개별 영상 visibility 토글로 되돌릴 수 있습니다.)\n\n계속하시겠습니까?`,
+      )
+    )
+      return;
+    setLoading(true);
+    try {
+      const res = await bulkPrivateUploaderVideosAction(videoId);
+      if (res.ok) {
+        onMessage(`업로더 영상 ${res.affected ?? 0}건을 비공개 처리했습니다.`);
+      } else {
+        onMessage(`일괄 비공개 실패: ${res.message}`);
       }
       router.refresh();
     } finally {
@@ -383,18 +410,33 @@ export function ReportManagement({
                       when the report is in a state where admin would
                       typically act on it (reviewing or resolved). */}
                   {report.status === "reviewing" || report.status === "resolved" ? (
-                    <button
-                      type="button"
-                      disabled={loading}
-                      className={cn(
-                        adminTokens.iconButton,
-                        "text-amber-400/80 hover:text-amber-300",
-                      )}
-                      title="응모권 회수 (Revoke lottery ticket)"
-                      onClick={() => revokeTicket(report.videoId, report.videoTitle)}
-                    >
-                      <ShieldOff size={13} />
-                    </button>
+                    <>
+                      <button
+                        type="button"
+                        disabled={loading}
+                        className={cn(
+                          adminTokens.iconButton,
+                          "text-amber-400/80 hover:text-amber-300",
+                        )}
+                        title="응모권 회수 (Revoke lottery ticket)"
+                        onClick={() => revokeTicket(report.videoId, report.videoTitle)}
+                      >
+                        <ShieldOff size={13} />
+                      </button>
+                      {/* H6-A.6: bulk-private the uploader's catalog */}
+                      <button
+                        type="button"
+                        disabled={loading}
+                        className={cn(
+                          adminTokens.iconButton,
+                          "text-red-400/80 hover:text-red-300",
+                        )}
+                        title="이 업로더 영상 전체 비공개"
+                        onClick={() => bulkPrivateUploader(report.videoId, report.videoTitle)}
+                      >
+                        <EyeOff size={13} />
+                      </button>
+                    </>
                   ) : null}
 
                   <div className="ml-1 flex flex-wrap items-center gap-0.5 border-l border-white/[0.06] pl-2">

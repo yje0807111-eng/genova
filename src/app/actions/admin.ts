@@ -275,6 +275,53 @@ export async function setVideoFinalistAction(videoId: string, finalist: boolean)
   return { ok: true };
 }
 
+/**
+ * H6-A.6: bulk-private every public video by the uploader of the
+ * given video.  Moderation tool — when a report reveals a bad-actor
+ * uploader, the operator can hide their whole catalog in one click
+ * instead of toggling each row.
+ *
+ * Returns the count of videos flipped so the UI can confirm scope.
+ * Does NOT touch already-private rows (idempotent re-runs are cheap)
+ * and does NOT delete anything — reversible by per-video visibility
+ * toggle.  Deliberately not a user "ban": account suspension is a
+ * heavier action handled out-of-band; this just de-lists content.
+ */
+export async function bulkPrivateUploaderVideosAction(
+  videoId: string,
+): Promise<AdminResult & { affected?: number; uploaderId?: string }> {
+  const auth = await requireAdminWithService();
+  if ("error" in auth) return { ok: false, message: auth.error ?? "Unauthorized" };
+  const { service } = auth;
+
+  const { data: seed, error: seedErr } = await service
+    .from("videos")
+    .select("uploaded_by")
+    .eq("id", videoId)
+    .maybeSingle();
+  if (seedErr) return { ok: false, message: seedErr.message };
+  const uploaderId = (seed?.uploaded_by as string | null) ?? null;
+  if (!uploaderId) {
+    return { ok: false, message: "Could not resolve the uploader for this video." };
+  }
+
+  const { data: flipped, error: updErr } = await service
+    .from("videos")
+    .update({ visibility: "private" })
+    .eq("uploaded_by", uploaderId)
+    .eq("visibility", "public")
+    .select("id");
+  if (updErr) return { ok: false, message: updErr.message };
+
+  const affected = flipped?.length ?? 0;
+  revalidatePath("/admin");
+  revalidatePath("/");
+  revalidatePath("/films");
+  revalidatePath("/competition");
+  revalidatePath(`/profile/${uploaderId}`);
+  return { ok: true, affected, uploaderId };
+}
+
 export async function setVideoOriginalAction(videoId: string, isOriginal: boolean): Promise<{ ok: boolean; message?: string }> {
   const auth = await requireAdminWithService();
   if ("error" in auth) return { ok: false, message: auth.error ?? "Unauthorized" };
