@@ -5,7 +5,14 @@ export type AppNotification = {
   title: string;
   body: string | null;
   href: string | null;
-  type: "comment" | "follow" | "competition_result" | "trophy" | "like";
+  type:
+    | "comment"
+    | "follow"
+    | "competition_result"
+    | "trophy"
+    | "like"
+    | "lottery_winner"
+    | "lottery_reminder";
   isRead: boolean;
   createdAt: string;
 };

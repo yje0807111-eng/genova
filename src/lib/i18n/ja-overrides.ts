@@ -1187,6 +1187,8 @@ export const jaOverrides: Record<string, string> = {
   "notif.save.bodyGeneric": "保存されました",
   "notif.competition.title": "コンペティション結果",
   "notif.trophy.title": "トロフィー獲得",
+  "notif.lotteryWinner.title": "🎉 Genova 抽選当選",
+  "notif.lotteryReminder.title": "⏰ 情報提出締切間近",
 
   "films.noVideosYet": "まだ動画がありません",
   "home.noVideosForTab": "まだ表示する動画がありません",

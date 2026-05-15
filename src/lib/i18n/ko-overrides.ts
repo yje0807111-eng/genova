@@ -1320,6 +1320,8 @@ export const koOverrides: Record<string, string> = {
   "notif.save.bodyGeneric": "저장되었습니다",
   "notif.competition.title": "공모전 결과",
   "notif.trophy.title": "트로피 획득",
+  "notif.lotteryWinner.title": "🎉 Genova 추첨 당첨",
+  "notif.lotteryReminder.title": "⏰ 정보 제출 마감 임박",
 
   "films.noVideosYet": "아직 영상이 없습니다",
   "home.noVideosForTab": "아직 표시할 영상이 없습니다",

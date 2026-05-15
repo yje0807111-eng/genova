@@ -50,6 +50,28 @@ export function getNotificationLabel(
         title: t("notif.trophy.title", "트로피 획득"),
         body: notification.body ?? "",
       };
+    case "lottery_winner":
+      // The row's `title` ("🎉 You won …") and `body` ("Tier X · $Y …")
+      // are populated server-side in English at insert time
+      // (lottery-admin.ts → dispatchWinnerNotifications).  Surfacing
+      // them through dedicated i18n keys with structured fields will
+      // require a `metadata` jsonb column on notifications — until
+      // then we pass the server strings through unchanged but use a
+      // canonical title key so the UI can theme this type even on a
+      // missing-body row.
+      return {
+        title: notification.title?.trim()
+          ? notification.title
+          : t("notif.lotteryWinner.title", "🎉 You won the Genova lottery"),
+        body: notification.body ?? "",
+      };
+    case "lottery_reminder":
+      return {
+        title: notification.title?.trim()
+          ? notification.title
+          : t("notif.lotteryReminder.title", "⏰ Claim deadline approaching"),
+        body: notification.body ?? "",
+      };
     default:
       return {
         title: notification.title ?? "",

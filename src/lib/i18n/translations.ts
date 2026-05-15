@@ -1068,6 +1068,8 @@ const en: Messages = {
   "notif.save.bodyGeneric": "Saved by a viewer",
   "notif.competition.title": "Competition result",
   "notif.trophy.title": "Trophy earned",
+  "notif.lotteryWinner.title": "🎉 You won the Genova lottery",
+  "notif.lotteryReminder.title": "⏰ Claim deadline approaching",
 
   "profile.tabVideos": "Videos",
   "profile.tabCompetition": "Competition",
