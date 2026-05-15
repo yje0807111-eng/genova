@@ -1,8 +1,15 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { grantCompetitionTrophyAction, runWeeklyGenreTrophiesAction } from "@/app/actions/trophies-admin";
+import { Trash2, RefreshCw } from "lucide-react";
+import {
+  fetchRecentTrophiesAction,
+  grantCompetitionTrophyAction,
+  revokeTrophyAction,
+  runWeeklyGenreTrophiesAction,
+  type AdminTrophyRow,
+} from "@/app/actions/trophies-admin";
 import { adminTokens } from "@/lib/admin-styles";
 import type { Competition } from "@/lib/types";
 import { cn } from "@/lib/utils/cn";
@@ -22,6 +29,45 @@ export function TrophyManagement({
   const [weeklyWeekStart, setWeeklyWeekStart] = useState("");
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  // H3-A.7: recent trophies list + revoke
+  const [recent, setRecent] = useState<AdminTrophyRow[]>([]);
+  const [recentLoading, setRecentLoading] = useState(false);
+  const [revokingId, setRevokingId] = useState<string | null>(null);
+
+  const loadRecent = async () => {
+    setRecentLoading(true);
+    try {
+      const rows = await fetchRecentTrophiesAction(50);
+      setRecent(rows);
+    } finally {
+      setRecentLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    void loadRecent();
+  }, []);
+
+  const handleRevoke = async (row: AdminTrophyRow) => {
+    const label =
+      row.type === "competition"
+        ? `${row.competitionTitle ?? row.competitionId ?? "competition"} · ${row.award ?? ""}`
+        : `${row.genre ?? ""} 주간 ${row.rank ?? ""}위`;
+    if (!confirm(`Revoke trophy?\n  ${label}\n  user: ${row.userDisplayName ?? row.userId}\n\nThis cannot be undone.`)) return;
+    setRevokingId(row.id);
+    try {
+      const res = await revokeTrophyAction(row.id);
+      if (res.ok) {
+        onMessage("Trophy revoked.");
+        setRecent((prev) => prev.filter((r) => r.id !== row.id));
+        router.refresh();
+      } else {
+        onMessage(`Revoke failed: ${res.message}`);
+      }
+    } finally {
+      setRevokingId(null);
+    }
+  };
 
   const call = async (fn: () => Promise<{ ok: boolean; message?: string }>) => {
     setLoading(true);
@@ -134,6 +180,64 @@ export function TrophyManagement({
       {errorMessage ? (
         <div className="mt-3 rounded-md border border-red-500/20 bg-red-500/[0.05] px-3 py-2 text-[11px] text-red-400">{errorMessage}</div>
       ) : null}
+
+      {/* H3-A.7: recent trophies list + revoke */}
+      <div className={cn(adminTokens.divider, "my-4")} />
+      <div>
+        <div className="mb-2 flex items-center justify-between">
+          <h3 className="text-[12px] font-semibold text-white/70">최근 트로피 (50건)</h3>
+          <button
+            type="button"
+            onClick={() => void loadRecent()}
+            disabled={recentLoading}
+            className={cn(adminTokens.buttonGhost, "inline-flex items-center gap-1 text-[11px]")}
+            title="새로고침"
+          >
+            <RefreshCw size={12} className={recentLoading ? "animate-spin" : ""} />
+            새로고침
+          </button>
+        </div>
+        {recent.length === 0 ? (
+          <p className="rounded-md border border-white/[0.06] bg-white/[0.01] px-3 py-6 text-center text-[11px] text-white/35">
+            {recentLoading ? "불러오는 중…" : "지급된 트로피가 없습니다."}
+          </p>
+        ) : (
+          <ul className="space-y-1">
+            {recent.map((t) => (
+              <li
+                key={t.id}
+                className="flex items-center gap-2 rounded-md border border-white/[0.06] bg-white/[0.01] px-2 py-1.5 text-[11px]"
+              >
+                <span
+                  className={cn(
+                    adminTokens.badge,
+                    t.type === "competition" ? adminTokens.badgeInfo : adminTokens.badgeWarning,
+                  )}
+                >
+                  {t.type === "competition" ? "Competition" : "Weekly"}
+                </span>
+                <span className="min-w-0 flex-1 truncate text-white/80">
+                  {t.type === "competition"
+                    ? `${t.competitionTitle ?? t.competitionId ?? "—"} · ${t.award ?? ""}`
+                    : `${t.genre ?? ""} 주간 ${t.rank ?? ""}위 (${t.weekStart ?? ""})`}
+                </span>
+                <span className="hidden truncate text-white/40 sm:inline">
+                  {t.userDisplayName ?? t.userId.slice(0, 8)}
+                </span>
+                <button
+                  type="button"
+                  onClick={() => void handleRevoke(t)}
+                  disabled={revokingId === t.id}
+                  className={cn(adminTokens.iconButton, "text-red-400 hover:text-red-300 disabled:opacity-40")}
+                  title="회수"
+                >
+                  <Trash2 size={12} />
+                </button>
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
     </div>
   );
 }

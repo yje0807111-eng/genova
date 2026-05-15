@@ -199,3 +199,113 @@ export async function runWeeklyGenreTrophiesAction(weekStartInput?: string): Pro
   revalidatePath("/competition");
   return { ok: true };
 }
+
+/* -----------------------------------------------------------------
+ * H3-A.7: trophy admin queries — recent trophies list + revoke.
+ *
+ * Operators previously had no UI to undo a mis-granted trophy and
+ * had to drop into SQL.  These endpoints surface the most recent 50
+ * trophies and a single-row revoke with confirm.  No new DB schema —
+ * the existing `trophies` table is the source of truth.
+ * ---------------------------------------------------------------*/
+
+export type AdminTrophyRow = {
+  id: string;
+  userId: string;
+  userDisplayName: string | null;
+  type: "weekly_genre" | "competition";
+  rank: number | null;
+  genre: string | null;
+  competitionId: string | null;
+  competitionTitle: string | null;
+  award: string | null;
+  weekStart: string | null;
+  createdAt: string;
+};
+
+export async function fetchRecentTrophiesAction(limit = 50): Promise<AdminTrophyRow[]> {
+  const auth = await requireAdmin();
+  if ("error" in auth) return [];
+  const svc = createServiceSupabaseClient();
+  if (!svc) return [];
+
+  const { data, error } = await svc
+    .from("trophies")
+    .select("id, user_id, type, rank, genre, competition_id, award, week_start, created_at")
+    .order("created_at", { ascending: false })
+    .limit(limit);
+  if (error || !data) return [];
+
+  const userIds = [...new Set(data.map((r) => r.user_id as string))];
+  const compIds = [
+    ...new Set(
+      data
+        .map((r) => r.competition_id as string | null)
+        .filter((id): id is string => Boolean(id)),
+    ),
+  ];
+
+  const [profilesRes, compsRes] = await Promise.all([
+    userIds.length
+      ? svc.from("public_profiles").select("id, display_name").in("id", userIds)
+      : Promise.resolve({ data: [] as { id: string; display_name: string | null }[] }),
+    compIds.length
+      ? svc.from("competitions").select("id, title").in("id", compIds)
+      : Promise.resolve({ data: [] as { id: string; title: string }[] }),
+  ]);
+
+  const profileMap = new Map(
+    (profilesRes.data ?? []).map((p) => [p.id as string, (p.display_name as string | null) ?? null]),
+  );
+  const compMap = new Map(
+    (compsRes.data ?? []).map((c) => [c.id as string, c.title as string]),
+  );
+
+  return data.map((r) => ({
+    id: r.id as string,
+    userId: r.user_id as string,
+    userDisplayName: profileMap.get(r.user_id as string) ?? null,
+    type: r.type as AdminTrophyRow["type"],
+    rank: (r.rank as number | null) ?? null,
+    genre: (r.genre as string | null) ?? null,
+    competitionId: (r.competition_id as string | null) ?? null,
+    competitionTitle: r.competition_id
+      ? compMap.get(r.competition_id as string) ?? null
+      : null,
+    award: (r.award as string | null) ?? null,
+    weekStart: (r.week_start as string | null) ?? null,
+    createdAt: r.created_at as string,
+  }));
+}
+
+export async function revokeTrophyAction(trophyId: string): Promise<AdminResult> {
+  const auth = await requireAdmin();
+  if ("error" in auth) return { ok: false, message: auth.error };
+  const svc = createServiceSupabaseClient();
+  if (!svc) {
+    return { ok: false, message: "Set SUPABASE_SERVICE_ROLE_KEY on the server to manage trophies." };
+  }
+
+  if (!trophyId.trim()) return { ok: false, message: "Trophy id is required." };
+
+  // Look up before delete so we can revalidate the user's profile
+  // page (their displayed trophy count changes).
+  const { data: existing } = await svc
+    .from("trophies")
+    .select("id, user_id, competition_id")
+    .eq("id", trophyId)
+    .maybeSingle();
+  if (!existing) {
+    return { ok: false, message: "Trophy not found (already revoked?)." };
+  }
+
+  const { error } = await svc.from("trophies").delete().eq("id", trophyId);
+  if (error) return { ok: false, message: error.message };
+
+  revalidatePath("/admin");
+  revalidatePath(`/profile/${existing.user_id}`);
+  if (existing.competition_id) {
+    revalidatePath(`/competition/${existing.competition_id}`);
+  }
+  return { ok: true };
+}
