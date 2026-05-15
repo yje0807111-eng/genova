@@ -21,7 +21,6 @@ const en: Messages = {
 
   "nav.feed": "Feed",
   "nav.films": "Films",
-  "nav.shorts": "Shorts",
   "nav.competition": "Competition",
   "nav.creators": "Creators",
   "nav.upload": "Upload",
@@ -904,7 +903,6 @@ const en: Messages = {
   "meta.title.home": "Home",
   "meta.title.films": "Films",
   "meta.title.feed": "Feed",
-  "meta.title.shorts": "Shorts",
   "meta.title.competition": "Competition",
   "meta.title.upload": "Upload",
   "meta.title.search": "Search",
