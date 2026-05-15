@@ -15,6 +15,14 @@ export type AppNotification = {
     | "lottery_reminder";
   isRead: boolean;
   createdAt: string;
+  /**
+   * Structured payload for locale-aware rendering (E1).  See
+   * createNotification() in src/lib/notifications.ts for the shape per
+   * type.  NULL means no structured fields were available at insert
+   * time — getNotificationLabel() falls through to the generic body
+   * key.
+   */
+  metadata: Record<string, unknown> | null;
 };
 
 export async function fetchMyNotifications(limit = 30): Promise<AppNotification[]> {
@@ -27,7 +35,7 @@ export async function fetchMyNotifications(limit = 30): Promise<AppNotification[
 
   const { data, error } = await supabase
     .from("notifications")
-    .select("id, title, body, href, type, is_read, created_at")
+    .select("id, title, body, href, type, is_read, created_at, metadata")
     .eq("user_id", user.id)
     .order("created_at", { ascending: false })
     .limit(limit);
@@ -40,6 +48,7 @@ export async function fetchMyNotifications(limit = 30): Promise<AppNotification[
     type: r.type as AppNotification["type"],
     isRead: Boolean(r.is_read),
     createdAt: r.created_at as string,
+    metadata: (r.metadata as Record<string, unknown> | null) ?? null,
   }));
 }
 

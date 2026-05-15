@@ -28,6 +28,18 @@ export async function createNotification(input: {
   href?: string | null;
   entityType?: string | null;
   entityId?: string | null;
+  /**
+   * Structured payload consumed by `getNotificationLabel()` in
+   * notifications-i18n.ts to render locale-aware copy.  Shape per
+   * type (E1):
+   *   comment / like  → { video_title }
+   *   follow          → { actor_name }
+   *   lottery_winner  → { prize_tier, prize_amount_usd, claim_token }
+   *   lottery_reminder → { prize_amount_usd, days_left, claim_token }
+   * Pass null / omit if no structured fields are available — the i18n
+   * switch falls through to the generic body key.
+   */
+  metadata?: Record<string, unknown> | null;
 }) {
   const service = createServiceSupabaseClient();
   if (!service) {
@@ -42,5 +54,6 @@ export async function createNotification(input: {
     href: input.href ?? null,
     entity_type: input.entityType ?? null,
     entity_id: input.entityId ?? null,
+    metadata: input.metadata ?? null,
   });
 }

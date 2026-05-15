@@ -47,6 +47,8 @@ export async function toggleLikeAction(videoId: string): Promise<ToggleEngagemen
         href: `/watch/${videoId}`,
         entityType: "video",
         entityId: videoId,
+        // E1: feeds "{title}이 좋아요를 받았습니다" via meta.video_title.
+        metadata: { video_title: video.title ?? "" },
       });
     }
   }
@@ -98,6 +100,10 @@ export async function toggleSaveAction(videoId: string): Promise<ToggleSaveResul
         href: `/watch/${videoId}`,
         entityType: "video",
         entityId: videoId,
+        // E1: same meta.video_title key — notifications-i18n.ts
+        // disambiguates save vs like via the "saved" substring in the
+        // title.
+        metadata: { video_title: video.title ?? "" },
       });
     }
   }

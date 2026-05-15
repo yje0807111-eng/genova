@@ -85,6 +85,17 @@ export async function followUserAction(targetUserId: string): Promise<FollowActi
     if (error.code === "23505") return { ok: true, alreadyFollowing: true };
     return { ok: false, message: error.message };
   }
+  // E1: look up the actor's display name so the notification body can
+  // render locale-aware "{name}님이 팔로우했습니다" via meta.actor_name.
+  // Best-effort — if the lookup fails we just omit the field and fall
+  // through to the generic "프로필을 확인하세요" body.
+  const { data: actorProfile } = await supabase
+    .from("profiles")
+    .select("display_name")
+    .eq("id", user.id)
+    .maybeSingle();
+  const actorName =
+    (actorProfile?.display_name as string | null | undefined)?.trim() || null;
   await createNotification({
     userId: targetUserId,
     actorId: user.id,
@@ -94,6 +105,7 @@ export async function followUserAction(targetUserId: string): Promise<FollowActi
     href: `/profile/${user.id}`,
     entityType: "profile",
     entityId: user.id,
+    metadata: actorName ? { actor_name: actorName } : null,
   });
   revalidatePath(`/profile/${targetUserId}`);
   revalidatePath("/profile");

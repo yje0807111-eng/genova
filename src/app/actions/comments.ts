@@ -49,6 +49,9 @@ export async function createCommentAction(videoId: string, content: string, pare
       href: `/watch/${videoId}`,
       entityType: "video",
       entityId: videoId,
+      // E1: feeds the locale-aware "{title}에 댓글이 달렸습니다" copy
+      // in notifications-i18n.ts via meta.video_title.
+      metadata: { video_title: video.title ?? "" },
     });
   }
 
