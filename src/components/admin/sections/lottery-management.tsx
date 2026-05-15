@@ -19,6 +19,47 @@ import type {
 } from "@/lib/queries/lottery-admin-queries";
 
 /**
+ * H5-E.3: mask the last octet of an IPv4 / suffix of IPv6 for
+ * over-the-shoulder safety.  Full value remains in the DB for
+ * forensics.  Returns the raw value if it doesn't look like an IP
+ * (so weird debugging strings aren't silently truncated).
+ */
+function maskIp(ip: string): string {
+  // IPv4: a.b.c.d → a.b.c.•
+  const v4 = ip.match(/^(\d{1,3}\.\d{1,3}\.\d{1,3})\.\d{1,3}$/);
+  if (v4) return `${v4[1]}.•`;
+  // IPv6: keep first 4 hex groups, mask the rest.
+  if (ip.includes(":")) {
+    const groups = ip.split(":");
+    if (groups.length >= 4) {
+      return `${groups.slice(0, 4).join(":")}:•••`;
+    }
+  }
+  return ip;
+}
+
+/**
+ * H5-E.4: mask the local part of an email and any reference / token.
+ * Example: jane.doe@example.com → j••••@example.com.  Empty / null
+ * inputs return a placeholder.
+ */
+function maskEmail(email: string | null | undefined): string {
+  if (!email) return "•••";
+  const at = email.indexOf("@");
+  if (at <= 0) return "•••";
+  const local = email.slice(0, at);
+  const domain = email.slice(at);
+  if (local.length <= 1) return `•${domain}`;
+  return `${local[0]}••••${domain}`;
+}
+
+function maskReference(ref: string | null | undefined): string {
+  if (!ref) return "•••";
+  if (ref.length <= 4) return "•".repeat(ref.length);
+  return `${ref.slice(0, 2)}••••${ref.slice(-2)}`;
+}
+
+/**
  * Phase 6-B + 6-C: combined admin lottery panel.
  *
  * Three stacked sections (no sub-tabs) so the operator can scroll
@@ -367,6 +408,12 @@ function WinnerCard({
   const pay = () => setPayModalOpen(true);
   const redraw = () => setRedrawModalOpen(true);
 
+  // H5-E.4: payment info is the most sensitive field on the dashboard
+  // — mask by default, click to reveal.  Reveal is a UI-only choice,
+  // but combined with the H5-E.3 IP mask + audit-friendly Show info
+  // toggle, casual screenshots can't leak full PII.
+  const [paymentRevealed, setPaymentRevealed] = useState(false);
+
   // H2-A.1: deadline countdown for pending claims.  Only render when
   // the winner hasn't submitted yet — submitted/confirmed/paid rows
   // already cleared the deadline.
@@ -436,16 +483,35 @@ function WinnerCard({
               <Field k="Legal name" v={w.info.legalName} />
               <Field k="Country" v={w.info.country} />
               <Field k="Contact extra" v={w.info.contactExtra} />
-              <Field
-                k="Payment"
-                v={`${w.info.paymentMethod} · ${w.info.paymentEmail}${
-                  w.info.paymentCurrency ? ` · ${w.info.paymentCurrency}` : ""
-                }`}
-              />
+              {/* H5-E.4: payment info masked until explicit reveal */}
+              <div className="flex flex-col gap-0.5">
+                <span className="text-[10px] uppercase tracking-wider text-white/35">
+                  Payment
+                </span>
+                <span className="font-medium text-white/80">
+                  {paymentRevealed
+                    ? `${w.info.paymentMethod} · ${w.info.paymentEmail}${
+                        w.info.paymentCurrency ? ` · ${w.info.paymentCurrency}` : ""
+                      }`
+                    : `${w.info.paymentMethod} · ${maskEmail(w.info.paymentEmail)}${
+                        w.info.paymentCurrency ? ` · ${w.info.paymentCurrency}` : ""
+                      }`}
+                  <button
+                    type="button"
+                    onClick={() => setPaymentRevealed((v) => !v)}
+                    className="ml-2 text-[10px] text-white/45 underline-offset-2 hover:text-white hover:underline"
+                  >
+                    {paymentRevealed ? "Hide" : "Reveal"}
+                  </button>
+                </span>
+              </div>
               <Field
                 k="Submitted at"
+                // H5-E.3: mask the IP's last octet so over-the-shoulder
+                // screenshots leak less.  Full value is still in the
+                // DB for forensics.
                 v={`${w.info.submittedAt}${
-                  w.info.submittedIp ? ` (IP ${w.info.submittedIp})` : ""
+                  w.info.submittedIp ? ` (IP ${maskIp(w.info.submittedIp)})` : ""
                 }`}
               />
               {w.info.adminVerified ? (
@@ -454,7 +520,11 @@ function WinnerCard({
               {w.info.paidAt ? (
                 <Field
                   k="Paid"
-                  v={`${w.info.paidAt} · ref ${w.info.paymentReference ?? ""}`}
+                  v={
+                    paymentRevealed
+                      ? `${w.info.paidAt} · ref ${w.info.paymentReference ?? ""}`
+                      : `${w.info.paidAt} · ref ${maskReference(w.info.paymentReference)}`
+                  }
                 />
               ) : null}
               {w.info.adminNotes ? (
