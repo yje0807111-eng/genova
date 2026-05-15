@@ -87,6 +87,8 @@ export function EditCompetitionForm({ competition }: { competition: any }) {
   const [sponsorLogoPreview, setSponsorLogoPreview] = useState<string | null>(competition.sponsor_logo_url ?? null);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
+  // Stable mount-time reference for D-day math (pure during render).
+  const [nowMs] = useState(() => Date.now());
 
   const langSuffix = langTab === "ko" ? "(한국어)" : langTab === "en" ? "(영어)" : "(일본어)";
 
@@ -165,6 +167,61 @@ export function EditCompetitionForm({ competition }: { competition: any }) {
   ];
   const current = steps.find((s) => s.n === activeStep) ?? steps[0];
 
+  // 내부 가시성 — 전체 상태를 한눈에 보기 위한 핵심 지표.
+  const digits = (v: string) => Number(String(v ?? "").replace(/[^0-9]/g, "")) || 0;
+  const sym = priceCurrency === "KRW" ? "₩" : priceCurrency === "USD" ? "$" : "¥";
+  const prizeTotal = Number(prizeAmount) || 0;
+  const prizeAllocated =
+    digits(form.prize_grand) +
+    digits(form.prize_excellence) +
+    digits(form.prize_merit) +
+    digits(form.prize_audience) * (form.prize_audience_count || 1);
+  const prizeRemaining = prizeTotal - prizeAllocated;
+  const prizeOver = prizeRemaining < 0;
+  const displayTitle =
+    form[`title_${langTab}` as "title_ko" | "title_en" | "title_ja"] ||
+    form.title_ko ||
+    form.title_en ||
+    form.title_ja ||
+    "(제목 없음)";
+  const statusLabel =
+    ({ Open: "모집중", "In Review": "심사중", Voting: "투표중", Closed: "종료" } as Record<string, string>)[
+      form.status
+    ] ?? form.status;
+  const dDay = form.deadline
+    ? Math.ceil((new Date(form.deadline).getTime() - nowMs) / 86_400_000)
+    : null;
+
+  const sectionState = (n: number): "ok" | "empty" | "warn" | "opt" => {
+    switch (n) {
+      case 1:
+        return form.title_ko || form.title_en || form.title_ja ? "ok" : "empty";
+      case 2:
+        return form.deadline ? "ok" : "empty";
+      case 3:
+        return prizeOver ? "warn" : prizeTotal > 0 ? "ok" : "empty";
+      case 4:
+        return form.rules_ko || form.rules_en || form.rules_ja ? "ok" : "empty";
+      case 5:
+        return form.thumbnailUrl ? "ok" : "empty";
+      case 6:
+        return form.announcement_ko ||
+          form.announcement_en ||
+          form.announcement_ja ||
+          form.templateUrl
+          ? "ok"
+          : "opt";
+      default:
+        return "opt";
+    }
+  };
+  const dotColor: Record<"ok" | "empty" | "warn" | "opt", string> = {
+    ok: "rgba(52,211,153,0.9)",
+    empty: "rgba(255,255,255,0.18)",
+    warn: "#f87171",
+    opt: "rgba(255,255,255,0.10)",
+  };
+
   return (
     <div className="mx-auto max-w-5xl px-4 pb-8">
       <input ref={thumbInputRef} type="file" accept="image/*" className="sr-only" onChange={(e) => void onThumbChange(e)} />
@@ -179,9 +236,10 @@ export function EditCompetitionForm({ competition }: { competition: any }) {
       <form onSubmit={(e) => void submit(e)} className="space-y-4">
         {/* 상단 고정 바 — 제목 + 언어 전환 항상 접근 가능 */}
         <div
-          className="sticky top-0 z-30 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-white/[0.08] px-5 py-3 backdrop-blur-xl"
+          className="sticky top-0 z-30 flex flex-col gap-3 rounded-2xl border border-white/[0.08] px-5 py-3 backdrop-blur-xl"
           style={{ background: "rgba(12,9,28,0.85)" }}
         >
+         <div className="flex flex-wrap items-center justify-between gap-3">
           <div className="flex items-center gap-3">
             <button
               type="button"
@@ -223,6 +281,42 @@ export function EditCompetitionForm({ competition }: { competition: any }) {
               ))}
             </div>
           </div>
+         </div>
+
+         {/* 요약 스트립 — 활성 섹션과 무관하게 핵심 상태 항상 표시 */}
+         <div className="flex flex-wrap items-center gap-x-5 gap-y-1.5 border-t border-white/[0.06] pt-2.5 text-[11px]">
+           <span className="max-w-[280px] truncate font-bold text-white/85" title={displayTitle}>
+             {displayTitle}
+           </span>
+           <span
+             className="rounded px-1.5 py-0.5 text-[10px] font-bold"
+             style={{ background: "rgba(127,119,221,0.16)", color: "#AFA9EC" }}
+           >
+             {statusLabel}
+           </span>
+           <span className="text-white/40">
+             마감{" "}
+             <span className="font-semibold text-white/70">
+               {dDay == null ? "미설정" : dDay >= 0 ? `D-${dDay}` : `종료 ${-dDay}일 경과`}
+             </span>
+           </span>
+           <span className="text-white/40">
+             총상금{" "}
+             <span className="font-semibold text-white/70">
+               {prizeTotal ? `${sym}${prizeTotal.toLocaleString()}` : "—"}
+             </span>
+           </span>
+           <span className="text-white/40">
+             배분{" "}
+             <span className="font-bold" style={{ color: prizeOver ? "#f87171" : "#34d399" }}>
+               {prizeTotal === 0
+                 ? "—"
+                 : prizeOver
+                   ? `초과 ${sym}${Math.abs(prizeRemaining).toLocaleString()}`
+                   : `잔액 ${sym}${prizeRemaining.toLocaleString()}`}
+             </span>
+           </span>
+         </div>
         </div>
 
         <div className="lg:grid lg:grid-cols-[210px_1fr] lg:gap-5">
@@ -230,6 +324,7 @@ export function EditCompetitionForm({ competition }: { competition: any }) {
           <nav className="mb-4 flex gap-1.5 overflow-x-auto pb-1 lg:sticky lg:top-[88px] lg:mb-0 lg:flex-col lg:self-start lg:overflow-visible lg:pb-0">
             {steps.map((s) => {
               const isActive = s.n === activeStep;
+              const st = sectionState(s.n);
               return (
                 <button
                   key={s.n}
@@ -259,6 +354,22 @@ export function EditCompetitionForm({ competition }: { competition: any }) {
                     </span>
                     <span className="hidden truncate text-[10px] text-white/25 lg:block">{s.short}</span>
                   </span>
+                  <span
+                    className="ml-auto h-2 w-2 shrink-0 rounded-full"
+                    style={{
+                      background: dotColor[st],
+                      boxShadow: st === "warn" ? "0 0 6px rgba(248,113,113,0.7)" : "none",
+                    }}
+                    title={
+                      st === "ok"
+                        ? "입력됨"
+                        : st === "warn"
+                          ? "확인 필요 (상금 배분 초과)"
+                          : st === "empty"
+                            ? "미입력"
+                            : "선택"
+                    }
+                  />
                 </button>
               );
             })}
