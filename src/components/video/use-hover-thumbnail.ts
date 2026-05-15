@@ -1,27 +1,26 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 /**
- * Shared hover-swap behavior for video card thumbnails: while the
- * cursor is over the card and a Mux playback id is available, swap
- * the static thumbnail for Mux's `animated.gif` preview.
+ * Shared hover-swap behavior for video card thumbnails.
  *
- * Three call sites used to inline this:
- *   - HoverPreviewCard (home grid)
- *   - VideoPosterCard inside HomeGenreCarousel
- *   - ProfileVideoCard inside profile-page-client
+ * While the cursor dwells on a card (and a Mux playback id exists),
+ * swap the static thumbnail for Mux's animated preview.
  *
- * Each kept its own layout shell (Link wrapper, badges, gradient
- * overlay, runtime/likes meta row) but duplicated the state + URL
- * pattern.  Consolidating here makes the GIF parameters
- * (`?width=640&fps=15`) a single source of truth, and isolates the
- * hover state so future server-component migration of any card's
- * outer wrapper is a one-line edit instead of a state-lift refactor.
+ * Quality fixes over the naive "swap src on mouseenter":
+ *  1. Hover-intent delay (~250ms) — a cursor merely passing over the
+ *     grid while scrolling no longer fires a Mux request per card.
+ *  2. Preload-then-show — the preview is fetched in the background
+ *     first; we only swap once it's decoded, so the first hover
+ *     doesn't flash an empty/half-loaded frame.
+ *  3. animated.webp instead of animated.gif — far smaller payload
+ *     and better quality at the same fps.
  *
- * The returned `onMouseEnter` / `onMouseLeave` handlers are stable
- * across renders (closures over the setter only), so they're safe
- * to spread onto the outer wrapper without memoization.
+ * Used by HoverPreviewCard (home grid), the HomeGenreCarousel poster,
+ * and ProfileVideoCard.  The returned handlers are recreated per
+ * render but only ever spread onto a DOM element's listeners, so no
+ * memoization is needed.
  */
 export function useHoverThumbnail({
   thumbnailUrl,
@@ -34,15 +33,50 @@ export function useHoverThumbnail({
   onMouseEnter: () => void;
   onMouseLeave: () => void;
 } {
-  const [hovered, setHovered] = useState(false);
   const muxId = muxPlaybackId?.trim();
-  const src =
-    hovered && muxId
-      ? `https://image.mux.com/${muxId}/animated.gif?width=640&fps=15`
-      : thumbnailUrl?.trim() || "";
-  return {
-    src,
-    onMouseEnter: () => setHovered(true),
-    onMouseLeave: () => setHovered(false),
+  const staticSrc = thumbnailUrl?.trim() || "";
+  const previewSrc = muxId
+    ? `https://image.mux.com/${muxId}/animated.webp?width=640&fps=15`
+    : "";
+
+  const [showPreview, setShowPreview] = useState(false);
+  const enterTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  // Once the preview has decoded for this card, skip the load wait on
+  // subsequent hovers (browser cache already holds it).
+  const preloadedRef = useRef(false);
+
+  useEffect(() => {
+    return () => {
+      if (enterTimer.current) clearTimeout(enterTimer.current);
+    };
+  }, []);
+
+  const onMouseEnter = () => {
+    if (!previewSrc) return;
+    if (enterTimer.current) clearTimeout(enterTimer.current);
+    enterTimer.current = setTimeout(() => {
+      if (preloadedRef.current) {
+        setShowPreview(true);
+        return;
+      }
+      // Background-decode the webp, only flip once ready.
+      const img = new Image();
+      img.onload = () => {
+        preloadedRef.current = true;
+        setShowPreview(true);
+      };
+      img.src = previewSrc;
+    }, 250);
   };
+
+  const onMouseLeave = () => {
+    if (enterTimer.current) {
+      clearTimeout(enterTimer.current);
+      enterTimer.current = null;
+    }
+    setShowPreview(false);
+  };
+
+  const src = showPreview && previewSrc ? previewSrc : staticSrc;
+  return { src, onMouseEnter, onMouseLeave };
 }
