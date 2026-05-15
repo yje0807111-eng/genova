@@ -31,6 +31,10 @@ export async function requireAdmin(): Promise<AdminAuthError | AdminAuth> {
   } = await supabase.auth.getUser();
   if (!user) return { error: "Please sign in." };
   if (!isAdminEmail(user.email)) return { error: "Access denied." };
+  // Defense-in-depth: never trust an unverified email even if it matches
+  // ADMIN_EMAILS. If Supabase "Confirm email" is off, an attacker could
+  // sign up with a known admin address; require proven ownership here.
+  if (!user.email_confirmed_at) return { error: "Access denied." };
   return { supabase, user };
 }
 

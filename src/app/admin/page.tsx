@@ -22,7 +22,7 @@ export default async function AdminPage() {
     data: { user },
   } = await supabase.auth.getUser();
   if (!user) redirect("/auth");
-  if (!isAdminEmail(user.email)) redirect("/");
+  if (!isAdminEmail(user.email) || !user.email_confirmed_at) redirect("/");
 
   // Admin-only reads (video_reports, plus private video titles for the
   // reports dashboard) must bypass RLS — see docs/rls-audit.md §5.2.
