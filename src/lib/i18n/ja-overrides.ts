@@ -110,17 +110,6 @@ export const jaOverrides: Record<string, string> = {
   "meta.title.creator": "クリエイター",
   "meta.title.admin": "管理",
 
-  "hero.eyebrow": "AI映画プラットフォーム",
-  "hero.headline1": "AIシネマが",
-  "hero.headline2": "息づく場所",
-  "hero.subtitle": "発見・アップロード・競う — AIネイティブの映画作家と視聴者のための空間です。",
-  "hero.watchFilms": "映画を見る",
-  "hero.browseFeed": "フィードを見る",
-  "hero.live": "開催中",
-  "hero.daysLeft": "日あと",
-  "hero.endsToday": "本日締切",
-  "hero.enterNow": "エントリーする",
-  "hero.dDayLeft": "あと{n}日",
 
   "home.latestFilms": "最新映画",
   "home.featuredCompetition": "おすすめコンペ",
@@ -658,9 +647,6 @@ export const jaOverrides: Record<string, string> = {
   "profile.awardsEarnedCount": "{n} 個獲得",
   "profile.bulkConfirm": "確認",
 
-  "creator.followersCount": "フォロワー {n}",
-  "creator.videosCount": "動画 {n}",
-  "creator.viewsWhen": "{views} 回再生 · {when}",
 
   "homeTab.recommended": "おすすめ",
   "homeTab.films": "フィルム",
@@ -1055,10 +1041,6 @@ export const jaOverrides: Record<string, string> = {
   "layout.messages": "メッセージ",
   "layout.scrollToTop": "トップへ",
 
-  "purpose.personal": "個人作品",
-  "purpose.personalDesc": "コンペ以外のポートフォリオ用アップロード",
-  "purpose.competition": "コンペ応募",
-  "purpose.competitionDesc": "開催中のコンペに提出",
 
   "business.placeholderContactName": "山田太郎",
   "business.placeholderCompany": "株式会社サンプル",
@@ -1075,8 +1057,6 @@ export const jaOverrides: Record<string, string> = {
   "business.budgetOver10m": "1,000万ウォン超",
   "business.budgetTbd": "要相談",
 
-  "genreSidebar.justNow": "たった今",
-  "genreSidebar.oneMinAgo": "1分前",
   "competition.banner.nowOpen": "募集中",
   "competition.banner.prize": "賞金",
   "competition.banner.deadline": "締切",

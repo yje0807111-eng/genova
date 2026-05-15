@@ -532,10 +532,6 @@ const en: Messages = {
   "settings.loginMethod": "Login method",
   "settings.oauthLogin": "Signed in with {provider}",
 
-  "purpose.personal": "Personal Work",
-  "purpose.personalDesc": "Upload to your portfolio outside competitions.",
-  "purpose.competition": "Competition Entry",
-  "purpose.competitionDesc": "Submit to an active competition.",
 
   "business.placeholderContactName": "Jane Doe",
   "business.placeholderCompany": "Acme Inc.",
@@ -868,17 +864,6 @@ const en: Messages = {
   "films.slotEyebrowMerit": "MERIT",
   "films.slotEyebrowAudience": "AUDIENCE",
 
-  "hero.eyebrow": "AI film platform",
-  "hero.headline1": "Where AI cinema",
-  "hero.headline2": "belongs",
-  "hero.subtitle": "Discover, upload, and compete — a focused home for AI-native filmmakers and viewers.",
-  "hero.watchFilms": "Watch films",
-  "hero.browseFeed": "Browse feed",
-  "hero.live": "Live",
-  "hero.endsToday": "Ends today",
-  "hero.dDayLeft": "D-{n} left",
-  "hero.daysLeft": "days left",
-  "hero.enterNow": "Enter now",
 
   "home.latestFilms": "Latest Films",
   "home.featuredCompetition": "Featured Competition",
@@ -895,8 +880,6 @@ const en: Messages = {
   "home.films": "films",
   "home.originalBadge": "Original",
 
-  "genreSidebar.justNow": "just now",
-  "genreSidebar.oneMinAgo": "1 min ago",
 
   "meta.brand": "Genova",
   "meta.defaultDescription": "The Home of AI Filmmakers",
@@ -1175,9 +1158,6 @@ const en: Messages = {
   "profile.aiToolsSectionLabel": "AI tools",
   "profile.awardsEarnedCount": "{n} earned",
   "profile.bulkConfirm": "Confirm",
-  "creator.followersCount": "{n} followers",
-  "creator.videosCount": "{n} videos",
-  "creator.viewsWhen": "{views} views · {when}",
   "upload.heroEyebrow": "Upload",
   "upload.heroTitle": "Upload Your Film",
   "upload.heroSubtitle": "Share your story. Inspire the world.",

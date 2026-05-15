@@ -110,17 +110,6 @@ export const koOverrides: Record<string, string> = {
   "meta.title.creator": "크리에이터",
   "meta.title.admin": "관리",
 
-  "hero.eyebrow": "AI 영화 플랫폼",
-  "hero.headline1": "AI 시네마가",
-  "hero.headline2": "머무는 곳",
-  "hero.subtitle": "발견하고, 업로드하고, 경쟁하세요 — AI 네이티브 영화인과 시청자를 위한 공간입니다.",
-  "hero.watchFilms": "영화 보기",
-  "hero.browseFeed": "피드 둘러보기",
-  "hero.live": "진행 중",
-  "hero.daysLeft": "일 남음",
-  "hero.endsToday": "오늘 마감",
-  "hero.enterNow": "지금 참가",
-  "hero.dDayLeft": "D-{n}일 남음",
 
   "home.latestFilms": "최신 영화",
   "home.featuredCompetition": "추천 공모전",
@@ -691,9 +680,6 @@ export const koOverrides: Record<string, string> = {
   "profile.awardsEarnedCount": "{n}개 획득",
   "profile.bulkConfirm": "확인",
 
-  "creator.followersCount": "{n} 팔로워",
-  "creator.videosCount": "{n} 영상",
-  "creator.viewsWhen": "{views} 조회 · {when}",
 
   "homeTab.recommended": "추천",
   "homeTab.films": "필름",
@@ -1081,10 +1067,6 @@ export const koOverrides: Record<string, string> = {
   "layout.messages": "메시지",
   "layout.scrollToTop": "맨 위로",
 
-  "purpose.personal": "개인 작품",
-  "purpose.personalDesc": "공모전 외 포트폴리오용 업로드",
-  "purpose.competition": "공모전 출품",
-  "purpose.competitionDesc": "진행 중인 공모전에 제출",
 
   "business.placeholderContactName": "홍길동",
   "business.placeholderCompany": "(주)예시",
@@ -1101,8 +1083,6 @@ export const koOverrides: Record<string, string> = {
   "business.budgetOver10m": "1,000만원 이상",
   "business.budgetTbd": "협의 후 결정",
 
-  "genreSidebar.justNow": "방금",
-  "genreSidebar.oneMinAgo": "1분 전",
 
   "common.select": "선택…",
 
