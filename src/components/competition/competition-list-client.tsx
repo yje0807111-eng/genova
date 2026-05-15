@@ -3,7 +3,7 @@
 import { useMemo, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { LayoutGrid, List } from "lucide-react";
+import { ChevronRight, LayoutGrid, List } from "lucide-react";
 import { useI18n } from "@/components/genova/language-provider";
 import type { Locale } from "@/lib/i18n/translations";
 import { intlDateLocale } from "@/lib/i18n/browser-locale";
@@ -213,104 +213,110 @@ function CompetitionTableRow({ c, idx, participantCount }: { c: Competition; idx
     day: "2-digit",
   });
   void idx;
+  const prize = formatPrizeWithConversion(
+    c.prize_info_ko,
+    c.prize_info_en,
+    c.prize_info_ja,
+    c.prize_info,
+    locale,
+    c.base_currency,
+    c.exchange_rate_usd_krw ?? 1350,
+    c.exchange_rate_usd_jpy ?? 148,
+  );
+  const urgent = isOpen && d >= 0 && d <= 3;
 
   return (
-    <div
-      className="group relative flex items-center gap-8 px-6 py-4 transition-all duration-200 hover:bg-white/[0.02]"
-      style={{
-        borderBottom: "1px solid rgba(255,255,255,0.04)",
-        background: isClosed
-          ? "linear-gradient(to bottom, rgba(255,255,255,0.01) 0%, rgba(0,0,0,0.1) 100%)"
-          : "linear-gradient(to bottom, var(--border-white-02) 0%, rgba(255,255,255,0.01) 100%)",
-        opacity: isClosed ? 0.6 : 1,
-        filter: isClosed ? "grayscale(0.4)" : "none",
-      }}
+    <Link
+      href={`/competition/${c.id}`}
+      className="group relative flex items-center gap-4 px-4 py-2.5 transition-colors duration-150 hover:bg-white/[0.03]"
+      style={{ opacity: isClosed ? 0.55 : 1 }}
     >
-      <div
-        className="pointer-events-none absolute inset-0 z-0 opacity-0 transition-opacity duration-200 group-hover:opacity-100"
-        style={{ background: "linear-gradient(to bottom, var(--tint-accent-06) 0%, rgba(83,74,183,0.03) 100%)" }}
-      />
-      <div className="relative z-10 h-[85px] w-44 shrink-0 overflow-hidden rounded-md">
+      <div className="relative h-[58px] w-[104px] shrink-0 overflow-hidden rounded-md">
         {thumb ? (
-          <Image src={thumb} alt="" fill sizes="176px" className="object-cover transition group-hover:scale-105" />
+          <Image
+            src={thumb}
+            alt=""
+            fill
+            sizes="104px"
+            className={`object-cover transition duration-300 group-hover:scale-105 ${isClosed ? "grayscale" : ""}`}
+          />
         ) : (
-          <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-[#1a1547] to-[#1a1a1a]">
-            <Image src="/genova-logo.png" alt="Genova" width={80} height={80} className="h-20 w-20 object-contain opacity-15" />
+          <div
+            className="flex h-full w-full items-center justify-center"
+            style={{ background: "linear-gradient(135deg, rgba(127,119,221,0.20) 0%, #0a0a0a 70%)" }}
+          >
+            <Image src="/genova-logo.png" alt="Genova" width={48} height={48} className="h-9 w-9 object-contain opacity-[0.15]" />
           </div>
         )}
+        {!isClosed && (
+          <span
+            className={`absolute right-1 top-1 rounded px-1.5 py-0.5 text-[10px] font-black tabular-nums backdrop-blur-md ${
+              urgent ? "bg-red-500/35 text-red-100" : "bg-black/60 text-white"
+            }`}
+          >
+            D-{d}
+          </span>
+        )}
       </div>
-      <div className="relative z-10 flex min-w-0 flex-1 min-w-[300px] flex-col gap-1">
-        {/* Title + status */}
+
+      <div className="flex min-w-0 flex-1 flex-col gap-1">
         <div className="flex items-center gap-2">
-          <h3 className="line-clamp-1 text-[14px] font-bold text-white">
+          <h3 className="truncate text-[14px] font-bold text-white">
             {getLangText(locale, c.title_ko, c.title_en, c.title_ja, c.title)}
           </h3>
-          {isOpen && (
-            <span className="shrink-0 rounded-full border border-green-500/30 bg-green-500/20 px-2 py-0.5 text-[10px] font-bold text-green-300">
-              {t("competition.statusOpenShort")}
-            </span>
-          )}
-          {isUpcoming && (
-            <span className="shrink-0 rounded-full border border-blue-500/30 bg-blue-500/20 px-2 py-0.5 text-[10px] font-bold text-blue-300">
-              {t("competition.statusUpcoming")}
-            </span>
-          )}
+          <span
+            className={`shrink-0 inline-flex items-center gap-1 rounded-full px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider ${
+              isOpen
+                ? "bg-emerald-500/20 text-emerald-300"
+                : isUpcoming
+                  ? "bg-sky-500/20 text-sky-300"
+                  : "bg-white/[0.08] text-white/40"
+            }`}
+          >
+            <span
+              className={`h-1 w-1 rounded-full ${
+                isOpen ? "animate-pulse bg-emerald-400" : isUpcoming ? "bg-sky-400" : "bg-white/30"
+              }`}
+            />
+            {isOpen ? t("competition.statusOpenShort") : isUpcoming ? t("competition.statusUpcoming") : t("competition.statusClosed")}
+          </span>
         </div>
-
-        {/* One-line description */}
-        {c.description && (
-          <p className="line-clamp-1 text-[12px] text-white/35">{c.description}</p>
-        )}
-
-        {/* Genre + sponsor tags */}
-        <div className="mt-0.5 flex items-center gap-1.5">
+        <div className="flex items-center gap-1.5 text-[11px] text-white/35">
           {c.genre && c.genre !== "전체" && (
-            <span className="rounded border border-white/10 bg-white/5 px-1.5 py-0.5 text-[10px] text-white/55">
+            <span className="rounded border border-white/10 bg-white/[0.04] px-1.5 py-0.5 text-white/55">
               {genreUiLabel(c.genre, locale)}
             </span>
           )}
           {c.sponsor && (
-            <span className="rounded border border-[#534AB7]/20 bg-[#534AB7]/10 px-1.5 py-0.5 text-[10px] text-[#AFA9EC]/80">
+            <span className="rounded border border-[rgba(127,119,221,0.25)] bg-[rgba(127,119,221,0.10)] px-1.5 py-0.5 text-[#AFA9EC]/85">
               {c.sponsor}
             </span>
           )}
+          <span className="truncate">{deadlineLabel}</span>
+          {/* sm 미만에서 상금 인라인 노출(우측 컬럼 숨김 보완) */}
+          <span className="font-bold text-[#F5D182] sm:hidden">· {prize}</span>
         </div>
       </div>
-      <div className="relative z-10 w-36 shrink-0 text-center">
-        <span className="text-[13px] font-bold text-[#F5D182]">
-          {formatPrizeWithConversion(c.prize_info_ko, c.prize_info_en, c.prize_info_ja, c.prize_info, locale, c.base_currency, c.exchange_rate_usd_krw ?? 1350, c.exchange_rate_usd_jpy ?? 148)}
-        </span>
+
+      <div className="hidden w-28 shrink-0 text-right text-[13px] font-black text-[#F5D182] sm:block">
+        {prize}
       </div>
-      <div className="relative z-10 w-40 shrink-0 text-center">
-        <p className="text-[13px] font-medium text-white/70">{deadlineLabel}</p>
-        <p className="text-center text-[11px] text-white/50">D-{d}</p>
+      <div className="hidden w-24 shrink-0 text-center md:block">
+        <p className="text-[12px] font-medium text-white/65">{deadlineLabel}</p>
+        <p className="text-[10px] text-white/40">D-{d}</p>
       </div>
-      <div className="relative z-10 w-28 shrink-0 text-center">
-        <p className="text-[13px] font-medium text-white/55">{participantCount}<span className="ml-0.5 text-[11px] text-white/35">{t("competition.peopleUnit")}</span></p>
-      </div>
-      <div className="relative z-10 w-32 shrink-0 text-center">
-        {isOpen ? (
-          <span className="inline-flex items-center gap-1 text-[10px] font-semibold uppercase tracking-wider text-emerald-400">
-            <span className="text-emerald-400/90">●</span>
-            {t("competition.statusOpenShort")}
-          </span>
-        ) : isUpcoming ? (
-          <span className="inline-flex items-center gap-1 text-[10px] font-semibold uppercase tracking-wider text-sky-300/80">
-            <span className="text-sky-300/70">●</span>
-            {t("competition.statusUpcoming")}
-          </span>
+      <div className="hidden w-16 shrink-0 text-center text-[12px] tabular-nums text-white/55 lg:block">
+        {participantCount > 0 ? (
+          <>
+            {participantCount.toLocaleString()}
+            <span className="ml-0.5 text-[10px] text-white/30">{t("competition.peopleUnit")}</span>
+          </>
         ) : (
-          <span className="text-[10px] font-semibold uppercase tracking-wider text-white/35">
-            {t("competition.statusClosed")}
-          </span>
+          <span className="text-white/20">—</span>
         )}
       </div>
-      <div className="relative z-10 w-36 shrink-0 text-center">
-        <Link href={`/competition/${c.id}`} className="rounded-lg border border-white/10 bg-white/5 px-3 py-1.5 text-xs font-semibold text-white/80 transition hover:bg-white/10 hover:text-white">
-          {t("competition.viewDetails")}
-        </Link>
-      </div>
-    </div>
+      <ChevronRight size={16} className="w-6 shrink-0 text-white/25 transition-colors group-hover:text-[#AFA9EC]" />
+    </Link>
   );
 }
 
@@ -499,11 +505,11 @@ export function CompetitionListClient({
             )}
           </div>
           <div className="flex overflow-hidden rounded-lg border border-white/10 bg-white/[0.04]">
-            <button type="button" onClick={() => setGridMode("list")} className={`flex h-8 w-8 items-center justify-center transition ${gridMode === "list" ? "bg-white/10 text-white" : "text-white/35 hover:text-white/70"}`}>
-              <List size={14} />
-            </button>
-            <button type="button" onClick={() => setGridMode("grid")} className={`flex h-8 w-8 items-center justify-center transition ${gridMode === "grid" ? "bg-white/10 text-white" : "text-white/35 hover:text-white/70"}`}>
+            <button type="button" aria-label="Grid view" onClick={() => setGridMode("grid")} className={`flex h-8 w-8 items-center justify-center transition ${gridMode === "grid" ? "bg-white/10 text-white" : "text-white/35 hover:text-white/70"}`}>
               <LayoutGrid size={14} />
+            </button>
+            <button type="button" aria-label="List view" onClick={() => setGridMode("list")} className={`flex h-8 w-8 items-center justify-center transition ${gridMode === "list" ? "bg-white/10 text-white" : "text-white/35 hover:text-white/70"}`}>
+              <List size={14} />
             </button>
           </div>
         </div>
@@ -511,16 +517,15 @@ export function CompetitionListClient({
 
       {gridMode === "list" ? (
         <div className="mt-0 overflow-hidden rounded-xl border border-white/[0.08]">
-          <div className="flex items-center gap-8 border-b border-white/[0.08] px-6 py-2.5 text-xs font-semibold uppercase tracking-wider text-white/35" style={{ background: "rgba(255,255,255,0.04)" }}>
-            <div className="w-44 shrink-0" />
-            <div className="flex-1 min-w-[300px] text-left">{t("competition.colCompetition")}</div>
-            <div className="w-36 shrink-0 text-center">{t("competition.colPrize")}</div>
-            <div className="w-40 shrink-0 text-center">{t("competition.colDeadline")}</div>
-            <div className="w-28 shrink-0 text-center">{t("competition.colParticipants")}</div>
-            <div className="w-32 shrink-0 text-center">{t("competition.colStatus")}</div>
-            <div className="w-36 shrink-0 text-center">{t("competition.colActions")}</div>
+          <div className="flex items-center gap-4 border-b border-white/[0.08] px-4 py-2 text-[10px] font-semibold uppercase tracking-wider text-white/30" style={{ background: "rgba(255,255,255,0.03)" }}>
+            <div className="w-[104px] shrink-0" />
+            <div className="min-w-0 flex-1 text-left">{t("competition.colCompetition")}</div>
+            <div className="hidden w-28 shrink-0 text-right sm:block">{t("competition.colPrize")}</div>
+            <div className="hidden w-24 shrink-0 text-center md:block">{t("competition.colDeadline")}</div>
+            <div className="hidden w-16 shrink-0 text-center lg:block">{t("competition.colParticipants")}</div>
+            <div className="w-6 shrink-0" />
           </div>
-          <div>
+          <div className="divide-y divide-white/[0.05]">
             {paginated.map((c, idx) => <CompetitionTableRow key={c.id} c={c} idx={(page - 1) * PER_PAGE + idx} participantCount={participantCounts[c.id] ?? 0} />)}
           </div>
         </div>
