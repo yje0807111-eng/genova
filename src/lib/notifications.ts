@@ -1,6 +1,13 @@
 import { createServiceSupabaseClient } from "@/lib/supabase/service";
 
-export type NotificationType = "comment" | "follow" | "competition_result" | "trophy" | "like";
+export type NotificationType =
+  | "comment"
+  | "follow"
+  | "competition_result"
+  | "trophy"
+  | "like"
+  | "lottery_winner"   // initial draw + each redraw replacement
+  | "lottery_reminder"; // D-3 / D-1 deadline reminder while pending
 
 /**
  * Inserts a notification row. Always runs through the service-role
