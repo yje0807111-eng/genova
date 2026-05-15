@@ -61,6 +61,10 @@ export function UploadVideoFormSimple({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isDraggingOver, setIsDraggingOver] = useState(false);
+  // Phase 3-2: "본인 제작" attestation checkbox.  When ticked AND the
+  // uploaded clip is ≥30s, the Server Action issues one lottery ticket
+  // (see issue_lottery_ticket() in Phase 2A).
+  const [originalAttestation, setOriginalAttestation] = useState(false);
 
   const canSubmit =
     Boolean(title.trim()) &&
@@ -137,6 +141,7 @@ export function UploadVideoFormSimple({
         tags,
         seriesName: isSeriesMode ? seriesName.trim() : null,
         episodeNumber: isSeriesMode ? episodeNumber : null,
+        originalAttestation,
       },
     });
 
@@ -582,6 +587,33 @@ export function UploadVideoFormSimple({
             {error}
           </div>
         )}
+
+        {/* 7.5. Lottery attestation (Phase 3-2) — feeds
+            originalAttestation through to createVideoAction.
+            Unchecked = no ticket attempt; the post-upload toast
+            (toast.success in handleSubmit chain) renders the
+            lottery result returned by the action. */}
+        <section className="rounded-xl border border-white/[0.08] bg-white/[0.02] px-4 py-3">
+          <label className="flex cursor-pointer items-start gap-3">
+            <input
+              type="checkbox"
+              checked={originalAttestation}
+              onChange={(e) => setOriginalAttestation(e.target.checked)}
+              className="mt-0.5 h-4 w-4 shrink-0 cursor-pointer rounded border-white/20 bg-transparent text-[#7F77DD] focus:ring-[#7F77DD]/40"
+            />
+            <span className="min-w-0">
+              <span className="block text-[13px] font-semibold text-white">
+                {t("lottery.attestationLabel", "This is my own original work")}
+              </span>
+              <span className="mt-0.5 block text-[11px] text-white/45">
+                {t(
+                  "lottery.attestationHelp",
+                  "Checked clips at least 30s long earn one lottery ticket per upload",
+                )}
+              </span>
+            </span>
+          </label>
+        </section>
 
         {/* 8. Submit row */}
         <section className="flex items-center justify-between gap-4">

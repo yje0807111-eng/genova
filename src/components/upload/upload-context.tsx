@@ -3,6 +3,7 @@
 import { createContext, useCallback, useContext, useRef, useState } from "react";
 import { toast } from "sonner";
 import { createVideoAction } from "@/app/actions/video";
+import { useI18n } from "@/components/genova/language-provider";
 
 export type UploadStatus = "uploading" | "processing" | "ready" | "failed";
 
@@ -22,6 +23,10 @@ export interface UploadJob {
     isSeriesMode?: boolean;
     seriesName?: string | null;
     episodeNumber?: number | null;
+    /** Phase 3-2: "본인 제작" attestation flag.  Forwarded to
+     *  createVideoAction → issue_lottery_ticket RPC.  Tickets are
+     *  only attempted when true. */
+    originalAttestation?: boolean;
   };
   status: UploadStatus;
   progress: number;
@@ -48,6 +53,29 @@ interface AddJobInput {
   metadata: UploadJob["metadata"];
 }
 
+/**
+ * Maps the machine-readable `reason` strings returned by
+ * createVideoAction's LotteryIssuance (see Phase 2A errcodes) to
+ * the i18n key suffix under `lottery.reason.*`.  Unknown reasons
+ * fall through and just get the raw reason rendered as-is.
+ */
+function reasonToKey(reason: string): string {
+  switch (reason) {
+    case "monthly_limit_reached":
+      return "monthlyLimit";
+    case "duration_below_threshold":
+      return "duration";
+    case "no_attestation":
+      return "noAttestation";
+    case "not_owner":
+      return "notOwner";
+    case "video_not_found":
+      return "videoNotFound";
+    default:
+      return reason;
+  }
+}
+
 const UploadContext = createContext<UploadContextValue | null>(null);
 
 export function useUpload() {
@@ -57,6 +85,7 @@ export function useUpload() {
 }
 
 export function UploadProvider({ children }: { children: React.ReactNode }) {
+  const { t } = useI18n();
   const [jobs, setJobs] = useState<UploadJob[]>([]);
   const jobsRef = useRef<UploadJob[]>([]);
   jobsRef.current = jobs;
@@ -116,13 +145,12 @@ export function UploadProvider({ children }: { children: React.ReactNode }) {
         muxPlaybackId: asset.playbackId,
         muxAssetId: asset.assetId,
         muxUploadId: uploadId,
-        // Phase 2B: pass the Mux-reported duration to the action so
-        // it can persist videos.duration_seconds and gate lottery
-        // ticket issuance. `originalAttestation` flips true once
-        // Phase 3 wires the checkbox on the multi-upload UI; until
-        // then this upload path issues no tickets.
+        // Phase 2B/3-2: forward Mux-reported seconds + the
+        // user's attestation flag through to the action; the
+        // action returns a `lottery` discriminated-union for the
+        // toast emission below.
         durationSeconds: Math.round(asset.duration ?? 0),
-        originalAttestation: false,
+        originalAttestation: job.metadata.originalAttestation === true,
       });
 
       if (!result.ok) throw new Error(result.message);
@@ -139,6 +167,29 @@ export function UploadProvider({ children }: { children: React.ReactNode }) {
           onClick: () => window.location.assign(`/watch/${result.videoId}`),
         },
       });
+
+      // Phase 3-2: lottery feedback toast.  Only emit when the user
+      // actually opted in (originalAttestation === true) — silent
+      // for unchecked uploads since the absence of a ticket isn't
+      // news. For attested uploads we show either the success
+      // (with "(N/5)" badge) or the precise skip reason.
+      if (job.metadata.originalAttestation === true && result.lottery) {
+        if (result.lottery.ok) {
+          const msg = t(
+            "lottery.toastIssued",
+            "\"{title}\" entered the lottery ({used}/5 this month)",
+          )
+            .replace("{title}", job.title)
+            .replace("{used}", String(result.lottery.monthlyCount));
+          toast.success(msg);
+        } else {
+          const reasonKey = `lottery.reason.${reasonToKey(result.lottery.reason)}`;
+          const reasonCopy = t(reasonKey, result.lottery.reason);
+          toast.warning(
+            t("lottery.toastSkipped", "No ticket issued") + " · " + reasonCopy,
+          );
+        }
+      }
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : "알 수 없는 오류";
       updateJob(job.id, {
