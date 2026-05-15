@@ -21,13 +21,15 @@ create table if not exists public.entry_tickets (
   user_id uuid not null references auth.users (id) on delete cascade,
   video_id text references public.videos (id) on delete set null,
   issued_at timestamptz not null default now(),
-  -- KST-anchored YYYY-MM bucket.  Generated STORED so the monthly
-  -- counter index can use it directly.  KST is the product reset
-  -- timezone; if that changes, a corrective migration must drop +
-  -- re-add (generated columns cannot be ALTERed in-place).
-  month_key text not null generated always as (
-    to_char(issued_at at time zone 'Asia/Seoul', 'YYYY-MM')
-  ) stored,
+  -- KST-anchored YYYY-MM bucket.  Populated by the BEFORE-INSERT
+  -- trigger below — we can't use a GENERATED STORED column here
+  -- because PostgreSQL requires IMMUTABLE expressions and
+  -- `to_char(timestamptz AT TIME ZONE 'Asia/Seoul', …)` is STABLE
+  -- (the timestamptz → text path depends on session TZ).  Trigger
+  -- has equivalent semantics; the only downside is that direct
+  -- INSERTs that bypass it must compute the key themselves (the
+  -- issuance function does NOT bypass it).
+  month_key text not null,
   status text not null default 'active'
     check (status in ('active', 'revoked', 'winner')),
   revoked_reason text
@@ -65,6 +67,33 @@ create index entry_tickets_video_id_idx
 -- so they hit the entries index first, but admin queues filter here).
 create index entry_tickets_status_idx
   on public.entry_tickets (status);
+
+-- ---------------------------------------------------------------
+-- month_key trigger: derive KST-anchored YYYY-MM at insert time.
+-- ---------------------------------------------------------------
+-- Replaces what a GENERATED STORED column would have done if the
+-- expression were IMMUTABLE.  Fires on INSERT and on UPDATE of
+-- `issued_at` (we don't expect issued_at to change in normal flow,
+-- but guarding keeps the invariant if some admin recovery tool ever
+-- back-dates a ticket).
+
+create or replace function public.entry_tickets_set_month_key()
+returns trigger
+language plpgsql
+as $$
+begin
+  new.month_key := to_char(
+    new.issued_at at time zone 'Asia/Seoul',
+    'YYYY-MM'
+  );
+  return new;
+end;
+$$;
+
+create trigger entry_tickets_month_key_trigger
+  before insert or update of issued_at on public.entry_tickets
+  for each row
+  execute function public.entry_tickets_set_month_key();
 
 -- ---------------------------------------------------------------
 -- video-delete trigger: convert SET NULL cascade into a status flip.
