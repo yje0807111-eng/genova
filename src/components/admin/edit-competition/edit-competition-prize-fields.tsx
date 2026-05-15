@@ -4,7 +4,7 @@ import { adminTokens } from "@/lib/admin-styles";
 import type { EditCompetitionFormState } from "./types";
 
 const inp =
-  "w-full rounded-xl border border-white/[0.12] bg-[#0d0b20] px-3 py-2 text-[13px] text-white outline-none placeholder:text-white/20 focus:border-[#7F77DD]/60";
+  "w-full rounded-lg border border-white/[0.08] bg-[#0a0a0a] px-3 py-2 text-[13px] text-white outline-none transition-colors placeholder:text-white/25 focus:border-[#7F77DD]/45";
 
 export function EditCompetitionPrizeFields({
   form,
@@ -34,8 +34,8 @@ export function EditCompetitionPrizeFields({
           <div
             className="mb-4 rounded-xl p-3"
             style={{
-              background: isOver ? "rgba(239,68,68,0.1)" : "rgba(83,74,183,0.1)",
-              border: `1px solid ${isOver ? "rgba(239,68,68,0.3)" : "rgba(127,119,221,0.2)"}`,
+              background: isOver ? "rgba(239,68,68,0.08)" : "rgba(255,255,255,0.03)",
+              border: `1px solid ${isOver ? "rgba(239,68,68,0.3)" : "rgba(255,255,255,0.07)"}`,
             }}
           >
             <div className="flex items-center justify-between">

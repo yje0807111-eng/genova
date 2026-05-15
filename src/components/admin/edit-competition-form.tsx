@@ -11,7 +11,7 @@ import { EditCompetitionPrizeFields } from "./edit-competition/edit-competition-
 import { EditCompetitionRulesFields } from "./edit-competition/edit-competition-rules-fields";
 
 const inp =
-  "w-full rounded-xl border border-white/[0.12] bg-[#0d0b20] px-3 py-2 text-[13px] text-white outline-none placeholder:text-white/20 focus:border-[#7F77DD]/60";
+  "w-full rounded-lg border border-white/[0.08] bg-[#0a0a0a] px-3 py-2 text-[13px] text-white outline-none transition-colors placeholder:text-white/25 focus:border-[#7F77DD]/45";
 
 function Section({ title, hint, children }: { title: string; hint?: string; children: ReactNode }) {
   return (
@@ -214,7 +214,7 @@ export function EditCompetitionForm({ competition }: { competition: any }) {
                   onClick={() => setLangTab(lang)}
                   className="rounded-md px-3 py-1.5 text-[11px] font-semibold transition"
                   style={{
-                    background: langTab === lang ? "rgba(83,74,183,0.5)" : "transparent",
+                    background: langTab === lang ? "rgba(127,119,221,0.16)" : "transparent",
                     color: langTab === lang ? "#AFA9EC" : "rgba(255,255,255,0.4)",
                   }}
                 >
@@ -237,14 +237,14 @@ export function EditCompetitionForm({ competition }: { competition: any }) {
                   onClick={() => setActiveStep(s.n)}
                   className="flex shrink-0 items-center gap-2.5 rounded-xl border px-3 py-2.5 text-left transition lg:shrink"
                   style={{
-                    borderColor: isActive ? "rgba(127,119,221,0.4)" : "rgba(255,255,255,0.06)",
-                    background: isActive ? "rgba(83,74,183,0.18)" : "rgba(255,255,255,0.02)",
+                    borderColor: isActive ? "rgba(127,119,221,0.35)" : "rgba(255,255,255,0.06)",
+                    background: isActive ? "rgba(127,119,221,0.10)" : "rgba(255,255,255,0.02)",
                   }}
                 >
                   <span
                     className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-[11px] font-black"
                     style={{
-                      background: isActive ? "rgba(83,74,183,0.45)" : "rgba(255,255,255,0.05)",
+                      background: isActive ? "rgba(127,119,221,0.22)" : "rgba(255,255,255,0.05)",
                       color: isActive ? "#AFA9EC" : "rgba(255,255,255,0.4)",
                     }}
                   >
@@ -317,7 +317,7 @@ export function EditCompetitionForm({ competition }: { competition: any }) {
                       <select
                         value={form.genre}
                         onChange={(e) => setForm((p) => ({ ...p, genre: e.target.value }))}
-                        className={inp + " bg-[#0d0b20]"}
+                        className={inp}
                       >
                         <option value="All">전체 장르</option>
                         <option value="film">단편영화</option>
@@ -332,7 +332,7 @@ export function EditCompetitionForm({ competition }: { competition: any }) {
                       <select
                         value={form.status}
                         onChange={(e) => setForm((p) => ({ ...p, status: e.target.value }))}
-                        className={inp + " bg-[#0d0b20]"}
+                        className={inp}
                       >
                         <option value="Open">모집중</option>
                         <option value="In Review">심사중</option>
@@ -407,7 +407,7 @@ export function EditCompetitionForm({ competition }: { competition: any }) {
                               className="rounded-lg border px-2.5 py-2 text-[11px] font-bold transition"
                               style={{
                                 borderColor: priceCurrency === c ? "rgba(127,119,221,0.5)" : "rgba(255,255,255,0.06)",
-                                background: priceCurrency === c ? "rgba(83,74,183,0.3)" : "transparent",
+                                background: priceCurrency === c ? "rgba(127,119,221,0.14)" : "transparent",
                                 color: priceCurrency === c ? "#AFA9EC" : "rgba(255,255,255,0.35)",
                               }}
                             >
@@ -429,7 +429,7 @@ export function EditCompetitionForm({ competition }: { competition: any }) {
                       {form.prizeInfo && <p className="mt-1 text-[10px] text-[#AFA9EC]">총 상금: {form.prizeInfo}</p>}
                     </div>
 
-                    <div className="rounded-xl border border-[#7F77DD]/20 bg-[#534AB7]/10 p-3">
+                    <div className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-3">
                       <p className="mb-1 text-[11px] font-bold text-[#AFA9EC]">고정 환율 설정</p>
                       <p className="mb-2.5 text-[10px] text-white/30">
                         공모전 시작 시점의 환율을 입력하세요. 사용자에게 환산 금액이 표시됩니다.
@@ -440,7 +440,7 @@ export function EditCompetitionForm({ competition }: { competition: any }) {
                           <select
                             value={form.base_currency}
                             onChange={(e) => setForm((p) => ({ ...p, base_currency: e.target.value }))}
-                            className={inp + " bg-[#0d0b20]"}
+                            className={inp}
                           >
                             <option value="USD">USD (달러)</option>
                             <option value="KRW">KRW (원)</option>
@@ -470,7 +470,7 @@ export function EditCompetitionForm({ competition }: { competition: any }) {
                           </div>
                         </div>
                         {form.prize_info_en && (
-                          <div className="rounded-lg border border-white/[0.06] bg-[#0d0b20] p-2">
+                          <div className="rounded-lg border border-white/[0.06] bg-[#0a0a0a] p-2">
                             <p className="mb-1 text-[10px] text-white/30">미리보기</p>
                             <p className="text-[11px] text-white/55">USD · {form.prize_info_en}</p>
                             <p className="text-[11px] text-white/55">KRW · {form.prize_info_ko || form.prize_info_en}</p>
