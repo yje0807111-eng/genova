@@ -134,12 +134,20 @@ export function FeaturedHeroCarousel({ competitions }: Props) {
                     : t("competition.featured", "FEATURED")}
                 </div>
 
-                <h1
-                  className="line-clamp-2 break-keep text-[28px] font-black leading-[1.12] tracking-[-0.02em] text-white sm:text-[36px] md:text-[42px] lg:text-[46px]"
-                  style={{ textShadow: "0 2px 16px rgba(0,0,0,0.65)" }}
-                >
-                  {title}
-                </h1>
+                {/* 래퍼: 2줄분 min-h(em 이라 반응형 폰트 자동 대응)
+                    + 수직 가운데.  제목이 1줄/2줄 어느 쪽이든 캐러셀
+                    슬라이드 전환 시 아래 상금/CTA 위치 고정.
+                    line-clamp 과 flex 는 같은 요소서 충돌하므로
+                    분리(래퍼=flex, h1=line-clamp). */}
+                <div className="flex min-h-[2.3em] flex-col justify-center">
+                  <h1
+                    // break-keep: 한국어 어절 단위 줄바꿈(글자 깨짐 방지)
+                    className="line-clamp-2 break-keep text-[32px] font-black leading-[1.12] tracking-[-0.02em] text-white sm:text-[42px] md:text-[50px] lg:text-[56px]"
+                    style={{ textShadow: "0 2px 16px rgba(0,0,0,0.65)" }}
+                  >
+                    {title}
+                  </h1>
+                </div>
 
                 {c.description && (
                   <p
