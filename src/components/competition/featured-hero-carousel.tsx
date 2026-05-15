@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowRight, ChevronLeft, ChevronRight } from "lucide-react";
+import { ArrowRight, ChevronLeft, ChevronRight, Star, Trophy, Clock } from "lucide-react";
 import { useI18n } from "@/components/genova/language-provider";
 import { useUploadModal } from "@/components/upload/upload-modal-context";
 
@@ -122,72 +122,90 @@ export function FeaturedHeroCarousel({ competitions }: Props) {
               }}
             />
 
-            <div className="relative z-10 mx-auto flex h-full max-w-[1600px] flex-col justify-center px-8 sm:px-12 lg:px-16">
-              <div className="flex max-w-[640px] flex-col gap-5">
+            <div className="relative z-10 mx-auto flex h-full max-w-[1600px] flex-col justify-center px-6 sm:px-12 lg:px-16">
+              <div className="flex max-w-[600px] flex-col gap-4">
 
-                <div className="inline-flex w-fit items-center gap-2 rounded-full border border-emerald-400/25 bg-emerald-500/5 px-3 py-1 text-[10px] font-bold uppercase tracking-[0.2em] text-emerald-300/90 backdrop-blur-md">
-                  <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                {/* 분류 배지 — 브랜드 퍼플 글래스, pulse 제거
+                    (featured 는 상태가 아니라 분류) */}
+                <div className="inline-flex w-fit items-center gap-1.5 rounded-full border border-[#7F77DD]/25 bg-[#7F77DD]/10 px-3 py-1 text-[10px] font-bold uppercase tracking-[0.2em] text-[#AFA9EC] backdrop-blur-md">
+                  <Star className="h-3 w-3 fill-current" />
                   {c.sponsor
-                    ? t("competition.sponsoredBy", `SPONSORED BY ${c.sponsor}`)
-                    : t("competition.featured", "FEATURED CONTEST")}
+                    ? t("competition.sponsoredBy", `SPONSOR · ${c.sponsor}`)
+                    : t("competition.featured", "FEATURED")}
                 </div>
 
                 <h1
-                  className="text-[32px] font-black leading-[1.05] tracking-[-0.02em] text-white sm:text-[40px] md:text-[48px] lg:text-[52px]"
-                  style={{ textShadow: "0 2px 16px rgba(0,0,0,0.6)" }}
+                  className="text-[32px] font-black leading-[1.05] tracking-[-0.02em] text-white sm:text-[42px] md:text-[50px] lg:text-[56px]"
+                  style={{ textShadow: "0 2px 16px rgba(0,0,0,0.65)" }}
                 >
                   {title}
                 </h1>
 
                 {c.description && (
                   <p
-                    className="max-w-[540px] text-[14px] leading-relaxed text-white/70 md:text-[15px]"
+                    className="line-clamp-1 max-w-[520px] text-[13px] leading-relaxed text-white/55"
                     style={{ textShadow: "0 1px 8px rgba(0,0,0,0.5)" }}
                   >
                     {c.description}
                   </p>
                 )}
 
-                <div className="flex flex-wrap items-baseline gap-x-6 gap-y-2">
-                  <div className="inline-flex items-baseline gap-2">
-                    <span className="text-[11px] font-bold uppercase tracking-[0.18em] text-amber-300/80">
-                      ★ {t("competition.prize", "PRIZE")}
+                {/* 상금 — 히어로 최강조.  라벨 작게, 금액 크게. */}
+                <div className="mt-1 flex flex-wrap items-end gap-x-7 gap-y-3">
+                  <div className="flex flex-col gap-0.5">
+                    <span className="inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-[0.2em] text-white/40">
+                      <Trophy className="h-3 w-3 text-amber-300/80" />
+                      {t("competition.prize", "PRIZE")}
                     </span>
-                    <span className="text-[18px] font-bold tabular-nums text-amber-300">
+                    <span
+                      className="text-[28px] font-black leading-none tabular-nums text-amber-300 sm:text-[34px]"
+                      style={{ textShadow: "0 2px 12px rgba(0,0,0,0.5)" }}
+                    >
                       {prize}
                     </span>
                   </div>
 
                   {dDay > 0 && (
-                    <>
-                      <span className="text-white/15">·</span>
-                      <div className="inline-flex items-baseline gap-2">
-                        <span className="text-[11px] font-bold uppercase tracking-[0.18em] text-[#AFA9EC]/80">
-                          ◉ {t("competition.deadline", "DEADLINE")}
-                        </span>
-                        <span className="text-[18px] font-bold tabular-nums text-white">
-                          D-{dDay}
-                        </span>
-                      </div>
-                    </>
+                    <div className="flex flex-col gap-0.5">
+                      <span className="inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-[0.2em] text-white/40">
+                        <Clock className="h-3 w-3" />
+                        {t("competition.deadline", "DEADLINE")}
+                      </span>
+                      <span
+                        className={`w-fit rounded-md px-2 py-0.5 text-[18px] font-black tabular-nums ${
+                          dDay <= 3
+                            ? "bg-red-500/20 text-red-300"
+                            : "bg-white/[0.06] text-white"
+                        }`}
+                      >
+                        D-{dDay}
+                      </span>
+                    </div>
                   )}
                 </div>
 
-                <div className="mt-2 flex flex-wrap items-center gap-2.5">
-                  <Link
-                    href={`/competition/${c.id}`}
-                    className="group inline-flex items-center gap-1.5 rounded-full bg-white px-5 py-2.5 text-[13px] font-bold text-[#0a0a0a] transition hover:bg-white/90"
-                  >
-                    {t("competition.viewDetails", "자세히 보기")}
-                    <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" />
-                  </Link>
+                {/* CTA — 참여가 핵심 행동이라 primary(브랜드
+                    그라데이션) 강조, 상세는 보조. */}
+                <div className="mt-3 flex flex-wrap items-center gap-2.5">
                   <button
                     type="button"
                     onClick={() => openUploadModal({ competitionId: c.id })}
-                    className="inline-flex items-center gap-1.5 rounded-full border border-white/[0.15] bg-white/[0.03] px-5 py-2.5 text-[13px] font-semibold text-white/85 backdrop-blur-md transition hover:border-white/[0.3] hover:bg-white/[0.08] hover:text-white"
+                    className="group inline-flex items-center gap-1.5 rounded-full px-6 py-2.5 text-[13px] font-bold text-white transition hover:opacity-90"
+                    style={{
+                      backgroundImage:
+                        "linear-gradient(135deg, rgba(107,95,212,0.95) 0%, rgba(83,74,183,0.85) 50%, rgba(63,54,163,0.8) 100%)",
+                      border: "1px solid rgba(175,169,236,0.3)",
+                    }}
                   >
                     {t("competition.joinNow", "지금 참여하기")}
+                    <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" />
                   </button>
+                  <Link
+                    href={`/competition/${c.id}`}
+                    className="inline-flex items-center gap-1.5 rounded-full border border-white/[0.15] bg-white/[0.03] px-5 py-2.5 text-[13px] font-semibold text-white/80 backdrop-blur-md transition hover:border-white/[0.3] hover:bg-white/[0.08] hover:text-white"
+                  >
+                    {t("competition.viewDetails", "자세히 보기")}
+                  </Link>
                 </div>
               </div>
             </div>
