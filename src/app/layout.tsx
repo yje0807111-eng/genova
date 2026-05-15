@@ -69,8 +69,32 @@ export default async function RootLayout({
   return (
     <html lang={locale} className={`${plusJakarta.variable} ${syne.variable} h-full antialiased`}>
       <head>
-        <link rel="preconnect" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css" />
-        <link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css" rel="stylesheet" />
+        {/*
+          Pretendard variable font for Korean/Japanese rendering.
+
+          Three optimizations stacked on this previously render-blocking
+          load (D1 perf audit):
+            1. `preconnect` to the CDN origin (the old version pointed to
+               a full URL which made preconnect a no-op — it expects an
+               origin only).
+            2. `preload as="style"` so the bytes start downloading at
+                the highest priority before the parser hits the
+                stylesheet link.
+            3. Keep the actual stylesheet link so first paint still has
+               the font.  Future cleanup: switch to next/font/local with
+               a hosted woff2 to eliminate the third-party request
+               entirely.
+        */}
+        <link rel="preconnect" href="https://cdn.jsdelivr.net" crossOrigin="" />
+        <link
+          rel="preload"
+          as="style"
+          href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css"
+        />
+        <link
+          rel="stylesheet"
+          href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css"
+        />
       </head>
       <body className="min-h-full bg-background font-sans text-balance">
         <LayoutWrapper>{children}</LayoutWrapper>
