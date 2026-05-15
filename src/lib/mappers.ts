@@ -14,7 +14,6 @@ type VideoRow = {
   title: string;
   thumbnail_url: string;
   backdrop_url?: string | null;
-  vimeo_id: string | null;
   mux_playback_id?: string | null;
   mux_asset_id?: string | null;
   mux_upload_id?: string | null;
@@ -95,7 +94,6 @@ export function mapVideo(row: VideoRow): Video {
     title: row.title,
     thumbnailUrl: row.thumbnail_url,
     backdropUrl: row.backdrop_url ?? null,
-    vimeoId: row.vimeo_id ?? null,
     muxPlaybackId: row.mux_playback_id ?? null,
     genre: row.genre,
     additionalGenres: Array.isArray(row.additional_genres) ? row.additional_genres : [],

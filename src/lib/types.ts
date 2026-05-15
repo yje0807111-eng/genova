@@ -18,7 +18,6 @@ export type Video = {
   title: string;
   thumbnailUrl: string;
   backdropUrl?: string | null;
-  vimeoId: string | null;
   /** Mux playback ID when video was uploaded via Mux direct upload */
   muxPlaybackId?: string | null;
   /** Main genre slug (e.g. `short_film`) */

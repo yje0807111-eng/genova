@@ -103,7 +103,6 @@ export async function createVideoAction(form: {
     title: form.title.trim(),
     thumbnail_url: finalThumbnailUrl,
     backdrop_url: form.backdropUrl ?? null,
-    vimeo_id: null,
     mux_playback_id: muxPlaybackId ?? null,
     mux_asset_id: muxAssetId ?? null,
     mux_upload_id: muxUploadId ?? null,
