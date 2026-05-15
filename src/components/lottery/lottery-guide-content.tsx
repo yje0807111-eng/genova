@@ -1,7 +1,6 @@
-import Link from "next/link";
 import { Upload, Ticket, Gift, ChevronDown } from "lucide-react";
 import type { Locale } from "@/lib/i18n/translations";
-import { LotteryUploadCta } from "./lottery-upload-cta";
+import { LotteryGuideCta } from "./lottery-guide-cta";
 
 /**
  * 응모권 추첨 안내 콘텐츠 (공유).
@@ -228,9 +227,13 @@ const STEP_ICON = {
 export function LotteryGuideContent({
   locale,
   variant = "page",
+  onNavigate,
 }: {
   locale: Locale;
   variant?: "page" | "modal";
+  /** 모달에서 쓸 때 close 를 넘기면, CTA 클릭 시 모달이 함께
+   *  닫힌다.  page 변형에서는 미전달. */
+  onNavigate?: () => void;
 }) {
   const c = LOTTERY_GUIDE_CONTENT[locale] ?? LOTTERY_GUIDE_CONTENT.en;
   const isModal = variant === "modal";
@@ -326,21 +329,13 @@ export function LotteryGuideContent({
         ))}
       </div>
 
-      {/* CTA — 업로드는 페이지 대신 항상 팝업(모달) */}
-      <div className="mt-10 flex flex-wrap justify-center gap-3">
-        <LotteryUploadCta label={c.ctaUpload} />
-        <Link
-          href="/competition"
-          className="rounded-xl border px-5 py-2.5 text-[13px] font-semibold text-white/80 transition hover:text-white"
-          style={{
-            background: "rgba(255,255,255,0.06)",
-            backdropFilter: "blur(8px)",
-            border: "1px solid rgba(255,255,255,0.15)",
-          }}
-        >
-          {c.ctaCompetition}
-        </Link>
-      </div>
+      {/* CTA — 업로드는 페이지 대신 항상 팝업(모달).  모달에서
+          열렸을 땐 두 버튼 모두 클릭 시 안내 모달도 함께 닫힘. */}
+      <LotteryGuideCta
+        uploadLabel={c.ctaUpload}
+        competitionLabel={c.ctaCompetition}
+        onNavigate={onNavigate}
+      />
     </div>
   );
 }

@@ -77,7 +77,11 @@ export function LotteryGuideModalProvider({
                 </button>
               </div>
 
-              <LotteryGuideContent locale={locale} variant="modal" />
+              <LotteryGuideContent
+                locale={locale}
+                variant="modal"
+                onNavigate={close}
+              />
 
               <div className="mt-6 border-t border-white/[0.06] pt-4 text-center">
                 <Link
