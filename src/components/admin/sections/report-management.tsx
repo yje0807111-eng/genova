@@ -47,14 +47,22 @@ function reportReasonLabel(reason: VideoReportItem["reason"]) {
 export function ReportManagement({
   reports,
   onMessage,
+  initialStatusFilter,
 }: {
   reports: VideoReportItem[];
   onMessage: (message: string) => void;
+  /** 대시보드 액션 칩 진입 시 초기 상태 필터(open 등). */
+  initialStatusFilter?: string | null;
 }) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [localReports, setLocalReports] = useState<VideoReportItem[]>(reports);
-  const [reportStatusFilter, setReportStatusFilter] = useState<"all" | VideoReportStatus>("all");
+  const [reportStatusFilter, setReportStatusFilter] = useState<"all" | VideoReportStatus>(
+    initialStatusFilter &&
+      ["open", "reviewing", "resolved", "rejected"].includes(initialStatusFilter)
+      ? (initialStatusFilter as VideoReportStatus)
+      : "all",
+  );
   const [reportReasonFilter, setReportReasonFilter] = useState<"all" | VideoReportItem["reason"]>("all");
   const [reportSort, setReportSort] = useState<"open_first" | "latest">("open_first");
   // G5: free-text search across videoTitle / reporterName / detail /

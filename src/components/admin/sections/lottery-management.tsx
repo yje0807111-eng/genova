@@ -95,11 +95,15 @@ export function LotteryManagement({
   winners,
   auditLog,
   onMessage,
+  initialWinnerFilter,
 }: {
   competitions: LotteryCompetitionSummary[];
   winners: LotteryWinnerWorkRow[];
   auditLog: LotteryAuditRow[];
   onMessage: (msg: string | null) => void;
+  /** 대시보드 액션 칩에서 진입 시 당첨자 섹션 초기 필터
+   *  (pending/submitted/confirmed/paid/expired). */
+  initialWinnerFilter?: string | null;
 }) {
   return (
     <div className="space-y-8">
@@ -107,7 +111,11 @@ export function LotteryManagement({
         competitions={competitions}
         onMessage={onMessage}
       />
-      <WinnersSection winners={winners} onMessage={onMessage} />
+      <WinnersSection
+        winners={winners}
+        onMessage={onMessage}
+        initialFilter={initialWinnerFilter}
+      />
       <AuditLogSection rows={auditLog} />
     </div>
   );
@@ -269,13 +277,27 @@ function WinnerBuckets({
 function WinnersSection({
   winners,
   onMessage,
+  initialFilter,
 }: {
   winners: LotteryWinnerWorkRow[];
   onMessage: (msg: string | null) => void;
+  initialFilter?: string | null;
 }) {
+  const VALID_WINNER_FILTERS = [
+    "pending",
+    "submitted",
+    "confirmed",
+    "paid",
+    "expired",
+  ] as const;
   const [filter, setFilter] = useState<
     "all" | "pending" | "submitted" | "confirmed" | "paid" | "expired"
-  >("all");
+  >(
+    initialFilter &&
+      (VALID_WINNER_FILTERS as readonly string[]).includes(initialFilter)
+      ? (initialFilter as (typeof VALID_WINNER_FILTERS)[number])
+      : "all",
+  );
   const [exporting, setExporting] = useState(false);
   const filtered = winners.filter((w) =>
     filter === "all" ? true : w.claimStatus === filter,

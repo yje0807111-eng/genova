@@ -202,7 +202,7 @@ export function TrophyManagement({
             {recentLoading ? "불러오는 중…" : "지급된 트로피가 없습니다."}
           </p>
         ) : (
-          <ul className="space-y-1">
+          <ul className="max-h-[320px] space-y-1 overflow-y-auto pr-0.5">
             {recent.map((t) => (
               <li
                 key={t.id}

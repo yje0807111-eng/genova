@@ -31,14 +31,22 @@ const BUDGET_LABELS: Record<string, string> = {
 export function BusinessInquiryManagement({
   inquiries,
   onMessage,
+  initialStatusFilter,
 }: {
   inquiries: BusinessInquiryItem[];
   onMessage: (message: string) => void;
+  /** 대시보드 액션 칩 진입 시 초기 상태 필터(new 등). */
+  initialStatusFilter?: string | null;
 }) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [local, setLocal] = useState<BusinessInquiryItem[]>(inquiries);
-  const [statusFilter, setStatusFilter] = useState<"all" | BusinessInquiryStatus>("all");
+  const [statusFilter, setStatusFilter] = useState<"all" | BusinessInquiryStatus>(
+    initialStatusFilter &&
+      ["new", "contacted", "in_progress", "closed"].includes(initialStatusFilter)
+      ? (initialStatusFilter as BusinessInquiryStatus)
+      : "all",
+  );
   const [typeFilter, setTypeFilter] = useState<"all" | "individual" | "business">("all");
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [noteDrafts, setNoteDrafts] = useState<Record<string, string>>({});

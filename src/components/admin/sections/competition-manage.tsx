@@ -220,7 +220,9 @@ export function CompetitionManage({
         />
       </div>
 
-      <div className="space-y-1">
+      {/* 고정 높이 스크롤 — 공모전이 많아도 카드가 무한정 길어지지
+          않게 해서 아래 트로피/생성 섹션이 항상 보이도록. */}
+      <div className="max-h-[560px] space-y-1 overflow-y-auto pr-0.5">
         {competitions.length === 0 ? (
           <div className="rounded-lg border border-white/[0.06] bg-white/[0.01] py-12 text-center">
             <p className="text-[12px] text-white/35">공모전이 없습니다</p>

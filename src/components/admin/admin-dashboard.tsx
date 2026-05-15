@@ -155,6 +155,11 @@ function AdminDashboardInner({
   const [view, setView] = useState<AdminView>(() =>
     resolveView(searchParams.get("tab")),
   );
+  // 액션 칩 → 해당 영역의 초기 필터.  URL ?focus= 로 관리하고
+  // 섹션에 initial filter prop 으로 내려줌 (섹션은 URL 비의존).
+  const [focus, setFocus] = useState<string | null>(() =>
+    searchParams.get("focus"),
+  );
 
   useEffect(() => {
     setLocalCompetitions(competitions);
@@ -162,6 +167,7 @@ function AdminDashboardInner({
 
   useEffect(() => {
     setView(resolveView(searchParams.get("tab")));
+    setFocus(searchParams.get("focus"));
   }, [searchParams]);
 
   const openReportCount = reports.filter((r) => r.status === "open").length;
@@ -200,13 +206,16 @@ function AdminDashboardInner({
     return Number.isFinite(dl) && dl - now <= 7 * 86_400_000 && dl - now >= 0;
   }).length;
 
-  const navigate = (next: AdminView) => {
+  const navigate = (next: AdminView, nextFocus?: string) => {
     setView(next);
+    setFocus(nextFocus ?? null);
     // message 는 화면 전환 시 비워서 다른 영역 결과가 잔류하지 않게.
     setMessage(null);
     const params = new URLSearchParams(searchParams.toString());
     if (next === "home") params.delete("tab");
     else params.set("tab", next);
+    if (nextFocus) params.set("focus", nextFocus);
+    else params.delete("focus");
     const qs = params.toString();
     router.replace(qs ? `${pathname}?${qs}` : pathname, { scroll: false });
   };
@@ -221,12 +230,17 @@ function AdminDashboardInner({
   // 액션 홈 항목 (0건은 숨김).
   const actionItems = (
     [
-      { label: "마감 임박 응모권", count: urgentLotteryCount, view: "lottery" },
-      { label: "검수 대기", count: verifyQueueCount, view: "lottery" },
-      { label: "지급 대기", count: payQueueCount, view: "lottery" },
-      { label: "3일+ 방치 신고", count: staleReportCount, view: "reports" },
-      { label: "신규 비즈니스 문의", count: newInquiryCount, view: "business" },
-    ] satisfies { label: string; count: number; view: AdminView }[]
+      { label: "마감 임박 응모권", count: urgentLotteryCount, view: "lottery", focus: "pending" },
+      { label: "검수 대기", count: verifyQueueCount, view: "lottery", focus: "submitted" },
+      { label: "지급 대기", count: payQueueCount, view: "lottery", focus: "confirmed" },
+      { label: "3일+ 방치 신고", count: staleReportCount, view: "reports", focus: "open" },
+      { label: "신규 비즈니스 문의", count: newInquiryCount, view: "business", focus: "new" },
+    ] satisfies {
+      label: string;
+      count: number;
+      view: AdminView;
+      focus: string;
+    }[]
   ).filter((a) => a.count > 0);
 
   const cards: {
@@ -321,7 +335,7 @@ function AdminDashboardInner({
                   <button
                     key={a.label}
                     type="button"
-                    onClick={() => navigate(a.view)}
+                    onClick={() => navigate(a.view, a.focus)}
                     className="inline-flex items-center gap-2 rounded-lg border border-amber-500/20 bg-amber-500/[0.06] px-3 py-1.5 text-[12px] text-amber-200 transition hover:bg-amber-500/[0.12]"
                   >
                     {a.label}
@@ -412,7 +426,12 @@ function AdminDashboardInner({
             ) : null}
 
             {view === "reports" ? (
-              <ReportManagement reports={reports} onMessage={setMessage} />
+              <ReportManagement
+                key={focus ?? "all"}
+                reports={reports}
+                onMessage={setMessage}
+                initialStatusFilter={focus}
+              />
             ) : null}
 
             {view === "competitions" ? (
@@ -440,17 +459,21 @@ function AdminDashboardInner({
 
             {view === "business" ? (
               <BusinessInquiryManagement
+                key={focus ?? "all"}
                 inquiries={inquiries}
                 onMessage={setMessage}
+                initialStatusFilter={focus}
               />
             ) : null}
 
             {view === "lottery" ? (
               <LotteryManagement
+                key={focus ?? "all"}
                 competitions={lotteryCompetitions}
                 winners={lotteryWinners}
                 auditLog={lotteryAudit}
                 onMessage={setMessage}
+                initialWinnerFilter={focus}
               />
             ) : null}
 
