@@ -5,25 +5,27 @@ import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { createCompetitionAction } from "@/app/actions/admin";
 import { adminTokens } from "@/lib/admin-styles";
+import { useI18n } from "@/components/genova/language-provider";
 import { getBrowserSupabaseClient } from "@/lib/supabase/browser";
 import { cn } from "@/lib/utils/cn";
 
 const STATUS_OPTIONS = [
-  { value: "Open", label: "모집중" },
-  { value: "In Review", label: "심사중" },
-  { value: "Voting", label: "투표중" },
-  { value: "Closed", label: "종료" },
+  { value: "Open", labelKey: "adminCompCreate.statusOpen", labelEn: "Open" },
+  { value: "In Review", labelKey: "adminCompCreate.statusInReview", labelEn: "In Review" },
+  { value: "Voting", labelKey: "adminCompCreate.statusVoting", labelEn: "Voting" },
+  { value: "Closed", labelKey: "adminCompCreate.statusClosed", labelEn: "Closed" },
 ] as const;
 
-const KRW_QUICK_AMOUNTS: { label: string; value: number }[] = [
-  { label: "30만", value: 300_000 },
-  { label: "50만", value: 500_000 },
-  { label: "100만", value: 1_000_000 },
-  { label: "300만", value: 3_000_000 },
-  { label: "500만", value: 5_000_000 },
+const KRW_QUICK_AMOUNTS: { labelKey: string; labelEn: string; value: number }[] = [
+  { labelKey: "adminCompCreate.krw300k", labelEn: "300K", value: 300_000 },
+  { labelKey: "adminCompCreate.krw500k", labelEn: "500K", value: 500_000 },
+  { labelKey: "adminCompCreate.krw1m", labelEn: "1M", value: 1_000_000 },
+  { labelKey: "adminCompCreate.krw3m", labelEn: "3M", value: 3_000_000 },
+  { labelKey: "adminCompCreate.krw5m", labelEn: "5M", value: 5_000_000 },
 ];
 
 export function CompetitionCreate({ onMessage }: { onMessage: (message: string) => void }) {
+  const { t } = useI18n();
   const router = useRouter();
   const competitionThumbInputRef = useRef<HTMLInputElement>(null);
   const [loading, setLoading] = useState(false);
@@ -87,7 +89,7 @@ export function CompetitionCreate({ onMessage }: { onMessage: (message: string) 
 
   const call = async () => {
     if (missingRequired) {
-      onMessage("제목, 접수 마감일, 투표 마감일은 필수입니다.");
+      onMessage(t("adminCompCreate.requiredWarning", "Title, submission deadline, and voting deadline are required."));
       return;
     }
     setLoading(true);
@@ -99,14 +101,14 @@ export function CompetitionCreate({ onMessage }: { onMessage: (message: string) 
         // rates live in the full edit form — deep-link there right
         // after creation so the operator finishes in one flow instead
         // of creating, hunting the row, then clicking Edit.
-        onMessage("생성되었습니다. 상세 편집 화면으로 이동합니다.");
+        onMessage(t("adminCompCreate.created", "Created. Moving to the detail edit screen."));
         if (res.id) {
           router.push(`/admin/competition/${res.id}`);
         } else {
           router.refresh();
         }
       } else {
-        onMessage(res.message ?? "실패했습니다.");
+        onMessage(res.message ?? t("adminCompCreate.failed", "Failed."));
       }
     } finally {
       setLoading(false);
@@ -119,54 +121,54 @@ export function CompetitionCreate({ onMessage }: { onMessage: (message: string) 
   return (
     <div className={adminTokens.card}>
       <div className="mb-4 flex items-center justify-between">
-        <h2 className={cn(adminTokens.sectionHeader, "!mb-0")}>공모전 생성</h2>
+        <h2 className={cn(adminTokens.sectionHeader, "!mb-0")}>{t("adminCompCreate.header", "Create Competition")}</h2>
       </div>
 
       <div className="space-y-3 border-b border-white/[0.04] pb-3">
         <div>
-          <label className={adminTokens.inputLabel}>공모전 ID (선택사항)</label>
+          <label className={adminTokens.inputLabel}>{t("adminCompCreate.idLabel", "Competition ID (optional)")}</label>
           <input
             value={form.id}
             onChange={(e) => setForm((p) => ({ ...p, id: e.target.value }))}
             className={inputFull}
-            placeholder="비워두면 자동 생성"
+            placeholder={t("adminCompCreate.idPlaceholder", "Auto-generated if left blank")}
           />
         </div>
         <div>
           <label className={adminTokens.inputLabel}>
-            공모전 제목 <span className="text-red-400">*</span>
+            {t("adminCompCreate.titleLabel", "Competition Title")} <span className="text-red-400">*</span>
           </label>
           <input
             value={form.title}
             onChange={(e) => setForm((p) => ({ ...p, title: e.target.value }))}
             className={inputFull}
-            placeholder="예: 1회 Genova AI 단편영화 공모전"
+            placeholder={t("adminCompCreate.titlePlaceholder", "e.g. 1st Genova AI Short Film Competition")}
           />
         </div>
         <div>
-          <label className={adminTokens.inputLabel}>서브제목</label>
+          <label className={adminTokens.inputLabel}>{t("adminCompCreate.subtitleLabel", "Subtitle")}</label>
           <input
             value={form.subtitle}
             onChange={(e) => setForm((p) => ({ ...p, subtitle: e.target.value }))}
             className={inputFull}
-            placeholder="예: AI 영상 창작자를 위한 글로벌 공모전"
+            placeholder={t("adminCompCreate.subtitlePlaceholder", "e.g. A global competition for AI video creators")}
           />
         </div>
         <div>
-          <label className={adminTokens.inputLabel}>장르</label>
+          <label className={adminTokens.inputLabel}>{t("adminCompCreate.genreLabel", "Genre")}</label>
           <select value={form.genre} onChange={(e) => setForm((p) => ({ ...p, genre: e.target.value }))} className={inputFull}>
-            <option value="All">전체 장르</option>
-            <option value="film">단편영화</option>
-            <option value="animation">애니메이션</option>
-            <option value="music">뮤직비디오</option>
-            <option value="daily">일상</option>
-            <option value="art">아트</option>
+            <option value="All">{t("adminCompCreate.genreAll", "All Genres")}</option>
+            <option value="film">{t("adminCompCreate.genreFilm", "Short Film")}</option>
+            <option value="animation">{t("adminCompCreate.genreAnimation", "Animation")}</option>
+            <option value="music">{t("adminCompCreate.genreMusic", "Music Video")}</option>
+            <option value="daily">{t("adminCompCreate.genreDaily", "Daily")}</option>
+            <option value="art">{t("adminCompCreate.genreArt", "Art")}</option>
           </select>
         </div>
         <div>
-          <label className={adminTokens.inputLabel}>상태</label>
+          <label className={adminTokens.inputLabel}>{t("adminCompCreate.statusLabel", "Status")}</label>
           <div className="flex flex-wrap gap-1">
-            {STATUS_OPTIONS.map(({ value: s, label }) => (
+            {STATUS_OPTIONS.map(({ value: s, labelKey, labelEn }) => (
               <button
                 key={s}
                 type="button"
@@ -176,7 +178,7 @@ export function CompetitionCreate({ onMessage }: { onMessage: (message: string) 
                   form.status === s ? "bg-white/10 text-white" : "text-white/35 hover:bg-white/[0.04] hover:text-white/70",
                 )}
               >
-                {label}
+                {t(labelKey, labelEn)}
               </button>
             ))}
           </div>
@@ -187,7 +189,7 @@ export function CompetitionCreate({ onMessage }: { onMessage: (message: string) 
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
           <div>
             <label className={adminTokens.inputLabel}>
-              접수 마감일 <span className="text-red-400">*</span>
+              {t("adminCompCreate.deadlineLabel", "Submission Deadline")} <span className="text-red-400">*</span>
             </label>
             <input
               type="datetime-local"
@@ -198,7 +200,7 @@ export function CompetitionCreate({ onMessage }: { onMessage: (message: string) 
           </div>
           <div>
             <label className={adminTokens.inputLabel}>
-              투표 마감일 <span className="text-red-400">*</span>
+              {t("adminCompCreate.voteEndLabel", "Voting Deadline")} <span className="text-red-400">*</span>
             </label>
             <input
               type="datetime-local"
@@ -210,7 +212,7 @@ export function CompetitionCreate({ onMessage }: { onMessage: (message: string) 
         </div>
 
         <div className="space-y-2">
-          <label className={adminTokens.inputLabel}>총 상금</label>
+          <label className={adminTokens.inputLabel}>{t("adminCompCreate.prizeLabel", "Total Prize")}</label>
           <div className="flex flex-wrap items-center gap-2">
             <div className="flex shrink-0 gap-1">
               {(["KRW", "USD", "JPY"] as const).map((c) => (
@@ -227,7 +229,11 @@ export function CompetitionCreate({ onMessage }: { onMessage: (message: string) 
                     currency === c ? "bg-white/10 text-white" : "text-white/35 hover:bg-white/[0.04] hover:text-white/70",
                   )}
                 >
-                  {c === "KRW" ? "₩ 원" : c === "USD" ? "$ 달러" : "¥ 엔"}
+                  {c === "KRW"
+                    ? t("adminCompCreate.currencyKRW", "₩ KRW")
+                    : c === "USD"
+                      ? t("adminCompCreate.currencyUSD", "$ USD")
+                      : t("adminCompCreate.currencyJPY", "¥ JPY")}
                 </button>
               ))}
             </div>
@@ -237,19 +243,19 @@ export function CompetitionCreate({ onMessage }: { onMessage: (message: string) 
               value={prizeAmount ? Number(prizeAmount).toLocaleString() : ""}
               onChange={(e) => applyPrizeAmount(e.target.value.replace(/[^0-9]/g, ""), currencySymbol)}
               className={cn(adminTokens.input, "min-w-[140px] flex-1")}
-              placeholder="금액 입력 (예: 1,000,000)"
+              placeholder={t("adminCompCreate.prizePlaceholder", "Enter amount (e.g. 1,000,000)")}
             />
           </div>
           {currency === "KRW" ? (
             <div className="flex flex-wrap gap-1">
-              {KRW_QUICK_AMOUNTS.map(({ label, value }) => (
+              {KRW_QUICK_AMOUNTS.map(({ labelKey, labelEn, value }) => (
                 <button
                   key={value}
                   type="button"
                   onClick={() => applyPrizeAmount(String(value), "₩")}
                   className="h-7 rounded-md border border-white/[0.08] px-2.5 text-[11px] text-white/55 transition hover:bg-white/[0.04] hover:text-white"
                 >
-                  {label}
+                  {t(labelKey, labelEn)}
                 </button>
               ))}
             </div>
@@ -259,7 +265,7 @@ export function CompetitionCreate({ onMessage }: { onMessage: (message: string) 
 
       <div className="space-y-3 border-b border-white/[0.04] pb-3 pt-3">
         <div>
-          <label className={adminTokens.inputLabel}>스폰서</label>
+          <label className={adminTokens.inputLabel}>{t("adminCompCreate.sponsorLabel", "Sponsor")}</label>
           <input value={form.sponsor} onChange={(e) => setForm((p) => ({ ...p, sponsor: e.target.value }))} className={inputFull} />
         </div>
 
@@ -274,7 +280,7 @@ export function CompetitionCreate({ onMessage }: { onMessage: (message: string) 
           }}
         />
         <div>
-          <label className={adminTokens.inputLabel}>공모전 썸네일</label>
+          <label className={adminTokens.inputLabel}>{t("adminCompCreate.thumbnailLabel", "Competition Thumbnail")}</label>
           {competitionThumbPreview ? (
             <div className="relative mt-1.5 overflow-hidden rounded-md border border-white/[0.08]">
               {/* eslint-disable-next-line @next/next/no-img-element -- blob: URI from file input preview, next/image not applicable */}
@@ -301,7 +307,7 @@ export function CompetitionCreate({ onMessage }: { onMessage: (message: string) 
               )}
             >
               <Upload size={16} className="mx-auto text-white/35" />
-              <p className="mt-1.5 text-[11px] text-white/50">클릭하거나 이미지 드래그</p>
+              <p className="mt-1.5 text-[11px] text-white/50">{t("adminCompCreate.uploadHint", "Click or drag an image")}</p>
               <p className="text-[10px] text-white/30">JPG, PNG, WebP</p>
             </button>
           )}
@@ -310,11 +316,11 @@ export function CompetitionCreate({ onMessage }: { onMessage: (message: string) 
 
       <div className="space-y-3 pt-3">
         <div>
-          <label className={adminTokens.inputLabel}>참가 자격</label>
+          <label className={adminTokens.inputLabel}>{t("adminCompCreate.eligibilityLabel", "Eligibility")}</label>
           <textarea value={form.eligibility} onChange={(e) => setForm((p) => ({ ...p, eligibility: e.target.value }))} className={textareaFull} />
         </div>
         <div>
-          <label className={adminTokens.inputLabel}>출품 가이드라인</label>
+          <label className={adminTokens.inputLabel}>{t("adminCompCreate.submissionGuidelinesLabel", "Submission Guidelines")}</label>
           <textarea
             value={form.submissionGuidelines}
             onChange={(e) => setForm((p) => ({ ...p, submissionGuidelines: e.target.value }))}
@@ -322,11 +328,11 @@ export function CompetitionCreate({ onMessage }: { onMessage: (message: string) 
           />
         </div>
         <div>
-          <label className={adminTokens.inputLabel}>심사 방법</label>
+          <label className={adminTokens.inputLabel}>{t("adminCompCreate.judgingCriteriaLabel", "Judging Method")}</label>
           <textarea value={form.judgingCriteria} onChange={(e) => setForm((p) => ({ ...p, judgingCriteria: e.target.value }))} className={textareaFull} />
         </div>
         <div>
-          <label className={adminTokens.inputLabel}>규칙</label>
+          <label className={adminTokens.inputLabel}>{t("adminCompCreate.rulesLabel", "Rules")}</label>
           <textarea value={form.rules} onChange={(e) => setForm((p) => ({ ...p, rules: e.target.value }))} className={textareaFull} />
         </div>
       </div>
@@ -337,7 +343,11 @@ export function CompetitionCreate({ onMessage }: { onMessage: (message: string) 
         onClick={() => void call()}
         className={cn(adminTokens.buttonPrimary, "mt-4 h-10 w-full disabled:cursor-not-allowed disabled:opacity-40")}
       >
-        {loading ? "생성 중..." : missingRequired ? "필수 항목을 입력하세요" : "공모전 생성 →"}
+        {loading
+          ? t("adminCompCreate.submitting", "Creating...")
+          : missingRequired
+            ? t("adminCompCreate.submitMissing", "Enter required fields")
+            : t("adminCompCreate.submit", "Create Competition →")}
       </button>
     </div>
   );

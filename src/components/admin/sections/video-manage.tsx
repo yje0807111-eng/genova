@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import { setVideoAwardAction, setVideoFinalistAction, setVideoOriginalAction } from "@/app/actions/admin";
 import { deleteVideoAction, updateVideoVisibilityAction } from "@/app/actions/video";
+import { useI18n } from "@/components/genova/language-provider";
 import { adminTokens } from "@/lib/admin-styles";
 import type { Competition, Video } from "@/lib/types";
 import { cn } from "@/lib/utils/cn";
@@ -25,6 +26,7 @@ export function VideoManage({
   setVideoFilter: (value: string) => void;
   onMessage: (message: string) => void;
 }) {
+  const { t } = useI18n();
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [videoSort, setVideoSort] = useState<"latest" | "likes" | "views" | "reports">("latest");
@@ -130,7 +132,7 @@ export function VideoManage({
     setLoading(true);
     try {
       const res = await fn();
-      onMessage(res.ok ? "저장되었습니다." : res.message ?? "실패했습니다.");
+      onMessage(res.ok ? t("adminVideo.saved", "Saved.") : res.message ?? t("adminVideo.failed", "Failed."));
       if (res.ok) router.refresh();
     } finally {
       setLoading(false);
@@ -155,7 +157,15 @@ export function VideoManage({
   };
 
   const handleDelete = (id: string, title: string) => {
-    if (!confirm(`"${title}" 영상을 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다.`)) return;
+    if (
+      !confirm(
+        t(
+          "adminVideo.deleteConfirm",
+          'Delete the video "{title}"? This action cannot be undone.',
+        ).replace("{title}", title),
+      )
+    )
+      return;
     void call(() => deleteVideoAction(id));
   };
 
@@ -165,7 +175,7 @@ export function VideoManage({
     <div className={adminTokens.card}>
       <div className="mb-4 flex flex-wrap items-center justify-between gap-x-3 gap-y-2">
         <div className="flex min-w-0 items-center gap-2">
-          <h2 className={cn(adminTokens.sectionHeader, "!mb-0")}>영상 관리</h2>
+          <h2 className={cn(adminTokens.sectionHeader, "!mb-0")}>{t("adminVideo.title", "Video Management")}</h2>
           <span className="text-[11px] font-mono text-white/30">{videos.length}</span>
           {selectedCompetition ? (
             <span className="truncate text-[11px] text-white/35">· {selectedCompetition.title}</span>
@@ -177,7 +187,7 @@ export function VideoManage({
             type="search"
             value={videoSearch}
             onChange={(e) => setVideoSearch(e.target.value)}
-            placeholder="검색 (제목/크리에이터/ID)"
+            placeholder={t("adminVideo.searchPlaceholder", "Search (title / creator / ID)")}
             className={cn(adminTokens.input, "min-w-[180px] text-[12px]")}
           />
           {selectedCompetition ? (
@@ -189,7 +199,7 @@ export function VideoManage({
               }}
               className={cn(adminTokens.buttonGhost, "inline-flex h-9 shrink-0 items-center")}
             >
-              ← 전체 영상
+              ← {t("adminVideo.allVideos", "All videos")}
             </button>
           ) : null}
           <select
@@ -197,35 +207,35 @@ export function VideoManage({
             onChange={(e) => setVideoFilter(e.target.value)}
             className={filterSelectClass}
           >
-            <option value="all">전체 장르</option>
-            <option value="competition">공모전</option>
+            <option value="all">{t("adminVideo.genreAll", "All genres")}</option>
+            <option value="competition">{t("adminVideo.genreCompetition", "Competition")}</option>
             {selectedCompetition ? (
               <option value={"competition_" + selectedCompetition.id}>{selectedCompetition.title}</option>
             ) : null}
-            <option value="film">단편영화</option>
-            <option value="animation">애니메이션</option>
-            <option value="music">뮤직비디오</option>
-            <option value="daily">일상</option>
-            <option value="art">아트</option>
+            <option value="film">{t("adminVideo.genreFilm", "Short film")}</option>
+            <option value="animation">{t("adminVideo.genreAnimation", "Animation")}</option>
+            <option value="music">{t("adminVideo.genreMusic", "Music video")}</option>
+            <option value="daily">{t("adminVideo.genreDaily", "Daily")}</option>
+            <option value="art">{t("adminVideo.genreArt", "Art")}</option>
           </select>
           <select
             value={videoTimeFilter}
             onChange={(e) => setVideoTimeFilter(e.target.value as "all" | "week" | "month")}
             className={filterSelectClass}
           >
-            <option value="all">전체 기간</option>
-            <option value="week">이번 주</option>
-            <option value="month">이번 달</option>
+            <option value="all">{t("adminVideo.timeAll", "All time")}</option>
+            <option value="week">{t("adminVideo.timeWeek", "This week")}</option>
+            <option value="month">{t("adminVideo.timeMonth", "This month")}</option>
           </select>
           <select
             value={videoSort}
             onChange={(e) => setVideoSort(e.target.value as typeof videoSort)}
             className={filterSelectClass}
           >
-            <option value="latest">최신</option>
-            <option value="likes">좋아요</option>
-            <option value="views">조회수</option>
-            <option value="reports">신고</option>
+            <option value="latest">{t("adminVideo.sortLatest", "Latest")}</option>
+            <option value="likes">{t("adminVideo.sortLikes", "Likes")}</option>
+            <option value="views">{t("adminVideo.sortViews", "Views")}</option>
+            <option value="reports">{t("adminVideo.sortReports", "Reports")}</option>
           </select>
         </div>
       </div>
@@ -241,7 +251,9 @@ export function VideoManage({
         {filteredVideos.length === 0 ? (
           <div className="rounded-lg border border-white/[0.06] bg-white/[0.01] py-12 text-center">
             <p className="text-[12px] text-white/35">
-              {videos.length === 0 ? "아직 업로드된 영상이 없습니다" : "필터 조건에 맞는 영상이 없습니다"}
+              {videos.length === 0
+                ? t("adminVideo.emptyNoVideos", "No videos have been uploaded yet")
+                : t("adminVideo.emptyNoMatch", "No videos match the filter")}
             </p>
           </div>
         ) : (
@@ -278,7 +290,7 @@ export function VideoManage({
                   {video.purpose === "competition" ? (
                     <>
                       <span className="text-white/20">·</span>
-                      <span className="text-[#AFA9EC]/90">출품작</span>
+                      <span className="text-[#AFA9EC]/90">{t("adminVideo.entry", "Entry")}</span>
                     </>
                   ) : null}
                 </div>
@@ -289,13 +301,13 @@ export function VideoManage({
                   <span className={cn(adminTokens.badge, adminTokens.badgeInfo)}>Genova Original</span>
                 ) : null}
                 {video.isFinalist ? (
-                  <span className={cn(adminTokens.badge, adminTokens.badgeWarning)}>결선</span>
+                  <span className={cn(adminTokens.badge, adminTokens.badgeWarning)}>{t("adminVideo.finalist", "Finalist")}</span>
                 ) : null}
                 {video.award ? (
                   <span className={cn(adminTokens.badge, adminTokens.badgeSuccess)}>{video.award}</span>
                 ) : null}
                 {video.visibility === "private" ? (
-                  <span className={cn(adminTokens.badge, adminTokens.badgeNeutral)}>비공개</span>
+                  <span className={cn(adminTokens.badge, adminTokens.badgeNeutral)}>{t("adminVideo.private", "Private")}</span>
                 ) : null}
               </div>
 
@@ -307,23 +319,27 @@ export function VideoManage({
                   disabled={loading}
                   onClick={() => handleSetFinalist(video.id, !video.isFinalist)}
                   className={cn(adminTokens.buttonGhost, "disabled:opacity-40")}
-                  title="결선 지정"
+                  title={t("adminVideo.setFinalist", "Set as finalist")}
                 >
-                  결선
+                  {t("adminVideo.finalist", "Finalist")}
                 </button>
                 <button
                   type="button"
                   disabled={loading}
                   onClick={() => handleSetFeatured(video.id, !video.isOriginal)}
                   className={cn(adminTokens.buttonGhost, "disabled:opacity-40")}
-                  title={video.isOriginal ? "Genova Original 해제" : "Genova Original 지정"}
+                  title={
+                    video.isOriginal
+                      ? t("adminVideo.unsetOriginal", "Remove Genova Original")
+                      : t("adminVideo.setOriginal", "Set as Genova Original")
+                  }
                 >
                   {video.isOriginal ? "✓ Original" : "Original"}
                 </button>
                 <button
                   type="button"
                   className={cn(adminTokens.iconButton, "disabled:opacity-40")}
-                  title="보기"
+                  title={t("adminVideo.view", "View")}
                   onClick={() => window.open(`/watch/${video.id}`, "_blank", "noopener,noreferrer")}
                 >
                   <ExternalLink size={13} />
@@ -338,7 +354,7 @@ export function VideoManage({
                     "disabled:opacity-40",
                     showAwardSelect === video.id && "bg-white/[0.06] text-white/80",
                   )}
-                  title="수상 지정"
+                  title={t("adminVideo.setAward", "Set award")}
                 >
                   <Trophy size={13} />
                 </button>
@@ -348,7 +364,7 @@ export function VideoManage({
                   disabled={loading}
                   onClick={() => handleToggleVisibility(video.id, video.visibility === "private")}
                   className={cn(adminTokens.iconButton, "disabled:opacity-40")}
-                  title="비공개 전환"
+                  title={t("adminVideo.toggleVisibility", "Toggle visibility")}
                 >
                   {video.visibility === "private" ? <Eye size={13} /> : <EyeOff size={13} />}
                 </button>
@@ -357,7 +373,7 @@ export function VideoManage({
                   disabled={loading}
                   onClick={() => handleDelete(video.id, video.title)}
                   className={cn(adminTokens.buttonDanger, "flex h-8 min-w-8 items-center justify-center px-2 disabled:opacity-40")}
-                  title="삭제"
+                  title={t("adminVideo.delete", "Delete")}
                 >
                   <Trash2 size={13} />
                 </button>
@@ -369,14 +385,14 @@ export function VideoManage({
                   아래 일반 흐름 줄로 펼친다. */}
               {showAwardSelect === video.id ? (
                 <div className="flex flex-wrap items-center gap-1.5 border-t border-white/[0.06] px-3 py-2.5">
-                  <span className="mr-1 text-[10px] text-white/40">수상 등급</span>
+                  <span className="mr-1 text-[10px] text-white/40">{t("adminVideo.awardTier", "Award tier")}</span>
                   <button
                     type="button"
                     disabled={loading}
                     onClick={() => handleAward(video.id, "")}
                     className="h-7 rounded-md px-2.5 text-[11px] font-medium text-white/40 transition hover:bg-white/[0.06] hover:text-white/70"
                   >
-                    수상 취소
+                    {t("adminVideo.clearAward", "Clear award")}
                   </button>
                   {awardOptions.map((award) => (
                     <button
@@ -409,7 +425,7 @@ export function VideoManage({
                         }
                       }}
                       className={cn(adminTokens.input, "h-7 w-[120px] text-[11px]")}
-                      placeholder="새 수상 추가…"
+                      placeholder={t("adminVideo.addAwardPlaceholder", "Add new award…")}
                     />
                     <button
                       type="button"

@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useRef, useState, type ChangeEvent, type FormEvent, type ReactNode } from "react";
 import { updateCompetitionAction } from "@/app/actions/admin";
+import { useI18n } from "@/components/genova/language-provider";
 import { adminTokens } from "@/lib/admin-styles";
 import { getBrowserSupabaseClient } from "@/lib/supabase/browser";
 import { cn } from "@/lib/utils/cn";
@@ -26,6 +27,7 @@ function Section({ title, hint, children }: { title: string; hint?: string; chil
 }
 
 export function EditCompetitionForm({ competition }: { competition: any }) {
+  const { t } = useI18n();
   const router = useRouter();
   const thumbInputRef = useRef<HTMLInputElement>(null);
   const sponsorLogoInputRef = useRef<HTMLInputElement>(null);
@@ -90,7 +92,12 @@ export function EditCompetitionForm({ competition }: { competition: any }) {
   // Stable mount-time reference for D-day math (pure during render).
   const [nowMs] = useState(() => Date.now());
 
-  const langSuffix = langTab === "ko" ? "(한국어)" : langTab === "en" ? "(영어)" : "(일본어)";
+  const langSuffix =
+    langTab === "ko"
+      ? t("adminCompEdit.langSuffixKo", "(Korean)")
+      : langTab === "en"
+        ? t("adminCompEdit.langSuffixEn", "(English)")
+        : t("adminCompEdit.langSuffixJa", "(Japanese)");
 
   const isoToLocal = (iso: string) => {
     if (!iso) return "";
@@ -166,7 +173,11 @@ export function EditCompetitionForm({ competition }: { competition: any }) {
     setMessage(null);
     try {
       const res = await updateCompetitionAction(competition.id, form);
-      setMessage(res.ok ? "저장되었습니다." : res.message ?? "실패했습니다.");
+      setMessage(
+        res.ok
+          ? t("adminCompEdit.saved", "Saved.")
+          : res.message ?? t("adminCompEdit.saveFailed", "Failed."),
+      );
       if (res.ok) router.refresh();
     } finally {
       setLoading(false);
@@ -187,12 +198,12 @@ export function EditCompetitionForm({ competition }: { competition: any }) {
   };
 
   const steps = [
-    { n: 1, title: "기본 정보", short: "제목·소개·분류" },
-    { n: 2, title: "일정", short: "접수·투표 기간" },
-    { n: 3, title: "상금 · 환율", short: "총상금·환산·배분" },
-    { n: 4, title: "규칙 · 심사", short: "주제·자격·심사" },
-    { n: 5, title: "미디어", short: "썸네일·로고" },
-    { n: 6, title: "공지 · 템플릿", short: "공지·다운로드" },
+    { n: 1, title: t("adminCompEdit.step1Title", "Basic Info"), short: t("adminCompEdit.step1Short", "Title · Intro · Category") },
+    { n: 2, title: t("adminCompEdit.step2Title", "Schedule"), short: t("adminCompEdit.step2Short", "Submission · Voting period") },
+    { n: 3, title: t("adminCompEdit.step3Title", "Prize · Exchange Rate"), short: t("adminCompEdit.step3Short", "Total · Conversion · Allocation") },
+    { n: 4, title: t("adminCompEdit.step4Title", "Rules · Judging"), short: t("adminCompEdit.step4Short", "Theme · Eligibility · Judging") },
+    { n: 5, title: t("adminCompEdit.step5Title", "Media"), short: t("adminCompEdit.step5Short", "Thumbnail · Logo") },
+    { n: 6, title: t("adminCompEdit.step6Title", "Notice · Template"), short: t("adminCompEdit.step6Short", "Notice · Download") },
   ];
   const current = steps.find((s) => s.n === activeStep) ?? steps[0];
 
@@ -212,11 +223,14 @@ export function EditCompetitionForm({ competition }: { competition: any }) {
     form.title_ko ||
     form.title_en ||
     form.title_ja ||
-    "(제목 없음)";
+    t("adminCompEdit.noTitle", "(No title)");
   const statusLabel =
-    ({ Open: "모집중", "In Review": "심사중", Voting: "투표중", Closed: "종료" } as Record<string, string>)[
-      form.status
-    ] ?? form.status;
+    ({
+      Open: t("adminCompEdit.statusOpen", "Open"),
+      "In Review": t("adminCompEdit.statusInReview", "In Review"),
+      Voting: t("adminCompEdit.statusVoting", "Voting"),
+      Closed: t("adminCompEdit.statusClosed", "Closed"),
+    } as Record<string, string>)[form.status] ?? form.status;
   const dDay = form.deadline
     ? Math.ceil((new Date(form.deadline).getTime() - nowMs) / 86_400_000)
     : null;
@@ -275,24 +289,24 @@ export function EditCompetitionForm({ competition }: { competition: any }) {
               onClick={() => router.push("/admin")}
               className={cn(adminTokens.buttonSecondary, "h-9 px-4 text-[12px]")}
             >
-              ← 돌아가기
+              ← {t("adminCompEdit.back", "Back")}
             </button>
             <div>
               <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#7F77DD]/60">Admin</p>
-              <h1 className="text-base font-black leading-tight text-white">공모전 수정</h1>
+              <h1 className="text-base font-black leading-tight text-white">{t("adminCompEdit.pageTitle", "Edit Competition")}</h1>
             </div>
           </div>
           <div className="flex items-center gap-2">
-            <span className="text-[10px] font-semibold uppercase tracking-wider text-white/30">언어</span>
+            <span className="text-[10px] font-semibold uppercase tracking-wider text-white/30">{t("adminCompEdit.language", "Language")}</span>
             <div
               className="flex gap-1 rounded-lg p-0.5"
               style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.06)" }}
             >
               {(
                 [
-                  ["ko", "한국어"],
-                  ["en", "English"],
-                  ["ja", "日本語"],
+                  ["ko", t("adminCompEdit.langKo", "Korean")],
+                  ["en", t("adminCompEdit.langEn", "English")],
+                  ["ja", t("adminCompEdit.langJa", "Japanese")],
                 ] as const
               ).map(([lang, label]) => (
                 <button
@@ -324,25 +338,29 @@ export function EditCompetitionForm({ competition }: { competition: any }) {
              {statusLabel}
            </span>
            <span className="text-white/40">
-             마감{" "}
+             {t("adminCompEdit.summaryDeadline", "Deadline")}{" "}
              <span className="font-semibold text-white/70">
-               {dDay == null ? "미설정" : dDay >= 0 ? `D-${dDay}` : `종료 ${-dDay}일 경과`}
+               {dDay == null
+                 ? t("adminCompEdit.notSet", "Not set")
+                 : dDay >= 0
+                   ? `D-${dDay}`
+                   : t("adminCompEdit.endedDaysAgo", "{n}d since end").replace("{n}", String(-dDay))}
              </span>
            </span>
            <span className="text-white/40">
-             총상금{" "}
+             {t("adminCompEdit.summaryTotalPrize", "Total Prize")}{" "}
              <span className="font-semibold text-white/70">
                {prizeTotal ? `${sym}${prizeTotal.toLocaleString()}` : "—"}
              </span>
            </span>
            <span className="text-white/40">
-             배분{" "}
+             {t("adminCompEdit.summaryAllocation", "Allocation")}{" "}
              <span className="font-bold" style={{ color: prizeOver ? "#f87171" : "#34d399" }}>
                {prizeTotal === 0
                  ? "—"
                  : prizeOver
-                   ? `초과 ${sym}${Math.abs(prizeRemaining).toLocaleString()}`
-                   : `잔액 ${sym}${prizeRemaining.toLocaleString()}`}
+                   ? `${t("adminCompEdit.over", "Over")} ${sym}${Math.abs(prizeRemaining).toLocaleString()}`
+                   : `${t("adminCompEdit.remaining", "Remaining")} ${sym}${prizeRemaining.toLocaleString()}`}
              </span>
            </span>
          </div>
@@ -391,12 +409,12 @@ export function EditCompetitionForm({ competition }: { competition: any }) {
                     }}
                     title={
                       st === "ok"
-                        ? "입력됨"
+                        ? t("adminCompEdit.dotFilled", "Filled")
                         : st === "warn"
-                          ? "확인 필요 (상금 배분 초과)"
+                          ? t("adminCompEdit.dotWarn", "Needs review (prize allocation exceeded)")
                           : st === "empty"
-                            ? "미입력"
-                            : "선택"
+                            ? t("adminCompEdit.dotEmpty", "Not filled")
+                            : t("adminCompEdit.dotOptional", "Optional")
                     }
                   />
                 </button>
@@ -410,31 +428,31 @@ export function EditCompetitionForm({ competition }: { competition: any }) {
               <Section title={current.title} hint={current.short}>
                 <div className="space-y-4">
                   <div>
-                    <label className={adminTokens.inputLabel}>제목 {langSuffix}</label>
+                    <label className={adminTokens.inputLabel}>{t("adminCompEdit.fieldTitle", "Title")} {langSuffix}</label>
                       <input
                         value={form[`title_${langTab}` as "title_ko" | "title_en" | "title_ja"]}
                         onChange={(e) => setForm((p) => ({ ...p, [`title_${langTab}`]: e.target.value } as typeof p))}
                         className={inp}
                         placeholder={
                           langTab === "ko"
-                            ? "공모전 제목 (한국어)"
+                            ? t("adminCompEdit.titlePhKo", "Competition title (Korean)")
                             : langTab === "en"
-                              ? "Competition title (English)"
-                              : "コンペタイトル（日本語）"
+                              ? t("adminCompEdit.titlePhEn", "Competition title (English)")
+                              : t("adminCompEdit.titlePhJa", "Competition title (Japanese)")
                         }
                       />
                     </div>
                     <div>
-                      <label className={adminTokens.inputLabel}>서브제목</label>
+                      <label className={adminTokens.inputLabel}>{t("adminCompEdit.fieldSubtitle", "Subtitle")}</label>
                       <input
                         value={form.description}
                         onChange={(e) => setForm((p) => ({ ...p, description: e.target.value }))}
                         className={inp}
-                        placeholder="예: AI 영상 창작자를 위한 글로벌 공모전"
+                        placeholder={t("adminCompEdit.subtitlePh", "e.g. A global competition for AI video creators")}
                       />
                   </div>
                   <div>
-                    <label className={adminTokens.inputLabel}>공모전 소개 {langSuffix}</label>
+                    <label className={adminTokens.inputLabel}>{t("adminCompEdit.fieldConcept", "Competition Intro")} {langSuffix}</label>
                     <textarea
                       value={form[`concept_${langTab}` as "concept_ko" | "concept_en" | "concept_ja"]}
                       onChange={(e) => setForm((p) => ({ ...p, [`concept_${langTab}`]: e.target.value } as typeof p))}
@@ -442,50 +460,50 @@ export function EditCompetitionForm({ competition }: { competition: any }) {
                       className={inp + " resize-none"}
                       placeholder={
                         langTab === "ko"
-                          ? "공모전의 주제, 방향성, 창작 의도를 설명하세요..."
+                          ? t("adminCompEdit.conceptPhKo", "Describe the theme, direction, and creative intent...")
                           : langTab === "en"
-                            ? "Describe the theme, direction, and creative intent..."
-                            : "テーマ、方向性、創作意図を説明してください..."
+                            ? t("adminCompEdit.conceptPhEn", "Describe the theme, direction, and creative intent...")
+                            : t("adminCompEdit.conceptPhJa", "Describe the theme, direction, and creative intent...")
                       }
                     />
                   </div>
                   <div className="grid gap-4 sm:grid-cols-2">
                     <div>
-                      <label className={adminTokens.inputLabel}>장르</label>
+                      <label className={adminTokens.inputLabel}>{t("adminCompEdit.fieldGenre", "Genre")}</label>
                       <select
                         value={form.genre}
                         onChange={(e) => setForm((p) => ({ ...p, genre: e.target.value }))}
                         className={inp}
                       >
-                        <option value="All">전체 장르</option>
-                        <option value="film">단편영화</option>
-                        <option value="animation">애니메이션</option>
-                        <option value="music">뮤직비디오</option>
-                        <option value="daily">일상</option>
-                        <option value="art">아트</option>
+                        <option value="All">{t("adminCompEdit.genreAll", "All Genres")}</option>
+                        <option value="film">{t("adminCompEdit.genreFilm", "Short Film")}</option>
+                        <option value="animation">{t("adminCompEdit.genreAnimation", "Animation")}</option>
+                        <option value="music">{t("adminCompEdit.genreMusic", "Music Video")}</option>
+                        <option value="daily">{t("adminCompEdit.genreDaily", "Daily")}</option>
+                        <option value="art">{t("adminCompEdit.genreArt", "Art")}</option>
                       </select>
                     </div>
                     <div>
-                      <label className={adminTokens.inputLabel}>상태</label>
+                      <label className={adminTokens.inputLabel}>{t("adminCompEdit.fieldStatus", "Status")}</label>
                       <select
                         value={form.status}
                         onChange={(e) => setForm((p) => ({ ...p, status: e.target.value }))}
                         className={inp}
                       >
-                        <option value="Open">모집중</option>
-                        <option value="In Review">심사중</option>
-                        <option value="Voting">투표중</option>
-                        <option value="Closed">종료</option>
+                        <option value="Open">{t("adminCompEdit.statusOpen", "Open")}</option>
+                        <option value="In Review">{t("adminCompEdit.statusInReview", "In Review")}</option>
+                        <option value="Voting">{t("adminCompEdit.statusVoting", "Voting")}</option>
+                        <option value="Closed">{t("adminCompEdit.statusClosed", "Closed")}</option>
                       </select>
                     </div>
                   </div>
                   <div>
-                    <label className={adminTokens.inputLabel}>스폰서</label>
+                    <label className={adminTokens.inputLabel}>{t("adminCompEdit.fieldSponsor", "Sponsor")}</label>
                     <input
                       value={form.sponsor}
                       onChange={(e) => setForm((p) => ({ ...p, sponsor: e.target.value }))}
                       className={inp}
-                      placeholder="예: Runway, Kling AI"
+                      placeholder={t("adminCompEdit.sponsorPh", "e.g. Runway, Kling AI")}
                     />
                   </div>
                 </div>
@@ -500,13 +518,13 @@ export function EditCompetitionForm({ competition }: { competition: any }) {
                   const Preview = ({ iso }: { iso: string }) => {
                     const f = fmtDate(iso);
                     const rd = relDays(iso);
-                    if (!f) return <p className="mt-1 text-[10px] text-white/25">날짜를 선택하세요</p>;
+                    if (!f) return <p className="mt-1 text-[10px] text-white/25">{t("adminCompEdit.selectDate", "Select a date")}</p>;
                     return (
                       <p className="mt-1 text-[10px] text-white/40">
                         {f}
                         {rd != null && (
                           <span className="ml-1 text-[#AFA9EC]">
-                            · {rd >= 0 ? `D-${rd}` : `${-rd}일 경과`}
+                            · {rd >= 0 ? `D-${rd}` : t("adminCompEdit.daysAgo", "{n}d ago").replace("{n}", String(-rd))}
                           </span>
                         )}
                       </p>
@@ -523,7 +541,7 @@ export function EditCompetitionForm({ competition }: { competition: any }) {
                   return (
                     <div className="grid gap-5 sm:grid-cols-3">
                       <div>
-                        <label className={adminTokens.inputLabel}>접수 시작일</label>
+                        <label className={adminTokens.inputLabel}>{t("adminCompEdit.startDate", "Submission Start")}</label>
                         <input
                           type="datetime-local"
                           value={isoToLocal(form.start_date)}
@@ -532,19 +550,19 @@ export function EditCompetitionForm({ competition }: { competition: any }) {
                         />
                         <div className="mt-1.5 flex flex-wrap gap-1">
                           <button type="button" className={chip} onClick={() => setForm((p) => ({ ...p, start_date: shiftIso("", 0) }))}>
-                            지금
+                            {t("adminCompEdit.chipNow", "Now")}
                           </button>
                           <button type="button" className={chip} onClick={() => setForm((p) => ({ ...p, start_date: shiftIso("", 7) }))}>
-                            +1주
+                            {t("adminCompEdit.chipPlus1w", "+1w")}
                           </button>
                           <button type="button" className={chip} onClick={() => setForm((p) => ({ ...p, start_date: shiftIso("", 30) }))}>
-                            +1달
+                            {t("adminCompEdit.chipPlus1m", "+1mo")}
                           </button>
                         </div>
                         <Preview iso={form.start_date} />
                       </div>
                       <div>
-                        <label className={adminTokens.inputLabel}>접수 마감일</label>
+                        <label className={adminTokens.inputLabel}>{t("adminCompEdit.deadlineDate", "Submission Deadline")}</label>
                         <input
                           type="datetime-local"
                           value={isoToLocal(form.deadline)}
@@ -553,20 +571,20 @@ export function EditCompetitionForm({ competition }: { competition: any }) {
                         />
                         <div className="mt-1.5 flex flex-wrap gap-1">
                           <button type="button" className={chip} onClick={() => setForm((p) => ({ ...p, deadline: shiftIso(p.start_date, 7) }))}>
-                            시작+1주
+                            {t("adminCompEdit.chipStartPlus1w", "Start+1w")}
                           </button>
                           <button type="button" className={chip} onClick={() => setForm((p) => ({ ...p, deadline: shiftIso(p.start_date, 14) }))}>
-                            +2주
+                            {t("adminCompEdit.chipPlus2w", "+2w")}
                           </button>
                           <button type="button" className={chip} onClick={() => setForm((p) => ({ ...p, deadline: shiftIso(p.start_date, 30) }))}>
-                            +1달
+                            {t("adminCompEdit.chipPlus1m", "+1mo")}
                           </button>
                         </div>
                         <Preview iso={form.deadline} />
-                        {deadBad && <Warn msg="마감이 시작일보다 빠릅니다" />}
+                        {deadBad && <Warn msg={t("adminCompEdit.warnDeadlineBeforeStart", "Deadline is earlier than start date")} />}
                       </div>
                       <div>
-                        <label className={adminTokens.inputLabel}>투표 마감일</label>
+                        <label className={adminTokens.inputLabel}>{t("adminCompEdit.voteEndDate", "Voting Deadline")}</label>
                         <input
                           type="datetime-local"
                           value={isoToLocal(form.voteEnd)}
@@ -575,17 +593,17 @@ export function EditCompetitionForm({ competition }: { competition: any }) {
                         />
                         <div className="mt-1.5 flex flex-wrap gap-1">
                           <button type="button" className={chip} onClick={() => setForm((p) => ({ ...p, voteEnd: shiftIso(p.deadline, 3) }))}>
-                            마감+3일
+                            {t("adminCompEdit.chipDeadlinePlus3d", "Deadline+3d")}
                           </button>
                           <button type="button" className={chip} onClick={() => setForm((p) => ({ ...p, voteEnd: shiftIso(p.deadline, 7) }))}>
-                            +1주
+                            {t("adminCompEdit.chipPlus1w", "+1w")}
                           </button>
                           <button type="button" className={chip} onClick={() => setForm((p) => ({ ...p, voteEnd: shiftIso(p.deadline, 14) }))}>
-                            +2주
+                            {t("adminCompEdit.chipPlus2w", "+2w")}
                           </button>
                         </div>
                         <Preview iso={form.voteEnd} />
-                        {voteBad && <Warn msg="투표 마감이 접수 마감보다 빠릅니다" />}
+                        {voteBad && <Warn msg={t("adminCompEdit.warnVoteBeforeDeadline", "Voting deadline is earlier than submission deadline")} />}
                       </div>
                     </div>
                   );
@@ -597,7 +615,7 @@ export function EditCompetitionForm({ competition }: { competition: any }) {
               <Section title={current.title} hint={current.short}>
                 <div className="space-y-5">
                   <div>
-                    <label className={adminTokens.inputLabel}>총 상금</label>
+                    <label className={adminTokens.inputLabel}>{t("adminCompEdit.totalPrize", "Total Prize")}</label>
                       <div className="flex gap-1.5">
                         <div className="flex gap-1">
                           {(["KRW", "USD", "JPY"] as const).map((c) => (
@@ -615,7 +633,11 @@ export function EditCompetitionForm({ competition }: { competition: any }) {
                                 color: priceCurrency === c ? "#AFA9EC" : "rgba(255,255,255,0.35)",
                               }}
                             >
-                              {c === "KRW" ? "₩ 원" : c === "USD" ? "$ 달러" : "¥ 엔"}
+                              {c === "KRW"
+                                ? t("adminCompEdit.curKrw", "₩ KRW")
+                                : c === "USD"
+                                  ? t("adminCompEdit.curUsd", "$ USD")
+                                  : t("adminCompEdit.curJpy", "¥ JPY")}
                             </button>
                           ))}
                         </div>
@@ -629,28 +651,28 @@ export function EditCompetitionForm({ competition }: { competition: any }) {
                             applyPrize(priceCurrency, raw);
                           }}
                           className={inp}
-                          placeholder="금액 입력 (예: 1,000,000)"
+                          placeholder={t("adminCompEdit.amountPh", "Enter amount (e.g. 1,000,000)")}
                         />
                       </div>
-                      {form.prizeInfo && <p className="mt-1 text-[10px] text-[#AFA9EC]">총 상금: {form.prizeInfo}</p>}
+                      {form.prizeInfo && <p className="mt-1 text-[10px] text-[#AFA9EC]">{t("adminCompEdit.totalPrizeLabel", "Total Prize")}: {form.prizeInfo}</p>}
                     </div>
 
                     <div className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-3">
-                      <p className="mb-1 text-[11px] font-bold text-[#AFA9EC]">고정 환율 설정</p>
+                      <p className="mb-1 text-[11px] font-bold text-[#AFA9EC]">{t("adminCompEdit.fixedRateTitle", "Fixed Exchange Rate")}</p>
                       <p className="mb-2.5 text-[10px] text-white/30">
-                        공모전 시작 시점의 환율을 입력하세요. 사용자에게 환산 금액이 표시됩니다.
+                        {t("adminCompEdit.fixedRateDesc", "Enter the exchange rate at competition start. The converted amount is shown to users.")}
                       </p>
                       <div className="space-y-2">
                         <div>
-                          <label className={adminTokens.inputLabel}>기준 통화</label>
+                          <label className={adminTokens.inputLabel}>{t("adminCompEdit.baseCurrency", "Base Currency")}</label>
                           <select
                             value={form.base_currency}
                             onChange={(e) => setForm((p) => ({ ...p, base_currency: e.target.value }))}
                             className={inp}
                           >
-                            <option value="USD">USD (달러)</option>
-                            <option value="KRW">KRW (원)</option>
-                            <option value="JPY">JPY (엔)</option>
+                            <option value="USD">{t("adminCompEdit.baseUsd", "USD (Dollar)")}</option>
+                            <option value="KRW">{t("adminCompEdit.baseKrw", "KRW (Won)")}</option>
+                            <option value="JPY">{t("adminCompEdit.baseJpy", "JPY (Yen)")}</option>
                           </select>
                         </div>
                         <div className="grid grid-cols-2 gap-2">
@@ -661,7 +683,7 @@ export function EditCompetitionForm({ competition }: { competition: any }) {
                               value={form.exchange_rate_usd_krw}
                               onChange={(e) => setForm((p) => ({ ...p, exchange_rate_usd_krw: Number(e.target.value) }))}
                               className={inp}
-                              placeholder="예: 1350"
+                              placeholder={t("adminCompEdit.ratePhKrw", "e.g. 1350")}
                             />
                           </div>
                           <div>
@@ -671,13 +693,13 @@ export function EditCompetitionForm({ competition }: { competition: any }) {
                               value={form.exchange_rate_usd_jpy}
                               onChange={(e) => setForm((p) => ({ ...p, exchange_rate_usd_jpy: Number(e.target.value) }))}
                               className={inp}
-                              placeholder="예: 148"
+                              placeholder={t("adminCompEdit.ratePhJpy", "e.g. 148")}
                             />
                           </div>
                         </div>
                         {form.prize_info_en && (
                           <div className="rounded-lg border border-white/[0.06] bg-[#0a0a0a] p-2">
-                            <p className="mb-1 text-[10px] text-white/30">미리보기</p>
+                            <p className="mb-1 text-[10px] text-white/30">{t("adminCompEdit.preview", "Preview")}</p>
                             <p className="text-[11px] text-white/55">USD · {form.prize_info_en}</p>
                             <p className="text-[11px] text-white/55">KRW · {form.prize_info_ko || form.prize_info_en}</p>
                             <p className="text-[11px] text-white/55">JPY · {form.prize_info_ja || form.prize_info_en}</p>
@@ -687,7 +709,7 @@ export function EditCompetitionForm({ competition }: { competition: any }) {
                     </div>
 
                   <div>
-                    <p className="mb-3 text-[12px] font-bold text-white/55">상금 배분</p>
+                    <p className="mb-3 text-[12px] font-bold text-white/55">{t("adminCompEdit.prizeAllocation", "Prize Allocation")}</p>
                     <EditCompetitionPrizeFields
                       form={form}
                       setForm={setForm}
@@ -723,7 +745,7 @@ export function EditCompetitionForm({ competition }: { competition: any }) {
               <Section title={current.title} hint={langSuffix}>
                 <div className="space-y-3">
                   <div>
-                    <label className={adminTokens.inputLabel}>공지사항 {langSuffix}</label>
+                    <label className={adminTokens.inputLabel}>{t("adminCompEdit.fieldAnnouncement", "Announcement")} {langSuffix}</label>
                     <textarea
                       value={form[`announcement_${langTab}` as "announcement_ko" | "announcement_en" | "announcement_ja"]}
                       onChange={(e) =>
@@ -733,15 +755,15 @@ export function EditCompetitionForm({ competition }: { competition: any }) {
                       className={inp + " resize-none"}
                       placeholder={
                         langTab === "ko"
-                          ? "기업 협찬, 특별 공지 등..."
+                          ? t("adminCompEdit.announcementPhKo", "Sponsor announcements, special notices...")
                           : langTab === "en"
-                            ? "Sponsor announcements, special notices..."
-                            : "スポンサー情報、特別告知など..."
+                            ? t("adminCompEdit.announcementPhEn", "Sponsor announcements, special notices...")
+                            : t("adminCompEdit.announcementPhJa", "Sponsor announcements, special notices...")
                       }
                     />
                   </div>
                   <div>
-                    <label className={adminTokens.inputLabel}>템플릿 다운로드 URL</label>
+                    <label className={adminTokens.inputLabel}>{t("adminCompEdit.templateUrl", "Template Download URL")}</label>
                     <input
                       value={form.templateUrl}
                       onChange={(e) => setForm((p) => ({ ...p, templateUrl: e.target.value }))}
@@ -765,7 +787,7 @@ export function EditCompetitionForm({ competition }: { competition: any }) {
                   onClick={() => setActiveStep((s) => Math.max(1, s - 1))}
                   className={cn(adminTokens.buttonSecondary, "h-9 px-4 text-[12px] disabled:opacity-30")}
                 >
-                  ← 이전
+                  ← {t("adminCompEdit.prev", "Prev")}
                 </button>
                 <button
                   type="button"
@@ -773,7 +795,7 @@ export function EditCompetitionForm({ competition }: { competition: any }) {
                   onClick={() => setActiveStep((s) => Math.min(steps.length, s + 1))}
                   className={cn(adminTokens.buttonSecondary, "h-9 px-4 text-[12px] disabled:opacity-30")}
                 >
-                  다음 →
+                  {t("adminCompEdit.next", "Next")} →
                 </button>
                 <span className="ml-1 text-[11px] text-white/30">
                   {activeStep} / {steps.length}
@@ -782,7 +804,7 @@ export function EditCompetitionForm({ competition }: { competition: any }) {
               <div className="flex items-center gap-3">
                 {message && (
                   <p
-                    className={`text-xs font-medium ${message === "저장되었습니다." ? "text-emerald-400" : "text-red-400"}`}
+                    className={`text-xs font-medium ${message === t("adminCompEdit.saved", "Saved.") ? "text-emerald-400" : "text-red-400"}`}
                   >
                     {message}
                   </p>
@@ -792,7 +814,7 @@ export function EditCompetitionForm({ competition }: { competition: any }) {
                   disabled={loading}
                   className={cn(adminTokens.buttonPrimary, "h-9 px-6 text-[12px] disabled:opacity-50")}
                 >
-                  {loading ? "저장 중..." : "저장하기"}
+                  {loading ? t("adminCompEdit.saving", "Saving...") : t("adminCompEdit.save", "Save")}
                 </button>
               </div>
             </div>

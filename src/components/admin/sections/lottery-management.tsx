@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
+import { useI18n } from "@/components/genova/language-provider";
 import {
   redrawWinnerSlotAction,
   triggerCompetitionDrawAction,
@@ -59,21 +60,21 @@ function maskReference(ref: string | null | undefined): string {
   return `${ref.slice(0, 2)}••••${ref.slice(-2)}`;
 }
 
-/**
- * 응모권 claim_status → 한글 라벨.  배지 / 필터 / 버킷에서 공통 사용.
- * 운영 핸드북 용어와 일치 (대기 / 제출됨 / 검수완료 / 지급완료 /
- * 만료 / 무효).
- */
-const CLAIM_STATUS_KO: Record<string, string> = {
-  pending: "대기",
-  submitted: "제출됨",
-  confirmed: "검수완료",
-  paid: "지급완료",
-  expired: "만료",
-  invalidated: "무효",
+/** i18n claim_status 라벨 — UI 표시용 (배지 / 필터 / 버킷 공통). */
+const CLAIM_STATUS_EN: Record<string, string> = {
+  pending: "Pending",
+  submitted: "Submitted",
+  confirmed: "Verified",
+  paid: "Paid",
+  expired: "Expired",
+  invalidated: "Invalidated",
 };
-function claimStatusKo(status: string): string {
-  return CLAIM_STATUS_KO[status] ?? status;
+function useClaimStatusLabel() {
+  const { t } = useI18n();
+  return (status: string): string =>
+    CLAIM_STATUS_EN[status]
+      ? t(`adminLottery.status.${status}`, CLAIM_STATUS_EN[status])
+      : status;
 }
 
 /**
@@ -132,23 +133,24 @@ function CompetitionsSection({
   competitions: LotteryCompetitionSummary[];
   onMessage: (msg: string | null) => void;
 }) {
+  const { t } = useI18n();
   return (
     <section className="rounded-xl border border-white/[0.06] bg-white/[0.02] px-4 py-4">
       <h3 className={cn(adminTokens.sectionHeader, "mb-3")}>
-        공모전 ({competitions.length})
+        {t("adminLottery.competitions", "Competitions")} ({competitions.length})
       </h3>
       {competitions.length === 0 ? (
-        <p className="text-[12px] text-white/45">공모전이 없습니다.</p>
+        <p className="text-[12px] text-white/45">{t("adminLottery.noCompetitions", "No competitions.")}</p>
       ) : (
         <div className="overflow-x-auto">
           <table className="w-full min-w-[760px] text-[12px]">
             <thead>
               <tr className="border-b border-white/[0.06] text-left text-[11px] font-semibold uppercase tracking-[0.12em] text-white/45">
-                <th className="px-2 py-2">공모전</th>
-                <th className="px-2 py-2">상태</th>
-                <th className="px-2 py-2 text-right">응모</th>
-                <th className="px-2 py-2">당첨자</th>
-                <th className="px-2 py-2 text-right">작업</th>
+                <th className="px-2 py-2">{t("adminLottery.colCompetition", "Competition")}</th>
+                <th className="px-2 py-2">{t("adminLottery.colStatus", "Status")}</th>
+                <th className="px-2 py-2 text-right">{t("adminLottery.colEntries", "Entries")}</th>
+                <th className="px-2 py-2">{t("adminLottery.colWinners", "Winners")}</th>
+                <th className="px-2 py-2 text-right">{t("adminLottery.colActions", "Actions")}</th>
               </tr>
             </thead>
             <tbody>
@@ -170,22 +172,23 @@ function CompetitionRow({
   c: LotteryCompetitionSummary;
   onMessage: (msg: string | null) => void;
 }) {
+  const { t } = useI18n();
   const router = useRouter();
   const [pending, startTransition] = useTransition();
 
   const onDraw = () => {
-    if (!confirm(`"${c.title}" 공모전에서 당첨자 5명을 추첨합니다. 재추첨 외에는 되돌릴 수 없습니다. 계속할까요?`)) return;
+    if (!confirm(t("adminLottery.confirmDraw", `Draw 5 winners for the "${c.title}" competition. This cannot be undone except by a redraw. Continue?`).replace("{title}", c.title))) return;
     startTransition(async () => {
       const res = await triggerCompetitionDrawAction(c.id);
       if (res.ok) {
         // H2-D.6: 알림 발송 실패 건수 노출 (이전엔 로그 확인 필요)
         const warnings: string[] = [];
-        if (res.notifFailed) warnings.push(`알림 ${res.notifFailed}건 실패`);
-        if (res.emailFailed) warnings.push(`이메일 ${res.emailFailed}건 실패`);
+        if (res.notifFailed) warnings.push(t("adminLottery.notifFailed", `${res.notifFailed} notifications failed`).replace("{n}", String(res.notifFailed)));
+        if (res.emailFailed) warnings.push(t("adminLottery.emailFailed", `${res.emailFailed} emails failed`).replace("{n}", String(res.emailFailed)));
         const suffix = warnings.length ? ` · ⚠ ${warnings.join(" · ")}` : "";
-        onMessage(`"${c.title}" 당첨자 ${res.winnersCount ?? 5}명 추첨 완료${suffix}`);
+        onMessage(`${t("adminLottery.drawDone", `"${c.title}" — ${res.winnersCount ?? 5} winners drawn`).replace("{title}", c.title).replace("{n}", String(res.winnersCount ?? 5))}${suffix}`);
       } else {
-        onMessage(`추첨 실패: ${res.message}`);
+        onMessage(`${t("adminLottery.drawFailed", "Draw failed")}: ${res.message}`);
       }
       router.refresh();
     });
@@ -224,7 +227,7 @@ function CompetitionRow({
             className={cn(adminTokens.buttonGhost, "inline-flex h-7 px-3 text-[11px]")}
             target="_blank"
           >
-            결과 →
+            {t("adminLottery.results", "Results")} →
           </Link>
         ) : (
           <button
@@ -234,7 +237,7 @@ function CompetitionRow({
             // G7: admin token 통일 — 추첨은 primary action (솔리드 화이트).
             className={cn(adminTokens.buttonPrimary, "h-7 px-3 text-[11px] disabled:opacity-50")}
           >
-            {pending ? "추첨 중…" : "추첨"}
+            {pending ? t("adminLottery.drawing", "Drawing…") : t("adminLottery.draw", "Draw")}
           </button>
         )}
       </td>
@@ -247,6 +250,7 @@ function WinnerBuckets({
 }: {
   buckets: LotteryCompetitionSummary["winners"];
 }) {
+  const statusLabel = useClaimStatusLabel();
   const items = [
     { key: "pending", color: "text-white/55" },
     { key: "submitted", color: "text-[#AFA9EC]" },
@@ -262,7 +266,7 @@ function WinnerBuckets({
         if (n === 0) return null;
         return (
           <span key={i.key} className={cn("tabular-nums", i.color)}>
-            {claimStatusKo(i.key)} {n}
+            {statusLabel(i.key)} {n}
           </span>
         );
       })}
@@ -283,6 +287,8 @@ function WinnersSection({
   onMessage: (msg: string | null) => void;
   initialFilter?: string | null;
 }) {
+  const { t } = useI18n();
+  const statusLabel = useClaimStatusLabel();
   const VALID_WINNER_FILTERS = [
     "pending",
     "submitted",
@@ -312,7 +318,7 @@ function WinnersSection({
     try {
       const res = await exportLotteryWinnersCsvAction();
       if (!res.ok) {
-        onMessage(`CSV 내보내기 실패: ${res.message}`);
+        onMessage(`${t("adminLottery.csvExportFailed", "CSV export failed")}: ${res.message}`);
         return;
       }
       const blob = new Blob([res.csv], { type: "text/csv;charset=utf-8;" });
@@ -324,9 +330,9 @@ function WinnersSection({
       a.click();
       a.remove();
       URL.revokeObjectURL(url);
-      onMessage("당첨자 CSV를 다운로드했습니다.");
+      onMessage(t("adminLottery.csvDownloaded", "Winners CSV downloaded."));
     } catch (e) {
-      onMessage(e instanceof Error ? `CSV 내보내기 실패: ${e.message}` : "CSV 내보내기 실패");
+      onMessage(e instanceof Error ? `${t("adminLottery.csvExportFailed", "CSV export failed")}: ${e.message}` : t("adminLottery.csvExportFailed", "CSV export failed"));
     } finally {
       setExporting(false);
     }
@@ -336,7 +342,7 @@ function WinnersSection({
     <section className="rounded-xl border border-white/[0.06] bg-white/[0.02] px-4 py-4">
       <header className="mb-3 flex items-center justify-between gap-3">
         <h3 className={adminTokens.sectionHeader}>
-          당첨자 ({winners.length})
+          {t("adminLottery.winners", "Winners")} ({winners.length})
         </h3>
         <div className="flex items-center gap-2">
           <button
@@ -344,29 +350,29 @@ function WinnersSection({
             onClick={handleExport}
             disabled={exporting || winners.length === 0}
             className={cn(adminTokens.buttonSecondary, "h-8 px-3 text-[11px] disabled:opacity-40")}
-            title="당첨자 + 제출 정보를 CSV로 다운로드 (개인정보 — 취급 주의)"
+            title={t("adminLottery.csvExportTitle", "Download winners + submitted info as CSV (personal data — handle with care)")}
           >
-            {exporting ? "내보내는 중..." : "CSV 내보내기"}
+            {exporting ? t("adminLottery.exporting", "Exporting...") : t("adminLottery.csvExport", "Export CSV")}
           </button>
           <select
             value={filter}
             onChange={(e) => setFilter(e.target.value as typeof filter)}
             className="rounded-md border border-white/[0.08] bg-white/[0.02] px-2 py-1 text-[11px] text-white/80"
           >
-            <option value="all">전체</option>
-            <option value="pending">대기</option>
-            <option value="submitted">제출됨</option>
-            <option value="confirmed">검수완료</option>
-            <option value="paid">지급완료</option>
-            <option value="expired">만료</option>
+            <option value="all">{t("adminLottery.filterAll", "All")}</option>
+            <option value="pending">{statusLabel("pending")}</option>
+            <option value="submitted">{statusLabel("submitted")}</option>
+            <option value="confirmed">{statusLabel("confirmed")}</option>
+            <option value="paid">{statusLabel("paid")}</option>
+            <option value="expired">{statusLabel("expired")}</option>
           </select>
         </div>
       </header>
       {filtered.length === 0 ? (
         <p className="text-[12px] text-white/45">
           {filter === "all"
-            ? "아직 추첨된 당첨자가 없습니다."
-            : `"${claimStatusKo(filter)}" 상태의 당첨자가 없습니다.`}
+            ? t("adminLottery.noWinners", "No winners drawn yet.")
+            : t("adminLottery.noWinnersForStatus", `No winners with status "${statusLabel(filter)}".`).replace("{status}", statusLabel(filter))}
         </p>
       ) : (
         <div className="space-y-3">
@@ -386,6 +392,8 @@ function WinnerCard({
   w: LotteryWinnerWorkRow;
   onMessage: (msg: string | null) => void;
 }) {
+  const { t } = useI18n();
+  const statusLabel = useClaimStatusLabel();
   const router = useRouter();
   const [pending, startTransition] = useTransition();
   const [expanded, setExpanded] = useState(false);
@@ -400,7 +408,7 @@ function WinnerCard({
         winnerId: w.winnerId,
         notes,
       });
-      onMessage(res.ok ? "검수 완료 처리됨" : `검수 실패: ${res.message}`);
+      onMessage(res.ok ? t("adminLottery.verifyDone", "Marked as verified") : `${t("adminLottery.verifyFailed", "Verification failed")}: ${res.message}`);
       router.refresh();
     });
   };
@@ -414,7 +422,7 @@ function WinnerCard({
         winnerId: w.winnerId,
         paymentReference: trimmed,
       });
-      onMessage(res.ok ? "지급 완료 처리됨" : `지급 처리 실패: ${res.message}`);
+      onMessage(res.ok ? t("adminLottery.payDone", "Marked as paid") : `${t("adminLottery.payFailed", "Payment failed")}: ${res.message}`);
       router.refresh();
     });
   };
@@ -432,12 +440,12 @@ function WinnerCard({
       if (res.ok) {
         // H2-D.6: 알림 발송 실패 건수 노출
         const warnings: string[] = [];
-        if (res.notifFailed) warnings.push(`알림 ${res.notifFailed}건 실패`);
-        if (res.emailFailed) warnings.push(`이메일 ${res.emailFailed}건 실패`);
+        if (res.notifFailed) warnings.push(t("adminLottery.notifFailed", `${res.notifFailed} notifications failed`).replace("{n}", String(res.notifFailed)));
+        if (res.emailFailed) warnings.push(t("adminLottery.emailFailed", `${res.emailFailed} emails failed`).replace("{n}", String(res.emailFailed)));
         const suffix = warnings.length ? ` · ⚠ ${warnings.join(" · ")}` : "";
-        onMessage(`재추첨 완료${suffix}`);
+        onMessage(`${t("adminLottery.redrawDone", "Redraw complete")}${suffix}`);
       } else {
-        onMessage(`재추첨 실패: ${res.message}`);
+        onMessage(`${t("adminLottery.redrawFailed", "Redraw failed")}: ${res.message}`);
       }
       router.refresh();
     });
@@ -464,9 +472,9 @@ function WinnerCard({
   const deadlineRibbon =
     daysToDeadline !== null
       ? daysToDeadline < 0
-        ? { tone: "danger" as const, text: `${-daysToDeadline}일 초과` }
+        ? { tone: "danger" as const, text: t("adminLottery.daysOverdue", `${-daysToDeadline} days overdue`).replace("{n}", String(-daysToDeadline)) }
         : daysToDeadline === 0
-          ? { tone: "danger" as const, text: "오늘 마감" }
+          ? { tone: "danger" as const, text: t("adminLottery.dueToday", "Due today") }
           : daysToDeadline <= 1
             ? { tone: "danger" as const, text: `D-${daysToDeadline}` }
             : daysToDeadline <= 3
@@ -483,7 +491,7 @@ function WinnerCard({
             "shrink-0 bg-amber-400/15 text-amber-300",
           )}
         >
-          {w.prizeTier}등 · ${w.prizeAmountUsd}
+          {t("adminLottery.prizeRank", `Rank ${w.prizeTier}`).replace("{n}", String(w.prizeTier))} · ${w.prizeAmountUsd}
         </span>
         <ClaimStatusBadge status={w.claimStatus} />
         {deadlineRibbon ? (
@@ -510,7 +518,7 @@ function WinnerCard({
           onClick={() => setExpanded((x) => !x)}
           className="ml-auto text-[11px] text-white/45 hover:text-white"
         >
-          {expanded ? "정보 숨기기" : "정보 보기"}
+          {expanded ? t("adminLottery.hideInfo", "Hide info") : t("adminLottery.showInfo", "Show info")}
         </button>
       </header>
 
@@ -518,13 +526,13 @@ function WinnerCard({
         <div className="mt-3 grid grid-cols-1 gap-x-4 gap-y-2 text-[11px] text-white/70 sm:grid-cols-2">
           {w.info ? (
             <>
-              <Field k="실명" v={w.info.legalName} />
-              <Field k="국가" v={w.info.country} />
-              <Field k="추가 연락처" v={w.info.contactExtra} />
+              <Field k={t("adminLottery.fieldLegalName", "Legal name")} v={w.info.legalName} />
+              <Field k={t("adminLottery.fieldCountry", "Country")} v={w.info.country} />
+              <Field k={t("adminLottery.fieldContactExtra", "Additional contact")} v={w.info.contactExtra} />
               {/* H5-E.4: payment info masked until explicit reveal */}
               <div className="flex flex-col gap-0.5">
                 <span className="text-[10px] uppercase tracking-wider text-white/35">
-                  결제 정보
+                  {t("adminLottery.fieldPaymentInfo", "Payment info")}
                 </span>
                 <span className="font-medium text-white/80">
                   {paymentRevealed
@@ -539,12 +547,12 @@ function WinnerCard({
                     onClick={() => setPaymentRevealed((v) => !v)}
                     className="ml-2 text-[10px] text-white/45 underline-offset-2 hover:text-white hover:underline"
                   >
-                    {paymentRevealed ? "숨기기" : "표시"}
+                    {paymentRevealed ? t("adminLottery.hide", "Hide") : t("adminLottery.reveal", "Reveal")}
                   </button>
                 </span>
               </div>
               <Field
-                k="제출 시각"
+                k={t("adminLottery.fieldSubmittedAt", "Submitted at")}
                 // H5-E.3: mask the IP's last octet so over-the-shoulder
                 // screenshots leak less.  Full value is still in the
                 // DB for forensics.
@@ -553,25 +561,25 @@ function WinnerCard({
                 }`}
               />
               {w.info.adminVerified ? (
-                <Field k="검수 시각" v={w.info.adminVerifiedAt ?? "—"} />
+                <Field k={t("adminLottery.fieldVerifiedAt", "Verified at")} v={w.info.adminVerifiedAt ?? "—"} />
               ) : null}
               {w.info.paidAt ? (
                 <Field
-                  k="지급"
+                  k={t("adminLottery.fieldPaid", "Paid")}
                   v={
                     paymentRevealed
-                      ? `${w.info.paidAt} · 참조 ${w.info.paymentReference ?? ""}`
-                      : `${w.info.paidAt} · 참조 ${maskReference(w.info.paymentReference)}`
+                      ? `${w.info.paidAt} · ${t("adminLottery.ref", "Ref")} ${w.info.paymentReference ?? ""}`
+                      : `${w.info.paidAt} · ${t("adminLottery.ref", "Ref")} ${maskReference(w.info.paymentReference)}`
                   }
                 />
               ) : null}
               {w.info.adminNotes ? (
-                <Field k="운영 메모" v={w.info.adminNotes} />
+                <Field k={t("adminLottery.fieldAdminNotes", "Admin notes")} v={w.info.adminNotes} />
               ) : null}
             </>
           ) : (
             <p className="col-span-full text-white/45">
-              아직 정보 미제출 (마감 {w.infoDeadline}).
+              {t("adminLottery.noInfoYet", "Info not submitted yet")} ({t("adminLottery.deadline", "deadline")} {w.infoDeadline}).
             </p>
           )}
         </div>
@@ -588,7 +596,7 @@ function WinnerCard({
               "h-7 px-3 text-[11px] text-sky-300",
             )}
           >
-            검수 완료
+            {t("adminLottery.verify", "Verify")}
           </button>
         ) : null}
         {w.claimStatus === "confirmed" ? (
@@ -601,7 +609,7 @@ function WinnerCard({
               "h-7 px-3 text-[11px] text-emerald-300",
             )}
           >
-            지급 완료
+            {t("adminLottery.markPaid", "Mark paid")}
           </button>
         ) : null}
         {/* Redraw is available for pending / submitted / confirmed; refused
@@ -618,7 +626,7 @@ function WinnerCard({
               "h-7 px-3 text-[11px] text-amber-300",
             )}
           >
-            재추첨
+            {t("adminLottery.redraw", "Redraw")}
           </button>
         ) : null}
       </footer>
@@ -626,21 +634,21 @@ function WinnerCard({
       {/* G10: branded prompt modals replacing native prompt() calls. */}
       <PromptModal
         open={payModalOpen}
-        title="지급 완료 처리"
-        description={`${w.prizeTier}등 · $${w.prizeAmountUsd} USD · ${w.userDisplayName ?? "사용자"}`}
-        label="결제 참조번호"
-        placeholder="PayPal / Wise 거래 ID"
-        confirmLabel="지급 완료"
+        title={t("adminLottery.payModalTitle", "Mark as paid")}
+        description={`${t("adminLottery.prizeRank", `Rank ${w.prizeTier}`).replace("{n}", String(w.prizeTier))} · $${w.prizeAmountUsd} USD · ${w.userDisplayName ?? t("adminLottery.user", "User")}`}
+        label={t("adminLottery.paymentRefLabel", "Payment reference")}
+        placeholder={t("adminLottery.paymentRefPlaceholder", "PayPal / Wise transaction ID")}
+        confirmLabel={t("adminLottery.markPaid", "Mark paid")}
         onCancel={() => setPayModalOpen(false)}
         onConfirm={handlePayConfirm}
       />
       <PromptModal
         open={redrawModalOpen}
-        title={`${w.prizeTier}등 재추첨`}
-        description={`"${w.competitionTitle}" — ${w.userDisplayName ?? "사용자"}님은 이 공모전 추첨 풀에서 영구 제외됩니다.`}
-        label="사유 (필수, 감사 로그에 기록됨)"
-        placeholder="이 슬롯을 재추첨하는 이유"
-        confirmLabel="재추첨"
+        title={t("adminLottery.redrawModalTitle", `Rank ${w.prizeTier} redraw`).replace("{n}", String(w.prizeTier))}
+        description={t("adminLottery.redrawModalDesc", `"${w.competitionTitle}" — ${w.userDisplayName ?? "the user"} will be permanently excluded from this competition's draw pool.`).replace("{title}", w.competitionTitle).replace("{user}", w.userDisplayName ?? t("adminLottery.user", "User"))}
+        label={t("adminLottery.redrawReasonLabel", "Reason (required, recorded in the audit log)")}
+        placeholder={t("adminLottery.redrawReasonPlaceholder", "Why this slot is being redrawn")}
+        confirmLabel={t("adminLottery.redraw", "Redraw")}
         confirmDanger
         multiline
         onCancel={() => setRedrawModalOpen(false)}
@@ -683,6 +691,7 @@ function PromptModal({
   onCancel: () => void;
   onConfirm: (value: string) => void;
 }) {
+  const { t } = useI18n();
   const [value, setValue] = useState("");
   // No explicit reset needed: when `open` flips false the component
   // unmounts (`return null` below), so the next open mounts fresh
@@ -738,7 +747,7 @@ function PromptModal({
             onClick={onCancel}
             className={cn(adminTokens.buttonSecondary, "h-8 px-3 text-[12px]")}
           >
-            취소
+            {t("adminLottery.cancel", "Cancel")}
           </button>
           <button
             type="button"
@@ -766,6 +775,7 @@ function Field({ k, v }: { k: string; v: string }) {
 }
 
 function ClaimStatusBadge({ status }: { status: string }) {
+  const statusLabel = useClaimStatusLabel();
   const tone =
     status === "paid"
       ? "bg-emerald-400/15 text-emerald-300"
@@ -785,7 +795,7 @@ function ClaimStatusBadge({ status }: { status: string }) {
         tone,
       )}
     >
-      {claimStatusKo(status)}
+      {statusLabel(status)}
     </span>
   );
 }
@@ -795,24 +805,25 @@ function ClaimStatusBadge({ status }: { status: string }) {
  * =====================================================================*/
 
 function AuditLogSection({ rows }: { rows: LotteryAuditRow[] }) {
+  const { t } = useI18n();
   return (
     <section className="rounded-xl border border-white/[0.06] bg-white/[0.02] px-4 py-4">
       <h3 className={cn(adminTokens.sectionHeader, "mb-3")}>
-        추첨 감사 로그 ({rows.length})
+        {t("adminLottery.auditLog", "Draw audit log")} ({rows.length})
       </h3>
       {rows.length === 0 ? (
-        <p className="text-[12px] text-white/45">추첨 기록이 없습니다.</p>
+        <p className="text-[12px] text-white/45">{t("adminLottery.noAuditRecords", "No draw records.")}</p>
       ) : (
         <div className="overflow-x-auto">
           <table className="w-full min-w-[680px] text-[11px]">
             <thead>
               <tr className="border-b border-white/[0.06] text-left font-semibold uppercase tracking-[0.12em] text-white/45">
-                <th className="px-2 py-2">시각</th>
-                <th className="px-2 py-2">공모전</th>
-                <th className="px-2 py-2">종류</th>
-                <th className="px-2 py-2 text-right">대상</th>
-                <th className="px-2 py-2">시드</th>
-                <th className="px-2 py-2">사유</th>
+                <th className="px-2 py-2">{t("adminLottery.colTime", "Time")}</th>
+                <th className="px-2 py-2">{t("adminLottery.colCompetition", "Competition")}</th>
+                <th className="px-2 py-2">{t("adminLottery.colType", "Type")}</th>
+                <th className="px-2 py-2 text-right">{t("adminLottery.colTarget", "Target")}</th>
+                <th className="px-2 py-2">{t("adminLottery.colSeed", "Seed")}</th>
+                <th className="px-2 py-2">{t("adminLottery.colReason", "Reason")}</th>
               </tr>
             </thead>
             <tbody>
@@ -830,10 +841,10 @@ function AuditLogSection({ rows }: { rows: LotteryAuditRow[] }) {
                   <td className="px-2 py-2">
                     {r.isRedraw ? (
                       <span className="text-amber-300">
-                        재추첨 · {r.redrawPrizeTier}등
+                        {t("adminLottery.redraw", "Redraw")} · {t("adminLottery.prizeRank", `Rank ${r.redrawPrizeTier}`).replace("{n}", String(r.redrawPrizeTier))}
                       </span>
                     ) : (
-                      <span className="text-emerald-300">최초</span>
+                      <span className="text-emerald-300">{t("adminLottery.initial", "Initial")}</span>
                     )}
                   </td>
                   <td className="px-2 py-2 text-right tabular-nums text-white/70">
