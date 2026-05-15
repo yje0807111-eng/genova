@@ -16,7 +16,7 @@
 | **홈** | `/` | `home-page-client.tsx` (Hero, GenreCarousel, TabNav, Awards, 영화 탭 등 포함) |
 | **영화 카탈로그** | `/?tab=films` (`/films` → redirect) | `home-page-client.tsx` (탭 통합) |
 | **공모전** | `/competition`, `/competition/[id]` | `competition-list-client`, `competition-detail-client`, `featured-hero-carousel` |
-| **시청** | `/watch/[id]`, `/watch` | `mux-player-client`, `watch-video-embed`, `watch-meta-sidebar`, `up-next-section`, `series-episodes-slider` |
+| **시청** | `/watch/[id]`, `/watch` | `mux-player-client`, `watch-meta-sidebar`, `up-next-section`, `series-episodes-slider` |
 | **업로드** | `/upload`, `/upload/edit/[id]` | `upload-video-form`, `selected-video-uploader`, Mux direct upload |
 | **인증** | `/auth`, `/auth/reset-password`, `/login` | `auth-form`, `auth-nav` |
 | **프로필** | `/profile`, `/profile/[id]`, `/profile/settings` | `profile-page-client` (`GenovaProfileClient`), `profile-settings-client` |
@@ -35,7 +35,7 @@
 
 | 영역 | 상태 |
 |---|---|
-| `/shorts` | 라우트 존재 (`shorts/page.tsx`, `shorts-feed.tsx`) — 메뉴 노출/완성도 미확인 |
+| `/shorts` | ~~라우트 존재 (`shorts/page.tsx`, `shorts-feed.tsx`)~~ — 라우트 + 컴포넌트 전수 제거 (`2945b76`). Vimeo iframe primary였음. 재구축 시 Mux 기반으로 새로. |
 | `/business`, `/business/apply` | B2B 진입 페이지 + 폼 존재 (`business-landing-client`, `business-apply-client`) |
 | `/tools/[slug]` | AI 도구 상세 페이지 (`tool-detail-client`) |
 | `/landing` | 별도 랜딩 (`landing-client`) — 홈과의 역할 분리 모호 |
@@ -134,7 +134,6 @@ genova/
 │   │   ├── migrations/             notifications.ts        types.ts
 │   │   ├── queries.ts              mappers.ts              mock-data.ts
 │   │   ├── trophies-display.ts     view-count.ts           tags.ts
-│   │   ├── vimeo.ts                ⚠️ Vimeo 헬퍼 — CLAUDE.md "완전 Mux 전환" 주장과 불일치
 │   │   └── …
 │
 ├── supabase/
@@ -224,7 +223,7 @@ inline `style={{...}}` 사용:  535건 / 55개 파일
 | 테이블 | 주요 컬럼 | 비고 |
 |---|---|---|
 | `profiles` | `id (FK auth.users)`, `display_name`, `avatar_url`, `bio`, `tools[]`, `subscription_tier (free/basic/pro)`, `is_genova_partner`, `total_awards`, `banner_url`, `pinned_video_id`, `collab_*`, `creator_settings` | RLS: select all, write self |
-| `videos` | `id`, `title`, `thumbnail_url`, `backdrop_url`, `vimeo_id`, `mux_asset_id`, `mux_playback_id`, `genre`, `sub_genre`, `additional_genres[]`, `purpose (personal/competition)`, `tags[]`, `ai_tools[]`, `series_name`, `episode_number`, `view_count`, `visibility (public/private)`, `is_original`, `is_finalist`, `is_competition_featured`, `award`, `runtime`, `description`, `uploaded_by`, `creator_id` | RLS 적용, hashtag 트래킹 연동 |
+| `videos` | `id`, `title`, `thumbnail_url`, `backdrop_url`, `mux_asset_id`, `mux_playback_id`, `mux_upload_id`, `genre`, `sub_genre`, `additional_genres[]`, `purpose (personal/competition)`, `tags[]`, `ai_tools[]`, `series_name`, `episode_number`, `view_count`, `visibility (public/private)`, `is_original`, `is_finalist`, `is_competition_featured`, `award`, `runtime`, `description`, `uploaded_by`, `creator_id` | RLS 적용, hashtag 트래킹 연동. `vimeo_id` 컬럼 drop (`0aabad6`) |
 | `competitions` | `id`, `title`+`title_ko/en/ja`, `genre`, `status`, `deadline`, `vote_end`, `prize_info`+다국어, `prize_grand/excellence/merit/audience`, `prize_audience_count`, `concept`+다국어, `rules`+다국어, `eligibility`+다국어, `judging_criteria`+다국어, `submission_guidelines`+다국어, `announcement`+다국어, `sponsor`, `thumbnail_url`, `banner_url`, `is_featured`, `exchange_rate_usd_krw/jpy`, `base_currency`, `start_date`, `template_url` | seed.sql + 다수 ALTER |
 | `votes` | `id`, `user_id`, `video_id`, `competition_id`, `created_at` | UNIQUE 제약, RLS |
 | `follows` | `follower_id`, `following_id` | UNIQUE, 자기참조 금지 |
@@ -260,9 +259,9 @@ inline `style={{...}}` 사용:  535건 / 55개 파일
    - 인라인 스타일 535건 → 토큰 시스템으로 마이그레이션 필요 (Phase 3 작업)
    - ~~텍스트 알파 8단계 난립 → 5단계 축약 합의됨~~ → 5단계 토큰 정의 완료 (2.1, `a39e677`)
 
-2. **Vimeo 코드 잔존** ✅ 정책 확정 (CLAUDE.md 동기화됨)
+2. **Vimeo 코드 잔존** ✅ 전수 제거 완료
    - ~~`src/lib/vimeo.ts`~~ → 제거 (K2, `fe7758b`) — extractVimeoId 사용처 0개
-   - CLAUDE.md 업데이트: "Vimeo는 legacy fallback만 유지" — `Video.vimeoId` field 와 `watch-video-embed.tsx` 분기는 과거 업로드 호환용. 신규 코드에서 Vimeo 추가 금지.
+   - ~~`Video.vimeoId` field, `videos.vimeo_id` 컬럼, `<WatchVideoEmbed>`, `/shorts` 라우트~~ → 전수 retire (`2945b76`, `1d98584`, `0aabad6`). CLAUDE.md "Vimeo 전면 제거됨, 어떤 형태의 Vimeo 참조도 다시 도입 금지" 로 업데이트.
 
 3. **CLAUDE.md vs 실제 코드 불일치** ✅ 해소
    - Next.js 버전, Vimeo 정책, 다국어 정책 — 모두 동기화됨
@@ -287,7 +286,7 @@ inline `style={{...}}` 사용:  535건 / 55개 파일
 
 ### 🟢 우선순위 낮음
 
-8. **부분 구현 페이지들의 노출/정책 결정**: `/shorts`, `/business`, `/tools`, `/landing` 진입점 정리
+8. **부분 구현 페이지들의 노출/정책 결정**: `/business`, `/tools`, `/landing` 진입점 정리 (~~`/shorts`~~ → `2945b76`에서 제거)
 
 9. **컴포넌트 폴더 일관성**
    - `feed/`, `messages/`, `links/` 폴더가 어떤 페이지에 묶이는지 명시 부족
@@ -389,7 +388,7 @@ inline `style={{...}}` 사용:  535건 / 55개 파일
 ### Phase C — 기능 갭 메우기
 
 - [ ] 베타 2: Films Series/Award Winners 상단 + 사이드바 메뉴 (CLAUDE.md 명시)
-- [ ] `/shorts`, `/business`, `/tools` 진입점 및 노출 정책 결정
+- [ ] `/business`, `/tools` 진입점 및 노출 정책 결정 (~~`/shorts`~~ → `2945b76`에서 제거; 재구축 시 Mux 기반으로 새로)
 - [ ] 다국어 실제 번역 (현재 상당수 영어 폴백)
 - [ ] 트로피/어워드 표시 UI 완성도 점검
 
@@ -467,7 +466,7 @@ inline `style={{...}}` 사용:  535건 / 55개 파일
 |---|---|---|---|
 | Next.js 버전 | **16.2.3** | **16.2.3** | ✅ 동기화 |
 | 브랜드 primary | `#534AB7` (semantic 토큰) | `globals.css` `:root` 토큰 통일 (`72d9df4`) | ✅ 동기화 |
-| Vimeo | "legacy fallback만 유지" | `vimeo.ts` 제거. `Video.vimeoId` field + `watch-video-embed.tsx` 분기는 보존 | ✅ 동기화 |
+| Vimeo | "전면 제거 — 어떤 형태의 Vimeo 참조도 금지" | `vimeo.ts`, `Video.vimeoId`, `videos.vimeo_id`, `<WatchVideoEmbed>`, `/shorts` 전수 retire (`2945b76`, `1d98584`, `0aabad6`) | ✅ 동기화 |
 | 페이지 데이터 fetch | "서버 컴포넌트에서" | 다수 페이지가 `*-client.tsx`로 클라이언트 처리 (Hydration 비용 큼) | 🟡 부분 |
 | 베타 2 Films 구조 | 명시 | 미구현 — Phase C 대기 |
 | 다국어 | "영어 기본 + ko/ja overrides" | 일치 (ko/ja 일부만 채워짐) | ✅ 정책 동기화 (번역 완성도는 별개 작업) |
