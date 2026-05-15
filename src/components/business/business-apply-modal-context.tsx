@@ -51,7 +51,7 @@ export function BusinessApplyModalProvider({ children }: { children: React.React
             >
               <div className="mb-2 flex items-center justify-between">
                 <h2 className="text-[18px] font-bold text-white">
-                  {t("business.applyModalTitle", "상담 신청")}
+                  {t("business.applyTitle")}
                 </h2>
                 <button
                   type="button"

@@ -101,12 +101,12 @@ export function BusinessApplyClient({
               className="text-[36px] font-black leading-tight text-white"
               style={{ letterSpacing: "-0.02em" }}
             >
-              상담 신청 완료
+              {t("business.successTitle")}
             </h1>
             <p className="mt-4 text-[14px] leading-relaxed text-white/55">
-              신청이 접수되었습니다.
+              {t("business.successLine1")}
               <br />
-              24시간 내 담당자가 입력하신 이메일로 연락드립니다.
+              {t("business.successLine2")}
             </p>
             <div className="mt-10 flex flex-wrap items-center justify-center gap-3">
               <Link
@@ -118,7 +118,7 @@ export function BusinessApplyClient({
                   boxShadow: "0 8px 32px rgba(83,74,183,0.5)",
                 }}
               >
-                진행 중인 공모전 보기
+                {t("business.viewOngoing")}
               </Link>
               {isModal ? (
                 <button
@@ -126,14 +126,14 @@ export function BusinessApplyClient({
                   onClick={onClose}
                   className="inline-flex items-center gap-2 rounded-full border border-white/[0.12] bg-white/[0.03] px-6 py-3 text-[13px] font-bold text-white/70 transition hover:border-white/25 hover:bg-white/[0.06] hover:text-white"
                 >
-                  닫기
+                  {t("common.close")}
                 </button>
               ) : (
                 <Link
                   href="/"
                   className="inline-flex items-center gap-2 rounded-full border border-white/[0.12] bg-white/[0.03] px-6 py-3 text-[13px] font-bold text-white/70 transition hover:border-white/25 hover:bg-white/[0.06] hover:text-white"
                 >
-                  홈으로
+                  {t("business.goHome")}
                 </Link>
               )}
             </div>
@@ -175,31 +175,31 @@ export function BusinessApplyClient({
                 className="mb-8 inline-flex items-center gap-2 text-[12px] font-semibold uppercase tracking-[0.2em] text-white/35 transition hover:text-white/70"
               >
                 <ArrowLeft className="h-3.5 w-3.5" />
-                뒤로
+                {t("business.back")}
               </Link>
             )}
 
             <div className="mb-3 flex items-center gap-2">
               <Sparkles className="h-3.5 w-3.5 text-[#7F77DD]" />
               <span className="text-[10px] font-bold uppercase tracking-[0.25em] text-[#AFA9EC]">
-                Business Inquiry
+                {t("business.eyebrow")}
               </span>
             </div>
             <h1
               className="text-[40px] font-black leading-tight text-white"
               style={{ letterSpacing: "-0.02em" }}
             >
-              상담 신청
+              {t("business.applyTitle")}
             </h1>
             <p className="mt-3 text-[14px] text-white/55">
-              아래 정보를 입력해주세요. 24시간 내 담당자가 연락드립니다.
+              {t("business.applySubtitle")}
             </p>
 
             <div className="mt-10 space-y-6">
               {/* Type Tabs */}
               <div>
                 <p className="mb-2 text-[11px] font-bold uppercase tracking-[0.15em] text-white/55">
-                  신청 유형
+                  {t("business.typeLabel")}
                 </p>
                 <div className="grid grid-cols-2 gap-2 rounded-xl border border-white/[0.08] bg-white/[0.02] p-1">
                   <button
@@ -211,7 +211,7 @@ export function BusinessApplyClient({
                         : "text-white/50 hover:text-white"
                     }`}
                   >
-                    기업
+                    {t("business.typeBusiness")}
                   </button>
                   <button
                     type="button"
@@ -222,14 +222,14 @@ export function BusinessApplyClient({
                         : "text-white/50 hover:text-white"
                     }`}
                   >
-                    개인
+                    {t("business.typeIndividual")}
                   </button>
                 </div>
               </div>
 
               {/* Contact Info */}
               <div className="grid gap-4 md:grid-cols-2">
-                <Field label="담당자 이름" required>
+                <Field label={t("business.fieldContactName")} required>
                   <input
                     type="text"
                     value={contactName}
@@ -239,7 +239,7 @@ export function BusinessApplyClient({
                   />
                 </Field>
                 {type === "business" && (
-                  <Field label="회사명">
+                  <Field label={t("business.fieldCompany")}>
                     <input
                       type="text"
                       value={companyName}
@@ -249,7 +249,7 @@ export function BusinessApplyClient({
                     />
                   </Field>
                 )}
-                <Field label="이메일" required>
+                <Field label={t("business.fieldEmail")} required>
                   <input
                     type="email"
                     value={email}
@@ -258,7 +258,7 @@ export function BusinessApplyClient({
                     className="w-full rounded-lg border border-white/[0.08] bg-white/[0.02] px-3 py-2.5 text-[13px] text-white outline-none transition placeholder:text-white/30 focus:border-[#7F77DD]/50"
                   />
                 </Field>
-                <Field label="연락처">
+                <Field label={t("business.fieldPhone")}>
                   <div className="flex gap-2">
                     <select
                       value={`${countryCode}-${COUNTRY_CODES.findIndex((c) => c.code === countryCode)}`}
@@ -286,7 +286,7 @@ export function BusinessApplyClient({
               </div>
 
               {/* Project Info */}
-              <Field label="제품/서비스 소개">
+              <Field label={t("business.fieldProduct")}>
                 <textarea
                   value={productDescription}
                   onChange={(e) => setProductDescription(e.target.value)}
@@ -296,7 +296,7 @@ export function BusinessApplyClient({
                 />
               </Field>
 
-              <Field label="원하는 공모전 컨셉">
+              <Field label={t("business.fieldConcept")}>
                 <textarea
                   value={competitionConcept}
                   onChange={(e) => setCompetitionConcept(e.target.value)}
@@ -307,7 +307,7 @@ export function BusinessApplyClient({
               </Field>
 
               {/* Budget */}
-              <Field label="예상 예산">
+              <Field label={t("business.fieldBudget")}>
                 <div className="grid grid-cols-2 gap-2 md:grid-cols-3">
                   {BUDGET_OPTION_DEFS.map((opt) => (
                     <button
@@ -326,7 +326,7 @@ export function BusinessApplyClient({
                 </div>
               </Field>
 
-              <Field label="희망 일정">
+              <Field label={t("business.fieldTimeline")}>
                 <input
                   type="text"
                   value={desiredTimeline}
@@ -336,7 +336,7 @@ export function BusinessApplyClient({
                 />
               </Field>
 
-              <Field label="추가 요청사항">
+              <Field label={t("business.fieldNotes")}>
                 <textarea
                   value={notes}
                   onChange={(e) => setNotes(e.target.value)}
@@ -361,14 +361,14 @@ export function BusinessApplyClient({
                     onClick={onClose}
                     className="rounded-full border border-white/[0.12] bg-white/[0.03] px-6 py-3 text-[13px] font-bold text-white/70 transition hover:border-white/25 hover:bg-white/[0.06] hover:text-white"
                   >
-                    취소
+                    {t("common.cancel")}
                   </button>
                 ) : (
                   <Link
                     href="/business"
                     className="rounded-full border border-white/[0.12] bg-white/[0.03] px-6 py-3 text-[13px] font-bold text-white/70 transition hover:border-white/25 hover:bg-white/[0.06] hover:text-white"
                   >
-                    취소
+                    {t("common.cancel")}
                   </Link>
                 )}
                 <button
@@ -381,7 +381,7 @@ export function BusinessApplyClient({
                     boxShadow: "0 8px 32px rgba(83,74,183,0.5)",
                   }}
                 >
-                  {submitting ? "제출 중..." : "신청 제출"}
+                  {submitting ? t("business.submitting") : t("business.submit")}
                 </button>
               </div>
             </div>
