@@ -7,18 +7,21 @@ import Link from "next/link";
 import { setVideoAwardAction, setVideoFinalistAction, type CompetitionSubmissionVideo } from "@/app/actions/admin";
 import { deleteVideoAction, updateVideoVisibilityAction } from "@/app/actions/video";
 import { adminTokens } from "@/lib/admin-styles";
+import { useI18n } from "@/components/genova/language-provider";
 import { cn } from "@/lib/utils/cn";
 
 // 공모전 수상 등급 — trophies-admin 의 COMPETITION_AWARDS 와 일치.
 const AWARD_GRADES = ["대상", "금상", "은상", "입선", "장려상"] as const;
 
-function formatRelativeTime(date: string | Date) {
+function formatRelativeTime(date: string | Date, t: (key: string, fallback: string) => string) {
   const diff = Date.now() - new Date(date).getTime();
   const hours = Math.floor(diff / (1000 * 60 * 60));
-  if (hours < 1) return "방금";
-  if (hours < 24) return `${hours}시간 전`;
+  if (hours < 1) return t("adminSubRow.timeJustNow", "just now");
+  if (hours < 24)
+    return t("adminSubRow.timeHoursAgo", "{n}h ago").replace("{n}", String(hours));
   const days = Math.floor(hours / 24);
-  if (days < 7) return `${days}일 전`;
+  if (days < 7)
+    return t("adminSubRow.timeDaysAgo", "{n}d ago").replace("{n}", String(days));
   return new Date(date).toLocaleDateString("ko-KR");
 }
 
@@ -37,6 +40,7 @@ export function CompetitionSubmissionRow({
   onToggleFeatured: (compId: string, videoId: string, currentFeatured: boolean) => void;
   onRunVideoAction: (compId: string, fn: () => Promise<{ ok: boolean; message?: string }>) => Promise<void>;
 }) {
+  const { t } = useI18n();
   const [awardMenuOpen, setAwardMenuOpen] = useState(false);
 
   const applyAward = (grade: string) => {
@@ -69,15 +73,15 @@ export function CompetitionSubmissionRow({
           ) : null}
           <p className="truncate text-[12px] font-medium text-white">{video.title}</p>
         </div>
-        <p className="truncate text-[10px] text-white/35">{video.profiles?.display_name ?? "익명"}</p>
+        <p className="truncate text-[10px] text-white/35">{video.profiles?.display_name ?? t("adminSubRow.anonymous", "Anonymous")}</p>
       </div>
 
       <div className="flex shrink-0 items-center gap-3 font-mono text-[10px] text-white/35">
-        <span title="조회수">{video.view_count ?? 0}</span>
-        <span title="좋아요" className="text-[#FF6B9D]/70">
+        <span title={t("adminSubRow.views", "Views")}>{video.view_count ?? 0}</span>
+        <span title={t("adminSubRow.likes", "Likes")} className="text-[#FF6B9D]/70">
           ♥ {video.like_count}
         </span>
-        <span className="text-white/30">{formatRelativeTime(video.created_at)}</span>
+        <span className="text-white/30">{formatRelativeTime(video.created_at, t)}</span>
       </div>
 
       <div className="flex shrink-0 items-center gap-1">
@@ -91,9 +95,9 @@ export function CompetitionSubmissionRow({
               ? "border border-[#7F77DD]/30 bg-[#7F77DD]/20 text-[#AFA9EC] hover:bg-[#7F77DD]/30"
               : "border border-white/[0.08] bg-white/[0.02] text-white/50 opacity-100 hover:bg-white/[0.06] hover:text-white/80 [@media(hover:hover)]:sm:opacity-0 [@media(hover:hover)]:sm:group-hover:opacity-100",
           )}
-          title={video.is_competition_featured ? "추천 해제" : "추천 지정"}
+          title={video.is_competition_featured ? t("adminSubRow.unfeature", "Unfeature") : t("adminSubRow.feature", "Feature")}
         >
-          {video.is_competition_featured ? "✦ 추천중" : "추천"}
+          {video.is_competition_featured ? t("adminSubRow.featured", "✦ Featured") : t("adminSubRow.featureShort", "Feature")}
         </button>
         <Link
           href={`/watch/${video.id}`}
@@ -103,7 +107,7 @@ export function CompetitionSubmissionRow({
             adminTokens.iconButton,
             "h-7 w-7 opacity-100 transition-opacity [@media(hover:hover)]:sm:opacity-0 [@media(hover:hover)]:sm:group-hover:opacity-100",
           )}
-          title="보기"
+          title={t("adminSubRow.view", "View")}
         >
           <ExternalLink size={12} />
         </Link>
@@ -118,7 +122,7 @@ export function CompetitionSubmissionRow({
           }
           className={cn(adminTokens.buttonGhost, "h-7 px-2 text-[10px]")}
         >
-          {video.is_finalist ? "✓ 결선" : "결선 지정"}
+          {video.is_finalist ? t("adminSubRow.finalist", "✓ Finalist") : t("adminSubRow.setFinalist", "Set finalist")}
         </button>
         <button
           type="button"
@@ -131,10 +135,10 @@ export function CompetitionSubmissionRow({
               : "text-white/50 hover:bg-white/[0.06] hover:text-white/80",
             awardMenuOpen && "bg-white/[0.06] text-white/80",
           )}
-          title="수상 등급 지정"
+          title={t("adminSubRow.setAward", "Set award grade")}
         >
           <Trophy size={11} />
-          {video.award ? video.award : "트로피"}
+          {video.award ? video.award : t("adminSubRow.trophy", "Trophy")}
         </button>
         <button
           type="button"
@@ -148,22 +152,30 @@ export function CompetitionSubmissionRow({
         >
           {video.visibility === "private" ? (
             <>
-              <EyeOff size={11} /> 비공개
+              <EyeOff size={11} /> {t("adminSubRow.private", "Private")}
             </>
           ) : (
-            "비공개"
+            t("adminSubRow.private", "Private")
           )}
         </button>
         <button
           type="button"
           disabled={loading}
           onClick={() => {
-            if (!confirm(`"${video.title}" 영상을 삭제하시겠습니까?`)) return;
+            if (
+              !confirm(
+                t("adminSubRow.deleteConfirm", 'Delete the video "{title}"?').replace(
+                  "{title}",
+                  video.title,
+                ),
+              )
+            )
+              return;
             void onRunVideoAction(compId, () => deleteVideoAction(video.id));
           }}
           className={cn(adminTokens.buttonGhost, "h-7 px-2 text-[10px] text-red-400/80 hover:text-red-400")}
         >
-          삭제
+          {t("adminSubRow.delete", "Delete")}
         </button>
       </div>
       </div>
@@ -173,7 +185,7 @@ export function CompetitionSubmissionRow({
           펼친다.  overflow 와 무관하게 항상 보임. */}
       {awardMenuOpen ? (
         <div className="flex flex-wrap items-center gap-1.5 border-t border-white/[0.06] px-2.5 py-2">
-          <span className="mr-1 text-[10px] text-white/40">수상 등급</span>
+          <span className="mr-1 text-[10px] text-white/40">{t("adminSubRow.awardGrade", "Award grade")}</span>
           {AWARD_GRADES.map((grade) => (
             <button
               key={grade}
@@ -197,7 +209,7 @@ export function CompetitionSubmissionRow({
               onClick={() => applyAward("")}
               className="h-7 rounded-md px-2.5 text-[11px] font-medium text-red-400/80 transition hover:bg-red-500/10 hover:text-red-400"
             >
-              수상 해제
+              {t("adminSubRow.clearAward", "Clear award")}
             </button>
           ) : null}
         </div>

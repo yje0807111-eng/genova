@@ -12,6 +12,7 @@ import {
   updateCompetitionStatusAction,
   type CompetitionSubmissionVideo,
 } from "@/app/actions/admin";
+import { useI18n } from "@/components/genova/language-provider";
 import { adminTokens } from "@/lib/admin-styles";
 import type { Competition, Video } from "@/lib/types";
 import { cn } from "@/lib/utils/cn";
@@ -55,6 +56,7 @@ export function CompetitionManage({
   onViewCompetitionVideos?: (competition: Competition) => void;
 }) {
   const router = useRouter();
+  const { t } = useI18n();
   const [loading, setLoading] = useState(false);
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [competitionVideos, setCompetitionVideos] = useState<Record<string, CompetitionSubmissionVideo[]>>({});
@@ -90,10 +92,10 @@ export function CompetitionManage({
       const result = await toggleCompetitionFeaturedFlagAction(compId, !currentFeatured);
       if (result.ok) {
         onCompetitionsChange(competitions.map((c) => (c.id === compId ? { ...c, isFeatured: !currentFeatured } : c)));
-        onMessage("저장되었습니다.");
+        onMessage(t("adminCompManage.saved", "Saved."));
         router.refresh();
       } else {
-        alert(result.message ?? "추천 변경 실패");
+        alert(result.message ?? t("adminCompManage.featuredToggleFailed", "Failed to change featured status"));
       }
     } finally {
       setPendingFeaturedCompetitionId(null);
@@ -113,7 +115,7 @@ export function CompetitionManage({
         }));
         router.refresh();
       } else {
-        alert(result.message ?? "추천 변경 실패");
+        alert(result.message ?? t("adminCompManage.featuredToggleFailed", "Failed to change featured status"));
       }
     } finally {
       setPendingFeaturedId(null);
@@ -129,7 +131,7 @@ export function CompetitionManage({
     setLoading(true);
     try {
       const res = await fn();
-      onMessage(res.ok ? "저장되었습니다." : res.message ?? "실패했습니다.");
+      onMessage(res.ok ? t("adminCompManage.saved", "Saved.") : res.message ?? t("adminCompManage.failed", "Failed."));
       if (res.ok) {
         router.refresh();
         await refreshCompetitionVideos(compId);
@@ -147,7 +149,7 @@ export function CompetitionManage({
     if (optimisticUpdate) optimisticUpdate();
     try {
       const res = await fn();
-      onMessage(res.ok ? "저장되었습니다." : res.message ?? "실패했습니다.");
+      onMessage(res.ok ? t("adminCompManage.saved", "Saved.") : res.message ?? t("adminCompManage.failed", "Failed."));
       if (res.ok) router.refresh();
     } finally {
       setLoading(false);
@@ -162,7 +164,7 @@ export function CompetitionManage({
   };
 
   const handleDelete = (id: string, title: string) => {
-    if (!confirm(`"${title}" 공모전을 삭제하시겠습니까?`)) return;
+    if (!confirm(t("adminCompManage.deleteConfirm", 'Delete the competition "{title}"?').replace("{title}", title))) return;
     void callWithOptimistic(
       () => deleteCompetitionAction(id),
       () => onCompetitionsChange(competitions.filter((comp) => comp.id !== id)),
@@ -201,12 +203,12 @@ export function CompetitionManage({
     <div className={adminTokens.card}>
       <div className="mb-4 flex flex-wrap items-center justify-between gap-x-3 gap-y-2">
         <div className="flex flex-wrap items-center gap-2">
-          <h2 className={cn(adminTokens.sectionHeader, "!mb-0")}>공모전 관리</h2>
+          <h2 className={cn(adminTokens.sectionHeader, "!mb-0")}>{t("adminCompManage.title", "Competition Management")}</h2>
           <span className="text-[11px] font-mono text-white/30">{competitions.length}</span>
           {featuredCompCount > 0 ? (
             <span className="inline-flex items-center gap-0.5 text-[10px] text-[#AFA9EC]">
               <Star size={9} className="fill-[#AFA9EC] text-[#AFA9EC]" aria-hidden />
-              {featuredCompCount} 추천
+              {featuredCompCount} {t("adminCompManage.featuredCount", "featured")}
             </span>
           ) : null}
         </div>
@@ -215,7 +217,7 @@ export function CompetitionManage({
           type="search"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          placeholder="검색 (제목/ID/스폰서)"
+          placeholder={t("adminCompManage.searchPlaceholder", "Search (title / ID / sponsor)")}
           className={cn(adminTokens.input, "min-w-[180px] text-[12px]")}
         />
       </div>
@@ -225,7 +227,7 @@ export function CompetitionManage({
       <div className="max-h-[560px] space-y-1 overflow-y-auto pr-0.5">
         {competitions.length === 0 ? (
           <div className="rounded-lg border border-white/[0.06] bg-white/[0.01] py-12 text-center">
-            <p className="text-[12px] text-white/35">공모전이 없습니다</p>
+            <p className="text-[12px] text-white/35">{t("adminCompManage.empty", "No competitions")}</p>
           </div>
         ) : (
           sortedCompetitions.map((comp) => (
@@ -251,16 +253,16 @@ export function CompetitionManage({
 
                   <div className="w-[60px] shrink-0">
                     {comp.status === "Open" ? (
-                      <span className={cn(adminTokens.badge, adminTokens.badgeSuccess)}>모집중</span>
+                      <span className={cn(adminTokens.badge, adminTokens.badgeSuccess)}>{t("adminCompManage.statusOpen", "Open")}</span>
                     ) : null}
                     {comp.status === "In Review" ? (
-                      <span className={cn(adminTokens.badge, adminTokens.badgeWarning)}>심사중</span>
+                      <span className={cn(adminTokens.badge, adminTokens.badgeWarning)}>{t("adminCompManage.statusInReview", "In Review")}</span>
                     ) : null}
                     {comp.status === "Voting" ? (
-                      <span className={cn(adminTokens.badge, adminTokens.badgeInfo)}>투표중</span>
+                      <span className={cn(adminTokens.badge, adminTokens.badgeInfo)}>{t("adminCompManage.statusVoting", "Voting")}</span>
                     ) : null}
                     {comp.status === "Closed" ? (
-                      <span className={cn(adminTokens.badge, adminTokens.badgeNeutral)}>종료</span>
+                      <span className={cn(adminTokens.badge, adminTokens.badgeNeutral)}>{t("adminCompManage.statusClosed", "Closed")}</span>
                     ) : null}
                     {!["Open", "In Review", "Voting", "Closed"].includes(comp.status) ? (
                       <span className={cn(adminTokens.badge, adminTokens.badgeNeutral)}>{comp.status}</span>
@@ -273,7 +275,7 @@ export function CompetitionManage({
                       <span className="max-w-[120px] shrink-0 truncate text-[10px] font-mono text-white/30">#{comp.id}</span>
                     </div>
                     <div className="mt-0.5 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-[11px] text-white/35">
-                      <span>마감 {new Date(comp.deadline).toLocaleDateString("ko-KR")}</span>
+                      <span>{t("adminCompManage.deadlinePrefix", "Deadline")} {new Date(comp.deadline).toLocaleDateString("ko-KR")}</span>
                       {comp.genre ? (
                         <>
                           <span className="text-white/20">·</span>
@@ -302,10 +304,10 @@ export function CompetitionManage({
                         ? "border border-[#7F77DD]/30 bg-[#7F77DD]/20 text-[#AFA9EC] hover:bg-[#7F77DD]/30"
                         : "border border-white/[0.08] bg-white/[0.02] text-white/50 hover:bg-white/[0.06] hover:text-white/80",
                     )}
-                    title={comp.isFeatured ? "추천 해제" : "추천 공모전으로 지정"}
+                    title={comp.isFeatured ? t("adminCompManage.unfeatureTitle", "Remove from featured") : t("adminCompManage.featureTitle", "Set as featured competition")}
                   >
                     <Star size={10} className={comp.isFeatured ? "fill-[#AFA9EC] text-[#AFA9EC]" : "text-white/50"} aria-hidden />
-                    {comp.isFeatured ? "추천중" : "추천"}
+                    {comp.isFeatured ? t("adminCompManage.featuredActive", "Featured") : t("adminCompManage.feature", "Feature")}
                   </button>
 
                   {onViewCompetitionVideos ? (
@@ -317,10 +319,10 @@ export function CompetitionManage({
                         onViewCompetitionVideos(comp);
                       }}
                       className="flex h-7 items-center gap-1 rounded-md border border-white/[0.08] bg-white/[0.02] px-2 text-[11px] font-medium text-white/50 transition hover:bg-white/[0.06] hover:text-white/80"
-                      title="이 공모전 출품작을 영상 관리에서 보기"
+                      title={t("adminCompManage.viewSubmissionsTitle", "View this competition's submissions in Video Management")}
                     >
                       <Film size={10} aria-hidden />
-                      출품작
+                      {t("adminCompManage.submissions", "Submissions")}
                     </button>
                   ) : null}
 
@@ -339,7 +341,7 @@ export function CompetitionManage({
                       }}
                       className={cn(adminTokens.buttonGhost, "h-8 px-2", comp.status === "Open" ? "text-emerald-400" : "")}
                     >
-                      모집
+                      {t("adminCompManage.setOpen", "Open")}
                     </button>
                     <button
                       type="button"
@@ -350,7 +352,7 @@ export function CompetitionManage({
                       }}
                       className={cn(adminTokens.buttonGhost, "h-8 px-2", comp.status === "In Review" ? "text-amber-400" : "")}
                     >
-                      심사
+                      {t("adminCompManage.setInReview", "Review")}
                     </button>
                     <button
                       type="button"
@@ -361,7 +363,7 @@ export function CompetitionManage({
                       }}
                       className={cn(adminTokens.buttonGhost, "h-8 px-2", comp.status === "Voting" ? "text-sky-400" : "")}
                     >
-                      투표
+                      {t("adminCompManage.setVoting", "Voting")}
                     </button>
                     <button
                       type="button"
@@ -372,11 +374,11 @@ export function CompetitionManage({
                       }}
                       className={cn(adminTokens.buttonGhost, "h-8 px-2", comp.status === "Closed" ? "text-white/55" : "")}
                     >
-                      종료
+                      {t("adminCompManage.setClosed", "Close")}
                     </button>
                   </div>
 
-                  <Link href={`/admin/competition/${comp.id}`} className={adminTokens.iconButton} title="수정" onClick={(e) => e.stopPropagation()}>
+                  <Link href={`/admin/competition/${comp.id}`} className={adminTokens.iconButton} title={t("adminCompManage.edit", "Edit")} onClick={(e) => e.stopPropagation()}>
                     <Edit size={13} />
                   </Link>
                   <Link
@@ -384,7 +386,7 @@ export function CompetitionManage({
                     target="_blank"
                     rel="noopener noreferrer"
                     className={adminTokens.iconButton}
-                    title="페이지 보기"
+                    title={t("adminCompManage.viewPage", "View page")}
                     onClick={(e) => e.stopPropagation()}
                   >
                     <ExternalLink size={13} />
@@ -397,7 +399,7 @@ export function CompetitionManage({
                       handleDelete(comp.id, comp.title);
                     }}
                     className={cn(adminTokens.iconButton, "hover:text-red-400")}
-                    title="삭제"
+                    title={t("adminCompManage.delete", "Delete")}
                   >
                     <Trash2 size={13} />
                   </button>
@@ -410,14 +412,17 @@ export function CompetitionManage({
                   <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
                     <div className="flex flex-wrap items-center gap-2">
                       <span className="text-[11px] text-white/35">
-                        출품작 {(competitionVideos[comp.id] ?? []).length}개
+                        {t("adminCompManage.submissionCount", "{count} submissions").replace(
+                          "{count}",
+                          String((competitionVideos[comp.id] ?? []).length),
+                        )}
                       </span>
                       {(() => {
                         const fc = (competitionVideos[comp.id] ?? []).filter((v) => v.is_competition_featured).length;
                         return fc > 0 ? (
                           <span className="inline-flex items-center gap-0.5 text-[10px] text-[#AFA9EC]">
                             <Star size={9} className="fill-[#AFA9EC] text-[#AFA9EC]" />
-                            {fc} 추천
+                            {fc} {t("adminCompManage.featuredCount", "featured")}
                           </span>
                         ) : null;
                       })()}
@@ -425,9 +430,9 @@ export function CompetitionManage({
                     <div className="flex flex-wrap items-center gap-1">
                       {(
                         [
-                          { key: "views" as const, label: "조회순" },
-                          { key: "likes" as const, label: "좋아요순" },
-                          { key: "newest" as const, label: "최신순" },
+                          { key: "views" as const, label: t("adminCompManage.sortViews", "Most viewed") },
+                          { key: "likes" as const, label: t("adminCompManage.sortLikes", "Most liked") },
+                          { key: "newest" as const, label: t("adminCompManage.sortNewest", "Newest") },
                         ] as const
                       ).map((s) => (
                         <button
@@ -446,9 +451,9 @@ export function CompetitionManage({
                   </div>
 
                   {loadingId === comp.id ? (
-                    <div className="py-6 text-center text-[11px] text-white/35">로딩 중...</div>
+                    <div className="py-6 text-center text-[11px] text-white/35">{t("adminCompManage.loading", "Loading...")}</div>
                   ) : (competitionVideos[comp.id] ?? []).length === 0 ? (
-                    <div className="py-6 text-center text-[11px] text-white/35">출품작이 없습니다</div>
+                    <div className="py-6 text-center text-[11px] text-white/35">{t("adminCompManage.noSubmissions", "No submissions")}</div>
                   ) : (
                     <div className="space-y-1">
                       {sortVideos(competitionVideos[comp.id] ?? [], sortBy).map((video) => (

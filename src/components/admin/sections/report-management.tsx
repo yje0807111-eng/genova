@@ -14,14 +14,17 @@ import { bulkPrivateUploaderVideosAction } from "@/app/actions/admin";
 import { revokeEntryTicketByVideoAction } from "@/app/actions/lottery-admin";
 import { adminTokens } from "@/lib/admin-styles";
 import { cn } from "@/lib/utils/cn";
+import { useI18n } from "@/components/genova/language-provider";
 
-function formatRelativeTime(date: string | Date) {
+function formatRelativeTime(date: string | Date, t: (key: string, fallback: string) => string) {
   const diff = Date.now() - new Date(date).getTime();
   const hours = Math.floor(diff / (1000 * 60 * 60));
-  if (hours < 1) return "방금";
-  if (hours < 24) return `${hours}시간 전`;
+  if (hours < 1) return t("adminReport.timeJustNow", "Just now");
+  if (hours < 24)
+    return t("adminReport.timeHoursAgo", "{hours}h ago").replace("{hours}", String(hours));
   const days = Math.floor(hours / 24);
-  if (days < 7) return `${days}일 전`;
+  if (days < 7)
+    return t("adminReport.timeDaysAgo", "{days}d ago").replace("{days}", String(days));
   return new Date(date).toLocaleDateString("ko-KR");
 }
 
@@ -55,6 +58,7 @@ export function ReportManagement({
   initialStatusFilter?: string | null;
 }) {
   const router = useRouter();
+  const { t } = useI18n();
   const [loading, setLoading] = useState(false);
   const [localReports, setLocalReports] = useState<VideoReportItem[]>(reports);
   const [reportStatusFilter, setReportStatusFilter] = useState<"all" | VideoReportStatus>(
@@ -135,7 +139,11 @@ export function ReportManagement({
     if (optimisticUpdate) optimisticUpdate();
     try {
       const res = await fn();
-      onMessage(res.ok ? "저장되었습니다." : res.message ?? "실패했습니다.");
+      onMessage(
+        res.ok
+          ? t("adminReport.saved", "Saved.")
+          : res.message ?? t("adminReport.failed", "Failed."),
+      );
       if (res.ok) router.refresh();
     } finally {
       setLoading(false);
@@ -191,8 +199,10 @@ export function ReportManagement({
   const bulkPrivateUploader = async (videoId: string, videoTitle: string) => {
     if (
       !confirm(
-        `"${videoTitle}" 업로더의 공개 영상 전체를 비공개 처리합니다.\n` +
-          `(개별 영상 visibility 토글로 되돌릴 수 있습니다.)\n\n계속하시겠습니까?`,
+        t(
+          "adminReport.bulkPrivateConfirm",
+          'Set all public videos by the uploader of "{title}" to private.\n(You can revert this via the per-video visibility toggle.)\n\nDo you want to continue?',
+        ).replace("{title}", videoTitle),
       )
     )
       return;
@@ -200,9 +210,19 @@ export function ReportManagement({
     try {
       const res = await bulkPrivateUploaderVideosAction(videoId);
       if (res.ok) {
-        onMessage(`업로더 영상 ${res.affected ?? 0}건을 비공개 처리했습니다.`);
+        onMessage(
+          t("adminReport.bulkPrivateDone", "Set {count} uploader video(s) to private.").replace(
+            "{count}",
+            String(res.affected ?? 0),
+          ),
+        );
       } else {
-        onMessage(`일괄 비공개 실패: ${res.message}`);
+        onMessage(
+          t("adminReport.bulkPrivateFailed", "Bulk private failed: {message}").replace(
+            "{message}",
+            String(res.message),
+          ),
+        );
       }
       router.refresh();
     } finally {
@@ -211,7 +231,7 @@ export function ReportManagement({
   };
 
   const handleDelete = (reportId: string) => {
-    if (!confirm("이 신고를 삭제하시겠습니까?")) return;
+    if (!confirm(t("adminReport.deleteConfirm", "Delete this report?"))) return;
     void callWithOptimistic(
       () => deleteVideoReportAction(reportId),
       () => setLocalReports((prev) => prev.filter((item) => item.id !== reportId)),
@@ -227,18 +247,29 @@ export function ReportManagement({
       (r) => r.status === "resolved" || r.status === "rejected",
     ).length;
     if (closedCount === 0) {
-      onMessage("닫힌(resolved/rejected) 신고가 없습니다.");
+      onMessage(
+        t("adminReport.noClosedReports", "There are no closed (resolved/rejected) reports."),
+      );
       return;
     }
     if (
       !confirm(
-        `닫힌 신고 ${closedCount}건을 삭제합니다.\n` +
-          `(open / reviewing 상태는 보호되어 함께 삭제되지 않습니다.)\n\n` +
-          `계속하시겠습니까?`,
+        t(
+          "adminReport.deleteAllConfirm",
+          "Delete {count} closed report(s).\n(open / reviewing reports are protected and will not be deleted.)\n\nDo you want to continue?",
+        ).replace("{count}", String(closedCount)),
       )
     )
       return;
-    if (!confirm(`정말로 ${closedCount}건을 영구 삭제할까요? 되돌릴 수 없습니다.`)) return;
+    if (
+      !confirm(
+        t(
+          "adminReport.deleteAllConfirm2",
+          "Permanently delete {count} report(s)? This cannot be undone.",
+        ).replace("{count}", String(closedCount)),
+      )
+    )
+      return;
     void callWithOptimistic(
       () => deleteAllVideoReportsAction(),
       () =>
@@ -252,7 +283,9 @@ export function ReportManagement({
     <div className={cn(adminTokens.card, "mt-4")}>
       <div className="mb-4 flex flex-wrap items-center justify-between gap-x-3 gap-y-2">
         <div className="flex min-w-0 flex-wrap items-center gap-2">
-          <h2 className={cn(adminTokens.sectionHeader, "!mb-0")}>신고 관리</h2>
+          <h2 className={cn(adminTokens.sectionHeader, "!mb-0")}>
+            {t("adminReport.title", "Report Management")}
+          </h2>
           <span className="text-[11px] font-mono text-white/30">{localReports.length}</span>
           {openCount > 0 ? (
             <span className={cn(adminTokens.badge, adminTokens.badgeDanger, "ml-0 sm:ml-1")}>
@@ -267,7 +300,9 @@ export function ReportManagement({
               onClick={() => setBodyCollapsed((v) => !v)}
               className={cn(adminTokens.buttonGhost, "text-[11px]")}
             >
-              {bodyCollapsed ? "Show all" : "Collapse"}
+              {bodyCollapsed
+                ? t("adminReport.showAll", "Show all")
+                : t("adminReport.collapse", "Collapse")}
             </button>
           ) : null}
         </div>
@@ -277,7 +312,7 @@ export function ReportManagement({
             type="search"
             value={reportSearch}
             onChange={(e) => setReportSearch(e.target.value)}
-            placeholder="검색 (제목/신고자/사유/ID)"
+            placeholder={t("adminReport.searchPlaceholder", "Search (title/reporter/reason/ID)")}
             className={cn(adminTokens.input, "min-w-[180px] text-[12px]")}
           />
           <select
@@ -285,7 +320,7 @@ export function ReportManagement({
             onChange={(e) => setReportStatusFilter(e.target.value as "all" | VideoReportStatus)}
             className={filterSelectSm}
           >
-            <option value="all">상태: 전체</option>
+            <option value="all">{t("adminReport.statusAll", "Status: All")}</option>
             <option value="open">Open</option>
             <option value="reviewing">Reviewing</option>
             <option value="resolved">Resolved</option>
@@ -296,7 +331,7 @@ export function ReportManagement({
             onChange={(e) => setReportReasonFilter(e.target.value as "all" | VideoReportItem["reason"])}
             className={filterSelectSm}
           >
-            <option value="all">사유: 전체</option>
+            <option value="all">{t("adminReport.reasonAll", "Reason: All")}</option>
             <option value="spam">Spam</option>
             <option value="copyright">Copyright</option>
             <option value="harassment">Harassment</option>
@@ -307,8 +342,8 @@ export function ReportManagement({
             <option value="other">Other</option>
           </select>
           <select value={reportSort} onChange={(e) => setReportSort(e.target.value as "open_first" | "latest")} className={filterSelectSort}>
-            <option value="open_first">정렬: Open 우선</option>
-            <option value="latest">정렬: 최신순</option>
+            <option value="open_first">{t("adminReport.sortOpenFirst", "Sort: Open first")}</option>
+            <option value="latest">{t("adminReport.sortLatest", "Sort: Latest")}</option>
           </select>
           {/* H2-A.8: collapse-by-video toggle */}
           <button
@@ -318,13 +353,15 @@ export function ReportManagement({
               adminTokens.buttonSecondary,
               groupByVideo && "border-[#7F77DD]/30 bg-[#7F77DD]/[0.1] text-[#AFA9EC]",
             )}
-            title="동일 영상의 여러 신고를 한 행으로 그룹화"
+            title={t("adminReport.groupByVideoTitle", "Group multiple reports for the same video into one row")}
           >
-            {groupByVideo ? "✓ 영상별" : "영상별 그룹"}
+            {groupByVideo
+              ? t("adminReport.groupByVideoOn", "✓ By video")
+              : t("adminReport.groupByVideoOff", "Group by video")}
           </button>
           {localReports.length > 0 ? (
             <button type="button" disabled={loading} onClick={handleDeleteAll} className={adminTokens.buttonDanger}>
-              전체 삭제
+              {t("adminReport.deleteAll", "Delete all")}
             </button>
           ) : null}
         </div>
@@ -332,14 +369,19 @@ export function ReportManagement({
 
       {bodyCollapsed && !actionablePresent ? (
         <p className="rounded-md border border-white/[0.06] bg-white/[0.01] px-3 py-3 text-[11px] text-white/35">
-          처리할 신고가 없습니다. ({localReports.length}건 보관 중)
+          {t("adminReport.noActionable", "No reports to handle. ({count} archived)").replace(
+            "{count}",
+            String(localReports.length),
+          )}
         </p>
       ) : (
       <div className="max-h-[520px] min-h-0 space-y-1 overflow-y-auto pr-0.5">
         {filteredReports.length === 0 ? (
           <div className="rounded-lg border border-white/[0.06] bg-white/[0.01] py-12 text-center">
             <p className="text-[12px] text-white/35">
-              {localReports.length === 0 ? "신고 내역이 없습니다" : "필터 조건에 맞는 신고가 없습니다"}
+              {localReports.length === 0
+                ? t("adminReport.emptyNoReports", "No reports")
+                : t("adminReport.emptyNoMatch", "No reports match the filter")}
             </p>
           </div>
         ) : (
@@ -369,7 +411,9 @@ export function ReportManagement({
                 <div className="min-w-0 flex-1">
                   <div className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-0.5">
                     <p className="truncate text-[13px] font-medium text-white">
-                      {report.videoTitle?.trim() ? report.videoTitle : "삭제된 영상"}
+                      {report.videoTitle?.trim()
+                        ? report.videoTitle
+                        : t("adminReport.deletedVideo", "Deleted video")}
                     </p>
                     {/* H2-A.8: extra-report count when grouping */}
                     {(report as VideoReportItem & { duplicateCount?: number }).duplicateCount ? (
@@ -378,7 +422,7 @@ export function ReportManagement({
                       </span>
                     ) : null}
                     <span className="hidden text-white/20 sm:inline">·</span>
-                    <span className="truncate text-[11px] text-white/50">{report.reporterName?.trim() || "익명"}</span>
+                    <span className="truncate text-[11px] text-white/50">{report.reporterName?.trim() || t("adminReport.anonymous", "Anonymous")}</span>
                     {typeof report.timestampSec === "number" ? (
                       <>
                         <span className="text-white/20">·</span>
@@ -391,7 +435,7 @@ export function ReportManagement({
                   ) : null}
                 </div>
 
-                <span className="hidden shrink-0 text-[10px] font-mono text-white/30 sm:inline-block">{formatRelativeTime(report.createdAt)}</span>
+                <span className="hidden shrink-0 text-[10px] font-mono text-white/30 sm:inline-block">{formatRelativeTime(report.createdAt, t)}</span>
 
                 <div
                   className={cn(
@@ -401,7 +445,7 @@ export function ReportManagement({
                   <button
                     type="button"
                     className={adminTokens.iconButton}
-                    title="영상 보기"
+                    title={t("adminReport.viewVideo", "View video")}
                     onClick={() => window.open(`/watch/${report.videoId}`, "_blank", "noopener,noreferrer")}
                   >
                     <ExternalLink size={13} />
@@ -409,7 +453,7 @@ export function ReportManagement({
                   <button
                     type="button"
                     className={adminTokens.iconButton}
-                    title="신고자 프로필"
+                    title={t("adminReport.reporterProfile", "Reporter profile")}
                     onClick={() => window.open(`/profile/${report.reporterUserId}`, "_blank", "noopener,noreferrer")}
                   >
                     <User size={13} />
@@ -426,7 +470,7 @@ export function ReportManagement({
                           adminTokens.iconButton,
                           "text-amber-400/80 hover:text-amber-300",
                         )}
-                        title="응모권 회수 (Revoke lottery ticket)"
+                        title={t("adminReport.revokeTicketTitle", "Revoke lottery ticket")}
                         onClick={() => revokeTicket(report.videoId, report.videoTitle)}
                       >
                         <ShieldOff size={13} />
@@ -439,7 +483,7 @@ export function ReportManagement({
                           adminTokens.iconButton,
                           "text-red-400/80 hover:text-red-300",
                         )}
-                        title="이 업로더 영상 전체 비공개"
+                        title={t("adminReport.bulkPrivateTitle", "Set all videos by this uploader to private")}
                         onClick={() => bulkPrivateUploader(report.videoId, report.videoTitle)}
                       >
                         <EyeOff size={13} />
@@ -462,7 +506,7 @@ export function ReportManagement({
                       onClick={() => updateStatus(report.id, "reviewing")}
                       className={cn(adminTokens.buttonGhost, "h-8 px-2", report.status === "reviewing" ? "text-amber-400" : "")}
                     >
-                      검토
+                      {t("adminReport.actionReview", "Review")}
                     </button>
                     <button
                       type="button"
@@ -470,7 +514,7 @@ export function ReportManagement({
                       onClick={() => updateStatus(report.id, "resolved")}
                       className={cn(adminTokens.buttonGhost, "h-8 px-2", report.status === "resolved" ? "text-emerald-400" : "")}
                     >
-                      해결
+                      {t("adminReport.actionResolve", "Resolve")}
                     </button>
                     <button
                       type="button"
@@ -478,16 +522,16 @@ export function ReportManagement({
                       onClick={() => updateStatus(report.id, "rejected")}
                       className={cn(adminTokens.buttonGhost, "h-8 px-2", report.status === "rejected" ? "text-white/55" : "")}
                     >
-                      기각
+                      {t("adminReport.actionReject", "Reject")}
                     </button>
                   </div>
 
-                  <button type="button" disabled={loading} onClick={() => handleDelete(report.id)} className={adminTokens.iconButton} title="삭제">
+                  <button type="button" disabled={loading} onClick={() => handleDelete(report.id)} className={adminTokens.iconButton} title={t("adminReport.delete", "Delete")}>
                     <Trash2 size={13} />
                   </button>
                 </div>
               </div>
-              <div className="mt-1 text-[10px] font-mono text-white/25 sm:hidden">{formatRelativeTime(report.createdAt)}</div>
+              <div className="mt-1 text-[10px] font-mono text-white/25 sm:hidden">{formatRelativeTime(report.createdAt, t)}</div>
             </div>
           ))
         )}

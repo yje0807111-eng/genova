@@ -13,6 +13,7 @@ import {
 import { adminTokens } from "@/lib/admin-styles";
 import type { Competition } from "@/lib/types";
 import { cn } from "@/lib/utils/cn";
+import { useI18n } from "@/components/genova/language-provider";
 
 export function TrophyManagement({
   competitions,
@@ -22,6 +23,8 @@ export function TrophyManagement({
   onMessage: (message: string) => void;
 }) {
   const router = useRouter();
+  const { t } = useI18n();
+  const tr = t; // alias for use inside recent.map() where loop var shadows `t`
   const [loading, setLoading] = useState(false);
   const [trophyUserId, setTrophyUserId] = useState("");
   const [trophyCompetitionId, setTrophyCompetitionId] = useState("");
@@ -52,17 +55,34 @@ export function TrophyManagement({
     const label =
       row.type === "competition"
         ? `${row.competitionTitle ?? row.competitionId ?? "competition"} · ${row.award ?? ""}`
-        : `${row.genre ?? ""} 주간 ${row.rank ?? ""}위`;
-    if (!confirm(`Revoke trophy?\n  ${label}\n  user: ${row.userDisplayName ?? row.userId}\n\nThis cannot be undone.`)) return;
+        : t("adminTrophy.weeklyRankLabel", "{genre} weekly rank {rank}")
+            .replace("{genre}", String(row.genre ?? ""))
+            .replace("{rank}", String(row.rank ?? ""));
+    if (
+      !confirm(
+        t(
+          "adminTrophy.revokeConfirm",
+          "Revoke trophy?\n  {label}\n  user: {user}\n\nThis cannot be undone.",
+        )
+          .replace("{label}", label)
+          .replace("{user}", String(row.userDisplayName ?? row.userId)),
+      )
+    )
+      return;
     setRevokingId(row.id);
     try {
       const res = await revokeTrophyAction(row.id);
       if (res.ok) {
-        onMessage("Trophy revoked.");
+        onMessage(t("adminTrophy.revokeSuccess", "Trophy revoked."));
         setRecent((prev) => prev.filter((r) => r.id !== row.id));
         router.refresh();
       } else {
-        onMessage(`Revoke failed: ${res.message}`);
+        onMessage(
+          t("adminTrophy.revokeFailed", "Revoke failed: {message}").replace(
+            "{message}",
+            String(res.message),
+          ),
+        );
       }
     } finally {
       setRevokingId(null);
@@ -75,12 +95,16 @@ export function TrophyManagement({
     setErrorMessage(null);
     try {
       const res = await fn();
-      onMessage(res.ok ? "저장되었습니다." : res.message ?? "실패했습니다.");
+      onMessage(
+        res.ok
+          ? t("adminTrophy.saved", "Saved.")
+          : res.message ?? t("adminTrophy.failed", "Failed."),
+      );
       if (res.ok) {
-        setSuccessMessage("저장되었습니다.");
+        setSuccessMessage(t("adminTrophy.saved", "Saved."));
         router.refresh();
       } else {
-        setErrorMessage(res.message ?? "실패했습니다.");
+        setErrorMessage(res.message ?? t("adminTrophy.failed", "Failed."));
       }
     } finally {
       setLoading(false);
@@ -89,14 +113,18 @@ export function TrophyManagement({
 
   return (
     <div className={adminTokens.card}>
-      <h2 className={adminTokens.sectionHeader}>트로피</h2>
+      <h2 className={adminTokens.sectionHeader}>{t("adminTrophy.title", "Trophies")}</h2>
 
       <div className="space-y-4">
         <div>
-          <h3 className="mb-2 text-[12px] font-semibold text-white/70">수동 트로피 지급</h3>
+          <h3 className="mb-2 text-[12px] font-semibold text-white/70">
+            {t("adminTrophy.manualGrantHeader", "Manual Trophy Grant")}
+          </h3>
           <p className="mb-3 text-[11px] leading-relaxed text-white/35">
-            수상자의 프로필 UUID와 공모전을 선택하고 수상 등급을 지정하세요.
-            User UUID는 Supabase → Authentication → Users 에서 확인할 수 있습니다.
+            {t(
+              "adminTrophy.manualGrantDesc",
+              "Select the winner's profile UUID and competition, then specify the award tier. The User UUID can be found in Supabase → Authentication → Users.",
+            )}
           </p>
 
           <div className="space-y-2">
@@ -111,7 +139,7 @@ export function TrophyManagement({
               onChange={(e) => setTrophyCompetitionId(e.target.value)}
               className={cn(adminTokens.input, "w-full")}
             >
-              <option value="">공모전 선택</option>
+              <option value="">{t("adminTrophy.selectCompetition", "Select competition")}</option>
               {competitions.map((c) => (
                 <option key={c.id} value={c.id}>
                   {c.title}
@@ -119,9 +147,17 @@ export function TrophyManagement({
               ))}
             </select>
             <select value={trophyAward} onChange={(e) => setTrophyAward(e.target.value)} className={cn(adminTokens.input, "w-full")}>
-              {["대상", "금상", "은상", "입선", "장려상"].map((a) => (
-                <option key={a} value={a}>
-                  {a}
+              {(
+                [
+                  ["대상", t("adminTrophy.awardGrand", "Grand Prize")],
+                  ["금상", t("adminTrophy.awardGold", "Gold Prize")],
+                  ["은상", t("adminTrophy.awardSilver", "Silver Prize")],
+                  ["입선", t("adminTrophy.awardSelected", "Selection")],
+                  ["장려상", t("adminTrophy.awardEncouragement", "Encouragement Award")],
+                ] as const
+              ).map(([value, label]) => (
+                <option key={value} value={value}>
+                  {label}
                 </option>
               ))}
             </select>
@@ -139,7 +175,7 @@ export function TrophyManagement({
               }
               className={cn(adminTokens.buttonPrimary, "mt-1 h-9 w-full")}
             >
-              트로피 지급
+              {t("adminTrophy.grantButton", "Grant Trophy")}
             </button>
           </div>
         </div>
@@ -147,10 +183,14 @@ export function TrophyManagement({
         <div className={adminTokens.divider} />
 
         <div>
-          <h3 className="mb-2 text-[12px] font-semibold text-white/70">주간 장르 트로피</h3>
+          <h3 className="mb-2 text-[12px] font-semibold text-white/70">
+            {t("adminTrophy.weeklyGenreHeader", "Weekly Genre Trophies")}
+          </h3>
           <p className="mb-3 text-[11px] leading-relaxed text-white/35">
-            매주 장르별 조회수 상위 크리에이터 3명에게 자동으로 트로피를 지급합니다.
-            날짜를 비워두면 가장 최근 완료된 주(월요일 기준)가 자동 선택됩니다.
+            {t(
+              "adminTrophy.weeklyGenreDesc",
+              "Automatically grants trophies to the top 3 creators by views in each genre every week. Leave the date empty to auto-select the most recently completed week (Monday-based).",
+            )}
           </p>
 
           <div className="space-y-2">
@@ -167,7 +207,7 @@ export function TrophyManagement({
               onClick={() => void call(() => runWeeklyGenreTrophiesAction(weeklyWeekStart.trim() || undefined))}
               className={cn(adminTokens.buttonSecondary, "h-9 w-full")}
             >
-              주간 집계 실행
+              {t("adminTrophy.runWeeklyButton", "Run Weekly Aggregation")}
             </button>
           </div>
         </div>
@@ -185,21 +225,25 @@ export function TrophyManagement({
       <div className={cn(adminTokens.divider, "my-4")} />
       <div>
         <div className="mb-2 flex items-center justify-between">
-          <h3 className="text-[12px] font-semibold text-white/70">최근 트로피 (50건)</h3>
+          <h3 className="text-[12px] font-semibold text-white/70">
+            {t("adminTrophy.recentHeader", "Recent Trophies (50)")}
+          </h3>
           <button
             type="button"
             onClick={() => void loadRecent()}
             disabled={recentLoading}
             className={cn(adminTokens.buttonGhost, "inline-flex items-center gap-1 text-[11px]")}
-            title="새로고침"
+            title={t("adminTrophy.refresh", "Refresh")}
           >
             <RefreshCw size={12} className={recentLoading ? "animate-spin" : ""} />
-            새로고침
+            {t("adminTrophy.refresh", "Refresh")}
           </button>
         </div>
         {recent.length === 0 ? (
           <p className="rounded-md border border-white/[0.06] bg-white/[0.01] px-3 py-6 text-center text-[11px] text-white/35">
-            {recentLoading ? "불러오는 중…" : "지급된 트로피가 없습니다."}
+            {recentLoading
+              ? t("adminTrophy.loading", "Loading…")
+              : t("adminTrophy.empty", "No trophies have been granted.")}
           </p>
         ) : (
           <ul className="max-h-[320px] space-y-1 overflow-y-auto pr-0.5">
@@ -219,7 +263,10 @@ export function TrophyManagement({
                 <span className="min-w-0 flex-1 truncate text-white/80">
                   {t.type === "competition"
                     ? `${t.competitionTitle ?? t.competitionId ?? "—"} · ${t.award ?? ""}`
-                    : `${t.genre ?? ""} 주간 ${t.rank ?? ""}위 (${t.weekStart ?? ""})`}
+                    : tr("adminTrophy.weeklyRowLabel", "{genre} weekly rank {rank} ({week})")
+                        .replace("{genre}", String(t.genre ?? ""))
+                        .replace("{rank}", String(t.rank ?? ""))
+                        .replace("{week}", String(t.weekStart ?? ""))}
                 </span>
                 <span className="hidden truncate text-white/40 sm:inline">
                   {t.userDisplayName ?? t.userId.slice(0, 8)}
@@ -229,7 +276,7 @@ export function TrophyManagement({
                   onClick={() => void handleRevoke(t)}
                   disabled={revokingId === t.id}
                   className={cn(adminTokens.iconButton, "text-red-400 hover:text-red-300 disabled:opacity-40")}
-                  title="회수"
+                  title={tr("adminTrophy.revokeAction", "Revoke")}
                 >
                   <Trash2 size={12} />
                 </button>

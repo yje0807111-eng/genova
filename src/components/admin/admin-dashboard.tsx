@@ -32,6 +32,7 @@ import type {
 } from "@/lib/queries/lottery-admin-queries";
 import type { Competition, Video } from "@/lib/types";
 import { cn } from "@/lib/utils/cn";
+import { useI18n } from "@/components/genova/language-provider";
 
 /**
  * 관리자 대시보드 — 대시보드 홈 + 드릴다운 구조 (개편).
@@ -83,13 +84,17 @@ function resolveView(raw: string | null): AdminView {
   return "home";
 }
 
-const VIEW_LABEL: Record<Exclude<AdminView, "home">, string> = {
-  videos: "영상 관리",
-  competitions: "공모전 관리",
-  reports: "신고 관리",
-  lottery: "응모권",
-  business: "비즈니스 문의",
-  settings: "사이트 설정",
+// view → i18n 키.  렌더는 컴포넌트 내부에서 t() 로.
+const VIEW_LABEL_KEY: Record<
+  Exclude<AdminView, "home">,
+  { key: string; en: string }
+> = {
+  videos: { key: "adminDash.videos", en: "Video Management" },
+  competitions: { key: "adminDash.competitions", en: "Competition Management" },
+  reports: { key: "adminDash.reports", en: "Report Management" },
+  lottery: { key: "adminDash.lottery", en: "Entry Tickets" },
+  business: { key: "adminDash.business", en: "Business Inquiries" },
+  settings: { key: "adminDash.settings", en: "Site Settings" },
 };
 
 function AdminMessageBar({
@@ -135,6 +140,7 @@ function AdminDashboardInner({
   lotteryWinners: LotteryWinnerWorkRow[];
   lotteryAudit: LotteryAuditRow[];
 }) {
+  const { t } = useI18n();
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -230,11 +236,11 @@ function AdminDashboardInner({
   // 액션 홈 항목 (0건은 숨김).
   const actionItems = (
     [
-      { label: "마감 임박 응모권", count: urgentLotteryCount, view: "lottery", focus: "pending" },
-      { label: "검수 대기", count: verifyQueueCount, view: "lottery", focus: "submitted" },
-      { label: "지급 대기", count: payQueueCount, view: "lottery", focus: "confirmed" },
-      { label: "3일+ 방치 신고", count: staleReportCount, view: "reports", focus: "open" },
-      { label: "신규 비즈니스 문의", count: newInquiryCount, view: "business", focus: "new" },
+      { label: t("adminDash.urgentLottery", "Tickets closing soon"), count: urgentLotteryCount, view: "lottery", focus: "pending" },
+      { label: t("adminDash.reviewQueue", "Awaiting review"), count: verifyQueueCount, view: "lottery", focus: "submitted" },
+      { label: t("adminDash.payQueue", "Awaiting payout"), count: payQueueCount, view: "lottery", focus: "confirmed" },
+      { label: t("adminDash.staleReports", "Reports stale 3+ days"), count: staleReportCount, view: "reports", focus: "open" },
+      { label: t("adminDash.newInquiries", "New business inquiries"), count: newInquiryCount, view: "business", focus: "new" },
     ] satisfies {
       label: string;
       count: number;
@@ -254,49 +260,57 @@ function AdminDashboardInner({
   }[] = [
     {
       view: "videos",
-      label: "영상 관리",
+      label: t("adminDash.videos", "Video Management"),
       icon: <Film className="h-5 w-5" />,
       stat: videos.length,
-      statSuffix: "개",
+      statSuffix: t("adminDash.suffixCount", "items"),
     },
     {
       view: "competitions",
-      label: "공모전 관리",
+      label: t("adminDash.competitions", "Competition Management"),
       icon: <Trophy className="h-5 w-5" />,
       stat: localCompetitions.length,
-      statSuffix: "개",
+      statSuffix: t("adminDash.suffixCount", "items"),
       sub:
         closingSoonCompCount > 0
-          ? `진행 ${activeCompetitionCount} · 마감임박 ${closingSoonCompCount}`
-          : `진행 중 ${activeCompetitionCount}`,
+          ? t(
+              "adminDash.compSubClosing",
+              "{active} active · {closing} closing soon",
+            )
+              .replace("{active}", String(activeCompetitionCount))
+              .replace("{closing}", String(closingSoonCompCount))
+          : t("adminDash.compSubActive", "{active} active").replace(
+              "{active}",
+              String(activeCompetitionCount),
+            ),
     },
     {
       view: "reports",
-      label: "신고 관리",
+      label: t("adminDash.reports", "Report Management"),
       icon: <Flag className="h-5 w-5" />,
       stat: openReportCount,
-      statSuffix: "건 미처리",
+      statSuffix: t("adminDash.suffixUnhandled", "unhandled"),
       alert: openReportCount > 0,
     },
     {
       view: "lottery",
-      label: "응모권",
+      label: t("adminDash.lottery", "Entry Tickets"),
       icon: <Ticket className="h-5 w-5" />,
       stat: lotteryPendingActionCount,
-      statSuffix: "건 대기",
+      statSuffix: t("adminDash.suffixPending", "pending"),
       alert: lotteryPendingActionCount > 0,
     },
     {
       view: "business",
-      label: "비즈니스 문의",
+      label: t("adminDash.business", "Business Inquiries"),
       icon: <Briefcase className="h-5 w-5" />,
       stat: newInquiryCount,
-      statSuffix: "건 신규",
+      statSuffix: t("adminDash.suffixNew", "new"),
       alert: newInquiryCount > 0,
     },
     {
       view: "settings",
-      label: "사이트 설정",
+      label: t("adminDash.settings", "Site Settings"),
       icon: <SettingsIcon className="h-5 w-5" />,
     },
   ];
@@ -323,11 +337,13 @@ function AdminDashboardInner({
                   actionItems.length > 0 ? "text-amber-400" : "text-white/30",
                 )}
               />
-              <h2 className="text-[13px] font-bold text-white">오늘의 작업</h2>
+              <h2 className="text-[13px] font-bold text-white">
+                {t("adminDash.todaysWork", "Today's tasks")}
+              </h2>
             </div>
             {actionItems.length === 0 ? (
               <p className="text-[12px] text-white/40">
-                처리할 작업이 없습니다. 👍
+                {t("adminDash.noTasks", "No tasks to handle. 👍")}
               </p>
             ) : (
               <div className="flex flex-wrap gap-2">
@@ -384,7 +400,9 @@ function AdminDashboardInner({
                       {c.sub ? ` · ${c.sub}` : ""}
                     </p>
                   ) : (
-                    <p className="mt-0.5 text-[12px] text-white/35">바로가기</p>
+                    <p className="mt-0.5 text-[12px] text-white/35">
+                      {t("adminDash.goTo", "Open")}
+                    </p>
                   )}
                 </div>
               </button>
@@ -404,10 +422,10 @@ function AdminDashboardInner({
               )}
             >
               <ArrowLeft className="h-4 w-4" />
-              대시보드
+              {t("adminDash.backToDashboard", "Dashboard")}
             </button>
             <h1 className="text-[18px] font-bold tracking-tight text-white">
-              {VIEW_LABEL[view]}
+              {t(VIEW_LABEL_KEY[view].key, VIEW_LABEL_KEY[view].en)}
             </h1>
           </div>
 
@@ -451,7 +469,9 @@ function AdminDashboardInner({
                 />
                 <details className={cn(adminTokens.card, "group")}>
                   <summary className="flex cursor-pointer list-none items-center justify-between text-[13px] font-bold text-white">
-                    <span>새 공모전 생성</span>
+                    <span>
+                      {t("adminDash.createCompetition", "Create New Competition")}
+                    </span>
                     <ChevronRight className="h-4 w-4 text-white/40 transition group-open:rotate-90" />
                   </summary>
                   <div className="mt-4">
