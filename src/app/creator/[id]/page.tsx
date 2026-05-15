@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { GenovaProfileClient } from "@/components/profile/profile-page-client";
+import { ProfileHeader } from "@/components/profile/profile-header";
 import { fetchCreatorById, fetchVideosByCreator } from "@/lib/queries";
 import { attachEngagementToVideos } from "@/lib/queries/engagement-queries";
 import {
@@ -81,34 +82,49 @@ export default async function CreatorPage({
       .replace(/[^a-z0-9_]/g, "")
       .slice(0, 32) || `user_${creator.id.slice(0, 8)}`;
 
+  const isOwner = currentUserId === creator.id;
+  const avatarUrl = creator.avatarUrl ?? "/default-avatar.png";
+
   return (
     <div className="min-h-screen w-full text-[#F8F7FF]">
       <GenovaProfileClient
         profileId={creator.id}
-        displayName={displayName}
-        handle={handle}
-        headerIntro={creator.bio ?? ""}
-        headerToolsLine=""
-        bioFull={creator.bio ?? ""}
-        avatarUrl={creator.avatarUrl ?? "/default-avatar.png"}
-        bannerUrl={null}
-        joinedLabel={null}
-        followersCount={counts.followers}
-        followingCount={counts.following}
         works={worksWithEng}
-        savedVideos={[]}
-        isOwner={currentUserId === creator.id}
-        showFollow={Boolean(currentUserId) && currentUserId !== creator.id}
-        initialFollowing={initialFollowing}
-        mainGenre={null}
-        country={null}
-        websiteUrl={null}
-        twitterUrl={null}
-        instagramUrl={null}
-        youtubeUrl={null}
-        tiktokUrl={null}
-        vimeoUrl={null}
         competitionVideos={[]}
+        savedVideos={[]}
+        isOwner={isOwner}
+        headerSlot={
+          /* C-2b: server-rendered header.  Creators don't have a
+             Profile row, so we omit `profile` / `userEmail` etc.
+             ProfileHeader's edit pencil only mounts when both
+             `isOwner` and `profile` are present, so creators never
+             see it regardless of who's signed in. */
+          <ProfileHeader
+            profileId={creator.id}
+            displayName={displayName}
+            handle={handle}
+            mainGenre={null}
+            bannerUrl={null}
+            avatarUrl={avatarUrl}
+            headerIntro={creator.bio ?? ""}
+            bioFull={creator.bio ?? ""}
+            headerToolsLine=""
+            country={null}
+            joinedLabel={null}
+            websiteUrl={null}
+            twitterUrl={null}
+            instagramUrl={null}
+            youtubeUrl={null}
+            tiktokUrl={null}
+            vimeoUrl={null}
+            videoCount={worksWithEng.length}
+            followersCount={counts.followers}
+            followingCount={counts.following}
+            isOwner={isOwner}
+            showFollow={Boolean(currentUserId) && currentUserId !== creator.id}
+            initialFollowing={initialFollowing}
+          />
+        }
       />
     </div>
   );

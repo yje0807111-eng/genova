@@ -2,8 +2,7 @@
 
 import dynamic from "next/dynamic";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { useEffect, useMemo, useState, useTransition } from "react";
+import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { useI18n } from "@/components/genova/language-provider";
 import { useUploadModal } from "@/components/upload/upload-modal-context";
 import { useEditModal } from "@/components/upload/edit-modal-context";
@@ -14,25 +13,11 @@ import {
   Film,
   Grid,
   Heart,
-  MessageCircle,
-  MoreHorizontal,
   Pencil,
   Trophy,
-  UserCheck,
-  UserPlus,
 } from "lucide-react";
-import { followUserAction, unfollowUserAction } from "@/app/actions/profile";
-import type { Profile } from "@/lib/queries/profile-queries";
-import { ProfileBio } from "@/components/profile/profile-bio";
 import { ProfilePaginator } from "@/components/profile/profile-paginator";
 import { ProfileSeriesView } from "@/components/profile/profile-series-view";
-import { ProfileSettingsModal } from "@/components/profile/profile-settings-modal";
-import {
-  ProfileAvatar,
-  ProfileCoverBanner,
-  ProfileHandleRow,
-  ProfilePageGlow,
-} from "@/components/profile/profile-static-header";
 
 /**
  * Bulk-edit toolbar.  Lazy-loaded because only profile owners in
@@ -164,76 +149,33 @@ function Stat({ label, value }: { label: string; value: number }) {
 
 export function GenovaProfileClient({
   profileId,
-  displayName,
-  handle,
-
-  headerIntro,
-  headerToolsLine,
-  bioFull,
-  mainGenre,
-  country,
-  websiteUrl,
-  twitterUrl,
-  instagramUrl,
-  youtubeUrl,
-  tiktokUrl,
-  vimeoUrl,
-  avatarUrl,
-  bannerUrl,
-  joinedLabel,
-  followersCount,
-  followingCount,
   works,
   competitionVideos,
   savedVideos,
   isOwner,
-  showFollow,
-  initialFollowing,
-  profile,
-  userEmail,
-  hasPassword,
-  authProvider,
+  headerSlot,
 }: {
   profileId: string;
-  displayName: string;
-  handle: string;
-  headerIntro: string;
-  headerToolsLine: string;
-  bioFull: string;
-  mainGenre: string | null;
-  country: string | null;
-  websiteUrl: string | null;
-  twitterUrl: string | null;
-  instagramUrl: string | null;
-  youtubeUrl: string | null;
-  tiktokUrl: string | null;
-  vimeoUrl: string | null;
-  avatarUrl: string;
-  bannerUrl: string | null;
-  joinedLabel: string | null;
-  followersCount: number;
-  followingCount: number;
   works: Video[];
   competitionVideos: CompetitionVideo[];
   savedVideos: Video[];
   isOwner: boolean;
-  showFollow: boolean;
-  initialFollowing: boolean;
-  /** Owner-only props (settings modal).  Optional so non-owner routes
-   *  (`/creator/[id]`) can omit them — the modal only mounts when
-   *  `isOwner` is true, at which point these are always supplied by
-   *  the `/profile/[id]` server page. */
-  profile?: Profile;
-  userEmail?: string | null;
-  hasPassword?: boolean;
-  authProvider?: string;
+  /**
+   * Server-rendered profile header (C-2b).  Composed by the route
+   * page (`/profile/[id]/page.tsx`, `/creator/[id]/page.tsx`) via
+   * `<ProfileHeader …/>` and threaded in here.  The header used to
+   * render inline above the tabs row, owning the follow state, the
+   * edit-modal open state, and the entire bio expand state; all of
+   * that now lives inside small client islands the header composes
+   * itself (`ProfileEditPencilTrigger`, `ProfileCtaRow`,
+   * `ProfileBioExpander`), so this shell only owns tab/sort/edit
+   * state for the gallery below.
+   */
+  headerSlot: ReactNode;
 }) {
   const { t } = useI18n();
-  const router = useRouter();
   const { open: openUploadModal } = useUploadModal();
   const { open: openEditModal } = useEditModal();
-  const [pending, startTransition] = useTransition();
-  const [following, setFollowing] = useState(initialFollowing);
   const [activeTab, setActiveTab] = useState<TabKey>("Videos");
   const [sortBy, setSortBy] = useState<"Newest" | "Oldest" | "Most Viewed">("Newest");
   const [editMode, setEditMode] = useState(false);
@@ -244,7 +186,6 @@ export function GenovaProfileClient({
   const [localCompetitionVideos, setLocalCompetitionVideos] = useState<CompetitionVideo[]>(competitionVideos);
   const [bulkSaving, setBulkSaving] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
-  const [editModalOpen, setEditModalOpen] = useState(false);
 
   const tabs = useMemo(() => {
     const base: TabKey[] = ["Videos", "Competition", "Series"];
@@ -313,128 +254,10 @@ export function GenovaProfileClient({
     return { videos: paginated, totalPages };
   }, [sortedVideos, currentPage]);
 
-  const totalVideoCount = useMemo(() => localWorks.length, [localWorks]);
-
-  const onFollowToggle = () => {
-    startTransition(async () => {
-      if (following) {
-        const res = await unfollowUserAction(profileId);
-        if (res.ok) setFollowing(false);
-      } else {
-        const res = await followUserAction(profileId);
-        if (res.ok) setFollowing(true);
-      }
-      router.refresh();
-    });
-  };
-
   return (
     <div className="relative min-h-screen w-full overflow-hidden bg-background text-foreground">
-      <ProfilePageGlow />
       <div className="relative z-10">
-      <div>
-        <ProfileCoverBanner bannerUrl={bannerUrl} />
-
-        <AnimateIn delay={0.05}>
-        <div className="relative z-10 mx-auto w-full max-w-[800px] -mt-60 px-6 pb-2 sm:px-8 md:-mt-72">
-          {/* Edit profile icon moved to name row */}
-          <div className="flex flex-col items-center text-center">
-            <ProfileAvatar avatarUrl={avatarUrl} displayName={displayName} />
-
-            {/* Display name + collab badge + edit icon */}
-            <div className="mt-3 flex flex-wrap items-center justify-center gap-2.5">
-              <h1 className="text-[22px] font-black tracking-tight text-white md:text-[28px]">
-                {displayName}
-              </h1>
-              {/* 협업 가능 뱃지 제거됨 */}
-              {isOwner && (
-                <button
-                  type="button"
-                  onClick={() => setEditModalOpen(true)}
-                  title={t("settings.editProfile", "Edit profile")}
-                  className="inline-flex h-7 w-7 items-center justify-center rounded-full border border-white/[0.08] bg-white/[0.02] text-white/55 transition hover:border-[#7F77DD]/40 hover:text-white"
-                >
-                  <Pencil className="h-3.5 w-3.5" />
-                </button>
-              )}
-            </div>
-
-            <ProfileHandleRow handle={handle} mainGenre={mainGenre} />
-
-            <ProfileBio
-              headerIntro={headerIntro}
-              bioFull={bioFull}
-              headerToolsLine={headerToolsLine}
-              country={country}
-              joinedLabel={joinedLabel}
-              websiteUrl={websiteUrl}
-              twitterUrl={twitterUrl}
-              instagramUrl={instagramUrl}
-              youtubeUrl={youtubeUrl}
-              tiktokUrl={tiktokUrl}
-              vimeoUrl={vimeoUrl}
-            />
-
-            {/* CTA row — message/follow for non-owners */}
-            {!isOwner && (
-              <div className="mt-3 flex items-center justify-center gap-2">
-                <button
-                  type="button"
-                  onClick={() => {
-                    window.dispatchEvent(
-                      new CustomEvent("open-message", {
-                        detail: {
-                          userId: profileId,
-                          displayName: displayName,
-                          avatarUrl: avatarUrl,
-                        },
-                      }),
-                    );
-                  }}
-                  className="flex items-center gap-2 rounded-lg border border-white/15 bg-white/5 px-4 py-2 text-sm transition hover:bg-white/10"
-                >
-                  <MessageCircle className="h-4 w-4" />
-                  {t("profile.message", "Message")}
-                </button>
-                {showFollow && (
-                  <button
-                    type="button"
-                    onClick={onFollowToggle}
-                    disabled={pending}
-                    className={cn(
-                      "flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold transition disabled:opacity-60",
-                      following
-                        ? "border border-white/20 bg-white/5 hover:bg-white/10"
-                        : "bg-[#534AB7] text-white hover:bg-[#6B5FD4]",
-                    )}
-                  >
-                    {following ? <UserCheck className="h-4 w-4" /> : <UserPlus className="h-4 w-4" />}
-                    {following ? t("profile.following", "Following") : t("profile.follow", "Follow")}
-                  </button>
-                )}
-                <button
-                  type="button"
-                  className="rounded-lg border border-white/15 bg-white/5 p-2 transition hover:bg-white/10"
-                >
-                  <MoreHorizontal className="h-4 w-4" />
-                </button>
-              </div>
-            )}
-
-            {/* Stats row */}
-            <div className="mt-4 flex items-center gap-5 md:gap-7">
-              <Stat label={t("profile.videos", "Videos")} value={totalVideoCount} />
-              <div className="h-8 w-px bg-white/[0.08]" />
-              <Stat label={t("profile.followers", "Followers")} value={followersCount} />
-              <div className="h-8 w-px bg-white/[0.08]" />
-              <Stat label={t("profile.followingCountLabel", "Following")} value={followingCount} />
-            </div>
-
-            {/* Achievement showcase — removed for beta, restore later */}
-          </div>
-        </div>
-        </AnimateIn>
-      </div>
+        {headerSlot}
 
       {/* Tabs + grid */}
       <AnimateIn delay={0.1}>
@@ -591,17 +414,8 @@ export function GenovaProfileClient({
       </div>
       </AnimateIn>
 
-      {isOwner && profile ? (
-        <ProfileSettingsModal
-          open={editModalOpen}
-          onClose={() => setEditModalOpen(false)}
-          profile={profile}
-          userEmail={userEmail ?? null}
-          hasPassword={hasPassword ?? false}
-          authProvider={authProvider ?? "email"}
-          handle={handle}
-        />
-      ) : null}
+      {/* ProfileSettingsModal is now mounted inside <ProfileEditPencilTrigger>,
+          which the server-rendered <ProfileHeader> composes for owners. */}
 
       </div>
     </div>

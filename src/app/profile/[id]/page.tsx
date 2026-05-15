@@ -3,6 +3,7 @@ import type { User } from "@supabase/supabase-js";
 import { notFound } from "next/navigation";
 import { AnimateIn } from "@/components/animate-in";
 import { GenovaProfileClient } from "@/components/profile/profile-page-client";
+import { ProfileHeader } from "@/components/profile/profile-header";
 import { mapVideo } from "@/lib/mappers";
 import { profileHandle } from "@/lib/profile-handle";
 import { mergeVideoRows } from "@/lib/queries";
@@ -158,34 +159,46 @@ export default async function ProfileByIdPage({ params }: { params: Promise<{ id
       <AnimateIn delay={0}>
         <GenovaProfileClient
           profileId={id}
-          displayName={displayName}
-          handle={handle}
-          headerIntro={headerIntro}
-          headerToolsLine={headerToolsLine}
-          bioFull={profile.bio}
-          mainGenre={profile.mainGenre}
-          country={profile.country}
-          websiteUrl={profile.websiteUrl}
-          twitterUrl={profile.twitterUrl}
-          instagramUrl={profile.instagramUrl}
-          youtubeUrl={profile.youtubeUrl}
-          tiktokUrl={profile.tiktokUrl}
-          vimeoUrl={profile.vimeoUrl}
-          avatarUrl={avatarUrl}
-          bannerUrl={profile.bannerUrl}
-          joinedLabel={joinedLabel}
-          followersCount={counts.followers}
-          followingCount={counts.following}
           works={works}
           competitionVideos={competitionVideos}
           savedVideos={savedVideos}
           isOwner={isOwner}
-          showFollow={showFollow}
-          initialFollowing={initialFollowing}
-          profile={profile}
-          userEmail={userEmail}
-          hasPassword={hasPassword}
-          authProvider={authProvider}
+          headerSlot={
+            /* C-2b: profile header is now a server component composed
+               here and threaded through the client shell as a slot.
+               videoCount is the server snapshot (works.length); bulk
+               visibility toggles inside the client shell never add or
+               remove items, so the count remains accurate. */
+            <ProfileHeader
+              profileId={id}
+              displayName={displayName}
+              handle={handle}
+              mainGenre={profile.mainGenre}
+              bannerUrl={profile.bannerUrl}
+              avatarUrl={avatarUrl}
+              headerIntro={headerIntro}
+              bioFull={profile.bio}
+              headerToolsLine={headerToolsLine}
+              country={profile.country}
+              joinedLabel={joinedLabel}
+              websiteUrl={profile.websiteUrl}
+              twitterUrl={profile.twitterUrl}
+              instagramUrl={profile.instagramUrl}
+              youtubeUrl={profile.youtubeUrl}
+              tiktokUrl={profile.tiktokUrl}
+              vimeoUrl={profile.vimeoUrl}
+              videoCount={works.length}
+              followersCount={counts.followers}
+              followingCount={counts.following}
+              isOwner={isOwner}
+              showFollow={showFollow}
+              initialFollowing={initialFollowing}
+              profile={profile}
+              userEmail={userEmail}
+              hasPassword={hasPassword}
+              authProvider={authProvider}
+            />
+          }
         />
       </AnimateIn>
     </div>

@@ -1,9 +1,6 @@
-"use client";
-
-import { useState } from "react";
-import { ChevronDown, Globe, Instagram, X, Youtube } from "lucide-react";
-import { useI18n } from "@/components/genova/language-provider";
-import { cn } from "@/lib/utils/cn";
+import { Globe, Instagram, X, Youtube } from "lucide-react";
+import { ProfileBioExpander } from "@/components/profile/profile-bio-expander";
+import { getServerLocale, getServerT } from "@/lib/i18n/server";
 
 type SocialLinkProps = {
   websiteUrl: string | null;
@@ -15,16 +12,16 @@ type SocialLinkProps = {
 };
 
 function SocialLinks({
+  websiteLabel,
   websiteUrl,
   twitterUrl,
   instagramUrl,
   youtubeUrl,
   tiktokUrl,
   vimeoUrl,
-}: SocialLinkProps) {
-  const { t } = useI18n();
+}: SocialLinkProps & { websiteLabel: string }) {
   const links = [
-    { href: websiteUrl, label: t("profile.socialWebsite"), icon: <Globe className="h-4 w-4" /> },
+    { href: websiteUrl, label: websiteLabel, icon: <Globe className="h-4 w-4" /> },
     { href: twitterUrl, label: "X", icon: <X className="h-4 w-4" /> },
     { href: instagramUrl, label: "Instagram", icon: <Instagram className="h-4 w-4" /> },
     { href: youtubeUrl, label: "YouTube", icon: <Youtube className="h-4 w-4" /> },
@@ -83,14 +80,19 @@ type ProfileBioProps = {
 };
 
 /**
- * Bio paragraph + Show more/less toggle + expanded details (tools chips,
- * country, joined date, social links).
+ * Server component (C-2b).  Renders the bio paragraph + the
+ * expand/collapse toggle + the expanded-only block of tools chips,
+ * country / joined meta, and social links.
  *
- * Self-contained `expanded` state — no other shell component reads it,
- * so the local toggle lives here.  Stays `"use client"` only because of
- * `useI18n` (Show more/less labels + the Website social label).
+ * Was a "use client" leaf until C-2b — the only client need was the
+ * expand state, which now lives in `<ProfileBioExpander>` (an
+ * imported client island that swaps between two server-rendered
+ * ReactNode slots).  All translation lookups happen here on the
+ * server via `getServerLocale` / `getServerT`, so the bio renders
+ * with the correct locale on the first byte shipped — no hydration
+ * flash.
  */
-export function ProfileBio({
+export async function ProfileBio({
   headerIntro,
   bioFull,
   headerToolsLine,
@@ -103,31 +105,32 @@ export function ProfileBio({
   tiktokUrl,
   vimeoUrl,
 }: ProfileBioProps) {
-  const { t } = useI18n();
-  const [expanded, setExpanded] = useState(false);
+  const locale = await getServerLocale();
+  const t = getServerT(locale);
+  const websiteLabel = t("profile.socialWebsite", "Website");
 
   const hasMore = Boolean(bioFull && bioFull.length > (headerIntro?.length ?? 0));
+  const collapsedText = headerIntro;
+  const expandedText = bioFull || headerIntro;
 
   return (
-    <>
-      {headerIntro ? (
-        <p className="mt-2 max-w-[520px] text-[13px] leading-relaxed text-white/65">
-          {expanded ? (bioFull || headerIntro) : headerIntro}
-        </p>
-      ) : null}
-
-      {hasMore && (
-        <button
-          type="button"
-          onClick={() => setExpanded((prev) => !prev)}
-          className="mt-2 flex items-center gap-1 text-[12px] font-semibold text-[#AFA9EC] transition hover:text-white"
-        >
-          {expanded ? t("profile.showLess", "Show less") : t("profile.showMore", "Show more")}
-          <ChevronDown className={cn("h-3 w-3 transition-transform", expanded && "rotate-180")} />
-        </button>
-      )}
-
-      {expanded && (
+    <ProfileBioExpander
+      hasMore={hasMore}
+      collapsedView={
+        collapsedText ? (
+          <p className="mt-2 max-w-[520px] text-[13px] leading-relaxed text-white/65">
+            {collapsedText}
+          </p>
+        ) : null
+      }
+      expandedView={
+        collapsedText ? (
+          <p className="mt-2 max-w-[520px] text-[13px] leading-relaxed text-white/65">
+            {expandedText}
+          </p>
+        ) : null
+      }
+      expandedExtras={
         <div className="mt-4 flex flex-col items-center gap-3">
           {headerToolsLine && (
             <div className="flex flex-wrap justify-center gap-1.5">
@@ -146,6 +149,7 @@ export function ProfileBio({
             {joinedLabel ? <span>{joinedLabel}</span> : null}
           </div>
           <SocialLinks
+            websiteLabel={websiteLabel}
             websiteUrl={websiteUrl}
             twitterUrl={twitterUrl}
             instagramUrl={instagramUrl}
@@ -154,7 +158,7 @@ export function ProfileBio({
             vimeoUrl={vimeoUrl}
           />
         </div>
-      )}
-    </>
+      }
+    />
   );
 }
