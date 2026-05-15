@@ -6,137 +6,6 @@ import { useI18n } from "@/components/genova/language-provider";
 import { cn } from "@/lib/utils/cn";
 import { ValuePropCards } from "@/components/landing/value-prop-cards";
 
-type Locale = "en" | "ko" | "ja";
-
-const T: Record<
-  Locale,
-  {
-    nav: { explore: string; start: string };
-    hero: {
-      badge: string;
-      title: string;
-      subtitle: string;
-      desc: string;
-      ctaWatch: string;
-      ctaCreator: string;
-      betaRecruit: string;
-      betaPerk: string;
-    };
-    featured: {
-      label: string;
-      heading: string;
-      viewAll: string;
-      sponsoredBy: string;
-      prize: string;
-      deadline: string;
-      cta: string;
-      comingSoon: string;
-    };
-    cta: {
-      badge: string;
-      heading: string;
-      desc: string;
-      button: string;
-    };
-    footer: {
-      terms: string;
-      privacy: string;
-      business: string;
-    };
-  }
-> = {
-  ko: {
-    nav: { explore: "둘러보기", start: "시작하기" },
-    hero: {
-      badge: "Beta Now Open",
-      title: "The Home of AI Filmmakers",
-      subtitle: "AI 영화의 새로운 무대",
-      desc: "프롬프트 복사가 아닌, 진짜 창작자들의 AI 시네마. 전 세계 크리에이터와 경쟁하고, 작품으로 인정받으세요.",
-      ctaWatch: "작품 보러가기",
-      ctaCreator: "크리에이터로 시작",
-      betaRecruit: "Beta Creator 모집 중",
-      betaPerk: "초기 멤버 한정 혜택",
-    },
-    featured: {
-      label: "✦ Featured Competitions",
-      heading: "지금 진행 중인 공모전",
-      viewAll: "모든 공모전",
-      sponsoredBy: "Sponsored by",
-      prize: "상금",
-      deadline: "마감",
-      cta: "공모전 자세히 보기",
-      comingSoon: "Coming Soon",
-    },
-    cta: {
-      badge: "✦ Join the Movement",
-      heading: "지금 Genova에서 당신의 시네마를",
-      desc: "베타 기간 동안 무료로 모든 기능을 사용하세요.",
-      button: "지금 시작하기",
-    },
-    footer: { terms: "이용약관", privacy: "개인정보처리방침", business: "공모전 의뢰" },
-  },
-  en: {
-    nav: { explore: "Explore", start: "Get Started" },
-    hero: {
-      badge: "Beta Now Open",
-      title: "The Home of AI Filmmakers",
-      subtitle: "A New Stage for AI Cinema",
-      desc: "Not prompt copies — real creators, real AI cinema. Compete with creators worldwide and get recognized for your work.",
-      ctaWatch: "Watch Films",
-      ctaCreator: "Start as Creator",
-      betaRecruit: "Beta Creators Wanted",
-      betaPerk: "Founding member benefits",
-    },
-    featured: {
-      label: "✦ Featured Competitions",
-      heading: "Live Competitions",
-      viewAll: "All Competitions",
-      sponsoredBy: "Sponsored by",
-      prize: "Prize",
-      deadline: "Deadline",
-      cta: "View Competition",
-      comingSoon: "Coming Soon",
-    },
-    cta: {
-      badge: "✦ Join the Movement",
-      heading: "Bring Your Cinema to Genova",
-      desc: "All features free during beta.",
-      button: "Get Started",
-    },
-    footer: { terms: "Terms", privacy: "Privacy", business: "For Brands" },
-  },
-  ja: {
-    nav: { explore: "見る", start: "はじめる" },
-    hero: {
-      badge: "Beta Now Open",
-      title: "The Home of AI Filmmakers",
-      subtitle: "AI映画の新しい舞台",
-      desc: "プロンプトのコピーではなく、本物のクリエイターによるAIシネマ。世界中のクリエイターと競い合い、作品で認められましょう。",
-      ctaWatch: "作品を見る",
-      ctaCreator: "クリエイターとして始める",
-      betaRecruit: "Beta Creator 募集中",
-      betaPerk: "初期メンバー限定特典",
-    },
-    featured: {
-      label: "✦ Featured Competitions",
-      heading: "開催中のコンペティション",
-      viewAll: "すべて見る",
-      sponsoredBy: "Sponsored by",
-      prize: "賞金",
-      deadline: "締切",
-      cta: "詳細を見る",
-      comingSoon: "Coming Soon",
-    },
-    cta: {
-      badge: "✦ Join the Movement",
-      heading: "あなたのシネマをGenovaへ",
-      desc: "ベータ期間中はすべての機能が無料です。",
-      button: "今すぐ始める",
-    },
-    footer: { terms: "利用規約", privacy: "プライバシー", business: "ブランド向け" },
-  },
-};
-
 type FeaturedCompetition = {
   id: string;
   title: string;
@@ -160,8 +29,7 @@ export function LandingClient({
   trendingVideos: TrendingVideo[];
   featuredCompetitions: FeaturedCompetition[];
 }) {
-  const { locale, setLocale } = useI18n();
-  const t = T[(locale as Locale) ?? "ko"] ?? T.ko;
+  const { locale, setLocale, t } = useI18n();
   const dateLocale = locale === "ja" ? "ja-JP" : locale === "en" ? "en-US" : "ko-KR";
 
   return (
@@ -193,10 +61,10 @@ export function LandingClient({
               ))}
             </div>
             <Link href="/" className="hidden text-[12px] font-semibold text-white/55 hover:text-white sm:block px-3 py-1.5">
-              {t.nav.explore}
+              {t("landingPage.nav.explore", "Explore")}
             </Link>
             <Link href="/auth" className="rounded-full bg-white px-4 py-1.5 text-[12px] font-bold text-[#0a0a0a] hover:scale-105 transition">
-              {t.nav.start}
+              {t("landingPage.nav.start", "Get Started")}
             </Link>
           </div>
         </div>
@@ -255,7 +123,7 @@ export function LandingClient({
           <div className="mb-10 text-center">
             <div className="mb-5 inline-flex items-center gap-1.5">
               <span className="text-[10px] font-bold uppercase tracking-[0.25em] text-[#AFA9EC]">
-                ✦ {t.hero.badge}
+                ✦ {t("landingPage.hero.badge", "Beta Now Open")}
               </span>
             </div>
 
@@ -263,15 +131,18 @@ export function LandingClient({
               className="bg-gradient-to-br from-white via-white to-[#AFA9EC] bg-clip-text pb-1 text-[40px] font-black leading-[1.05] tracking-[-0.035em] text-transparent sm:text-[56px]"
               style={{ fontFamily: "var(--font-syne), var(--font-plus-jakarta), sans-serif" }}
             >
-              {t.hero.title}
+              {t("landingPage.hero.title", "The Home of AI Filmmakers")}
             </h1>
 
             <p className="mt-3 text-[14px] font-bold tracking-[-0.01em] text-white/70 sm:text-[15px]">
-              {t.hero.subtitle}
+              {t("landingPage.hero.subtitle", "A New Stage for AI Cinema")}
             </p>
 
             <p className="mx-auto mt-3 max-w-xl text-[13px] leading-relaxed text-white/50">
-              {t.hero.desc}
+              {t(
+                "landingPage.hero.desc",
+                "Not prompt copies — real creators, real AI cinema. Compete with creators worldwide and get recognized for your work.",
+              )}
             </p>
 
             <div className="mt-6 flex flex-wrap justify-center gap-2.5">
@@ -280,13 +151,13 @@ export function LandingClient({
                 className="group inline-flex items-center gap-2 rounded-full bg-white px-5 py-2.5 text-[13px] font-bold text-[#0a0a0a] transition hover:scale-105"
               >
                 <Play className="h-3.5 w-3.5 fill-current" />
-                {t.hero.ctaWatch}
+                {t("landingPage.hero.ctaWatch", "Watch Films")}
               </Link>
               <Link
                 href="/auth"
                 className="group inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/[0.03] px-5 py-2.5 text-[13px] font-bold text-white backdrop-blur-xl transition hover:border-[#7F77DD]/50 hover:bg-[#534AB7]/15"
               >
-                {t.hero.ctaCreator}
+                {t("landingPage.hero.ctaCreator", "Start as Creator")}
                 <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-1" />
               </Link>
             </div>
@@ -297,9 +168,9 @@ export function LandingClient({
                 <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-emerald-400" />
               </div>
               <p className="text-[11px] text-white/50">
-                <span className="font-bold text-white/75">{t.hero.betaRecruit}</span>
+                <span className="font-bold text-white/75">{t("landingPage.hero.betaRecruit", "Beta Creators Wanted")}</span>
                 <span className="mx-1.5 text-white/20">·</span>
-                <span>{t.hero.betaPerk}</span>
+                <span>{t("landingPage.hero.betaPerk", "Founding member benefits")}</span>
               </p>
             </div>
           </div>
@@ -369,21 +240,21 @@ export function LandingClient({
                   <div className="mb-2 flex items-center gap-2">
                     <Award className="h-3 w-3 text-[#7F77DD]" />
                     <p className="text-[10px] font-bold uppercase tracking-[0.25em] text-[#AFA9EC]">
-                      {t.featured.label}
+                      {t("landingPage.featured.label", "✦ Featured Competitions")}
                     </p>
                     <span className="rounded-full border border-emerald-500/40 bg-emerald-500/15 px-2 py-0.5 text-[9px] font-black text-emerald-300">
                       Live
                     </span>
                   </div>
                   <h2 className="text-[24px] font-black tracking-[-0.02em] text-white sm:text-[28px]">
-                    {t.featured.heading}
+                    {t("landingPage.featured.heading", "Live Competitions")}
                   </h2>
                 </div>
                 <Link
                   href="/competition"
                   className="group inline-flex shrink-0 items-center gap-1 text-[12px] font-semibold text-white/50 transition hover:text-white"
                 >
-                  {t.featured.viewAll}
+                  {t("landingPage.featured.viewAll", "All Competitions")}
                   <ArrowRight className="h-3 w-3 transition-transform group-hover:translate-x-0.5" />
                 </Link>
               </div>
@@ -451,7 +322,7 @@ export function LandingClient({
                                 Genova
                               </p>
                               <p className="mt-1 text-[9px] font-bold uppercase tracking-[0.25em] text-white/20">
-                                {t.featured.comingSoon}
+                                {t("landingPage.featured.comingSoon", "Coming Soon")}
                               </p>
                             </div>
                             <div
@@ -483,7 +354,7 @@ export function LandingClient({
                           </h3>
                           {c.sponsor && (
                             <p className="mb-4 text-[12px] text-white/45">
-                              {t.featured.sponsoredBy}{" "}
+                              {t("landingPage.featured.sponsoredBy", "Sponsored by")}{" "}
                               <span className="font-semibold text-white/70">{c.sponsor}</span>
                             </p>
                           )}
@@ -494,7 +365,7 @@ export function LandingClient({
                                 <div className="mb-1 flex items-center gap-1.5">
                                   <Trophy className="h-3 w-3 text-emerald-400" />
                                   <p className="text-[9px] font-bold uppercase tracking-wider text-emerald-300">
-                                    {t.featured.prize}
+                                    {t("landingPage.featured.prize", "Prize")}
                                   </p>
                                 </div>
                                 <p className="text-[15px] font-black text-white">{c.prizeInfo}</p>
@@ -505,7 +376,7 @@ export function LandingClient({
                                 <div className="mb-1 flex items-center gap-1.5">
                                   <Calendar className="h-3 w-3 text-[#AFA9EC]" />
                                   <p className="text-[9px] font-bold uppercase tracking-wider text-white/50">
-                                    {t.featured.deadline}
+                                    {t("landingPage.featured.deadline", "Deadline")}
                                   </p>
                                 </div>
                                 <p className="text-[14px] font-black text-white">
@@ -520,7 +391,7 @@ export function LandingClient({
                         </div>
 
                         <div className="inline-flex items-center gap-2 text-[13px] font-bold text-white transition group-hover:text-[#AFA9EC]">
-                          {t.featured.cta}
+                          {t("landingPage.featured.cta", "View Competition")}
                           <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
                         </div>
                       </div>
@@ -547,19 +418,19 @@ export function LandingClient({
             <div className="relative flex flex-col items-start justify-between gap-5 sm:flex-row sm:items-center">
               <div>
                 <p className="mb-2 text-[10px] font-bold uppercase tracking-[0.25em] text-[#AFA9EC]">
-                  {t.cta.badge}
+                  {t("landingPage.cta.badge", "✦ Join the Movement")}
                 </p>
                 <h2 className="text-[24px] font-black tracking-[-0.02em] text-white sm:text-[32px]">
-                  {t.cta.heading}
+                  {t("landingPage.cta.heading", "Bring Your Cinema to Genova")}
                 </h2>
-                <p className="mt-1.5 text-[13px] text-white/50">{t.cta.desc}</p>
+                <p className="mt-1.5 text-[13px] text-white/50">{t("landingPage.cta.desc", "All features free during beta.")}</p>
               </div>
               <div className="flex shrink-0 gap-2">
                 <Link
                   href="/auth"
                   className="group inline-flex items-center gap-2 rounded-full bg-white px-6 py-3 text-[13px] font-bold text-[#0a0a0a] transition hover:scale-105"
                 >
-                  {t.cta.button}
+                  {t("landingPage.cta.button", "Get Started")}
                   <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
                 </Link>
               </div>
@@ -574,13 +445,13 @@ export function LandingClient({
           <p>© 2026 Genova</p>
           <div className="flex gap-5">
             <Link href="/terms" className="hover:text-white/55">
-              {t.footer.terms}
+              {t("landingPage.footer.terms", "Terms")}
             </Link>
             <Link href="/privacy" className="hover:text-white/55">
-              {t.footer.privacy}
+              {t("landingPage.footer.privacy", "Privacy")}
             </Link>
             <Link href="/business" className="hover:text-white/55">
-              {t.footer.business}
+              {t("landingPage.footer.business", "For Brands")}
             </Link>
           </div>
         </div>

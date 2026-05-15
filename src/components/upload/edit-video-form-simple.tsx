@@ -167,7 +167,7 @@ export function EditVideoFormSimple({ video, userId, competitions, activeCompeti
         return;
       }
 
-      toast.success(t("edit.success.save", "저장 완료"));
+      toast.success(t("editVideo.successSave", "Saved"));
       if (onSubmitted) {
         router.refresh();
         onSubmitted();
@@ -188,7 +188,7 @@ export function EditVideoFormSimple({ video, userId, competitions, activeCompeti
         toast.error(result.message);
         return;
       }
-      toast.success(t("edit.success.delete", "삭제 완료"));
+      toast.success(t("editVideo.successDelete", "Deleted"));
       if (onSubmitted) {
         router.refresh();
         onSubmitted();
@@ -214,7 +214,7 @@ export function EditVideoFormSimple({ video, userId, competitions, activeCompeti
       <div className="grid gap-4 sm:grid-cols-[2fr_1fr]">
         <div>
           <label className="mb-2 block text-[12px] font-bold uppercase tracking-[0.18em] text-white/70">
-            {t("edit.video", "영상")}
+            {t("editVideo.video", "Video")}
           </label>
           <div className="relative aspect-video w-full overflow-hidden rounded-xl border border-white/[0.08] bg-black">
             {video.mux_playback_id ? (
@@ -230,13 +230,13 @@ export function EditVideoFormSimple({ video, userId, competitions, activeCompeti
             )}
           </div>
           <p className="mt-2 text-[11px] text-white/40">
-            {t("edit.videoLocked", "영상은 변경할 수 없습니다")}
+            {t("editVideo.videoLocked", "Video cannot be changed")}
           </p>
         </div>
 
         <div>
           <label className="mb-2 flex items-center justify-between text-[12px] font-bold uppercase tracking-[0.18em] text-white/70">
-            <span>{t("edit.thumbnail", "썸네일")}</span>
+            <span>{t("editVideo.thumbnail", "Thumbnail")}</span>
           </label>
           {thumbnailPreview ? (
             <div className="relative aspect-video w-full overflow-hidden rounded-xl border border-white/[0.08]">
@@ -258,7 +258,7 @@ export function EditVideoFormSimple({ video, userId, competitions, activeCompeti
             <label className="flex aspect-video w-full cursor-pointer flex-col items-center justify-center gap-2 rounded-xl border border-dashed border-white/[0.1] bg-white/[0.02] transition hover:border-white/[0.2] hover:bg-white/[0.04]">
               <UploadIcon className="h-5 w-5 text-white/40" />
               <span className="text-center text-[11px] text-white/45">
-                {t("edit.thumbnailHint", "클릭하여 업로드")}
+                {t("editVideo.thumbnailHint", "Click to upload")}
               </span>
               <input type="file" accept="image/*" className="hidden" onChange={handleThumbnailChange} />
             </label>
@@ -269,7 +269,7 @@ export function EditVideoFormSimple({ video, userId, competitions, activeCompeti
       {/* 2. Title */}
       <div>
         <label className="mb-2 block text-[12px] font-bold uppercase tracking-[0.18em] text-white/70">
-          {t("edit.title", "제목")} <span className="text-red-400">*</span>
+          {t("editVideo.title", "Title")} <span className="text-red-400">*</span>
         </label>
         <input
           type="text"
@@ -283,11 +283,11 @@ export function EditVideoFormSimple({ video, userId, competitions, activeCompeti
       {/* 3. Genre */}
       <div>
         <label className="mb-2 flex items-center gap-2 text-[12px] font-bold uppercase tracking-[0.18em] text-white/70">
-          <span>{t("edit.genre", "장르")} <span className="text-red-400">*</span></span>
+          <span>{t("editVideo.genre", "Genre")} <span className="text-red-400">*</span></span>
           {genreLocked && (
             <span className="inline-flex items-center gap-1 text-[10px] font-normal normal-case tracking-normal text-white/40">
               <Lock className="h-3 w-3" />
-              {t("edit.genreLocked", "변경 불가")}
+              {t("editVideo.genreLocked", "Locked")}
             </span>
           )}
         </label>
@@ -321,7 +321,7 @@ export function EditVideoFormSimple({ video, userId, competitions, activeCompeti
           <span>{t("uploadSimple.purpose")}</span>
           <span className="inline-flex items-center gap-1 text-[10px] font-normal normal-case tracking-normal text-white/40">
             <Lock className="h-3 w-3" />
-            {t("edit.purposeLocked", "변경 불가")}
+            {t("editVideo.purposeLocked", "Locked")}
           </span>
         </label>
         <div className="grid grid-cols-2 gap-3">
@@ -380,7 +380,7 @@ export function EditVideoFormSimple({ video, userId, competitions, activeCompeti
       {/* 5. Visibility */}
       <div>
         <label className="mb-2 block text-[12px] font-bold uppercase tracking-[0.18em] text-white/70">
-          {t("edit.visibility", "공개 범위")}
+          {t("editVideo.visibility", "Visibility")}
         </label>
         <div className="grid grid-cols-2 gap-3">
           <button
@@ -393,7 +393,7 @@ export function EditVideoFormSimple({ video, userId, competitions, activeCompeti
                 : "border-white/[0.08] bg-white/[0.02] text-white/55 hover:border-white/[0.15]",
             )}
           >
-            🌐 {t("edit.visibility.public", "공개")}
+            🌐 {t("editVideo.visibilityPublic", "Public")}
           </button>
           <button
             type="button"
@@ -405,7 +405,7 @@ export function EditVideoFormSimple({ video, userId, competitions, activeCompeti
                 : "border-white/[0.08] bg-white/[0.02] text-white/55 hover:border-white/[0.15]",
             )}
           >
-            🔒 {t("edit.visibility.private", "비공개")}
+            🔒 {t("editVideo.visibilityPrivate", "Private")}
           </button>
         </div>
       </div>
@@ -598,7 +598,7 @@ export function EditVideoFormSimple({ video, userId, competitions, activeCompeti
           className="inline-flex items-center gap-1.5 rounded-xl border border-red-500/30 bg-red-500/[0.06] px-4 py-2.5 text-[12px] font-bold text-red-400 transition hover:border-red-500/50 hover:bg-red-500/[0.1]"
         >
           <Trash2 className="h-3.5 w-3.5" />
-          {t("edit.delete", "삭제")}
+          {t("editVideo.delete", "Delete")}
         </button>
         <button
           type="submit"
@@ -610,7 +610,7 @@ export function EditVideoFormSimple({ video, userId, competitions, activeCompeti
               : "cursor-not-allowed bg-white/[0.06] text-white/30",
           )}
         >
-          {isSaving ? t("edit.saving", "저장 중...") : t("edit.save", "저장")}
+          {isSaving ? t("editVideo.saving", "Saving...") : t("editVideo.save", "Save")}
         </button>
       </div>
 
@@ -627,11 +627,11 @@ export function EditVideoFormSimple({ video, userId, competitions, activeCompeti
             <div className="mb-3 flex items-center gap-2 text-red-400">
               <AlertTriangle className="h-5 w-5" />
               <h3 className="text-[16px] font-bold">
-                {t("edit.confirmDelete.title", "영상을 삭제하시겠습니까?")}
+                {t("editVideo.confirmDeleteTitle", "Delete this video?")}
               </h3>
             </div>
             <p className="mb-5 text-[13px] text-white/55">
-              {t("edit.confirmDelete.desc", "삭제 후에는 복구할 수 없습니다. 댓글과 좋아요도 모두 사라집니다.")}
+              {t("editVideo.confirmDeleteDesc", "This cannot be undone. All comments and likes will also be removed.")}
             </p>
             <div className="flex items-center justify-end gap-2">
               <button
@@ -639,7 +639,7 @@ export function EditVideoFormSimple({ video, userId, competitions, activeCompeti
                 onClick={() => setConfirmDelete(false)}
                 className="rounded-xl border border-white/[0.08] bg-white/[0.02] px-4 py-2 text-[13px] font-bold text-white/80 transition hover:bg-white/[0.06]"
               >
-                {t("edit.confirmDelete.cancel", "취소")}
+                {t("editVideo.confirmDeleteCancel", "Cancel")}
               </button>
               <button
                 type="button"
@@ -648,8 +648,8 @@ export function EditVideoFormSimple({ video, userId, competitions, activeCompeti
                 className="rounded-xl bg-red-500 px-4 py-2 text-[13px] font-bold text-white transition hover:bg-red-600 disabled:opacity-50"
               >
                 {isDeleting
-                  ? t("edit.confirmDelete.deleting", "삭제 중...")
-                  : t("edit.confirmDelete.confirm", "삭제")}
+                  ? t("editVideo.confirmDeleteDeleting", "Deleting...")
+                  : t("editVideo.confirmDeleteConfirm", "Delete")}
               </button>
             </div>
           </div>

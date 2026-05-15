@@ -14,22 +14,22 @@ export function WatchMoreMenu({ videoId }: { videoId: string }) {
   // Must match the inline literal unions in
   // `createVideoReportAction(...)` (src/app/actions/reports.ts).
   const scopeOptions = [
-    { value: "video", label: t("report.scope.video", "영상") },
-    { value: "audio", label: t("report.scope.audio", "오디오") },
-    { value: "thumbnail", label: t("report.scope.thumbnail", "썸네일") },
-    { value: "caption", label: t("report.scope.caption", "자막") },
-    { value: "comment", label: t("report.scope.comment", "댓글 영역") },
+    { value: "video", label: t("watchMore.scope.video", "Video") },
+    { value: "audio", label: t("watchMore.scope.audio", "Audio") },
+    { value: "thumbnail", label: t("watchMore.scope.thumbnail", "Thumbnail") },
+    { value: "caption", label: t("watchMore.scope.caption", "Captions") },
+    { value: "comment", label: t("watchMore.scope.comment", "Comments") },
   ] as const;
 
   const reasonOptions = [
-    { value: "spam", label: t("report.reason.spam", "스팸/사기") },
-    { value: "copyright", label: t("report.reason.copyright", "저작권 침해") },
-    { value: "harassment", label: t("report.reason.harassment", "괴롭힘") },
-    { value: "sexual", label: t("report.reason.sexual", "성적 콘텐츠") },
-    { value: "violence", label: t("report.reason.violence", "폭력") },
-    { value: "hate", label: t("report.reason.hate", "혐오 발언") },
-    { value: "misinfo", label: t("report.reason.misinfo", "허위 정보") },
-    { value: "other", label: t("report.reason.other", "기타") },
+    { value: "spam", label: t("watchMore.reason.spam", "Spam / scam") },
+    { value: "copyright", label: t("watchMore.reason.copyright", "Copyright infringement") },
+    { value: "harassment", label: t("watchMore.reason.harassment", "Harassment") },
+    { value: "sexual", label: t("watchMore.reason.sexual", "Sexual content") },
+    { value: "violence", label: t("watchMore.reason.violence", "Violence") },
+    { value: "hate", label: t("watchMore.reason.hate", "Hate speech") },
+    { value: "misinfo", label: t("watchMore.reason.misinfo", "Misinformation") },
+    { value: "other", label: t("watchMore.reason.other", "Other") },
   ] as const;
 
   type ReportScope = (typeof scopeOptions)[number]["value"];
@@ -93,7 +93,7 @@ export function WatchMoreMenu({ videoId }: { videoId: string }) {
             className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm text-red-400 hover:bg-white/5 transition"
           >
             <Flag className="h-4 w-4" />
-            {t("watch.report")}
+            {t("watchMore.report", "Report")}
           </button>
         </div>
       ) : null}
@@ -106,17 +106,17 @@ export function WatchMoreMenu({ videoId }: { videoId: string }) {
             <div className="mb-4 flex items-center gap-2">
               <AlertTriangle className="h-5 w-5 text-amber-400" />
               <h3 className="text-[16px] font-bold text-white">
-                {t("report.title", "신고하기")}
+                {t("watchMore.report.title", "Report")}
               </h3>
             </div>
 
             <p className="mb-5 text-[13px] text-white/55">
-              {t("report.description", "신고 범위와 사유를 선택해주세요")}
+              {t("watchMore.report.description", "Select what you're reporting and why")}
             </p>
 
             <div className="mb-4">
               <label className="mb-1.5 block text-[11px] font-bold uppercase tracking-[0.18em] text-white/55">
-                {t("report.scope.label", "신고 범위")}
+                {t("watchMore.scope.label", "What are you reporting?")}
               </label>
               <select
                 value={scope}
@@ -133,7 +133,7 @@ export function WatchMoreMenu({ videoId }: { videoId: string }) {
 
             <div className="mb-4">
               <label className="mb-1.5 block text-[11px] font-bold uppercase tracking-[0.18em] text-white/55">
-                {t("report.reason.label", "신고 사유")}
+                {t("watchMore.reason.label", "Reason")}
               </label>
               <select
                 value={reason}
@@ -150,9 +150,9 @@ export function WatchMoreMenu({ videoId }: { videoId: string }) {
 
             <div className="mb-5">
               <label className="mb-1.5 block text-[11px] font-bold uppercase tracking-[0.18em] text-white/55">
-                {t("report.detail.label", "상세 내용")}
+                {t("watchMore.detail.label", "Additional details")}
                 <span className="ml-1 text-[10px] font-normal normal-case tracking-normal text-white/35">
-                  ({t("report.detail.optional", "선택")})
+                  ({t("watchMore.detail.optional", "optional")})
                 </span>
               </label>
               <textarea
@@ -160,7 +160,7 @@ export function WatchMoreMenu({ videoId }: { videoId: string }) {
                 onChange={(e) => setDetail(e.target.value)}
                 rows={4}
                 maxLength={1000}
-                placeholder={t("report.detail.placeholder", "추가로 알려주실 내용이 있다면 작성해주세요")}
+                placeholder={t("watchMore.detail.placeholder", "Tell us anything else that would help")}
                 className="w-full resize-none rounded-lg border border-white/[0.08] bg-white/[0.02] px-3 py-2.5 text-[13px] text-white placeholder:text-white/30 outline-none focus:border-[#7F77DD]/40"
               />
             </div>
@@ -172,7 +172,7 @@ export function WatchMoreMenu({ videoId }: { videoId: string }) {
                 className="rounded-lg border border-white/[0.08] bg-white/[0.02] px-4 py-2 text-[13px] font-bold text-white/80 transition hover:bg-white/[0.06]"
                 disabled={pending}
               >
-                {t("report.cancel", "취소")}
+                {t("watchMore.cancel", "Cancel")}
               </button>
               <button
                 type="button"
@@ -186,12 +186,12 @@ export function WatchMoreMenu({ videoId }: { videoId: string }) {
                   }
                   setReportOpen(false);
                   setDetail("");
-                  alert(t("watch.reportThanks"));
+                  alert(t("watchMore.reportThanks", "Thanks for your report. We'll review it shortly."));
                 }}
                 className="rounded-lg bg-red-500 px-4 py-2 text-[13px] font-bold text-white transition hover:bg-red-600 disabled:opacity-50"
                 disabled={pending}
               >
-                {pending ? t("report.submitting", "제출 중...") : t("report.submit", "신고 제출")}
+                {pending ? t("watchMore.submitting", "Submitting...") : t("watchMore.submit", "Submit report")}
               </button>
             </div>
           </div>
