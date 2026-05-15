@@ -65,8 +65,9 @@ export function SlimSidebar({ onOpenChat, unreadMessageCount = 0 }: SlimSidebarP
   const [showNotifications, setShowNotifications] = useState(false);
   const [showLang, setShowLang] = useState(false);
   const [notifications, setNotifications] = useState<NotificationRow[]>([]);
-  // 사이드바 응모권 칸 — 로그인 사용자의 이번 달 잔여 응모권.
-  const [lotteryRemaining, setLotteryRemaining] = useState<number | null>(null);
+  // 사이드바 응모권 칸 — 이번 달 발급/사용한 응모권 수(0→5 채워짐).
+  // 프로필/업로드의 LotteryCounter 와 동일하게 used 기준으로 통일.
+  const [lotteryUsed, setLotteryUsed] = useState<number | null>(null);
 
   const notifBtnRef = useRef<HTMLButtonElement>(null);
   const notifPanelRef = useRef<HTMLDivElement>(null);
@@ -198,7 +199,7 @@ export function SlimSidebar({ onOpenChat, unreadMessageCount = 0 }: SlimSidebarP
   // current_month_ticket_counts 뷰(RLS 본인 클립)를 읽음.
   useEffect(() => {
     if (!userId) {
-      setLotteryRemaining(null);
+      setLotteryUsed(null);
       return;
     }
     let cancelled = false;
@@ -206,10 +207,8 @@ export function SlimSidebar({ onOpenChat, unreadMessageCount = 0 }: SlimSidebarP
       .then((r) => (r.ok ? r.json() : null))
       .then((d) => {
         if (cancelled) return;
-        const remaining = d?.count?.remaining;
-        setLotteryRemaining(
-          typeof remaining === "number" ? remaining : null,
-        );
+        const total = d?.count?.total;
+        setLotteryUsed(typeof total === "number" ? total : null);
       })
       .catch(() => {});
     return () => {
@@ -376,9 +375,9 @@ export function SlimSidebar({ onOpenChat, unreadMessageCount = 0 }: SlimSidebarP
             <span className="max-w-[64px] whitespace-nowrap text-center text-[9px] font-semibold uppercase tracking-wider">
               {t("nav.lottery", "응모권")}
             </span>
-            {lotteryRemaining !== null ? (
+            {lotteryUsed !== null ? (
               <span className="text-[9px] font-bold tabular-nums text-[#AFA9EC]/80">
-                {lotteryRemaining}
+                {lotteryUsed}
                 <span className="font-normal text-white/30">/5</span>
               </span>
             ) : null}
