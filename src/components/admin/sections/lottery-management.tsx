@@ -8,6 +8,7 @@ import {
   triggerCompetitionDrawAction,
   markWinnerInfoVerifiedAction,
   markWinnerInfoPaidAction,
+  exportLotteryWinnersCsvAction,
 } from "@/app/actions/lottery-admin";
 import { adminTokens } from "@/lib/admin-styles";
 import { cn } from "@/lib/utils/cn";
@@ -150,9 +151,8 @@ function CompetitionRow({
             type="button"
             onClick={onDraw}
             disabled={pending || c.entryCount === 0}
-            className={cn(
-              "h-7 rounded-md bg-[#7F77DD] px-3 text-[11px] font-bold text-white transition hover:bg-[#9089E6] disabled:opacity-50",
-            )}
+            // G7: admin token 통일 — Draw 는 primary action (솔리드 화이트).
+            className={cn(adminTokens.buttonPrimary, "h-7 px-3 text-[11px] disabled:opacity-50")}
           >
             {pending ? "Drawing…" : "Draw"}
           </button>
@@ -204,9 +204,39 @@ function WinnersSection({
   const [filter, setFilter] = useState<
     "all" | "pending" | "submitted" | "confirmed" | "paid" | "expired"
   >("all");
+  const [exporting, setExporting] = useState(false);
   const filtered = winners.filter((w) =>
     filter === "all" ? true : w.claimStatus === filter,
   );
+
+  // G6: download a CSV of all winners + their submitted info via a
+  // service-role read.  Triggered client-side, but the data lookup
+  // runs in the server action so RLS / admin gate are honored.  The
+  // resulting Blob is offered to the browser via a hidden <a>.
+  const handleExport = async () => {
+    setExporting(true);
+    try {
+      const res = await exportLotteryWinnersCsvAction();
+      if (!res.ok) {
+        onMessage(`Export failed: ${res.message}`);
+        return;
+      }
+      const blob = new Blob([res.csv], { type: "text/csv;charset=utf-8;" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = res.filename;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+      onMessage("Winner CSV downloaded.");
+    } catch (e) {
+      onMessage(e instanceof Error ? `Export failed: ${e.message}` : "Export failed.");
+    } finally {
+      setExporting(false);
+    }
+  };
 
   return (
     <section className="rounded-xl border border-white/[0.06] bg-white/[0.02] px-4 py-4">
@@ -214,18 +244,29 @@ function WinnersSection({
         <h3 className={adminTokens.sectionHeader}>
           Winners ({winners.length})
         </h3>
-        <select
-          value={filter}
-          onChange={(e) => setFilter(e.target.value as typeof filter)}
-          className="rounded-md border border-white/[0.08] bg-white/[0.02] px-2 py-1 text-[11px] text-white/80"
-        >
-          <option value="all">All</option>
-          <option value="pending">Pending</option>
-          <option value="submitted">Submitted</option>
-          <option value="confirmed">Confirmed</option>
-          <option value="paid">Paid</option>
-          <option value="expired">Expired</option>
-        </select>
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={handleExport}
+            disabled={exporting || winners.length === 0}
+            className={cn(adminTokens.buttonSecondary, "h-8 px-3 text-[11px] disabled:opacity-40")}
+            title="Download winners + submitted info as CSV (PII — handle carefully)"
+          >
+            {exporting ? "Exporting..." : "Export CSV"}
+          </button>
+          <select
+            value={filter}
+            onChange={(e) => setFilter(e.target.value as typeof filter)}
+            className="rounded-md border border-white/[0.08] bg-white/[0.02] px-2 py-1 text-[11px] text-white/80"
+          >
+            <option value="all">All</option>
+            <option value="pending">Pending</option>
+            <option value="submitted">Submitted</option>
+            <option value="confirmed">Confirmed</option>
+            <option value="paid">Paid</option>
+            <option value="expired">Expired</option>
+          </select>
+        </div>
       </header>
       {filtered.length === 0 ? (
         <p className="text-[12px] text-white/45">

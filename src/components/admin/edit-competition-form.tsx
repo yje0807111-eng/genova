@@ -150,18 +150,19 @@ export function EditCompetitionForm({ competition }: { competition: any }) {
                   {message}
                 </p>
               )}
+              {/* G7: admin token 통일 — Linear/Vercel 스타일.
+                  primary = 솔리드 화이트, secondary = ghost border. */}
               <button
                 type="button"
                 onClick={() => router.push("/admin")}
-                className="rounded-lg border border-white/[0.08] px-4 py-2 text-xs text-white/35 transition hover:text-white"
+                className={cn(adminTokens.buttonSecondary, "h-9 px-4 text-[12px]")}
               >
                 ← 돌아가기
               </button>
               <button
                 type="submit"
                 disabled={loading}
-                className="rounded-xl px-5 py-2 text-xs font-bold text-white transition hover:opacity-90 disabled:opacity-50"
-                style={{ background: "linear-gradient(135deg, #534AB7 0%, #7B6FE8 100%)" }}
+                className={cn(adminTokens.buttonPrimary, "h-9 px-5 text-[12px] disabled:opacity-50")}
               >
                 {loading ? "저장 중..." : "저장 →"}
               </button>

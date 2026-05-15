@@ -377,3 +377,134 @@ async function dispatchWinnerNotifications(
     }
   }
 }
+
+/* -----------------------------------------------------------------
+ * G6: CSV export of the winner work queue.
+ *
+ * Operators need to hand winner + payout info to accounting / tax
+ * teams, and the admin table doesn't expose every field in a
+ * spreadsheet-friendly form.  This action joins competition_winners
+ * + winner_info + competitions + public_profiles and returns the
+ * data as a CSV string the browser downloads as a Blob.
+ *
+ * Security:
+ *   - admin-gated via requireAdminWithService()
+ *   - claim_token deliberately EXCLUDED per CLAUDE.md security
+ *     policy (#7) — the token is URL-only.
+ *   - includes paymentEmail / legalName / paymentReference which
+ *     ARE the operational point of the export (accounting needs
+ *     them).  Treat the resulting file as PII.
+ * ---------------------------------------------------------------*/
+
+export async function exportLotteryWinnersCsvAction(): Promise<
+  | { ok: true; csv: string; filename: string }
+  | { ok: false; message: string }
+> {
+  const auth = await requireAdminWithService();
+  if ("error" in auth) return { ok: false, message: auth.error };
+  const { service } = auth;
+
+  const { data: winners, error } = await service
+    .from("competition_winners")
+    .select(
+      "id, competition_id, user_id, prize_tier, prize_amount_usd, claim_status, drawn_at, info_deadline, notified_at",
+    )
+    .neq("claim_status", "invalidated")
+    .order("drawn_at", { ascending: false });
+  if (error) return { ok: false, message: error.message };
+  if (!winners || winners.length === 0) {
+    return { ok: false, message: "No winners to export." };
+  }
+
+  const winnerIds = winners.map((w) => w.id as string);
+  const userIds = [...new Set(winners.map((w) => w.user_id as string))];
+  const compIds = [...new Set(winners.map((w) => w.competition_id as string))];
+
+  const [infoRes, profileRes, compRes] = await Promise.all([
+    service.from("winner_info").select("*").in("winner_id", winnerIds),
+    service.from("public_profiles").select("id, display_name").in("id", userIds),
+    service.from("competitions").select("id, title").in("id", compIds),
+  ]);
+
+  const infoMap = new Map(
+    (infoRes.data ?? []).map((r) => [r.winner_id as string, r as Record<string, unknown>]),
+  );
+  const profileMap = new Map(
+    (profileRes.data ?? []).map((p) => [p.id as string, (p.display_name as string | null) ?? ""]),
+  );
+  const compMap = new Map(
+    (compRes.data ?? []).map((c) => [c.id as string, (c.title as string) ?? ""]),
+  );
+
+  // CSV-safe escape: wrap in quotes + double internal quotes.
+  // Conservative — we wrap every field, never depend on the value
+  // being "safe".
+  const esc = (v: unknown): string => {
+    if (v === null || v === undefined) return "";
+    return `"${String(v).replace(/"/g, '""')}"`;
+  };
+
+  const headers = [
+    "winner_id",
+    "competition_title",
+    "competition_id",
+    "user_id",
+    "display_name",
+    "prize_tier",
+    "prize_amount_usd",
+    "claim_status",
+    "drawn_at",
+    "info_deadline",
+    "notified_at",
+    "legal_name",
+    "country",
+    "contact_extra",
+    "payment_method",
+    "payment_email",
+    "payment_currency",
+    "submitted_at",
+    "admin_verified",
+    "admin_verified_at",
+    "admin_notes",
+    "paid_at",
+    "payment_reference",
+  ];
+
+  const rows = winners.map((w) => {
+    const winnerId = w.id as string;
+    const info = infoMap.get(winnerId) ?? {};
+    return [
+      winnerId,
+      compMap.get(w.competition_id as string) ?? "",
+      w.competition_id,
+      w.user_id,
+      profileMap.get(w.user_id as string) ?? "",
+      w.prize_tier,
+      w.prize_amount_usd,
+      w.claim_status,
+      w.drawn_at,
+      w.info_deadline,
+      (w as Record<string, unknown>).notified_at ?? "",
+      info.legal_name ?? "",
+      info.country ?? "",
+      info.contact_extra ?? "",
+      info.payment_method ?? "",
+      info.payment_email ?? "",
+      info.payment_currency ?? "",
+      info.submitted_at ?? "",
+      info.admin_verified ?? "",
+      info.admin_verified_at ?? "",
+      info.admin_notes ?? "",
+      info.paid_at ?? "",
+      info.payment_reference ?? "",
+    ];
+  });
+
+  const csv = [
+    headers.map(esc).join(","),
+    ...rows.map((r) => r.map(esc).join(",")),
+  ].join("\n");
+
+  const stamp = new Date().toISOString().replace(/[:.]/g, "-");
+  return { ok: true, csv, filename: `lottery-winners-${stamp}.csv` };
+}
