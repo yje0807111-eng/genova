@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { ExternalLink, EyeOff, Star, Trophy } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
@@ -7,6 +8,9 @@ import { setVideoAwardAction, setVideoFinalistAction, type CompetitionSubmission
 import { deleteVideoAction, updateVideoVisibilityAction } from "@/app/actions/video";
 import { adminTokens } from "@/lib/admin-styles";
 import { cn } from "@/lib/utils/cn";
+
+// 공모전 수상 등급 — trophies-admin 의 COMPETITION_AWARDS 와 일치.
+const AWARD_GRADES = ["대상", "금상", "은상", "입선", "장려상"] as const;
 
 function formatRelativeTime(date: string | Date) {
   const diff = Date.now() - new Date(date).getTime();
@@ -33,15 +37,23 @@ export function CompetitionSubmissionRow({
   onToggleFeatured: (compId: string, videoId: string, currentFeatured: boolean) => void;
   onRunVideoAction: (compId: string, fn: () => Promise<{ ok: boolean; message?: string }>) => Promise<void>;
 }) {
+  const [awardMenuOpen, setAwardMenuOpen] = useState(false);
+
+  const applyAward = (grade: string) => {
+    setAwardMenuOpen(false);
+    void onRunVideoAction(compId, () => setVideoAwardAction(video.id, grade));
+  };
+
   return (
     <div
       className={cn(
-        "group flex flex-wrap items-center gap-2 rounded-md px-2.5 py-2 transition sm:flex-nowrap sm:gap-3",
+        "group rounded-md transition",
         video.is_competition_featured
           ? "border border-[#7F77DD]/30 bg-[#7F77DD]/[0.05]"
           : "border border-white/[0.04] bg-white/[0.01] hover:border-white/[0.08] hover:bg-white/[0.03]",
       )}
     >
+      <div className="flex flex-wrap items-center gap-2 px-2.5 py-2 sm:flex-nowrap sm:gap-3">
       <div className="relative h-10 w-[72px] shrink-0 overflow-hidden rounded">
         {video.thumbnail_url?.trim() ? (
           <Image src={video.thumbnail_url} alt="" fill sizes="72px" className="object-cover" />
@@ -111,12 +123,18 @@ export function CompetitionSubmissionRow({
         <button
           type="button"
           disabled={loading}
-          onClick={() =>
-            void onRunVideoAction(compId, () => setVideoAwardAction(video.id, video.award ? "" : "대상"))
-          }
-          className={cn(adminTokens.buttonGhost, "inline-flex h-7 items-center gap-1 px-2 text-[10px]")}
+          onClick={() => setAwardMenuOpen((v) => !v)}
+          className={cn(
+            "inline-flex h-7 items-center gap-1 rounded-md px-2 text-[10px] font-medium transition",
+            video.award
+              ? "border border-amber-400/30 bg-amber-400/15 text-amber-300 hover:bg-amber-400/25"
+              : "text-white/50 hover:bg-white/[0.06] hover:text-white/80",
+            awardMenuOpen && "bg-white/[0.06] text-white/80",
+          )}
+          title="수상 등급 지정"
         >
-          <Trophy size={11} /> Set Award
+          <Trophy size={11} />
+          {video.award ? video.award : "트로피"}
         </button>
         <button
           type="button"
@@ -148,6 +166,42 @@ export function CompetitionSubmissionRow({
           삭제
         </button>
       </div>
+      </div>
+
+      {/* 수상 등급 inline 펼침 — absolute 드롭다운은 스크롤
+          컨테이너(max-h overflow-y-auto)에 잘려서, 일반 흐름 줄로
+          펼친다.  overflow 와 무관하게 항상 보임. */}
+      {awardMenuOpen ? (
+        <div className="flex flex-wrap items-center gap-1.5 border-t border-white/[0.06] px-2.5 py-2">
+          <span className="mr-1 text-[10px] text-white/40">수상 등급</span>
+          {AWARD_GRADES.map((grade) => (
+            <button
+              key={grade}
+              type="button"
+              disabled={loading}
+              onClick={() => applyAward(grade)}
+              className={cn(
+                "h-7 rounded-md px-2.5 text-[11px] font-medium transition",
+                video.award === grade
+                  ? "border border-amber-400/40 bg-amber-400/20 text-amber-300"
+                  : "border border-white/[0.08] bg-white/[0.02] text-white/60 hover:bg-white/[0.06] hover:text-white/90",
+              )}
+            >
+              {grade}
+            </button>
+          ))}
+          {video.award ? (
+            <button
+              type="button"
+              disabled={loading}
+              onClick={() => applyAward("")}
+              className="h-7 rounded-md px-2.5 text-[11px] font-medium text-red-400/80 transition hover:bg-red-500/10 hover:text-red-400"
+            >
+              수상 해제
+            </button>
+          ) : null}
+        </div>
+      ) : null}
     </div>
   );
 }

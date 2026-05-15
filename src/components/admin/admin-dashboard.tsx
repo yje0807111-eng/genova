@@ -436,19 +436,28 @@ function AdminDashboardInner({
 
             {view === "competitions" ? (
               <>
-                <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-                  <CompetitionManage
-                    competitions={localCompetitions}
-                    videos={videos}
-                    selectedCompetition={selectedCompetition}
-                    setSelectedCompetition={setSelectedCompetition}
-                    setVideoFilter={setVideoFilter}
-                    onCompetitionsChange={setLocalCompetitions}
-                    onMessage={setMessage}
-                    onViewCompetitionVideos={openCompetitionVideos}
-                  />
-                  <CompetitionCreate onMessage={setMessage} />
-                </div>
+                {/* 공모전 관리는 풀폭 — 출품작 펼침 시 행/award
+                    드롭다운이 좁게 접히지 않도록.  공모전 생성은
+                    가끔 쓰므로 접이식으로 공간 양보. */}
+                <CompetitionManage
+                  competitions={localCompetitions}
+                  videos={videos}
+                  selectedCompetition={selectedCompetition}
+                  setSelectedCompetition={setSelectedCompetition}
+                  setVideoFilter={setVideoFilter}
+                  onCompetitionsChange={setLocalCompetitions}
+                  onMessage={setMessage}
+                  onViewCompetitionVideos={openCompetitionVideos}
+                />
+                <details className={cn(adminTokens.card, "group")}>
+                  <summary className="flex cursor-pointer list-none items-center justify-between text-[13px] font-bold text-white">
+                    <span>새 공모전 생성</span>
+                    <ChevronRight className="h-4 w-4 text-white/40 transition group-open:rotate-90" />
+                  </summary>
+                  <div className="mt-4">
+                    <CompetitionCreate onMessage={setMessage} />
+                  </div>
+                </details>
                 {/* 트로피는 공모전 부속 작업 → 같은 드릴다운 하위 섹션 */}
                 <TrophyManagement
                   competitions={localCompetitions}

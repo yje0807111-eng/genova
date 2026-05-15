@@ -232,7 +232,9 @@ export function CompetitionManage({
             <div
               key={comp.id}
               className={cn(
-                "overflow-hidden rounded-lg border bg-white/[0.01] transition hover:border-white/[0.08]",
+                // overflow-hidden 제거: 출품작 행의 award 드롭다운이
+                // 카드 경계(특히 마지막 행)에서 잘리던 문제 해결.
+                "rounded-lg border bg-white/[0.01] transition hover:border-white/[0.08]",
                 comp.isFeatured ? "border-[#7F77DD]/25 bg-[#7F77DD]/[0.04]" : "border-white/[0.04]",
                 selectedCompetition?.id === comp.id && "border-[#534AB7]/35 bg-[#534AB7]/[0.08]",
               )}
