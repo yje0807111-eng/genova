@@ -5,6 +5,7 @@ import { createPortal } from "react-dom";
 import { X } from "lucide-react";
 import { useI18n } from "@/components/genova/language-provider";
 import { UploadVideoFormSimple } from "./upload-video-form-simple";
+import { UploadLotteryBadge } from "@/components/lottery/upload-lottery-badge";
 import { getUploadCompetitionData } from "@/app/actions/competitions";
 import { getBrowserSupabaseClient } from "@/lib/supabase/browser";
 
@@ -115,13 +116,18 @@ export function UploadModalProvider({
                 {t("common.loading", "불러오는 중...")}
               </div>
             ) : (
-              <UploadVideoFormSimple
-                userId={userId}
-                competitions={competitions}
-                activeCompetitionId={activeCompetitionId ?? undefined}
-                prefilledCompetitionId={prefilledCompetitionId}
-                onSubmitted={close}
-              />
+              <>
+                {/* 업로드 페이지의 LotteryCounter 와 동일하게 이번 달
+                    응모권 현황을 팝업에서도 노출 */}
+                <UploadLotteryBadge />
+                <UploadVideoFormSimple
+                  userId={userId}
+                  competitions={competitions}
+                  activeCompetitionId={activeCompetitionId ?? undefined}
+                  prefilledCompetitionId={prefilledCompetitionId}
+                  onSubmitted={close}
+                />
+              </>
             )}
           </div>
         </div>,

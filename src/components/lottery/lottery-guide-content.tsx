@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Upload, Ticket, Gift, ChevronDown } from "lucide-react";
 import type { Locale } from "@/lib/i18n/translations";
+import { LotteryUploadCta } from "./lottery-upload-cta";
 
 /**
  * 응모권 추첨 안내 콘텐츠 (공유).
@@ -325,19 +326,9 @@ export function LotteryGuideContent({
         ))}
       </div>
 
-      {/* CTA */}
+      {/* CTA — 업로드는 페이지 대신 항상 팝업(모달) */}
       <div className="mt-10 flex flex-wrap justify-center gap-3">
-        <Link
-          href="/upload"
-          className="rounded-xl px-5 py-2.5 text-[13px] font-bold text-white transition hover:opacity-90"
-          style={{
-            backgroundImage:
-              "linear-gradient(135deg, rgba(107,95,212,0.85) 0%, rgba(83,74,183,0.75) 50%, rgba(63,54,163,0.65) 100%)",
-            border: "1px solid rgba(175,169,236,0.25)",
-          }}
-        >
-          {c.ctaUpload}
-        </Link>
+        <LotteryUploadCta label={c.ctaUpload} />
         <Link
           href="/competition"
           className="rounded-xl border px-5 py-2.5 text-[13px] font-semibold text-white/80 transition hover:text-white"
