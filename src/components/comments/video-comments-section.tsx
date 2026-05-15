@@ -11,17 +11,6 @@ import { useI18n } from "@/components/genova/language-provider";
 import { formatUploadedRelative } from "@/lib/format-uploaded-relative";
 import { cn } from "@/lib/utils/cn";
 
-/** Total comments including replies */
-export function countCommentsInTree(comments: VideoComment[]): number {
-  let n = 0;
-  const walk = (c: VideoComment) => {
-    n += 1;
-    c.replies?.forEach(walk);
-  };
-  comments.forEach(walk);
-  return n;
-}
-
 /** Avoid hydration mismatch across locales */
 function TimeLabel({ iso }: { iso: string }) {
   const { locale } = useI18n();
