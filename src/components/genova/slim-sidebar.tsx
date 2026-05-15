@@ -363,12 +363,13 @@ export function SlimSidebar({ onOpenChat, unreadMessageCount = 0 }: SlimSidebarP
         <div className="flex w-full flex-col items-center gap-3">
           <div className="my-2 h-px w-6 bg-white/[0.05]" aria-hidden />
 
-          {/* 응모권 추첨 이벤트 — 클릭 시 안내 모달.  로그인 시
-              잔여 수 배지, 비로그인이면 라벨만. */}
+          {/* 응모권 추첨 이벤트 — 클릭 시 안내 모달.  잔여 수는
+              알림 배지가 아니라 라벨 아래 정적 카운트로 표기해
+              "미확인 알림" 으로 오인되지 않게 한다. */}
           <button
             type="button"
             onClick={openLotteryGuide}
-            className="relative flex h-12 w-12 flex-col items-center justify-center gap-0.5 rounded-xl text-white/35 transition-colors hover:bg-white/[0.04] hover:text-white/80"
+            className="flex min-h-12 w-12 flex-col items-center justify-center gap-0.5 rounded-xl py-1 text-white/35 transition-colors hover:bg-white/[0.04] hover:text-white/80"
             aria-label={t("lottery.guideLink", "응모권 추첨 안내")}
           >
             <Ticket className="h-5 w-5 shrink-0" aria-hidden />
@@ -376,11 +377,9 @@ export function SlimSidebar({ onOpenChat, unreadMessageCount = 0 }: SlimSidebarP
               {t("nav.lottery", "응모권")}
             </span>
             {lotteryRemaining !== null ? (
-              <span
-                className="absolute right-0.5 top-1 flex h-4 min-w-4 items-center justify-center rounded-full px-0.5 text-[9px] font-bold text-white"
-                style={{ background: "#534AB7" }}
-              >
+              <span className="text-[9px] font-bold tabular-nums text-[#AFA9EC]/80">
                 {lotteryRemaining}
+                <span className="font-normal text-white/30">/5</span>
               </span>
             ) : null}
           </button>
