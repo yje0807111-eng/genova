@@ -135,7 +135,7 @@ export function FeaturedHeroCarousel({ competitions }: Props) {
                 </div>
 
                 <h1
-                  className="text-[32px] font-black leading-[1.05] tracking-[-0.02em] text-white sm:text-[42px] md:text-[50px] lg:text-[56px]"
+                  className="line-clamp-2 break-keep text-[28px] font-black leading-[1.12] tracking-[-0.02em] text-white sm:text-[36px] md:text-[42px] lg:text-[46px]"
                   style={{ textShadow: "0 2px 16px rgba(0,0,0,0.65)" }}
                 >
                   {title}
