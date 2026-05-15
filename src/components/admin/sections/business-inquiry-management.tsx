@@ -43,6 +43,8 @@ export function BusinessInquiryManagement({
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [noteDrafts, setNoteDrafts] = useState<Record<string, string>>({});
   const [savingNoteId, setSavingNoteId] = useState<string | null>(null);
+  // G5: free-text search across name / email / company / phone / message.
+  const [search, setSearch] = useState("");
 
   useEffect(() => setLocal(inquiries), [inquiries]);
 
@@ -50,8 +52,22 @@ export function BusinessInquiryManagement({
     let result = [...local];
     if (statusFilter !== "all") result = result.filter((i) => i.status === statusFilter);
     if (typeFilter !== "all") result = result.filter((i) => i.type === typeFilter);
+    const q = search.trim().toLowerCase();
+    if (q) {
+      result = result.filter((i) =>
+        [
+          i.name,
+          i.email,
+          i.companyName,
+          i.phone,
+          i.message,
+        ]
+          .filter((s): s is string => Boolean(s))
+          .some((s) => s.toLowerCase().includes(q)),
+      );
+    }
     return result.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
-  }, [local, statusFilter, typeFilter]);
+  }, [local, statusFilter, typeFilter, search]);
 
   const newCount = local.filter((i) => i.status === "new").length;
 
@@ -100,6 +116,14 @@ export function BusinessInquiryManagement({
           )}
         </div>
         <div className="flex flex-wrap items-center gap-2">
+          {/* G5: free-text search */}
+          <input
+            type="search"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="검색 (이름/이메일/회사/내용)"
+            className={cn(adminTokens.input, "min-w-[180px] text-[12px]")}
+          />
           <select
             value={typeFilter}
             onChange={(e) => setTypeFilter(e.target.value as typeof typeFilter)}

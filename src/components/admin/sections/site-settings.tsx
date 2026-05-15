@@ -5,6 +5,30 @@ import { adminTokens } from "@/lib/admin-styles";
 import type { Competition } from "@/lib/types";
 import { cn } from "@/lib/utils/cn";
 
+/**
+ * POST a site-setting value and throw on non-2xx so the caller's
+ * try/catch sees the failure.  Without this guard a 403 / 500 from
+ * /api/site-settings would silently resolve and the UI would show
+ * "저장되었습니다." even though the row never landed in the DB. (G2)
+ */
+async function postSiteSetting(key: string, value: string): Promise<void> {
+  const res = await fetch("/api/site-settings", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ key, value }),
+  });
+  if (!res.ok) {
+    let detail = "";
+    try {
+      const data = (await res.json()) as { error?: string };
+      detail = data?.error ?? "";
+    } catch {
+      /* non-json body — ignore */
+    }
+    throw new Error(detail || `HTTP ${res.status}`);
+  }
+}
+
 export function SiteSettings({
   competitions,
   onMessage,
@@ -123,24 +147,14 @@ export function SiteSettings({
                 setHeroEyebrowLoading(true);
                 try {
                   await Promise.all([
-                    fetch("/api/site-settings", {
-                      method: "POST",
-                      headers: { "Content-Type": "application/json" },
-                      body: JSON.stringify({ key: "films_hero_eyebrow_ko", value: heroEyebrowKo }),
-                    }),
-                    fetch("/api/site-settings", {
-                      method: "POST",
-                      headers: { "Content-Type": "application/json" },
-                      body: JSON.stringify({ key: "films_hero_eyebrow_en", value: heroEyebrowEn }),
-                    }),
-                    fetch("/api/site-settings", {
-                      method: "POST",
-                      headers: { "Content-Type": "application/json" },
-                      body: JSON.stringify({ key: "films_hero_eyebrow_ja", value: heroEyebrowJa }),
-                    }),
+                    postSiteSetting("films_hero_eyebrow_ko", heroEyebrowKo),
+                    postSiteSetting("films_hero_eyebrow_en", heroEyebrowEn),
+                    postSiteSetting("films_hero_eyebrow_ja", heroEyebrowJa),
                   ]);
                   onMessage("저장되었습니다.");
                   flashSaved();
+                } catch (e) {
+                  onMessage(e instanceof Error ? `저장 실패: ${e.message}` : "저장 실패");
                 } finally {
                   setHeroEyebrowLoading(false);
                 }
@@ -173,13 +187,11 @@ export function SiteSettings({
               onClick={async () => {
                 setFeaturedLoading(true);
                 try {
-                  await fetch("/api/site-settings", {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ key: "films_featured_competition_id", value: featuredCompetitionId }),
-                  });
+                  await postSiteSetting("films_featured_competition_id", featuredCompetitionId);
                   onMessage("저장되었습니다.");
                   flashSaved();
+                } catch (e) {
+                  onMessage(e instanceof Error ? `저장 실패: ${e.message}` : "저장 실패");
                 } finally {
                   setFeaturedLoading(false);
                 }
@@ -208,13 +220,11 @@ export function SiteSettings({
               onClick={async () => {
                 setHomeFeaturedLoading(true);
                 try {
-                  await fetch("/api/site-settings", {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ key: "home_featured_competition_id", value: homeFeaturedCompId }),
-                  });
+                  await postSiteSetting("home_featured_competition_id", homeFeaturedCompId);
                   onMessage("저장되었습니다.");
                   flashSaved();
+                } catch (e) {
+                  onMessage(e instanceof Error ? `저장 실패: ${e.message}` : "저장 실패");
                 } finally {
                   setHomeFeaturedLoading(false);
                 }

@@ -117,12 +117,6 @@ export function EditCompetitionForm({ competition }: { competition: any }) {
     setLoading(true);
     setMessage(null);
     try {
-      console.log("Submitting form:", {
-        concept_ko: form.concept_ko,
-        concept_en: form.concept_en,
-        rules_ko: form.rules_ko,
-        rules_en: form.rules_en,
-      });
       const res = await updateCompetitionAction(competition.id, form);
       setMessage(res.ok ? "저장되었습니다." : res.message ?? "실패했습니다.");
       if (res.ok) router.refresh();

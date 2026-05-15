@@ -29,6 +29,8 @@ export function VideoManage({
   const [loading, setLoading] = useState(false);
   const [videoSort, setVideoSort] = useState<"latest" | "likes" | "views" | "reports">("latest");
   const [videoTimeFilter, setVideoTimeFilter] = useState<"all" | "week" | "month">("all");
+  // G5: free-text search across title / creator / uploader / video id.
+  const [videoSearch, setVideoSearch] = useState("");
   const [awardOptions, setAwardOptions] = useState([
     "대상",
     "금상",
@@ -60,6 +62,14 @@ export function VideoManage({
       if (videoTimeFilter === "month") return new Date(v.createdAt).getTime() >= monthAgo;
       return true;
     });
+    const q = videoSearch.trim().toLowerCase();
+    if (q) {
+      result = result.filter((v) =>
+        [v.title, v.creatorName, v.uploaderDisplayName, v.id]
+          .filter((s): s is string => Boolean(s))
+          .some((s) => s.toLowerCase().includes(q)),
+      );
+    }
     const primarySorted = [...result].sort((a, b) => {
       if (videoSort === "likes") return (b.likeCount ?? 0) - (a.likeCount ?? 0);
       if (videoSort === "views") return (b.viewCount ?? 0) - (a.viewCount ?? 0);
@@ -76,7 +86,7 @@ export function VideoManage({
       if (!a.isCompetitionFeatured && b.isCompetitionFeatured) return 1;
       return 0;
     });
-  }, [videos, videoFilter, videoSort, videoTimeFilter]);
+  }, [videos, videoFilter, videoSort, videoTimeFilter, videoSearch]);
 
   const call = async (fn: () => Promise<{ ok: boolean; message?: string }>) => {
     setLoading(true);
@@ -124,6 +134,14 @@ export function VideoManage({
           ) : null}
         </div>
         <div className="flex flex-wrap items-center gap-2">
+          {/* G5: free-text search */}
+          <input
+            type="search"
+            value={videoSearch}
+            onChange={(e) => setVideoSearch(e.target.value)}
+            placeholder="검색 (제목/크리에이터/ID)"
+            className={cn(adminTokens.input, "min-w-[180px] text-[12px]")}
+          />
           {selectedCompetition ? (
             <button
               type="button"
@@ -233,7 +251,9 @@ export function VideoManage({
                 ) : null}
               </div>
 
-              <div className="flex shrink-0 items-center gap-1 opacity-100 sm:opacity-0 sm:transition-opacity sm:group-hover:opacity-100">
+              {/* G3: hover-fade only on hover-capable pointers — keeps
+                  actions visible on touch devices (iPad admin). */}
+              <div className="flex shrink-0 items-center gap-1 opacity-100 sm:transition-opacity [@media(hover:hover)]:sm:opacity-0 [@media(hover:hover)]:sm:group-hover:opacity-100">
                 <button
                   type="button"
                   disabled={loading}

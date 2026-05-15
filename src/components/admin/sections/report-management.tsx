@@ -56,6 +56,10 @@ export function ReportManagement({
   const [reportStatusFilter, setReportStatusFilter] = useState<"all" | VideoReportStatus>("all");
   const [reportReasonFilter, setReportReasonFilter] = useState<"all" | VideoReportItem["reason"]>("all");
   const [reportSort, setReportSort] = useState<"open_first" | "latest">("open_first");
+  // G5: free-text search across videoTitle / reporterName / detail /
+  // videoId / reporter id.  Matches the work-queue scan operators do
+  // when looking up a specific report from a Slack ping.
+  const [reportSearch, setReportSearch] = useState("");
 
   useEffect(() => setLocalReports(reports), [reports]);
 
@@ -63,6 +67,14 @@ export function ReportManagement({
     let result = [...localReports];
     if (reportStatusFilter !== "all") result = result.filter((r) => r.status === reportStatusFilter);
     if (reportReasonFilter !== "all") result = result.filter((r) => r.reason === reportReasonFilter);
+    const q = reportSearch.trim().toLowerCase();
+    if (q) {
+      result = result.filter((r) =>
+        [r.videoTitle, r.reporterName, r.detail, r.videoId, r.reporterUserId]
+          .filter((v): v is string => Boolean(v))
+          .some((v) => v.toLowerCase().includes(q)),
+      );
+    }
     result.sort((a, b) => {
       if (reportSort === "open_first") {
         if (a.status === "open" && b.status !== "open") return -1;
@@ -71,7 +83,7 @@ export function ReportManagement({
       return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
     });
     return result;
-  }, [localReports, reportStatusFilter, reportReasonFilter, reportSort]);
+  }, [localReports, reportStatusFilter, reportReasonFilter, reportSort, reportSearch]);
 
   const openCount = useMemo(() => localReports.filter((r) => r.status === "open").length, [localReports]);
 
@@ -144,10 +156,32 @@ export function ReportManagement({
   };
 
   const handleDeleteAll = () => {
-    if (!confirm("신고 내역 전체를 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다.")) return;
+    // G4: bulk-clear now ONLY removes resolved / rejected rows.  Open
+    // / reviewing reports are protected server-side, so this can't
+    // accidentally nuke unread moderation work.  Still two-step
+    // confirm — the action is irreversible.
+    const closedCount = localReports.filter(
+      (r) => r.status === "resolved" || r.status === "rejected",
+    ).length;
+    if (closedCount === 0) {
+      onMessage("닫힌(resolved/rejected) 신고가 없습니다.");
+      return;
+    }
+    if (
+      !confirm(
+        `닫힌 신고 ${closedCount}건을 삭제합니다.\n` +
+          `(open / reviewing 상태는 보호되어 함께 삭제되지 않습니다.)\n\n` +
+          `계속하시겠습니까?`,
+      )
+    )
+      return;
+    if (!confirm(`정말로 ${closedCount}건을 영구 삭제할까요? 되돌릴 수 없습니다.`)) return;
     void callWithOptimistic(
       () => deleteAllVideoReportsAction(),
-      () => setLocalReports([]),
+      () =>
+        setLocalReports((prev) =>
+          prev.filter((r) => r.status !== "resolved" && r.status !== "rejected"),
+        ),
     );
   };
 
@@ -164,6 +198,14 @@ export function ReportManagement({
           ) : null}
         </div>
         <div className="flex flex-wrap items-center gap-2">
+          {/* G5: free-text search */}
+          <input
+            type="search"
+            value={reportSearch}
+            onChange={(e) => setReportSearch(e.target.value)}
+            placeholder="검색 (제목/신고자/사유/ID)"
+            className={cn(adminTokens.input, "min-w-[180px] text-[12px]")}
+          />
           <select
             value={reportStatusFilter}
             onChange={(e) => setReportStatusFilter(e.target.value as "all" | VideoReportStatus)}
@@ -256,7 +298,7 @@ export function ReportManagement({
 
                 <div
                   className={cn(
-                    "ml-auto flex shrink-0 items-center gap-1 opacity-100 transition-opacity sm:ml-0 sm:opacity-0 sm:group-hover:opacity-100",
+                    "ml-auto flex shrink-0 items-center gap-1 opacity-100 transition-opacity sm:ml-0 [@media(hover:hover)]:sm:opacity-0 [@media(hover:hover)]:sm:group-hover:opacity-100",
                   )}
                 >
                   <button

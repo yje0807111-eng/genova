@@ -104,13 +104,32 @@ export async function deleteVideoReportAction(reportId: string): Promise<AdminRe
   return { ok: true };
 }
 
+/**
+ * G4: bulk-delete RESOLVED/REJECTED reports only.
+ *
+ * Previously this deleted every video_reports row regardless of status,
+ * which meant a single confirm click could nuke open + reviewing reports
+ * (real moderation work the operator hadn't seen yet).  The action now
+ * only removes terminal-state rows so the work queue can never be
+ * accidentally cleared.  Truly nuking unresolved reports still requires
+ * direct SQL or a per-row delete.
+ */
 export async function deleteAllVideoReportsAction(): Promise<AdminResult> {
   const auth = await requireAdminWithService();
   if ("error" in auth) return { ok: false, message: auth.error };
   const { service } = auth;
-  const { data, error } = await service.from("video_reports").delete().not("id", "is", null).select("id");
+  const { data, error } = await service
+    .from("video_reports")
+    .delete()
+    .in("status", ["resolved", "rejected"])
+    .select("id");
   if (error) return { ok: false, message: error.message };
-  if (!data || data.length === 0) return { ok: false, message: "No reports were deleted (already empty or no permission)." };
+  if (!data || data.length === 0) {
+    return {
+      ok: false,
+      message: "No closed reports to clear (open / reviewing rows are protected).",
+    };
+  }
   revalidatePath("/admin");
   return { ok: true };
 }

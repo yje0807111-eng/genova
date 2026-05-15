@@ -68,17 +68,25 @@ export function CompetitionManage({
   const [sortBy, setSortBy] = useState<"views" | "likes" | "newest">("views");
   const [pendingFeaturedId, setPendingFeaturedId] = useState<string | null>(null);
   const [pendingFeaturedCompetitionId, setPendingFeaturedCompetitionId] = useState<string | null>(null);
+  // G5: free-text search across competition title / id / sponsor.
+  const [search, setSearch] = useState("");
 
-  const sortedCompetitions = useMemo(
-    () =>
-      [...competitions].sort((a, b) => {
-        const af = a.isFeatured ? 1 : 0;
-        const bf = b.isFeatured ? 1 : 0;
-        if (af !== bf) return bf - af;
-        return 0;
-      }),
-    [competitions],
-  );
+  const sortedCompetitions = useMemo(() => {
+    const q = search.trim().toLowerCase();
+    const filtered = q
+      ? competitions.filter((c) =>
+          [c.title, c.id, c.sponsor]
+            .filter((s): s is string => Boolean(s))
+            .some((s) => s.toLowerCase().includes(q)),
+        )
+      : competitions;
+    return [...filtered].sort((a, b) => {
+      const af = a.isFeatured ? 1 : 0;
+      const bf = b.isFeatured ? 1 : 0;
+      if (af !== bf) return bf - af;
+      return 0;
+    });
+  }, [competitions, search]);
 
   const featuredCompCount = useMemo(() => competitions.filter((c) => c.isFeatured).length, [competitions]);
 
@@ -208,6 +216,14 @@ export function CompetitionManage({
             </span>
           ) : null}
         </div>
+        {/* G5: free-text search */}
+        <input
+          type="search"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          placeholder="검색 (제목/ID/스폰서)"
+          className={cn(adminTokens.input, "min-w-[180px] text-[12px]")}
+        />
       </div>
 
       <div className="space-y-1">
@@ -466,7 +482,7 @@ export function CompetitionManage({
                                 "h-7 rounded-md px-2 text-[11px] font-medium transition",
                                 video.is_competition_featured
                                   ? "border border-[#7F77DD]/30 bg-[#7F77DD]/20 text-[#AFA9EC] hover:bg-[#7F77DD]/30"
-                                  : "border border-white/[0.08] bg-white/[0.02] text-white/50 opacity-100 hover:bg-white/[0.06] hover:text-white/80 sm:opacity-0 sm:group-hover:opacity-100",
+                                  : "border border-white/[0.08] bg-white/[0.02] text-white/50 opacity-100 hover:bg-white/[0.06] hover:text-white/80 [@media(hover:hover)]:sm:opacity-0 [@media(hover:hover)]:sm:group-hover:opacity-100",
                               )}
                               title={video.is_competition_featured ? "추천 해제" : "추천 지정"}
                             >
@@ -478,7 +494,7 @@ export function CompetitionManage({
                               rel="noopener noreferrer"
                               className={cn(
                                 adminTokens.iconButton,
-                                "h-7 w-7 opacity-100 transition-opacity sm:opacity-0 sm:group-hover:opacity-100",
+                                "h-7 w-7 opacity-100 transition-opacity [@media(hover:hover)]:sm:opacity-0 [@media(hover:hover)]:sm:group-hover:opacity-100",
                               )}
                               title="보기"
                             >
@@ -486,7 +502,7 @@ export function CompetitionManage({
                             </Link>
                           </div>
 
-                          <div className="flex w-full shrink-0 flex-wrap items-center gap-1 opacity-100 transition-opacity sm:ml-auto sm:w-auto sm:opacity-0 sm:group-hover:opacity-100">
+                          <div className="flex w-full shrink-0 flex-wrap items-center gap-1 opacity-100 transition-opacity sm:ml-auto sm:w-auto [@media(hover:hover)]:sm:opacity-0 [@media(hover:hover)]:sm:group-hover:opacity-100">
                             <button
                               type="button"
                               disabled={loading}
