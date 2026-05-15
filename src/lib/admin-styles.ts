@@ -4,9 +4,10 @@
  * Do not import into user-facing pages — keep separate from public UI.
  */
 export const adminTokens = {
-  // 카드
-  card: "rounded-xl border border-white/[0.06] bg-[#0d0b1f] p-5",
-  cardCompact: "rounded-lg border border-white/[0.06] bg-[#0d0b1f] p-3",
+  // 카드 — 응모권 구역 섹션과 동일한 옅은 화이트 틴트(글래스) 배경으로
+  // 통일.  이전엔 솔리드 #0d0b1f 라 lottery 패널만 시각적으로 달랐음.
+  card: "rounded-xl border border-white/[0.06] bg-white/[0.02] p-5",
+  cardCompact: "rounded-lg border border-white/[0.06] bg-white/[0.02] p-3",
 
   // 섹션 헤더
   sectionHeader: "text-[13px] font-semibold uppercase tracking-[0.12em] text-white/50 mb-4",
