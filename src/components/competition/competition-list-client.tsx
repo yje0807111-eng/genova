@@ -3,7 +3,7 @@
 import { useMemo, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { LayoutGrid, List } from "lucide-react";
+import { ChevronRight, LayoutGrid, List } from "lucide-react";
 import { useI18n } from "@/components/genova/language-provider";
 import type { Locale } from "@/lib/i18n/translations";
 import { intlDateLocale } from "@/lib/i18n/browser-locale";
@@ -108,57 +108,125 @@ function CompetitionCard({ c, participantCount }: { c: Competition; participantC
   });
   const isOpen = ["Open", "접수중", "In Review", "Voting"].includes(c.status);
   const isUpcoming = ["Upcoming", "예정"].includes(c.status);
+  const isClosed = !isOpen && !isUpcoming;
+  const urgent = isOpen && d >= 0 && d <= 3;
+  const prize = formatPrizeWithConversion(
+    c.prize_info_ko,
+    c.prize_info_en,
+    c.prize_info_ja,
+    c.prize_info,
+    locale,
+    c.base_currency,
+    c.exchange_rate_usd_krw ?? 1350,
+    c.exchange_rate_usd_jpy ?? 148,
+  );
 
   return (
-    <div className="gradient-border-card group overflow-hidden rounded-2xl border border-white/[0.12] bg-[#121219] shadow-[0_2px_14px_rgba(0,0,0,0.45)] transition-all duration-200 hover:-translate-y-1 hover:border-[rgba(127,119,221,0.45)] hover:shadow-[0_12px_36px_rgba(83,74,183,0.28)]">
-      <div className="gradient-border-card-inner">
-      <Link href={`/competition/${c.id}`} className="block p-3 pb-0">
-        <div className="relative w-full overflow-hidden rounded-lg" style={{ aspectRatio: "16/9" }}>
-          {thumb ? (
-            <Image src={thumb} alt="" fill sizes="(max-width: 768px) 100vw, (max-width: 1280px) 50vw, 33vw" className="object-cover transition duration-500 group-hover:scale-105" />
-          ) : (
-            <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-[#1a1547] to-[#1a1a1a]">
-              <Image src="/genova-logo.png" alt="Genova" width={112} height={112} className="h-28 w-28 object-contain opacity-15" />
-            </div>
-          )}
-          <div className="absolute left-[10px] top-[10px]">
-            <span className="rounded-md border border-white/10 bg-black/55 px-2.5 py-1 text-[11px] font-semibold text-white backdrop-blur-sm">
-              {c.genre && c.genre !== "전체" ? genreUiLabel(c.genre, locale) : t("competition.allGenres")}
+    <Link
+      href={`/competition/${c.id}`}
+      className="group relative block overflow-hidden rounded-2xl border border-white/[0.10] bg-[#0a0a0a] shadow-[0_2px_14px_rgba(0,0,0,0.45)] transition-all duration-300 hover:-translate-y-1 hover:border-[rgba(127,119,221,0.5)] hover:shadow-[0_16px_44px_rgba(83,74,183,0.32)]"
+    >
+      <div className="relative aspect-[4/5] w-full overflow-hidden">
+        {thumb ? (
+          <Image
+            src={thumb}
+            alt=""
+            fill
+            sizes="(max-width: 768px) 100vw, (max-width: 1280px) 50vw, 33vw"
+            className="object-cover transition duration-500 group-hover:scale-[1.06]"
+          />
+        ) : (
+          <div
+            className="flex h-full w-full items-center justify-center"
+            style={{ background: "linear-gradient(135deg, rgba(127,119,221,0.20) 0%, #0a0a0a 70%)" }}
+          >
+            <Image src="/genova-logo.png" alt="Genova" width={120} height={120} className="h-28 w-28 object-contain opacity-[0.12]" />
+          </div>
+        )}
+
+        {/* 시네마틱 스크림 — 하단 텍스트 가독성 */}
+        <div
+          className="absolute inset-0"
+          style={{
+            background:
+              "linear-gradient(180deg, rgba(10,10,10,0.10) 0%, rgba(10,10,10,0.02) 32%, rgba(10,10,10,0.68) 68%, rgba(10,10,10,0.97) 100%)",
+          }}
+        />
+
+        {/* 상단 칩 — 장르 / D-day */}
+        <div className="absolute inset-x-3 top-3 flex items-start justify-between gap-2">
+          <span className="rounded-full border border-white/15 bg-black/45 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-white/85 backdrop-blur-md">
+            {c.genre && c.genre !== "전체" ? genreUiLabel(c.genre, locale) : t("competition.allGenres")}
+          </span>
+          {!isClosed && (
+            <span
+              className={`shrink-0 rounded-full px-2.5 py-1 text-[11px] font-black tabular-nums backdrop-blur-md ${
+                urgent
+                  ? "border border-red-400/40 bg-red-500/25 text-red-200"
+                  : "border border-white/15 bg-black/50 text-white"
+              }`}
+            >
+              D-{d}
             </span>
-          </div>
-          <div className="absolute bottom-[10px] right-[12px]">
-            <span className="rounded-md bg-black/60 px-2 py-0.5 text-[12px] font-bold text-white backdrop-blur-sm">D-{d}</span>
-          </div>
+          )}
         </div>
-      </Link>
-      <div className="flex flex-1 flex-col gap-[10px] p-[16px_18px]">
-        <Link href={`/competition/${c.id}`}>
-          <h3 className="line-clamp-1 text-[17px] font-bold text-white">
+
+        {/* 하단 정보 */}
+        <div className="absolute inset-x-0 bottom-0 flex flex-col gap-2 p-4">
+          <span
+            className={`inline-flex w-fit items-center gap-1.5 rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider ${
+              isOpen
+                ? "bg-emerald-500/20 text-emerald-300"
+                : isUpcoming
+                  ? "bg-sky-500/20 text-sky-300"
+                  : "bg-white/[0.08] text-white/40"
+            }`}
+          >
+            <span
+              className={`h-1.5 w-1.5 rounded-full ${
+                isOpen ? "animate-pulse bg-emerald-400" : isUpcoming ? "bg-sky-400" : "bg-white/30"
+              }`}
+            />
+            {isOpen ? t("competition.statusOpen") : isUpcoming ? t("competition.statusUpcoming") : t("competition.statusClosed")}
+          </span>
+
+          <h3
+            className="line-clamp-2 text-[18px] font-black leading-tight tracking-tight text-white"
+            style={{ textShadow: "0 2px 12px rgba(0,0,0,0.75)" }}
+          >
             {getLangText(locale, c.title_ko, c.title_en, c.title_ja, c.title)}
           </h3>
-        </Link>
-        <p className="text-[15px] font-semibold text-[#C8963E]">
-          {formatPrizeWithConversion(c.prize_info_ko, c.prize_info_en, c.prize_info_ja, c.prize_info, locale, c.base_currency, c.exchange_rate_usd_krw ?? 1350, c.exchange_rate_usd_jpy ?? 148)}
-        </p>
-        <div className="flex items-center justify-between text-[12px] text-white/35">
-          <span>{deadlineLabel}</span>
-          {participantCount > 0 ? (
-            <span className="tabular-nums text-white/45">
-              {participantCount.toLocaleString()}
-              <span className="ml-0.5 text-white/30">
-                {t("competition.peopleUnit")}
+
+          <div className="flex items-end justify-between gap-3">
+            <div className="min-w-0">
+              <p className="text-[9px] font-bold uppercase tracking-[0.18em] text-white/40">
+                {t("competition.colPrize")}
+              </p>
+              <p
+                className="truncate text-[16px] font-black text-[#F5D182]"
+                style={{ textShadow: "0 1px 8px rgba(0,0,0,0.6)" }}
+              >
+                {prize}
+              </p>
+            </div>
+            {participantCount > 0 ? (
+              <span className="shrink-0 pb-0.5 text-[11px] tabular-nums text-white/45">
+                {participantCount.toLocaleString()}
+                <span className="ml-0.5 text-white/30">{t("competition.peopleUnit")}</span>
               </span>
+            ) : null}
+          </div>
+
+          <div className="flex items-center justify-between border-t border-white/[0.08] pt-2 text-[11px] text-white/40">
+            <span>{deadlineLabel}</span>
+            <span className="flex items-center gap-0.5 font-semibold text-[#AFA9EC] opacity-0 transition-opacity duration-200 group-hover:opacity-100">
+              {t("competition.viewDetails", "자세히 보기")}
+              <ChevronRight size={12} />
             </span>
-          ) : null}
+          </div>
         </div>
-        <span className={`inline-flex w-fit rounded-full px-2 py-1 text-[11px] font-bold ${
-          isOpen ? "bg-emerald-500/20 text-emerald-300" : isUpcoming ? "bg-sky-500/20 text-sky-300" : "bg-white/[0.06] text-white/40"
-        }`}>
-          {isOpen ? t("competition.statusOpen") : isUpcoming ? t("competition.statusUpcoming") : t("competition.statusClosed")}
-        </span>
       </div>
-      </div>
-    </div>
+    </Link>
   );
 }
 
