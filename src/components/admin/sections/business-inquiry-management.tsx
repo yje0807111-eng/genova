@@ -150,7 +150,13 @@ export function BusinessInquiryManagement({
       </div>
 
       {filtered.length === 0 ? (
-        <p className="py-8 text-center text-[12px] text-white/35">신청 내역이 없습니다.</p>
+        <div className="rounded-lg border border-white/[0.06] bg-white/[0.01] py-10 text-center">
+          <p className="text-[12px] font-medium text-white/55">신청 내역이 없습니다.</p>
+          <p className="mx-auto mt-1 max-w-md text-[10px] leading-relaxed text-white/35">
+            /business 페이지에서 들어오는 비즈니스 상담 신청이 여기에 표시됩니다.
+            새 신청 발생 시 탭 배지로 알림이 표시됩니다.
+          </p>
+        </div>
       ) : (
         <div className="space-y-2">
           {filtered.map((item) => {

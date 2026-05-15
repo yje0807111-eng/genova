@@ -1,6 +1,6 @@
 "use client";
 
-import { ChevronDown, ChevronUp, Edit, ExternalLink, Star, Trash2 } from "lucide-react";
+import { ChevronDown, ChevronUp, Edit, ExternalLink, EyeOff, Star, Trash2, Trophy } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -519,9 +519,9 @@ export function CompetitionManage({
                               onClick={() =>
                                 void runVideoAction(comp.id, () => setVideoAwardAction(video.id, video.award ? "" : "대상"))
                               }
-                              className={cn(adminTokens.buttonGhost, "h-7 px-2 text-[10px]")}
+                              className={cn(adminTokens.buttonGhost, "inline-flex h-7 items-center gap-1 px-2 text-[10px]")}
                             >
-                              🏆 Set Award
+                              <Trophy size={11} /> Set Award
                             </button>
                             <button
                               type="button"
@@ -531,9 +531,15 @@ export function CompetitionManage({
                                   updateVideoVisibilityAction(video.id, video.visibility === "private" ? "public" : "private"),
                                 )
                               }
-                              className={cn(adminTokens.buttonGhost, "h-7 px-2 text-[10px]")}
+                              className={cn(adminTokens.buttonGhost, "inline-flex h-7 items-center gap-1 px-2 text-[10px]")}
                             >
-                              {video.visibility === "private" ? "🔒 비공개" : "비공개"}
+                              {video.visibility === "private" ? (
+                                <>
+                                  <EyeOff size={11} /> 비공개
+                                </>
+                              ) : (
+                                "비공개"
+                              )}
                             </button>
                             <button
                               type="button"

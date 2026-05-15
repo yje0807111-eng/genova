@@ -3,7 +3,7 @@
 import { ExternalLink, Eye, EyeOff, Star, Trash2, Trophy } from "lucide-react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { setVideoAwardAction, setVideoFinalistAction, setVideoOriginalAction } from "@/app/actions/admin";
 import { deleteVideoAction, updateVideoVisibilityAction } from "@/app/actions/video";
 import { adminTokens } from "@/lib/admin-styles";
@@ -31,7 +31,11 @@ export function VideoManage({
   const [videoTimeFilter, setVideoTimeFilter] = useState<"all" | "week" | "month">("all");
   // G5: free-text search across title / creator / uploader / video id.
   const [videoSearch, setVideoSearch] = useState("");
-  const [awardOptions, setAwardOptions] = useState([
+  // H4-D.5: persist operator-added award labels across reloads.
+  // Defaults are the built-in set; localStorage adds extra labels the
+  // operator typed for a custom prize.  Previously they vanished on
+  // every refresh.
+  const DEFAULT_AWARD_OPTIONS = [
     "대상",
     "금상",
     "은상",
@@ -43,7 +47,41 @@ export function VideoManage({
     "Merit",
     "Audience Award",
     "Special Award",
-  ]);
+  ];
+  const AWARD_STORAGE_KEY = "genova_admin_award_options";
+  const [awardOptions, setAwardOptions] = useState<string[]>(DEFAULT_AWARD_OPTIONS);
+  // Read localStorage once on mount.  Wrap in try/catch — Safari
+  // private mode can throw on read.
+  useEffect(() => {
+    try {
+      const stored = window.localStorage.getItem(AWARD_STORAGE_KEY);
+      if (!stored) return;
+      const parsed = JSON.parse(stored);
+      if (Array.isArray(parsed) && parsed.every((v) => typeof v === "string")) {
+        // Merge: stored values appended after defaults, dedup'd.
+        const merged = [...DEFAULT_AWARD_OPTIONS];
+        for (const v of parsed) {
+          if (!merged.includes(v)) merged.push(v);
+        }
+        setAwardOptions(merged);
+      }
+    } catch {
+      /* ignore */
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  /** Persist non-default (operator-added) award labels only. */
+  const persistAwardOptions = (next: string[]) => {
+    setAwardOptions(next);
+    try {
+      const extras = next.filter((v) => !DEFAULT_AWARD_OPTIONS.includes(v));
+      window.localStorage.setItem(AWARD_STORAGE_KEY, JSON.stringify(extras));
+    } catch {
+      /* ignore */
+    }
+  };
+
   const [newAwardOption, setNewAwardOption] = useState("");
   const [showAwardSelect, setShowAwardSelect] = useState<string | null>(null);
 
@@ -192,10 +230,19 @@ export function VideoManage({
         </div>
       </div>
 
-      <div className="max-h-[600px] min-h-0 space-y-1 overflow-y-auto pr-0.5">
+      {/* H4-C.4: dim grid during async action so the visible state
+          matches the disabled controls. */}
+      <div
+        className={cn(
+          "max-h-[600px] min-h-0 space-y-1 overflow-y-auto pr-0.5 transition-opacity",
+          loading && "pointer-events-none opacity-60",
+        )}
+      >
         {filteredVideos.length === 0 ? (
           <div className="rounded-lg border border-white/[0.06] bg-white/[0.01] py-12 text-center">
-            <p className="text-[12px] text-white/35">영상이 없습니다</p>
+            <p className="text-[12px] text-white/35">
+              {videos.length === 0 ? "아직 업로드된 영상이 없습니다" : "필터 조건에 맞는 영상이 없습니다"}
+            </p>
           </div>
         ) : (
           filteredVideos.map((video) => (
@@ -323,7 +370,7 @@ export function VideoManage({
                                 e.preventDefault();
                                 if (!newAwardOption.trim()) return;
                                 if (!awardOptions.includes(newAwardOption.trim())) {
-                                  setAwardOptions((prev) => [...prev, newAwardOption.trim()]);
+                                  persistAwardOptions([...awardOptions, newAwardOption.trim()]);
                                 }
                                 setNewAwardOption("");
                               }
@@ -336,7 +383,7 @@ export function VideoManage({
                             onClick={() => {
                               if (!newAwardOption.trim()) return;
                               if (!awardOptions.includes(newAwardOption.trim())) {
-                                setAwardOptions((prev) => [...prev, newAwardOption.trim()]);
+                                persistAwardOptions([...awardOptions, newAwardOption.trim()]);
                               }
                               setNewAwardOption("");
                             }}

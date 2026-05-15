@@ -64,6 +64,10 @@ export function ReportManagement({
   // so a 10x-reported video isn't 10 rows.  Default off (per-row view
   // is still useful for status transitions and detail diff).
   const [groupByVideo, setGroupByVideo] = useState(false);
+  // H4-D.3: when there are no open / reviewing reports the panel is
+  // pure historical noise — collapse it so the operator scrolls past
+  // quickly.  Toggle re-expand for review.
+  const [bodyCollapsed, setBodyCollapsed] = useState(false);
 
   useEffect(() => setLocalReports(reports), [reports]);
 
@@ -105,6 +109,11 @@ export function ReportManagement({
   }, [localReports, reportStatusFilter, reportReasonFilter, reportSort, reportSearch, groupByVideo]);
 
   const openCount = useMemo(() => localReports.filter((r) => r.status === "open").length, [localReports]);
+  const reviewingCount = useMemo(
+    () => localReports.filter((r) => r.status === "reviewing").length,
+    [localReports],
+  );
+  const actionablePresent = openCount > 0 || reviewingCount > 0;
 
   const filterSelectSm = cn(adminTokens.input, "min-w-[100px] cursor-pointer text-[12px]");
   const filterSelectSort = cn(adminTokens.input, "min-w-[110px] cursor-pointer text-[12px]");
@@ -215,6 +224,17 @@ export function ReportManagement({
               Open {openCount}
             </span>
           ) : null}
+          {/* H4-D.3: collapse toggle.  Only useful when there's
+              nothing actionable — auto-show the toggle only then. */}
+          {!actionablePresent && localReports.length > 0 ? (
+            <button
+              type="button"
+              onClick={() => setBodyCollapsed((v) => !v)}
+              className={cn(adminTokens.buttonGhost, "text-[11px]")}
+            >
+              {bodyCollapsed ? "Show all" : "Collapse"}
+            </button>
+          ) : null}
         </div>
         <div className="flex flex-wrap items-center gap-2">
           {/* G5: free-text search */}
@@ -275,6 +295,11 @@ export function ReportManagement({
         </div>
       </div>
 
+      {bodyCollapsed && !actionablePresent ? (
+        <p className="rounded-md border border-white/[0.06] bg-white/[0.01] px-3 py-3 text-[11px] text-white/35">
+          처리할 신고가 없습니다. ({localReports.length}건 보관 중)
+        </p>
+      ) : (
       <div className="max-h-[520px] min-h-0 space-y-1 overflow-y-auto pr-0.5">
         {filteredReports.length === 0 ? (
           <div className="rounded-lg border border-white/[0.06] bg-white/[0.01] py-12 text-center">
@@ -417,6 +442,7 @@ export function ReportManagement({
           ))
         )}
       </div>
+      )}
     </div>
   );
 }
