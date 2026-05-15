@@ -842,13 +842,31 @@ export function ChatDrawer({
                       <div
                         className="px-3 py-2 text-sm"
                         style={{
+                          // CLAUDE.md primary 퍼플 그라데이션(가독 위해
+                          // alpha 상향).  단색 #534AB7(글로우 베이스)
+                          // 직접 사용에서 교체.
                           background: m.isDeleted
                             ? "rgba(255,255,255,0.04)"
                             : isMine
-                              ? "#534AB7"
-                              : "rgba(255,255,255,0.08)",
+                              ? "linear-gradient(135deg, rgba(107,95,212,0.95) 0%, rgba(83,74,183,0.9) 50%, rgba(63,54,163,0.85) 100%)"
+                              : "rgba(255,255,255,0.05)",
+                          border: m.isDeleted
+                            ? "1px solid rgba(255,255,255,0.05)"
+                            : isMine
+                              ? "1px solid rgba(175,169,236,0.25)"
+                              : "1px solid rgba(255,255,255,0.08)",
                           color: m.isDeleted ? "rgba(255,255,255,0.4)" : "white",
-                          borderRadius: "16px",
+                          // 말풍선 꼬리 — 보낸(우측)은 우하단, 받은
+                          // (좌측)은 좌하단 모서리만 각지게.
+                          borderRadius: m.isDeleted
+                            ? "14px"
+                            : isMine
+                              ? "16px 16px 4px 16px"
+                              : "16px 16px 16px 4px",
+                          boxShadow:
+                            isMine && !m.isDeleted
+                              ? "0 2px 14px rgba(83,74,183,0.28)"
+                              : "none",
                         }}
                       >
                         {m.isDeleted ? (

@@ -63,7 +63,18 @@ function LayoutChrome({ children }: { children: ReactNode }) {
         initialTarget={chatTarget}
         onUnreadChange={setUnreadMessageCount}
       />
-      <SlimSidebar onOpenChat={() => setChatOpen(true)} unreadMessageCount={unreadMessageCount} />
+      <SlimSidebar
+        onOpenChat={() => {
+          // 토글: 열려 있으면 닫고(타깃도 정리), 아니면 열기.
+          if (chatOpen) {
+            setChatOpen(false);
+            setChatTarget(null);
+          } else {
+            setChatOpen(true);
+          }
+        }}
+        unreadMessageCount={unreadMessageCount}
+      />
       <div
         className={cn(
           "transition-all duration-300",
