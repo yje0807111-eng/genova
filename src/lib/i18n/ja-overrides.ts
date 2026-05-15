@@ -52,6 +52,7 @@ export const jaOverrides: Record<string, string> = {
 
   // Phase 3: 応募券システム UI
   "lottery.title": "今月の応募券",
+  "lottery.guideLink": "応募券抽選のご案内",
   "lottery.resetIn": "{days}日後にリセット",
   "lottery.resetToday": "本日リセット",
   "lottery.depleted": "今月の応募券はすべて使用しました",
@@ -596,6 +597,7 @@ export const jaOverrides: Record<string, string> = {
   "footer.tagline": "AI映画作家のホーム",
   "footer.terms": "利用規約",
   "footer.privacy": "プライバシーポリシー",
+  "footer.lottery": "応募券抽選",
 
   "auth.browseExplore": "見てみる",
   "auth.agreementPrefix": "続行すると、",

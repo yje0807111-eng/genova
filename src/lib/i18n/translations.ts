@@ -442,6 +442,7 @@ const en: Messages = {
   "footer.tagline": "The Home of AI Filmmakers",
   "footer.terms": "Terms of Service",
   "footer.privacy": "Privacy Policy",
+  "footer.lottery": "Entry lottery",
 
   "settings.taglineField": "Tagline",
   "settings.pronounsField": "Pronouns",
@@ -769,6 +770,7 @@ const en: Messages = {
   // checkbox + post-upload toast feedback. `{days}` / `{used}` /
   // `{title}` / `{reason}` are runtime-substituted by the caller.
   "lottery.title": "Entry tickets this month",
+  "lottery.guideLink": "How the entry lottery works",
   "lottery.resetIn": "Resets in {days} day(s)",
   "lottery.resetToday": "Resets today",
   "lottery.depleted": "You've used all your tickets this month",

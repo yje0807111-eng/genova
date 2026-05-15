@@ -52,6 +52,7 @@ export const koOverrides: Record<string, string> = {
 
   // Phase 3: 응모권 시스템 UI
   "lottery.title": "이번 달 응모권",
+  "lottery.guideLink": "응모권 추첨 안내",
   "lottery.resetIn": "리셋까지 {days}일",
   "lottery.resetToday": "오늘 리셋",
   "lottery.depleted": "이번 달 응모권을 모두 사용했습니다",
@@ -626,6 +627,7 @@ export const koOverrides: Record<string, string> = {
   "footer.tagline": "AI 영화인의 홈",
   "footer.terms": "이용약관",
   "footer.privacy": "개인정보 처리방침",
+  "footer.lottery": "응모권 추첨",
 
   "auth.browseExplore": "둘러보기",
   "auth.agreementPrefix": "계속 진행하면 ",

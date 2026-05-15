@@ -1,3 +1,5 @@
+import Link from "next/link";
+import { Info } from "lucide-react";
 import { getServerLocale, getServerT } from "@/lib/i18n/server";
 import type { MonthlyTicketCount } from "@/lib/queries/lottery-queries";
 
@@ -56,6 +58,14 @@ export async function LotteryCounter({
             ? t("lottery.depleted", "You've used all your tickets this month")
             : resetCopy}
         </span>
+        <Link
+          href="/lottery"
+          className="ml-0.5 inline-flex items-center text-white/35 transition hover:text-white/70"
+          aria-label={t("lottery.guideLink", "응모권 추첨 안내")}
+          title={t("lottery.guideLink", "응모권 추첨 안내")}
+        >
+          <Info className="h-3.5 w-3.5" />
+        </Link>
       </div>
     );
   }
