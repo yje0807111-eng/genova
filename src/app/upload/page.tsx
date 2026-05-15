@@ -1,57 +1,15 @@
-import type { Metadata } from "next";
 import { redirect } from "next/navigation";
-import { AnimateIn } from "@/components/animate-in";
-import { LotteryCounter } from "@/components/lottery/lottery-counter";
-import { UploadVideoFormSimple } from "@/components/upload/upload-video-form-simple";
-import { fetchCompetitionsForUpload, fetchCurrentCompetition } from "@/lib/queries";
-import { fetchMyMonthlyTicketCount } from "@/lib/queries/lottery-queries";
-import { ensureProfile } from "@/lib/queries/profile-queries";
-import { createServerSupabaseClient } from "@/lib/supabase/server";
 
-export const metadata: Metadata = {
-  title: "Upload",
-  robots: { index: false, follow: false },
-};
-
-export default async function UploadPage({
-  searchParams,
-}: {
-  searchParams: Promise<{ competitionId?: string }>;
-}) {
-  const params = await searchParams;
-  const prefilledCompetitionId = params.competitionId ?? null;
-  const supabase = await createServerSupabaseClient();
-  if (!supabase) redirect("/auth");
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) redirect("/auth");
-
-  await ensureProfile(user.id, user.email);
-
-  const [competitions, currentCompetition, lotteryCount] = await Promise.all([
-    fetchCompetitionsForUpload(),
-    fetchCurrentCompetition(),
-    fetchMyMonthlyTicketCount(user.id),
-  ]);
-
-  return (
-    <AnimateIn delay={0}>
-      {/* Server-rendered lottery counter pinned above the form so
-          the uploader sees their current cap before deciding whether
-          to check the attestation box below. */}
-      {lotteryCount ? (
-        <div className="mx-auto mb-4 max-w-[640px] px-4 sm:px-6">
-          <LotteryCounter count={lotteryCount} variant="card" />
-        </div>
-      ) : null}
-      <UploadVideoFormSimple
-        userId={user.id}
-        competitions={competitions}
-        activeCompetitionId={currentCompetition?.id}
-        prefilledCompetitionId={prefilledCompetitionId}
-      />
-    </AnimateIn>
-  );
+/**
+ * 업로드 전용 페이지는 폐기 — 업로드는 항상 팝업(useUploadModal)
+ * 으로만 처리한다.  모든 진입점(사이드바 / 콘테스트 / 응모권 안내
+ * / 프로필 / hero)이 이미 openUploadModal() 을 호출하므로 직접
+ * URL 접근만 여기로 떨어진다.  홈으로 보내 사이드바의 업로드
+ * 버튼(모달)으로 유도한다.
+ *
+ * 라우트 자체를 지우면 기존 북마크/외부 링크가 404 가 되므로
+ * redirect 로 유지.
+ */
+export default function UploadPageRedirect() {
+  redirect("/");
 }

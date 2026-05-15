@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import { LotteryGuideInfoButton } from "@/components/lottery/lottery-guide-info-button";
 import { useEffect, useState } from "react";
 import { useI18n } from "@/components/genova/language-provider";
 import { intlDateLocale } from "@/lib/i18n/browser-locale";
@@ -11,7 +12,7 @@ import { cn } from "@/lib/utils/cn";
 import { VideoCard } from "@/components/video/video-card";
 import { useUploadModal } from "@/components/upload/upload-modal-context";
 import type { Video as AppVideo } from "@/lib/types";
-import { Trophy, Calendar, Clock, ChevronLeft, Upload, Star, Grid, List, Users, Award, Medal, Info } from "lucide-react";
+import { Trophy, Calendar, Clock, ChevronLeft, Upload, Star, Grid, List, Users, Award, Medal } from "lucide-react";
 
 function isVideoUrl(url: string): boolean {
   return /\.(mp4|webm|ogg|mov)(\?.*)?$/i.test(url);
@@ -422,14 +423,11 @@ export function CompetitionDetailClient({
                   <div className="flex flex-col">
                     <span className="inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-[0.18em] text-white/40">
                       {t("lottery.entriesLabel", "Entries")}
-                      <Link
-                        href="/lottery"
+                      <LotteryGuideInfoButton
+                        ariaLabel={t("lottery.guideLink", "응모권 추첨 안내")}
+                        size={12}
                         className="text-white/30 transition hover:text-[#AFA9EC]"
-                        aria-label={t("lottery.guideLink", "응모권 추첨 안내")}
-                        title={t("lottery.guideLink", "응모권 추첨 안내")}
-                      >
-                        <Info className="h-3 w-3" />
-                      </Link>
+                      />
                     </span>
                     <span className="mt-0.5 inline-flex items-center gap-1.5 text-[14px] font-bold tabular-nums text-[#AFA9EC]">
                       {entryCount.toLocaleString()}

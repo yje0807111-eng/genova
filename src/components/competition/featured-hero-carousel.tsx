@@ -5,6 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { ArrowRight, ChevronLeft, ChevronRight } from "lucide-react";
 import { useI18n } from "@/components/genova/language-provider";
+import { useUploadModal } from "@/components/upload/upload-modal-context";
 
 type Competition = {
   id: string;
@@ -33,6 +34,7 @@ const HERO_HEIGHT = 440;
 
 export function FeaturedHeroCarousel({ competitions }: Props) {
   const { t, locale } = useI18n();
+  const { open: openUploadModal } = useUploadModal();
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
 
@@ -179,12 +181,13 @@ export function FeaturedHeroCarousel({ competitions }: Props) {
                     {t("competition.viewDetails", "자세히 보기")}
                     <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" />
                   </Link>
-                  <Link
-                    href={`/upload?competitionId=${c.id}`}
+                  <button
+                    type="button"
+                    onClick={() => openUploadModal({ competitionId: c.id })}
                     className="inline-flex items-center gap-1.5 rounded-full border border-white/[0.15] bg-white/[0.03] px-5 py-2.5 text-[13px] font-semibold text-white/85 backdrop-blur-md transition hover:border-white/[0.3] hover:bg-white/[0.08] hover:text-white"
                   >
                     {t("competition.joinNow", "지금 참여하기")}
-                  </Link>
+                  </button>
                 </div>
               </div>
             </div>

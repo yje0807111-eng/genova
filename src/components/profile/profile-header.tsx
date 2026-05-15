@@ -156,7 +156,7 @@ export async function ProfileHeader(props: Props) {
                     one-line pill so it doesn't dominate the header. */}
                 {props.isOwner && props.lotteryCount ? (
                   <div className="mt-3">
-                    <LotteryCounter count={props.lotteryCount} variant="compact" />
+                    <LotteryCounter count={props.lotteryCount} />
                   </div>
                 ) : null}
               </div>
