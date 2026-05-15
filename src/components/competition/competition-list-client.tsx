@@ -163,36 +163,51 @@ function CompetitionCard({ c, participantCount }: { c: Competition; participantC
             </span>
           )}
         </div>
+        <div className="absolute inset-0 flex items-center justify-center opacity-0 transition-opacity duration-200 group-hover:opacity-100">
+          <span className="rounded-full border border-white/25 bg-black/55 px-4 py-1.5 text-[12px] font-bold text-white backdrop-blur-md">
+            {t("competition.viewDetails", "자세히 보기")} →
+          </span>
+        </div>
       </div>
 
-      <div className="flex flex-1 flex-col gap-1.5 p-3.5">
-        <h3 className="line-clamp-1 text-[15px] font-bold text-white">
+      <div className="flex flex-1 flex-col p-3.5">
+        <h3 className="line-clamp-2 min-h-[2.6em] text-[15px] font-bold leading-snug text-white">
           {getLangText(locale, c.title_ko, c.title_en, c.title_ja, c.title)}
         </h3>
-        <p className="truncate text-[15px] font-black text-[#F5D182]">{prize}</p>
-        <div className="mt-0.5 flex items-center justify-between gap-2 text-[11px] text-white/40">
-          <span className="inline-flex items-center gap-1.5">
-            <span
-              className={`h-1.5 w-1.5 rounded-full ${
-                isOpen ? "animate-pulse bg-emerald-400" : isUpcoming ? "bg-sky-400" : "bg-white/25"
-              }`}
-            />
-            <span
-              className={
-                isOpen ? "font-semibold text-emerald-300" : isUpcoming ? "font-semibold text-sky-300" : "text-white/35"
-              }
-            >
-              {isOpen ? t("competition.statusOpen") : isUpcoming ? t("competition.statusUpcoming") : t("competition.statusClosed")}
-            </span>
-            <span className="text-white/20">·</span>
-            <span>{deadlineLabel}</span>
-          </span>
+        {c.sponsor ? (
+          <p className="mt-1 truncate text-[11px] text-white/40">
+            {t("competition.sponsoredBy", "주최")} <span className="text-white/65">{c.sponsor}</span>
+          </p>
+        ) : null}
+        <div className="mt-2 flex items-end justify-between gap-2">
+          <div className="min-w-0">
+            <p className="text-[9px] font-bold uppercase tracking-[0.16em] text-white/35">
+              {t("competition.colPrize")}
+            </p>
+            <p className="truncate text-[16px] font-black text-[#F5D182]">{prize}</p>
+          </div>
           {participantCount > 0 ? (
-            <span className="shrink-0 tabular-nums text-white/45">
+            <span className="shrink-0 pb-0.5 text-[11px] tabular-nums text-white/45">
               {participantCount.toLocaleString()}
               <span className="ml-0.5 text-white/30">{t("competition.peopleUnit")}</span>
             </span>
           ) : null}
+        </div>
+        <div className="mt-2.5 flex items-center gap-1.5 border-t border-white/[0.06] pt-2 text-[11px] text-white/40">
+          <span
+            className={`h-1.5 w-1.5 rounded-full ${
+              isOpen ? "animate-pulse bg-emerald-400" : isUpcoming ? "bg-sky-400" : "bg-white/25"
+            }`}
+          />
+          <span
+            className={
+              isOpen ? "font-semibold text-emerald-300" : isUpcoming ? "font-semibold text-sky-300" : "text-white/35"
+            }
+          >
+            {isOpen ? t("competition.statusOpen") : isUpcoming ? t("competition.statusUpcoming") : t("competition.statusClosed")}
+          </span>
+          <span className="text-white/20">·</span>
+          <span>{deadlineLabel}</span>
         </div>
       </div>
     </Link>

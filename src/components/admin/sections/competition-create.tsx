@@ -83,7 +83,13 @@ export function CompetitionCreate({ onMessage }: { onMessage: (message: string) 
     setForm((p) => ({ ...p, prizeInfo: raw ? `${sym}${Number(raw).toLocaleString()}` : "" }));
   };
 
+  const missingRequired = !form.title.trim() || !form.deadline || !form.voteEnd;
+
   const call = async () => {
+    if (missingRequired) {
+      onMessage("제목, 접수 마감일, 투표 마감일은 필수입니다.");
+      return;
+    }
     setLoading(true);
     try {
       const res = await createCompetitionAction(form);
@@ -226,11 +232,12 @@ export function CompetitionCreate({ onMessage }: { onMessage: (message: string) 
               ))}
             </div>
             <input
-              type="number"
-              value={prizeAmount}
-              onChange={(e) => applyPrizeAmount(e.target.value, currencySymbol)}
+              type="text"
+              inputMode="numeric"
+              value={prizeAmount ? Number(prizeAmount).toLocaleString() : ""}
+              onChange={(e) => applyPrizeAmount(e.target.value.replace(/[^0-9]/g, ""), currencySymbol)}
               className={cn(adminTokens.input, "min-w-[140px] flex-1")}
-              placeholder="금액 입력 (예: 1000000)"
+              placeholder="금액 입력 (예: 1,000,000)"
             />
           </div>
           {currency === "KRW" ? (
@@ -324,8 +331,13 @@ export function CompetitionCreate({ onMessage }: { onMessage: (message: string) 
         </div>
       </div>
 
-      <button type="button" disabled={loading} onClick={() => void call()} className={cn(adminTokens.buttonPrimary, "mt-4 h-10 w-full")}>
-        {loading ? "생성 중..." : "공모전 생성 →"}
+      <button
+        type="button"
+        disabled={loading || missingRequired}
+        onClick={() => void call()}
+        className={cn(adminTokens.buttonPrimary, "mt-4 h-10 w-full disabled:cursor-not-allowed disabled:opacity-40")}
+      >
+        {loading ? "생성 중..." : missingRequired ? "필수 항목을 입력하세요" : "공모전 생성 →"}
       </button>
     </div>
   );
