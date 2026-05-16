@@ -13,8 +13,9 @@ import { HoverPreviewCard } from "@/components/genova/hover-preview-card";
 import { parseRuntimeToSeconds } from "@/components/video/video-card";
 import { normalizeToMainGenre } from "@/lib/constants/genres";
 import type { GenreFilter } from "@/lib/genova-genre";
-// HomeCompetitionBanner is now async server (B.2-8a); composed by the
-// route page and threaded down through `competitionBannerSlot`.
+// HomeCompetitionBanner is a client component (reads useI18n so the
+// hero re-localizes instantly on language switch); the route page
+// resolves its data props and threads it down via `competitionBannerSlot`.
 import { HomeTabNav } from "@/components/genova/home-tab-nav";
 import type { MainTab, SubGenre, SortKey } from "@/components/genova/home-tab-nav";
 import { AwardsGallery } from "@/components/genova/awards-gallery";
@@ -43,11 +44,10 @@ type HomePageClientProps = {
     participantCount: number;
   };
   /**
-   * Server-rendered `<HomeCompetitionBanner>` (B.2-8a).  Composed by
-   * `src/app/page.tsx` and threaded through as ReactNode so the banner
-   * — eyebrow, gradient title, three stat cards, three info rows — can
-   * render with locale-aware text on the server without forcing the
-   * filter/sort/search shell here back into a server component.
+   * `<HomeCompetitionBanner>` — a client component (reads `useI18n` so
+   * the hero re-localizes instantly on language switch).  Its data
+   * props (competition / stats) are resolved in `src/app/page.tsx` and
+   * it is threaded through here as a ReactNode slot.
    */
   competitionBannerSlot: ReactNode;
   /**

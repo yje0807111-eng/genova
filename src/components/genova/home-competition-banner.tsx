@@ -1,6 +1,8 @@
+"use client";
+
 import Link from "next/link";
 import { ArrowRight, PlayCircle, Calendar, Users } from "lucide-react";
-import { getServerLocale, getServerT } from "@/lib/i18n/server";
+import { useI18n } from "@/components/genova/language-provider";
 import { BrowseFilmsButton } from "@/components/genova/browse-films-button";
 
 type HeroCompetition = {
@@ -22,16 +24,16 @@ type Props = {
 };
 
 /**
- * Server component (B.2-8a).  Previously a "use client" leaf whose only
- * client-side need was the smooth-scroll onClick for the secondary CTA.
- * That handler now lives in `<BrowseFilmsButton>` (~25 LOC), and the
- * rest of the banner — eyebrow, gradient title, three stat cards, three
- * info rows — renders fully on the server.  Removes ~250 LOC of
- * translation-heavy JSX from the home-page client bundle.
+ * Client component.  Was a server component (B.2-8a) for bundle size,
+ * but a server-rendered hero only re-localizes after `router.refresh()`
+ * (a network round-trip), so on language switch its title/subtitle/
+ * stats visibly lagged ~0.5–1s behind every client `useI18n()` string.
+ * Reading the locale from `useI18n()` makes the above-the-fold hero
+ * flip instantly and in sync with the rest of the UI.  `competition`
+ * and `stats` are still resolved on the server and passed as props.
  */
-export async function HomeCompetitionBanner({ competition, stats }: Props) {
-  const locale = await getServerLocale();
-  const t = getServerT(locale);
+export function HomeCompetitionBanner({ competition, stats }: Props) {
+  const { t, locale } = useI18n();
 
   const localizedCompTitle = competition
     ? (locale === "ko"
