@@ -554,6 +554,7 @@ const en: Messages = {
   "genre.sub.other": "Other",
 
   "footer.tagline": "The Home of AI Filmmakers",
+  "footer.about": "About",
   "footer.terms": "Terms of Service",
   "footer.privacy": "Privacy Policy",
   "footer.lottery": "Entry lottery",

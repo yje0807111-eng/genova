@@ -199,6 +199,7 @@ export function SiteFooter() {
       <div className="mx-auto flex max-w-[1600px] flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex flex-wrap items-center gap-x-5 gap-y-2 text-[11px]">
           <span className="font-black text-white">Genova</span>
+          <Link href="/landing" className="text-white/45 transition hover:text-white/80">{t("footer.about", "About")}</Link>
           <Link href="/?tab=films" className="text-white/45 transition hover:text-white/80">{t("nav.films", "Films")}</Link>
           <Link href="/competition" className="text-white/45 transition hover:text-white/80">{t("nav.competition", "Competition")}</Link>
           <Link href="/business" className="text-white/45 transition hover:text-white/80">{t("nav.business", "공모전 열기")}</Link>

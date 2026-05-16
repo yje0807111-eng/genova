@@ -602,6 +602,7 @@ export const jaOverrides: Record<string, string> = {
   "feed.daysAgoSuffix": "日前",
 
   "footer.tagline": "AI映画作家のホーム",
+  "footer.about": "概要",
   "footer.terms": "利用規約",
   "footer.privacy": "プライバシーポリシー",
   "footer.lottery": "応募券抽選",

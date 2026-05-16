@@ -632,6 +632,7 @@ export const koOverrides: Record<string, string> = {
   "feed.daysAgoSuffix": "일 전",
 
   "footer.tagline": "AI 영화인의 홈",
+  "footer.about": "소개",
   "footer.terms": "이용약관",
   "footer.privacy": "개인정보 처리방침",
   "footer.lottery": "응모권 추첨",
