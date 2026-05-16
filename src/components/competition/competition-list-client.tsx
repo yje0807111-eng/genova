@@ -205,7 +205,7 @@ function CompetitionCard({ c, participantCount }: { c: Competition; participantC
             {votingState
               ? t("competition.statusVoting", "투표중")
               : isOpen
-                ? t("competition.statusOpen")
+                ? t("competition.statusOpenShort")
                 : isUpcoming
                   ? t("competition.statusUpcoming")
                   : t("competition.statusClosed")}

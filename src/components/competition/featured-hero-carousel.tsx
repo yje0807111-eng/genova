@@ -138,7 +138,7 @@ export function FeaturedHeroCarousel({ competitions }: Props) {
                 <div className="inline-flex w-fit items-center gap-1.5 rounded-full border border-[#7F77DD]/25 bg-[#7F77DD]/10 px-3 py-1 text-[10px] font-bold uppercase tracking-[0.2em] text-[#AFA9EC] backdrop-blur-md">
                   <Star className="h-3 w-3 fill-current" />
                   {c.sponsor
-                    ? t("competition.sponsoredBy", `SPONSOR · ${c.sponsor}`)
+                    ? `${t("competition.sponsoredBy", "Hosted by")} · ${c.sponsor}`
                     : t("competition.featured", "FEATURED")}
                 </div>
 
