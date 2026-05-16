@@ -4,7 +4,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { ArrowRight, Play, Trophy, Clapperboard, Globe2, Sparkles } from "lucide-react";
 import { useI18n } from "@/components/genova/language-provider";
-import { AnimateIn } from "@/components/animate-in";
+import { ScrollReveal } from "@/components/landing/scroll-reveal";
 import { cn } from "@/lib/utils/cn";
 
 type FeaturedCompetition = {
@@ -110,8 +110,9 @@ export function LandingClient({
 
       {/* ── Cinematic hero ───────────────────── */}
       <section className="relative flex min-h-[88vh] items-center overflow-hidden">
-        {/* backdrop — 실제 인기작 키아트 + 슬로우 줌 */}
-        <div className="absolute inset-0 -z-10">
+        {/* backdrop — 프로필 기본 배너 + 슬로우 줌. z-0(루트 #0a0a0a
+            배경에 가리지 않도록; 콘텐츠는 relative z-10). */}
+        <div className="absolute inset-0 z-0">
           {heroBackdrop ? (
             <Image
               src={heroBackdrop}
@@ -149,8 +150,8 @@ export function LandingClient({
           />
         </div>
 
-        <div className="mx-auto w-full max-w-[1280px] px-4 py-24 sm:px-8">
-          <AnimateIn delay={0.05} className="max-w-[680px]">
+        <div className="relative z-10 mx-auto w-full max-w-[1280px] px-4 py-24 sm:px-8">
+          <ScrollReveal delay={0.05} className="max-w-[680px]">
             <span className="mb-5 inline-flex items-center gap-1.5 rounded-full border border-white/[0.12] bg-white/[0.04] px-3 py-1 text-[10px] font-bold uppercase tracking-[0.22em] text-[#AFA9EC] backdrop-blur-sm">
               <Sparkles className="h-3 w-3" />
               {t("landing.eyebrow", "The Home of AI Filmmakers")}
@@ -187,10 +188,10 @@ export function LandingClient({
               </span>
               {t("landing.liveNote", "지금 전 세계 크리에이터들이 작품을 올리는 중")}
             </div>
-          </AnimateIn>
+          </ScrollReveal>
         </div>
 
-        <div className="absolute inset-x-0 bottom-5 flex justify-center">
+        <div className="absolute inset-x-0 bottom-5 z-10 flex justify-center">
           <span className="h-9 w-5 rounded-full border border-white/20 p-1">
             <span className="mx-auto block h-2 w-1 animate-bounce rounded-full bg-white/50" />
           </span>
@@ -234,20 +235,20 @@ export function LandingClient({
       {/* ── Features ─────────────────────────── */}
       <section className="relative overflow-hidden px-4 py-16 sm:px-8 sm:py-24">
         <div
-          className="pointer-events-none absolute left-1/2 top-0 -z-10 h-[420px] w-[min(1000px,120vw)] -translate-x-1/2"
+          className="pointer-events-none absolute left-1/2 top-0 z-0 h-[420px] w-[min(1000px,120vw)] -translate-x-1/2"
           style={{ background: "radial-gradient(50% 60% at 50% 30%, rgba(83,74,183,0.10) 0%, transparent 70%)", filter: "blur(50px)" }}
         />
-        <AnimateIn delay={0.05} className="mx-auto mb-10 max-w-[720px] text-center">
+        <ScrollReveal delay={0.05} className="relative z-10 mx-auto mb-10 max-w-[720px] text-center">
           <h2 className="text-[26px] font-black tracking-[-0.02em] sm:text-[36px]">
             {t("landing.featSectionTitle", "영화를 보고, 만들고, 겨루다")}
           </h2>
           <p className="mx-auto mt-3 max-w-[460px] text-[14px] text-white/50">
             {t("landing.featSectionSub", "Genova는 AI 영화 크리에이터를 위한 단 하나의 무대입니다.")}
           </p>
-        </AnimateIn>
-        <div className="mx-auto grid max-w-[1100px] gap-4 sm:grid-cols-3">
+        </ScrollReveal>
+        <div className="relative z-10 mx-auto grid max-w-[1100px] gap-4 sm:grid-cols-3">
           {features.map(({ Icon, title, desc }, i) => (
-            <AnimateIn
+            <ScrollReveal
               key={title}
               delay={0.1 + i * 0.08}
               className="group relative overflow-hidden rounded-2xl border border-white/[0.08] p-6 transition hover:border-[#7F77DD]/30"
@@ -271,7 +272,7 @@ export function LandingClient({
                 <h3 className="mt-4 text-[17px] font-bold text-white">{title}</h3>
                 <p className="mt-1.5 text-[13px] leading-relaxed text-white/50">{desc}</p>
               </div>
-            </AnimateIn>
+            </ScrollReveal>
           ))}
         </div>
       </section>
@@ -280,11 +281,11 @@ export function LandingClient({
       {featuredCompetitions.length > 0 && (
         <section className="relative overflow-hidden px-4 py-12 sm:px-8 sm:py-20">
           <div
-            className="pointer-events-none absolute right-0 top-1/4 -z-10 h-[400px] w-[min(700px,90vw)]"
+            className="pointer-events-none absolute right-0 top-1/4 z-0 h-[400px] w-[min(700px,90vw)]"
             style={{ background: "radial-gradient(circle at 70% 50%, rgba(83,74,183,0.10) 0%, transparent 70%)", filter: "blur(50px)" }}
           />
-          <div className="mx-auto max-w-[1280px]">
-            <AnimateIn delay={0.05} className="mb-6 flex items-end justify-between gap-4">
+          <div className="relative z-10 mx-auto max-w-[1280px]">
+            <ScrollReveal delay={0.05} className="mb-6 flex items-end justify-between gap-4">
               <h2 className="text-[22px] font-black tracking-[-0.02em] sm:text-[30px]">
                 {t("landing.compTitle", "진행 중인 공모전")}
               </h2>
@@ -294,12 +295,12 @@ export function LandingClient({
               >
                 {t("landing.seeAll", "전체 보기 →")}
               </Link>
-            </AnimateIn>
+            </ScrollReveal>
             <div className="grid gap-4 md:grid-cols-2">
               {featuredCompetitions.map((c, i) => {
                 const deadline = fmtDate(c.deadline);
                 return (
-                  <AnimateIn key={c.id} delay={0.1 + i * 0.08}>
+                  <ScrollReveal key={c.id} delay={0.1 + i * 0.08}>
                     <Link
                       href={`/competition/${c.id}`}
                       className="group block overflow-hidden rounded-2xl border border-white/[0.08]"
@@ -339,7 +340,7 @@ export function LandingClient({
                         </div>
                       </div>
                     </Link>
-                  </AnimateIn>
+                  </ScrollReveal>
                 );
               })}
             </div>
@@ -350,13 +351,13 @@ export function LandingClient({
       {/* ── Final CTA ────────────────────────── */}
       <section className="relative overflow-hidden px-4 py-24 sm:px-8 sm:py-32">
         <div
-          className="pointer-events-none absolute left-1/2 top-1/2 -z-10 h-[440px] w-[min(820px,120vw)] -translate-x-1/2 -translate-y-1/2"
+          className="pointer-events-none absolute left-1/2 top-1/2 z-0 h-[440px] w-[min(820px,120vw)] -translate-x-1/2 -translate-y-1/2"
           style={{
             background: "radial-gradient(50% 60% at 50% 50%, rgba(83,74,183,0.20) 0%, transparent 72%)",
             filter: "blur(44px)",
           }}
         />
-        <AnimateIn delay={0.05} className="mx-auto max-w-[680px] text-center">
+        <ScrollReveal delay={0.05} className="relative z-10 mx-auto max-w-[680px] text-center">
           <h2 className="text-[30px] font-black leading-tight tracking-[-0.025em] sm:text-[46px]">
             {t("landing.finalTitle", "당신의 AI 영화,\n지금 시작하세요")}
           </h2>
@@ -370,7 +371,7 @@ export function LandingClient({
             {t("landing.finalCta", "무료로 시작하기")}
             <ArrowRight className="h-4 w-4" />
           </Link>
-        </AnimateIn>
+        </ScrollReveal>
       </section>
 
       {/* ── Footer ───────────────────────────── */}
