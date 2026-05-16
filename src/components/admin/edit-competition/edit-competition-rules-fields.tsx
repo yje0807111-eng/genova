@@ -96,6 +96,24 @@ export function EditCompetitionRulesFields({
         />
       </div>
       <div>
+        <label className={adminTokens.inputLabel}>{t("adminCompEditRules.judgingProcessLabel", "Judging Process (Steps)")} {suffix}</label>
+        <p className="mb-1.5 text-[10px] text-white/25">{t("adminCompEditRules.judgingProcessHint", "One step per line. Use \"Title — description\" to split title and detail; a line without \"—\" becomes the step title.")}</p>
+        <textarea
+          value={
+            form[`judging_process_${langTab}` as "judging_process_ko" | "judging_process_en" | "judging_process_ja"]
+          }
+          onChange={(e) =>
+            setForm((p) => ({ ...p, [`judging_process_${langTab}`]: e.target.value } as typeof p))
+          }
+          rows={5}
+          className={inp + " resize-none"}
+          placeholder={t(
+            "adminCompEditRules.judgingProcessPlaceholder",
+            "e.g.:\nRound 1 — Staff pre-screening for rule compliance.\nRound 2 — Jury evaluation (100%).\nFinal — Results announced after the voting deadline.",
+          )}
+        />
+      </div>
+      <div>
         <label className={adminTokens.inputLabel}>{t("adminCompEditRules.rulesLabel", "Rules")} {suffix}</label>
         <textarea
           value={form[`rules_${langTab}` as "rules_ko" | "rules_en" | "rules_ja"]}

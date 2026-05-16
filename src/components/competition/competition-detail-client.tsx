@@ -45,6 +45,10 @@ type Competition = {
   judging_criteria_ko?: string | null;
   judging_criteria_en?: string | null;
   judging_criteria_ja?: string | null;
+  judging_process?: string | null;
+  judging_process_ko?: string | null;
+  judging_process_en?: string | null;
+  judging_process_ja?: string | null;
   submission_guidelines?: string | null;
   submission_guidelines_ko?: string | null;
   submission_guidelines_en?: string | null;
@@ -299,12 +303,12 @@ export function CompetitionDetailClient({
         {/* Left gradient overlay */}
         <div
           className="absolute inset-0 pointer-events-none"
-          style={{ background: "linear-gradient(90deg, rgba(8,6,24,0.95) 0%, rgba(8,6,24,0.6) 50%, transparent 80%)" }}
+          style={{ background: "linear-gradient(90deg, rgba(10,10,10,0.95) 0%, rgba(10,10,10,0.6) 50%, transparent 80%)" }}
         />
         {/* Bottom gradient overlay */}
         <div
           className="absolute inset-0 pointer-events-none"
-          style={{ background: "linear-gradient(180deg, transparent 60%, rgba(8,6,24,0.8) 100%)" }}
+          style={{ background: "linear-gradient(180deg, transparent 60%, rgba(10,10,10,0.85) 100%)" }}
         />
 
         {/* Back button */}
@@ -582,16 +586,13 @@ export function CompetitionDetailClient({
         {/* 개요 */}
         {activeTab === "overview" && (
           <div className="space-y-6">
-            <style>{`
-              .overview-bg { background: linear-gradient(160deg, rgba(16,12,32,0.6) 0%, rgba(8,6,20,0.7) 100%); }
-            `}</style>
 
             {/* 공모전 소개 + 참가 규칙 */}
             <div className="grid grid-cols-1 gap-6 lg:grid-cols-[1fr_340px] items-stretch">
 
               {/* 왼쪽 — 공모전 소개 */}
               <div className="h-full">
-                <div className="surface-card relative h-full overflow-hidden">
+                <div className="relative h-full overflow-hidden rounded-2xl border border-white/10 bg-[#0a0a0a]/40 backdrop-blur-xl shadow-card-soft">
 
                   {/* 트로피 이미지 제거 — 색 단차/경계 문제로 폐기.
                       우측은 경계 없는 브랜드 퍼플 글로우로만 채워 깔끔하게. */}
@@ -729,11 +730,7 @@ export function CompetitionDetailClient({
 
             {/* 하단 구역 — 공유 배경 */}
             <div
-              className="relative overflow-hidden rounded-2xl px-8"
-              style={{
-                border: "1px solid rgba(127,119,221,0.1)",
-                background: "linear-gradient(160deg, rgba(14,10,28,0.7) 0%, rgba(8,6,18,0.8) 100%)",
-              }}
+              className="relative overflow-hidden rounded-2xl border border-white/10 bg-[#0a0a0a]/40 px-8 backdrop-blur-xl"
             >
               <div className="pointer-events-none absolute top-0 left-0 right-0 h-px" style={{ background: "linear-gradient(to right, transparent, rgba(127,119,221,0.3) 40%, transparent)" }} />
 
@@ -799,7 +796,7 @@ export function CompetitionDetailClient({
                     isHero: true,
                     accent: "#FFD478",
                     accentDark: "#C8963E",
-                    cardBg: "linear-gradient(155deg, rgba(200,150,62,0.18) 0%, rgba(120,80,30,0.08) 50%, rgba(20,15,40,0.7) 100%)",
+                    cardBg: "linear-gradient(155deg, rgba(200,150,62,0.10) 0%, rgba(10,10,10,0.55) 55%, rgba(10,10,10,0.65) 100%)",
                     cardBorder: "rgba(200,150,62,0.4)",
                     cardShadow: "0 0 40px rgba(200,150,62,0.15), inset 0 1px 0 rgba(255,215,128,0.25)",
                     glowColor: "rgba(255,215,128,0.2)",
@@ -818,7 +815,7 @@ export function CompetitionDetailClient({
                     isHero: false,
                     accent: "#E0E5EC",
                     accentDark: "#A8B0BD",
-                    cardBg: "linear-gradient(155deg, rgba(180,190,210,0.08) 0%, rgba(20,15,40,0.6) 60%, rgba(15,10,30,0.5) 100%)",
+                    cardBg: "linear-gradient(155deg, rgba(190,198,212,0.07) 0%, rgba(10,10,10,0.55) 55%, rgba(10,10,10,0.65) 100%)",
                     cardBorder: "rgba(180,190,210,0.18)",
                     cardShadow: "0 0 24px rgba(180,190,210,0.06)",
                     glowColor: "rgba(200,210,225,0.12)",
@@ -835,7 +832,7 @@ export function CompetitionDetailClient({
                     isHero: false,
                     accent: "#D89060",
                     accentDark: "#A66A3D",
-                    cardBg: "linear-gradient(155deg, rgba(205,127,50,0.1) 0%, rgba(20,15,40,0.6) 60%, rgba(15,10,30,0.5) 100%)",
+                    cardBg: "linear-gradient(155deg, rgba(205,127,50,0.08) 0%, rgba(10,10,10,0.55) 55%, rgba(10,10,10,0.65) 100%)",
                     cardBorder: "rgba(205,127,50,0.2)",
                     cardShadow: "0 0 24px rgba(205,127,50,0.06)",
                     glowColor: "rgba(216,144,96,0.14)",
@@ -856,7 +853,7 @@ export function CompetitionDetailClient({
                     isHero: false,
                     accent: "#AFA9EC",
                     accentDark: "#7F77DD",
-                    cardBg: "linear-gradient(155deg, rgba(127,119,221,0.1) 0%, rgba(20,15,40,0.6) 60%, rgba(15,10,30,0.5) 100%)",
+                    cardBg: "linear-gradient(155deg, rgba(127,119,221,0.09) 0%, rgba(10,10,10,0.55) 55%, rgba(10,10,10,0.65) 100%)",
                     cardBorder: "rgba(127,119,221,0.22)",
                     cardShadow: "0 0 24px var(--tint-purple-08)",
                     glowColor: "rgba(127,119,221,0.16)",
@@ -869,7 +866,7 @@ export function CompetitionDetailClient({
                     key={tier.rank}
                     className="group relative overflow-hidden rounded-2xl p-6 transition-all duration-300 hover:scale-[1.02]"
                     style={{
-                      background: "linear-gradient(to bottom, rgba(21,16,46,0.8) 0%, rgba(12,8,32,0.8) 100%)",
+                      background: tier.cardBg,
                       border:
                         tier.rank === "01"
                           ? "1px solid rgba(245,209,130,0.3)"
@@ -1157,34 +1154,66 @@ export function CompetitionDetailClient({
                 </div>
 
                 <div className="grid gap-3">
-                  {[
-                    {
-                      step: t("competition.detail.judgingStepLabel01"),
-                      title: t("competition.detail.judgingRound1Title"),
-                      desc: t("competition.detail.judgingRound1Desc"),
-                    },
-                    {
-                      step: t("competition.detail.judgingStepLabel02"),
-                      title: t("competition.detail.judgingRound2Title"),
-                      desc: getText(
-                        competition.judging_criteria_ko,
-                        competition.judging_criteria_en,
-                        competition.judging_criteria_ja,
-                        competition.judging_criteria ?? "",
-                      ) || t("competition.detail.judgingCriteriaMissing"),
-                    },
-                    {
-                      step: t("competition.detail.judgingStepLabel03"),
-                      title: t("competition.detail.judgingFinalTitle"),
-                      desc: t("competition.detail.judgingFinalDesc").replace("{date}", voteEndLabel),
-                    },
-                  ].map((item) => (
-                    <div key={item.step} className="space-y-2 rounded-xl border border-white/10 bg-[#0a0a0a]/40 p-5 backdrop-blur-xl">
-                      <p className="text-[10px] uppercase tracking-[0.2em] text-[#7F77DD]">{item.step}</p>
-                      <p className="text-base font-bold text-white">{item.title}</p>
-                      <p className="text-sm leading-relaxed text-white/55">{item.desc}</p>
-                    </div>
-                  ))}
+                  {(() => {
+                    const stepWord =
+                      locale === "ko" ? "단계" : locale === "ja" ? "ステップ" : "STEP";
+                    const customProcess = getText(
+                      competition.judging_process_ko,
+                      competition.judging_process_en,
+                      competition.judging_process_ja,
+                      competition.judging_process ?? "",
+                    ).trim();
+
+                    let steps: { step: string; title: string; desc: string }[];
+                    if (customProcess) {
+                      steps = customProcess
+                        .split(/\r?\n/)
+                        .map((l) => l.trim())
+                        .filter(Boolean)
+                        .map((line, i) => {
+                          const m = line.match(/^(.*?)\s*[—–\-:]\s+(.*)$/);
+                          return {
+                            step: `${stepWord} ${String(i + 1).padStart(2, "0")}`,
+                            title: m ? m[1].trim() : line,
+                            desc: m ? m[2].trim() : "",
+                          };
+                        });
+                    } else {
+                      steps = [
+                        {
+                          step: t("competition.detail.judgingStepLabel01"),
+                          title: t("competition.detail.judgingRound1Title"),
+                          desc: t("competition.detail.judgingRound1Desc"),
+                        },
+                        {
+                          step: t("competition.detail.judgingStepLabel02"),
+                          title: t("competition.detail.judgingRound2Title"),
+                          desc:
+                            getText(
+                              competition.judging_criteria_ko,
+                              competition.judging_criteria_en,
+                              competition.judging_criteria_ja,
+                              competition.judging_criteria ?? "",
+                            ) || t("competition.detail.judgingCriteriaMissing"),
+                        },
+                        {
+                          step: t("competition.detail.judgingStepLabel03"),
+                          title: t("competition.detail.judgingFinalTitle"),
+                          desc: t("competition.detail.judgingFinalDesc").replace("{date}", voteEndLabel),
+                        },
+                      ];
+                    }
+
+                    return steps.map((item, i) => (
+                      <div key={`${item.step}-${i}`} className="space-y-2 rounded-xl border border-white/10 bg-[#0a0a0a]/40 p-5 backdrop-blur-xl">
+                        <p className="text-[10px] uppercase tracking-[0.2em] text-[#7F77DD]">{item.step}</p>
+                        <p className="text-base font-bold text-white">{item.title}</p>
+                        {item.desc ? (
+                          <p className="text-sm leading-relaxed text-white/55">{item.desc}</p>
+                        ) : null}
+                      </div>
+                    ));
+                  })()}
                 </div>
 
                 <div className="mt-6 rounded-xl border border-white/10 bg-[#0a0a0a]/40 p-5 backdrop-blur-xl">
@@ -1232,9 +1261,26 @@ export function CompetitionDetailClient({
                 style={{ boxShadow: "0 0 24px rgba(83,74,183,0.08), inset 0 1px 0 rgba(255,255,255,0.05)" }}
               >
                 <h2 className="mb-4 text-[18px] font-bold text-white">{t("competition.detail.sidebarPrizeHeading")}</h2>
-                <div className="mb-4 rounded-lg border border-white/10 bg-white/[0.04] px-3 py-2">
-                  <p className="text-[10px] uppercase tracking-[0.2em] text-white/35">TOTAL</p>
-                  <p className="text-2xl font-bold text-[#F5D182]">{prizeDisplay}</p>
+                <div className="mb-4 rounded-lg border border-white/10 bg-white/[0.04] px-3 py-2.5">
+                  <p className="mb-0.5 text-[10px] uppercase tracking-[0.2em] text-white/35">TOTAL</p>
+                  {(() => {
+                    const splitAt = prizeDisplay.indexOf(" (");
+                    const main = splitAt === -1 ? prizeDisplay : prizeDisplay.slice(0, splitAt);
+                    const approx =
+                      splitAt === -1 ? null : prizeDisplay.slice(splitAt + 1).replace(/^\(|\)$/g, "");
+                    return (
+                      <>
+                        <p className="text-[20px] font-bold leading-tight tabular-nums text-[#F5D182]">
+                          {main}
+                        </p>
+                        {approx ? (
+                          <p className="mt-0.5 text-[12px] leading-tight tabular-nums text-[#F5D182]/55">
+                            {approx}
+                          </p>
+                        ) : null}
+                      </>
+                    );
+                  })()}
                 </div>
 
                 <div>

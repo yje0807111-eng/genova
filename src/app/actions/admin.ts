@@ -29,6 +29,7 @@ export async function createCompetitionAction(form: {
   thumbnailUrl: string;
   rules: string;
   judgingCriteria: string;
+  judgingProcess: string;
   eligibility: string;
   submissionGuidelines: string;
   currency?: string;
@@ -68,6 +69,7 @@ export async function createCompetitionAction(form: {
     thumbnail_url: form.thumbnailUrl.trim() || null,
     rules: form.rules.trim() || null,
     judging_criteria: form.judgingCriteria.trim() || null,
+    judging_process: form.judgingProcess.trim() || null,
     eligibility: form.eligibility.trim() || null,
     submission_guidelines: form.submissionGuidelines.trim() || null,
     currency: form.currency ?? "KRW",
@@ -111,6 +113,9 @@ export async function updateCompetitionAction(
     judging_criteria_ko?: string;
     judging_criteria_en?: string;
     judging_criteria_ja?: string;
+    judging_process_ko?: string;
+    judging_process_en?: string;
+    judging_process_ja?: string;
     submission_guidelines_ko?: string;
     submission_guidelines_en?: string;
     submission_guidelines_ja?: string;
@@ -185,6 +190,14 @@ export async function updateCompetitionAction(
       judging_criteria_ko: form.judging_criteria_ko?.trim() || null,
       judging_criteria_en: form.judging_criteria_en?.trim() || null,
       judging_criteria_ja: form.judging_criteria_ja?.trim() || null,
+      judging_process:
+        form.judging_process_ko?.trim() ||
+        form.judging_process_en?.trim() ||
+        form.judging_process_ja?.trim() ||
+        null,
+      judging_process_ko: form.judging_process_ko?.trim() || null,
+      judging_process_en: form.judging_process_en?.trim() || null,
+      judging_process_ja: form.judging_process_ja?.trim() || null,
       eligibility:
         form.eligibility_ko?.trim() ||
         form.eligibility_en?.trim() ||

@@ -42,6 +42,7 @@ export function CompetitionCreate({ onMessage }: { onMessage: (message: string) 
     thumbnailUrl: "",
     rules: "",
     judgingCriteria: "",
+    judgingProcess: "",
     eligibility: "",
     submissionGuidelines: "",
   });
@@ -330,6 +331,16 @@ export function CompetitionCreate({ onMessage }: { onMessage: (message: string) 
         <div>
           <label className={adminTokens.inputLabel}>{t("adminCompCreate.judgingCriteriaLabel", "Judging Method")}</label>
           <textarea value={form.judgingCriteria} onChange={(e) => setForm((p) => ({ ...p, judgingCriteria: e.target.value }))} className={textareaFull} />
+        </div>
+        <div>
+          <label className={adminTokens.inputLabel}>{t("adminCompCreate.judgingProcessLabel", "Judging Process (Steps)")}</label>
+          <p className="mb-1.5 text-[10px] text-white/25">{t("adminCompCreate.judgingProcessHint", "One step per line. Use \"Title — description\" to split title and detail.")}</p>
+          <textarea
+            value={form.judgingProcess}
+            onChange={(e) => setForm((p) => ({ ...p, judgingProcess: e.target.value }))}
+            className={textareaFull}
+            placeholder={"Round 1 — Staff pre-screening.\nRound 2 — Jury evaluation (100%).\nFinal — Results after voting deadline."}
+          />
         </div>
         <div>
           <label className={adminTokens.inputLabel}>{t("adminCompCreate.rulesLabel", "Rules")}</label>

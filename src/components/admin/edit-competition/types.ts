@@ -24,6 +24,9 @@ export type EditCompetitionFormState = {
   judging_criteria_ko: string;
   judging_criteria_en: string;
   judging_criteria_ja: string;
+  judging_process_ko: string;
+  judging_process_en: string;
+  judging_process_ja: string;
   submission_guidelines_ko: string;
   submission_guidelines_en: string;
   submission_guidelines_ja: string;
