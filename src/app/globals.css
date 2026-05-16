@@ -609,6 +609,21 @@ body {
   .hero-kenburns { animation: none; }
 }
 
+/* landing-marquee — 랜딩 작품 스트립 무한 가로 스크롤.
+   트랙은 동일 콘텐츠 2벌, -50% 이동으로 seamless 루프. */
+@keyframes landingMarquee {
+  from { transform: translateX(0); }
+  to   { transform: translateX(-50%); }
+}
+.landing-marquee {
+  animation: landingMarquee 40s linear infinite;
+  width: max-content;
+}
+.landing-marquee:hover { animation-play-state: paused; }
+@media (prefers-reduced-motion: reduce) {
+  .landing-marquee { animation: none; }
+}
+
 /* ============================================================
    Phase 2.3 — Composite utility classes
    Layered as @layer components: utilities take precedence on conflict.
