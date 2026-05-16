@@ -286,7 +286,6 @@ export async function fetchRelatedVideos(excludeId: string, limit = 8): Promise<
   }
 
   let rows = (unwatched ?? []) as Parameters<typeof mapVideo>[0][];
-  let fallbackCount = 0;
 
   if (rows.length < limit) {
     const needed = limit - rows.length;
@@ -311,16 +310,8 @@ export async function fetchRelatedVideos(excludeId: string, limit = 8): Promise<
     }
 
     const fb = (fallback ?? []) as Parameters<typeof mapVideo>[0][];
-    fallbackCount = fb.length;
     rows = [...rows, ...fb];
   }
-
-  console.log("[RELATED_DEBUG]", {
-    watchedIds: watchedIds.length,
-    unwatched: unwatched?.length ?? 0,
-    fallback: fallbackCount,
-    total: rows.length,
-  });
 
   const merged = await mergeVideoRows(rows);
   return merged.map((row) => mapVideo(row));
