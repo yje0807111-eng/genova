@@ -209,7 +209,7 @@ export function WatchMetaSidebar({
           onClick={toggleAutoplay}
           title={autoplay ? t("watch.autoplay.on", "자동재생 켜짐") : t("watch.autoplay.off", "자동재생 꺼짐")}
           className={cn(
-            "ml-auto inline-flex shrink-0 items-center gap-1.5 rounded-md px-2 py-1 transition",
+            "ml-auto hidden shrink-0 items-center gap-1.5 rounded-md px-2 py-1 transition lg:inline-flex",
             autoplay
               ? "bg-white/[0.04] text-[#AFA9EC]"
               : "text-white/40 hover:text-white/70",

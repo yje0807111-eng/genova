@@ -65,7 +65,7 @@ export function WatchDesktopFlexRow({
         </div>
 
         <aside className="relative">
-          <div className="flex flex-col overflow-hidden rounded-xl border border-white/[0.06] bg-white/[0.01] lg:absolute lg:inset-0">
+          <div className="flex flex-col overflow-hidden lg:absolute lg:inset-0 lg:rounded-xl lg:border lg:border-white/[0.06] lg:bg-white/[0.01]">
             <WatchMetaSidebar
               videoId={videoId}
               video={video}
