@@ -33,7 +33,7 @@ export function FilmsRails({
   awardWinners,
   continueWatching,
 }: FilmsRailsProps) {
-  const { t, locale } = useI18n();
+  const { t } = useI18n();
 
   // Nothing to render — collapse the whole slot.  Avoids an empty
   // 80-pixel gap above the regular Films grid.

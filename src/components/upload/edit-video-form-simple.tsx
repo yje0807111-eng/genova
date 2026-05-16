@@ -69,7 +69,7 @@ export function EditVideoFormSimple({ video, userId, competitions, activeCompeti
   const [visibility, setVisibility] = useState<"public" | "private">(
     (video.visibility as "public" | "private") ?? "public",
   );
-  const [purpose, setPurpose] = useState<"personal" | "competition">(
+  const [purpose] = useState<"personal" | "competition">(
     (video.purpose as "personal" | "competition") ?? "personal",
   );
   const [competitionId, setCompetitionId] = useState<string>(

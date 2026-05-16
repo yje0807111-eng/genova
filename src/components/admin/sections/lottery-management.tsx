@@ -393,7 +393,6 @@ function WinnerCard({
   onMessage: (msg: string | null) => void;
 }) {
   const { t } = useI18n();
-  const statusLabel = useClaimStatusLabel();
   const router = useRouter();
   const [pending, startTransition] = useTransition();
   const [expanded, setExpanded] = useState(false);

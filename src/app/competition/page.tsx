@@ -58,21 +58,6 @@ export default async function CompetitionPage() {
     .filter((c) => !["Closed", "종료", "마감"].includes(c.status))
     .reduce((sum, c) => sum + parsePrizeToUSD(c.prize_info), 0);
 
-  const totalPrizeLabel = totalPrizeUSD >= 1000
-    ? `$${(totalPrizeUSD / 1000).toFixed(0)}K+`
-    : totalPrizeUSD > 0
-      ? `$${totalPrizeUSD}+`
-      : "TBA";
-
-  // Total participant count (competition uploads)
-  const { count: totalParticipants } = supabase
-    ? await supabase
-      .from("videos")
-      .select("*", { count: "exact", head: true })
-      .eq("purpose", "competition")
-      .eq("visibility", "public")
-    : { count: 0 };
-
   // Per-competition participant counts (unique uploaded_by)
   const participantCountMap: Record<string, number> = {};
   if (supabase) {

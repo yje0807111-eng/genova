@@ -102,7 +102,7 @@ export function ProfileBio({
   tiktokUrl,
   vimeoUrl,
 }: ProfileBioProps) {
-  const { t, locale } = useI18n();
+  const { t } = useI18n();
   const websiteLabel = t("profile.socialWebsite", "Website");
 
   const hasMore = Boolean(bioFull && bioFull.length > (headerIntro?.length ?? 0));

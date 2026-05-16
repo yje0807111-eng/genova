@@ -13,7 +13,6 @@ import {
 import { fetchPublicProfileById, type Profile } from "@/lib/queries/profile-queries";
 import { profileHandle } from "@/lib/profile-handle";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
-import type { Video } from "@/lib/types";
 import { intlDateLocale } from "@/lib/i18n/browser-locale";
 
 export const dynamic = "force-dynamic";

@@ -83,7 +83,7 @@ type Props = {
  * client shell behind another slot.
  */
 export function ProfileHeader(props: Props) {
-  const { t, locale } = useI18n();
+  const { t } = useI18n();
 
   return (
     <div>

@@ -63,15 +63,9 @@ type HomePageClientProps = {
 export function HomePageClient(props: HomePageClientProps) {
   const {
     videosFromDb,
-    competitionDeadlineIso,
     competition,
-    originals,
-    followingVideos,
-    becauseYouWatched,
-    isLoggedIn,
     heroAwardVideos,
     initialTab,
-    competitionStats,
     competitionBannerSlot,
     filmsRailsSlot,
   } = props;
@@ -136,11 +130,6 @@ export function HomePageClient(props: HomePageClientProps) {
   }, [loadMore, hasMore]);
 
   const videos = allVideos;
-  const newestVideos = useMemo(
-    () => [...videos].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()),
-    [videos]
-  );
-  const isAllSelected = selectedMood === "all";
 
   useEffect(() => {
     void pathname;

@@ -13,7 +13,6 @@ import { FollowButton } from "@/components/profile/follow-button";
 import { VideoEngagementBar } from "@/components/video/video-engagement-bar";
 import type { Video, VideoComment } from "@/lib/types";
 import { cn } from "@/lib/utils/cn";
-import { formatViewCountShort } from "@/lib/view-count";
 
 interface Props {
   videoId: string;

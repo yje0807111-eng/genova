@@ -7,12 +7,11 @@ import { useEffect, useState } from "react";
 import { useI18n } from "@/components/genova/language-provider";
 import { intlDateLocale } from "@/lib/i18n/browser-locale";
 import { formatPrizeWithConversion } from "@/lib/utils/format-prize";
-import { mainGenreLabel } from "@/lib/constants/genres";
 import { cn } from "@/lib/utils/cn";
 import { VideoCard } from "@/components/video/video-card";
 import { useUploadModal } from "@/components/upload/upload-modal-context";
 import type { Video as AppVideo } from "@/lib/types";
-import { Trophy, Calendar, Clock, ChevronLeft, Upload, Star, Grid, List, Users, Award, Medal } from "lucide-react";
+import { Trophy, ChevronLeft, Upload, Star, Grid, List, Award, Medal } from "lucide-react";
 
 function isVideoUrl(url: string): boolean {
   return /\.(mp4|webm|ogg|mov)(\?.*)?$/i.test(url);
@@ -179,7 +178,6 @@ export function CompetitionDetailClient({
     return en || ko || ja || fallback;
   };
 
-  const prizeText = getText(competition.prize_info_ko, competition.prize_info_en, competition.prize_info_ja, competition.prize_info);
   const prizeDisplay = formatPrizeWithConversion(
     competition.prize_info_ko, competition.prize_info_en, competition.prize_info_ja,
     competition.prize_info, locale, competition.base_currency,

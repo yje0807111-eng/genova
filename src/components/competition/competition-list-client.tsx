@@ -55,25 +55,6 @@ function isVoting(c: Competition): boolean {
   return ["Voting", "투표중"].includes(c.status);
 }
 
-function formatPrize(prizeInfo: string, _t: (key: string, fallback?: string) => string): string {
-  const base = prizeInfo.split("+")[0].trim();
-  const cleaned = base
-    .replace("총 상금", "")
-    .replace("상금", "")
-    .trim();
-
-  const wonMatch = cleaned.match(/([0-9,]+)만원/);
-  if (wonMatch) {
-    const manwon = parseInt(wonMatch[1].replace(/,/g, ""));
-    const krw = manwon * 10000;
-    if (krw >= 10000000) return `₩${(krw / 10000000).toFixed(0)}M`;
-    if (krw >= 1000000) return `₩${(krw / 1000000).toFixed(0)}00K`;
-    return `₩${krw.toLocaleString()}`;
-  }
-
-  if (cleaned.includes("$")) return cleaned;
-  return cleaned;
-}
 
 function genreUiLabel(genre: string | undefined | null, locale: Locale): string {
   if (!genre || genre === "전체") return "";
@@ -357,7 +338,7 @@ export function CompetitionListClient({
   now: string;
   participantCounts?: Record<string, number>;
 }) {
-  const { t, locale } = useI18n();
+  const { t } = useI18n();
   const [activeTab, setActiveTab] = useState<"all" | "open" | "voting" | "upcoming" | "closed">("all");
   const [sortMode, setSortMode] = useState<"deadline" | "prize" | "participants">("deadline");
   const [gridMode, setGridMode] = useState<"grid" | "list">("grid");

@@ -25,7 +25,7 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ t
   const supabase = await createServerSupabaseClient();
   let isLoggedIn = false;
   let currentUserId: string | null = null;
-  let followingVideos: Awaited<ReturnType<typeof fetchVideosWithCreators>> = [];
+  const followingVideos: Awaited<ReturnType<typeof fetchVideosWithCreators>> = [];
 
   if (supabase) {
     try {

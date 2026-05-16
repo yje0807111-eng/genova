@@ -20,14 +20,6 @@ function NotificationIcon({ type }: { type: string }) {
   return <Bell className={`${base} text-[#7F77DD]`} />;
 }
 
-function notificationLineColor(type: string | null | undefined): string {
-  if (type === "comment") return "#60A5FA";
-  if (type === "follow") return "#34D399";
-  if (type === "trophy") return "#FACC15";
-  if (type === "competition_result") return "#7F77DD";
-  return "#7F77DD";
-}
-
 function timeAgo(iso: string, t: (key: string, fallback?: string) => string): string {
   const diff = Date.now() - new Date(iso).getTime();
   const mins = Math.floor(diff / 60000);

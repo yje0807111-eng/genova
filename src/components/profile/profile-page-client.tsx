@@ -134,21 +134,7 @@ function ProfileVideoCard({ video, t, isOwner, onEdit }: { video: any; t: (key: 
   );
 }
 
-function Stat({ label, value }: { label: string; value: number }) {
-  return (
-    <div className="flex flex-col items-center">
-      <span className="text-[18px] font-bold tabular-nums text-white md:text-[20px]">
-        {value.toLocaleString()}
-      </span>
-      <span className="mt-0.5 text-[11px] font-semibold uppercase tracking-[0.15em] text-white/45">
-        {label}
-      </span>
-    </div>
-  );
-}
-
 export function GenovaProfileClient({
-  profileId,
   works,
   competitionVideos,
   savedVideos,

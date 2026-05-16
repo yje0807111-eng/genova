@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { Camera, Info, Paperclip, Phone, Pin, Search, Send, Smile, X } from "lucide-react";
+import { Info, Paperclip, Pin, Search, Send, Smile, X } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { followUserAction, unfollowUserAction } from "@/app/actions/profile";
 import { useI18n } from "@/components/genova/language-provider";

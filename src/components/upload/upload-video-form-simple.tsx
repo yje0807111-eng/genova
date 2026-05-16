@@ -3,7 +3,6 @@
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import {
-  FEED_GENRE_KEYS,
   mainGenreLabel,
   type MainGenreKey,
 } from "@/lib/constants/genres";
@@ -24,7 +23,6 @@ type Props = {
 const lbl = "mb-2 block text-[12px] font-bold uppercase tracking-[0.18em] text-white/70";
 
 export function UploadVideoFormSimple({
-  userId,
   competitions,
   activeCompetitionId,
   prefilledCompetitionId,

@@ -13,7 +13,7 @@ type Props = {
   className?: string;
 };
 
-export function VideoSaveButton({ videoId, initialSaved, initialCount, compact, className }: Props) {
+export function VideoSaveButton({ videoId, initialSaved, initialCount, className }: Props) {
   const { t } = useI18n();
   const router = useRouter();
   const [saved, setSaved] = useState(initialSaved);
