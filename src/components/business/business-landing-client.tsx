@@ -1,12 +1,13 @@
+"use client";
+
 import Link from "next/link";
 import { ArrowRight, Sparkles, Users, Zap, Trophy, CheckCircle2 } from "lucide-react";
 import { AnimateIn } from "@/components/animate-in";
 import { BusinessApplyButton } from "./business-apply-button";
-import { getServerLocale, getServerT } from "@/lib/i18n/server";
+import { useI18n } from "@/components/genova/language-provider";
 
-export async function BusinessLandingClient() {
-  const locale = await getServerLocale();
-  const t = getServerT(locale);
+export function BusinessLandingClient() {
+  const { t } = useI18n();
 
   const VALUE_PROPS = [
     { icon: Users, title: t("bizLanding.vp1Title"), desc: t("bizLanding.vp1Desc") },
