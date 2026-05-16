@@ -260,21 +260,30 @@ export async function fetchRelatedVideos(excludeId: string, limit = 8): Promise<
   if (user) {
     const { data: history } = await supabase
       .from("watch_history")
-      .select("video_id, progress_seconds, duration_seconds")
+      .select("video_id")
       .eq("user_id", user.id)
       .order("watched_at", { ascending: false })
       .limit(50);
-    const rows = history ?? [];
-    watchedIds = [...new Set(rows.map((h) => h.video_id as string).filter(Boolean))];
+    watchedIds = [...new Set((history ?? []).map((h) => h.video_id as string).filter(Boolean))];
+
+    // 완주 판정은 video_progress 기준 (saveVideoProgress 가 이 테이블에만
+    // 기록; watch_history 진행률은 별도 경로라 끝부분이 누락됨).
+    // 최근 50개 중 97% 이상 본 영상을 Up Next 에서 전면 제외.
+    const { data: prog } = await supabase
+      .from("video_progress")
+      .select("video_id, progress_seconds, duration_seconds")
+      .eq("user_id", user.id)
+      .order("updated_at", { ascending: false })
+      .limit(50);
     completedIds = [
       ...new Set(
-        rows
-          .filter((h) => {
-            const prog = Number(h.progress_seconds ?? 0);
-            const dur = Number(h.duration_seconds ?? 0);
-            return dur > 0 && prog / dur >= 0.97;
+        (prog ?? [])
+          .filter((p) => {
+            const ps = Number(p.progress_seconds ?? 0);
+            const ds = Number(p.duration_seconds ?? 0);
+            return ds > 0 && ps / ds >= 0.97;
           })
-          .map((h) => h.video_id as string)
+          .map((p) => p.video_id as string)
           .filter(Boolean),
       ),
     ];
@@ -290,8 +299,9 @@ export async function fetchRelatedVideos(excludeId: string, limit = 8): Promise<
     .eq("visibility", "public")
     .neq("id", excludeId);
 
-  if (watchedIds.length > 0) {
-    const inList = watchedIds.map((id) => `"${id}"`).join(",");
+  const q1Exclude = [...new Set([...watchedIds, ...completedIds])];
+  if (q1Exclude.length > 0) {
+    const inList = q1Exclude.map((id) => `"${id}"`).join(",");
     q1 = q1.not("id", "in", `(${inList})`);
   }
 
