@@ -205,7 +205,7 @@ export function LandingClient({
                       <div
                         className="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-500 group-hover:opacity-100"
                         style={{
-                          background: "radial-gradient(ellipse at center, rgba(127,119,221,0.25) 0%, transparent 70%)",
+                          background: "radial-gradient(ellipse at center, rgba(83,74,183,0.12) 0%, transparent 72%)",
                         }}
                       />
                       <div
@@ -307,7 +307,7 @@ export function LandingClient({
                             <div
                               className="pointer-events-none absolute left-1/2 top-1/2 h-64 w-64 -translate-x-1/2 -translate-y-1/2 rounded-full opacity-40 transition-all duration-700 group-hover:opacity-70 group-hover:scale-110"
                               style={{
-                                background: "radial-gradient(circle, rgba(127,119,221,0.5) 0%, transparent 70%)",
+                                background: "radial-gradient(circle, rgba(83,74,183,0.16) 0%, transparent 72%)",
                                 filter: "blur(40px)",
                               }}
                             />
@@ -411,7 +411,7 @@ export function LandingClient({
             <div
               className="pointer-events-none absolute -right-20 top-0 h-72 w-72 rounded-full opacity-0 transition-opacity duration-500 group-hover/cta:opacity-100"
               style={{
-                background: "radial-gradient(circle, rgba(127,119,221,0.22) 0%, transparent 70%)",
+                background: "radial-gradient(circle, rgba(83,74,183,0.12) 0%, transparent 72%)",
                 filter: "blur(60px)",
               }}
             />

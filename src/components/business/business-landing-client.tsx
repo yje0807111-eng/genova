@@ -38,7 +38,7 @@ export function BusinessLandingClient() {
           <div
             className="absolute left-1/2 top-0 h-[500px] w-[1000px] -translate-x-1/2 rounded-full"
             style={{
-              background: "radial-gradient(ellipse, rgba(127,119,221,0.15) 0%, transparent 70%)",
+              background: "radial-gradient(ellipse, rgba(83,74,183,0.12) 0%, transparent 72%)",
               filter: "blur(80px)",
             }}
           />
@@ -242,7 +242,7 @@ export function BusinessLandingClient() {
             <div
               className="pointer-events-none absolute left-1/2 top-0 h-72 w-72 -translate-x-1/2 rounded-full"
               style={{
-                background: "radial-gradient(circle, rgba(127,119,221,0.3) 0%, transparent 70%)",
+                background: "radial-gradient(circle, rgba(83,74,183,0.14) 0%, transparent 72%)",
                 filter: "blur(60px)",
               }}
             />
