@@ -590,37 +590,17 @@ export function CompetitionDetailClient({
               <div className="h-full">
                 <div className="surface-card relative h-full overflow-hidden">
 
-                  {/* 트로피 워터마크 — 색 오버레이 대신 이미지 자체를
-                      알파 마스크로 사방 페이드.  카드의 --gradient-card-bg
-                      표면이 그대로 비쳐 경계/색 단차 없이 자연스럽게 이어짐.
-                      상하는 inset 으로 둥근 모서리와 분리. */}
-                  <div className="pointer-events-none absolute bottom-6 right-0 top-6 w-[52%]">
-                    <img
-                      src="/competition-trophy.png"
-                      alt=""
-                      className="absolute inset-0 h-full w-full object-contain object-center"
-                      style={{
-                        opacity: 0.3,
-                        filter: "saturate(1.05)",
-                        WebkitMaskImage:
-                          "linear-gradient(to right, transparent 0%, rgba(0,0,0,0.45) 38%, #000 64%, rgba(0,0,0,0.5) 88%, transparent 100%), linear-gradient(to bottom, transparent 0%, #000 24%, #000 76%, transparent 100%)",
-                        WebkitMaskComposite: "source-in",
-                        maskImage:
-                          "linear-gradient(to right, transparent 0%, rgba(0,0,0,0.45) 38%, #000 64%, rgba(0,0,0,0.5) 88%, transparent 100%), linear-gradient(to bottom, transparent 0%, #000 24%, #000 76%, transparent 100%)",
-                        maskComposite: "intersect",
-                      }}
-                    />
-                  </div>
-
-                  {/* 우측 배경 글로우 orb */}
+                  {/* 트로피 이미지 제거 — 색 단차/경계 문제로 폐기.
+                      우측은 경계 없는 브랜드 퍼플 글로우로만 채워 깔끔하게. */}
                   <div
-                    className="pointer-events-none absolute right-16 top-1/2 -translate-y-1/2"
+                    className="pointer-events-none absolute -right-10 top-1/2 -translate-y-1/2"
                     style={{
-                      width: "300px",
-                      height: "300px",
+                      width: "420px",
+                      height: "420px",
                       borderRadius: "50%",
-                      background: "radial-gradient(circle, rgba(83,74,183,0.05) 0%, transparent 72%)",
-                      filter: "blur(48px)",
+                      background:
+                        "radial-gradient(circle, rgba(127,119,221,0.13) 0%, rgba(83,74,183,0.07) 45%, transparent 72%)",
+                      filter: "blur(56px)",
                     }}
                   />
                   {/* 좌측 보라 글로우 orb */}
