@@ -98,9 +98,8 @@ export function VideoCard({
           className="flex h-14 w-14 items-center justify-center rounded-full"
           style={{
             background: "rgba(10,10,10,0.7)",
-            border: "1px solid rgba(175,169,236,0.5)",
+            border: "1px solid rgba(255,255,255,0.18)",
             backdropFilter: "blur(8px)",
-            boxShadow: "0 0 24px rgba(127,119,221,0.5)",
           }}
         >
           <svg className="ml-0.5 h-5 w-5" viewBox="0 0 24 24" fill="white">

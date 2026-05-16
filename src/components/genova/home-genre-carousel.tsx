@@ -105,7 +105,7 @@ function VideoPosterCard({ video, rank }: { video: VideoCard; rank: number }) {
           style={{
             fontFamily: "var(--font-plus-jakarta), sans-serif",
             color: "rgba(255,255,255,0.95)",
-            textShadow: "0 2px 8px rgba(0,0,0,0.7), 0 0 16px rgba(127,119,221,0.3)",
+            textShadow: "0 2px 10px rgba(0,0,0,0.75)",
           }}
           aria-hidden
         >

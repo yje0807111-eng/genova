@@ -156,24 +156,16 @@ export function VideoCard({
 
   return (
     <>
-      <style>{`
-        @keyframes borderGlow {
-          0% { box-shadow: inset 0 0 0 1.5px rgba(127,119,221,0.6), 0 0 15px rgba(83,74,183,0.4), 0 0 30px var(--tint-accent-15); }
-          50% { box-shadow: inset 0 0 0 1.5px rgba(175,169,236,1), 0 0 25px rgba(83,74,183,0.7), 0 0 50px rgba(83,74,183,0.3); }
-          100% { box-shadow: inset 0 0 0 1.5px rgba(127,119,221,0.6), 0 0 15px rgba(83,74,183,0.4), 0 0 30px var(--tint-accent-15); }
-        }
-      `}</style>
       <Link
         href={`/watch/${id}`}
-        className="group/card relative block w-full min-w-0 cursor-pointer overflow-hidden rounded-xl border border-white/[0.18] transition-all duration-300 hover:scale-[1.03] hover:border-transparent hover:shadow-[0_0_30px_rgba(83,74,183,0.5),0_0_60px_rgba(83,74,183,0.2)]"
+        className="group/card relative block w-full min-w-0 cursor-pointer overflow-hidden rounded-xl border border-white/[0.10] transition-all duration-300 hover:scale-[1.03] hover:border-white/20 hover:shadow-[0_16px_40px_rgba(0,0,0,0.45),0_0_40px_rgba(83,74,183,0.10)]"
       >
         <div className="relative w-full overflow-hidden" style={{ aspectRatio: "3/4" }}>
           {/* Animated glow border on hover */}
           <div
             className="pointer-events-none absolute inset-0 z-[10] rounded-xl opacity-0 transition-opacity duration-500 group-hover/card:opacity-100"
             style={{
-              boxShadow: "inset 0 0 0 1.5px rgba(127,119,221,0.8), 0 0 20px rgba(83,74,183,0.5), 0 0 40px rgba(83,74,183,0.2)",
-              animation: "borderGlow 2s ease-in-out infinite",
+              boxShadow: "inset 0 0 0 1px rgba(127,119,221,0.30), 0 0 24px rgba(83,74,183,0.10)",
             }}
           />
           <Image

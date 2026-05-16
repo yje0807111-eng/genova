@@ -294,11 +294,11 @@ export function CompetitionDetailClient({
             <div className="pointer-events-none absolute inset-0 overflow-hidden">
               <div
                 className="absolute -right-32 top-1/2 h-[140%] w-[60%] -translate-y-1/2 rounded-full opacity-40 blur-3xl"
-                style={{ background: "radial-gradient(circle, rgba(127,119,221,0.5) 0%, transparent 65%)" }}
+                style={{ background: "radial-gradient(circle, rgba(83,74,183,0.16) 0%, transparent 70%)" }}
               />
               <div
                 className="absolute -left-20 bottom-0 h-[60%] w-[40%] rounded-full opacity-25 blur-3xl"
-                style={{ background: "radial-gradient(circle, rgba(83,74,183,0.4) 0%, transparent 70%)" }}
+                style={{ background: "radial-gradient(circle, rgba(83,74,183,0.12) 0%, transparent 72%)" }}
               />
             </div>
           </div>
@@ -728,7 +728,7 @@ export function CompetitionDetailClient({
                         {concept.split("\n").filter(Boolean).map((line, i) => (
                           i === 0 ? (
                             <div key={i} className="flex items-center gap-2.5">
-                              <span className="shrink-0 text-[18px] text-accent-primary" style={{ filter: "drop-shadow(0 0 6px rgba(127,119,221,0.6))" }}>✦</span>
+                              <span className="shrink-0 text-[18px] text-accent-primary">✦</span>
                               <p className="text-[17px] font-bold leading-snug text-white/90">{line}</p>
                             </div>
                           ) : i === 1 ? (
@@ -1075,7 +1075,7 @@ export function CompetitionDetailClient({
                         style={{
                           width: `${progress}%`,
                           background: "linear-gradient(to right, #534AB7 0%, #7F77DD 60%, #AFA9EC 100%)",
-                          boxShadow: "0 0 16px rgba(127,119,221,0.7), 0 0 4px rgba(175,169,236,0.5)",
+                          boxShadow: "0 0 12px rgba(83,74,183,0.12)",
                         }}
                       />
                     </div>
@@ -1098,7 +1098,7 @@ export function CompetitionDetailClient({
                                       width: "20px",
                                       height: "20px",
                                       background: "#AFA9EC",
-                                      boxShadow: "0 0 0 5px rgba(127,119,221,0.3), 0 0 24px rgba(127,119,221,0.8)",
+                                      boxShadow: "0 0 0 4px rgba(127,119,221,0.15), 0 0 16px rgba(83,74,183,0.12)",
                                     }
                                   : isPast
                                     ? {
@@ -1106,7 +1106,7 @@ export function CompetitionDetailClient({
                                         width: "12px",
                                         height: "12px",
                                         background: "#7F77DD",
-                                        boxShadow: "0 0 8px rgba(127,119,221,0.5)",
+                                        boxShadow: "0 0 6px rgba(83,74,183,0.10)",
                                       }
                                     : {
                                         top: "-46px",
@@ -1132,7 +1132,7 @@ export function CompetitionDetailClient({
                                 isNow
                                   ? {
                                       background: "rgba(10,10,10,0.4)",
-                                      border: "1px solid rgba(127,119,221,0.4)",
+                                      border: "1px solid rgba(127,119,221,0.22)",
                                       backdropFilter: "blur(12px)",
                                       boxShadow: "0 0 24px rgba(127,119,221,0.15)",
                                     }
@@ -1453,7 +1453,7 @@ export function CompetitionDetailClient({
                           className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 backdrop-blur-md"
                           style={{
                             background: "rgba(127,119,221,0.22)",
-                            border: "1px solid rgba(127,119,221,0.4)",
+                            border: "1px solid rgba(127,119,221,0.22)",
                           }}
                         >
                           <Star size={9} className="fill-[#AFA9EC] text-[#AFA9EC]" />
