@@ -8,7 +8,7 @@ import { useI18n } from "@/components/genova/language-provider";
 import { intlDateLocale } from "@/lib/i18n/browser-locale";
 import { formatPrizeWithConversion } from "@/lib/utils/format-prize";
 import { cn } from "@/lib/utils/cn";
-import { VideoCard } from "@/components/video/video-card";
+import { HoverPreviewCard } from "@/components/genova/hover-preview-card";
 import { useUploadModal } from "@/components/upload/upload-modal-context";
 import type { Video as AppVideo } from "@/lib/types";
 import { Trophy, ChevronLeft, Upload, Star, Grid, List, Award, Medal } from "lucide-react";
@@ -1309,25 +1309,17 @@ export function CompetitionDetailClient({
                   <span className="h-[2px] w-8 rounded-full bg-gradient-to-r from-[#7F77DD] to-transparent" />
                 </div>
 
-                <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
+                <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
                   {featuredVideos.map((video) => (
                     <div key={`featured-${video.id}`} className="relative">
-                      <VideoCard
-                        video={competitionRowToAppVideo(video)}
-                        showRank={false}
-                        showLikes={true}
-                        showMadeWith={false}
-                        showDuration={true}
-                        showViews={true}
-                      />
+                      <HoverPreviewCard video={competitionRowToAppVideo(video)} />
 
-                      <div className="pointer-events-none absolute left-3 top-3 z-20">
+                      <div className="pointer-events-none absolute left-2.5 top-2.5 z-20">
                         <span
-                          className="inline-flex items-center gap-1 rounded-full px-2 py-1 backdrop-blur-md"
+                          className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 backdrop-blur-md"
                           style={{
-                            background: "rgba(127,119,221,0.2)",
+                            background: "rgba(127,119,221,0.22)",
                             border: "1px solid rgba(127,119,221,0.4)",
-                            boxShadow: "0 0 12px rgba(127,119,221,0.3)",
                           }}
                         >
                           <Star size={9} className="fill-[#AFA9EC] text-[#AFA9EC]" />
@@ -1337,10 +1329,9 @@ export function CompetitionDetailClient({
 
                       {video.award && (
                         <div
-                          className="pointer-events-none absolute right-3 top-3 z-20 flex items-center gap-1 rounded-full px-2 py-1"
+                          className="pointer-events-none absolute right-2.5 top-2.5 z-20 flex items-center gap-1 rounded-full px-2 py-0.5"
                           style={{
-                            background: "linear-gradient(135deg, rgba(255,215,128,0.9) 0%, rgba(200,150,62,0.85) 100%)",
-                            boxShadow: "0 0 12px rgba(255,215,128,0.5)",
+                            background: "linear-gradient(135deg, rgba(255,215,128,0.92) 0%, rgba(200,150,62,0.88) 100%)",
                           }}
                         >
                           <Trophy size={10} className="text-[#1a1000]" fill="#1a1000" />
@@ -1423,29 +1414,28 @@ export function CompetitionDetailClient({
                   )}
                 </div>
               ) : viewMode === "grid" ? (
-                <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
+                <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
                   {sortedVideos.map((video, idx) => (
                     <div key={video.id} className="relative">
-                      <VideoCard
-                        video={competitionRowToAppVideo(video)}
-                        rank={idx + 1}
-                        showRank={true}
-                        showLikes={true}
-                        showMadeWith={false}
-                        showDuration={true}
-                        showViews={true}
-                      />
-                      {video.is_competition_featured && (
-                        <div className="pointer-events-none absolute left-3 top-10 z-20">
+                      <HoverPreviewCard video={competitionRowToAppVideo(video)} />
+
+                      <div className="pointer-events-none absolute left-2.5 top-2.5 z-20 flex items-center gap-1">
+                        <span
+                          className="flex h-5 min-w-5 items-center justify-center rounded-full px-1.5 text-[10px] font-black tabular-nums text-white backdrop-blur-md"
+                          style={{ background: "rgba(10,10,10,0.6)", border: "1px solid rgba(255,255,255,0.15)" }}
+                        >
+                          {idx + 1}
+                        </span>
+                        {video.is_competition_featured && (
                           <Star size={12} className="fill-[#AFA9EC] text-[#AFA9EC] drop-shadow-[0_0_8px_rgba(127,119,221,0.6)]" />
-                        </div>
-                      )}
+                        )}
+                      </div>
+
                       {video.award && (
                         <div
-                          className="pointer-events-none absolute right-3 top-3 z-20 flex items-center gap-1 rounded-full px-2 py-1"
+                          className="pointer-events-none absolute right-2.5 top-2.5 z-20 flex items-center gap-1 rounded-full px-2 py-0.5"
                           style={{
-                            background: "linear-gradient(135deg, rgba(255,215,128,0.9) 0%, rgba(200,150,62,0.85) 100%)",
-                            boxShadow: "0 0 12px rgba(255,215,128,0.5)",
+                            background: "linear-gradient(135deg, rgba(255,215,128,0.92) 0%, rgba(200,150,62,0.88) 100%)",
                           }}
                         >
                           <Trophy size={10} className="text-[#1a1000]" fill="#1a1000" />
