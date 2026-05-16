@@ -1,7 +1,10 @@
+"use client";
+
 import Link from "next/link";
 import { ArrowLeft, Sparkles } from "lucide-react";
 import { AnimateIn } from "@/components/animate-in";
 import { VideoCard } from "@/components/video/video-card";
+import { useI18n } from "@/components/genova/language-provider";
 import type { Video } from "@/lib/types";
 
 type Creator = {
@@ -40,6 +43,7 @@ export function ToolDetailClient({
   creators,
   totalCreatorCount,
 }: Props) {
+  const { t } = useI18n();
   const initials = toolName.slice(0, 2).toUpperCase();
   const totalCount = videos.length;
 
@@ -118,7 +122,7 @@ export function ToolDetailClient({
             className="mb-12 inline-flex items-center gap-2 text-[12px] font-semibold uppercase tracking-[0.2em] text-white/50 transition hover:text-white"
           >
             <ArrowLeft className="h-3.5 w-3.5" />
-            홈으로
+            {t("toolDetail.backHome", "Home")}
           </Link>
 
           {/* Hero content */}
@@ -152,7 +156,10 @@ export function ToolDetailClient({
                   {toolName}
                 </h1>
                 <p className="mt-3 max-w-xl text-[14px] leading-relaxed text-white/55">
-                  Genova 크리에이터들이 {toolName}로 만든 작품을 확인해보세요.
+                  {t(
+                    "toolDetail.tagline",
+                    "Discover works made with {tool} by Genova creators.",
+                  ).replace("{tool}", toolName)}
                 </p>
               </div>
             </div>
@@ -181,7 +188,7 @@ export function ToolDetailClient({
           >
             <div className="border-r border-white/[0.06] px-2">
               <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/35">
-                영상
+                {t("toolDetail.statVideos", "Videos")}
               </p>
               <div className="mt-2 flex items-baseline gap-2">
                 <p className="text-[32px] font-black leading-none text-white">{formatNumber(totalCount)}</p>
@@ -190,7 +197,7 @@ export function ToolDetailClient({
             </div>
             <div className="border-r border-white/[0.06] px-2">
               <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/35">
-                총 조회수
+                {t("toolDetail.statTotalViews", "Total Views")}
               </p>
               <div className="mt-2 flex items-baseline gap-2">
                 <p className="text-[32px] font-black leading-none text-white">{formatNumber(totalViews)}</p>
@@ -199,7 +206,7 @@ export function ToolDetailClient({
             </div>
             <div className="px-2">
               <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/35">
-                크리에이터
+                {t("toolDetail.statCreators", "Creators")}
               </p>
               <div className="mt-2 flex items-baseline gap-2">
                 <p className="text-[32px] font-black leading-none text-white">{formatNumber(creatorCount)}</p>
@@ -224,7 +231,7 @@ export function ToolDetailClient({
                   </p>
                 </div>
                 <h2 className="typo-section-title">
-                  사용 크리에이터
+                  {t("toolDetail.creatorsHeading", "Creators Using This Tool")}
                 </h2>
               </div>
               <span className="shrink-0 rounded-full border border-white/[0.08] bg-white/[0.04] px-3 py-1 text-[11px] font-bold text-white/55">
@@ -326,7 +333,7 @@ export function ToolDetailClient({
               className="text-[26px] font-black tracking-tight text-white"
               style={{ letterSpacing: "-0.02em" }}
             >
-              사용 영상
+              {t("toolDetail.videosHeading", "Videos Using This Tool")}
             </h2>
           </div>
           <span className="shrink-0 rounded-full border border-white/[0.08] bg-white/[0.04] px-3 py-1 text-[11px] font-bold text-white/55">

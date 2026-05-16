@@ -33,15 +33,30 @@ interface Props {
   playerActions?: ReactNode;
 }
 
-function formatDate(date: string | Date | null | undefined): string {
+function formatDate(
+  date: string | Date | null | undefined,
+  t: (key: string, fallback: string) => string,
+): string {
   if (!date) return "";
   const d = new Date(date);
   const now = new Date();
   const diff = (now.getTime() - d.getTime()) / 1000;
-  if (diff < 60) return "방금 전";
-  if (diff < 3600) return `${Math.floor(diff / 60)}분 전`;
-  if (diff < 86400) return `${Math.floor(diff / 3600)}시간 전`;
-  if (diff < 604800) return `${Math.floor(diff / 86400)}일 전`;
+  if (diff < 60) return t("watchMeta.timeJustNow", "just now");
+  if (diff < 3600)
+    return t("watchMeta.timeMinutesAgo", "{n} minutes ago").replace(
+      "{n}",
+      String(Math.floor(diff / 60)),
+    );
+  if (diff < 86400)
+    return t("watchMeta.timeHoursAgo", "{n} hours ago").replace(
+      "{n}",
+      String(Math.floor(diff / 3600)),
+    );
+  if (diff < 604800)
+    return t("watchMeta.timeDaysAgo", "{n} days ago").replace(
+      "{n}",
+      String(Math.floor(diff / 86400)),
+    );
   return d.toISOString().slice(0, 10);
 }
 
@@ -94,7 +109,7 @@ export function WatchMetaSidebar({
   if (rt) metaParts.push(rt);
   if (video.viewCount != null)
     metaParts.push(`${video.viewCount.toLocaleString()} ${t("watch.views", "views")}`);
-  const dateStr = formatDate(video.createdAt);
+  const dateStr = formatDate(video.createdAt, t);
   if (dateStr) metaParts.push(dateStr);
 
   return (
@@ -118,7 +133,7 @@ export function WatchMetaSidebar({
             )}
             <span>{(video.viewCount ?? 0).toLocaleString()} {t("watch.views", "회 시청")}</span>
             <span className="text-white/15">·</span>
-            <span>{formatDate(video.createdAt)}</span>
+            <span>{formatDate(video.createdAt, t)}</span>
           </div>
         </div>
 

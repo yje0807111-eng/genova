@@ -1,12 +1,14 @@
 "use client";
 
 import { useUpload, type UploadJob } from "@/components/upload/upload-context";
+import { useI18n } from "@/components/genova/language-provider";
 import { X, CheckCircle2, AlertCircle, Upload as UploadIcon, RotateCw } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
 
 export function UploadProgressWidget() {
   const { jobs, removeJob, retryJob } = useUpload();
+  const { t } = useI18n();
   const [expanded, setExpanded] = useState(true);
 
   const visibleJobs = jobs;
@@ -23,11 +25,13 @@ export function UploadProgressWidget() {
         <div className="flex items-center gap-2">
           <UploadIcon className="h-3.5 w-3.5 text-[#AFA9EC]" />
           <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-white/70">
-            업로드 ({visibleJobs.length})
+            {t("uploadProgress.title", "Upload")} ({visibleJobs.length})
           </p>
         </div>
         <span className="text-[10px] text-white/40">
-          {expanded ? "접기" : "펼치기"}
+          {expanded
+            ? t("uploadProgress.collapse", "Collapse")
+            : t("uploadProgress.expand", "Expand")}
         </span>
       </button>
 
@@ -56,6 +60,7 @@ function UploadJobItem({
   onRemove: () => void;
   onRetry: () => void;
 }) {
+  const { t } = useI18n();
   return (
     <div className="border-b border-white/[0.04] px-4 py-3 last:border-b-0">
       <div className="mb-2 flex items-start justify-between gap-2">
@@ -76,7 +81,7 @@ function UploadJobItem({
       {job.status === "uploading" && (
         <>
           <div className="mb-1.5 flex items-center justify-between text-[11px] text-white/55">
-            <span>업로드 중</span>
+            <span>{t("uploadProgress.uploading", "Uploading")}</span>
             <span className="tabular-nums">{Math.round(job.progress)}%</span>
           </div>
           <ProgressBar progress={job.progress} />
@@ -88,7 +93,7 @@ function UploadJobItem({
           <div className="mb-1.5 flex items-center justify-between text-[11px] text-white/55">
             <span className="inline-flex items-center gap-1.5">
               <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-[#AFA9EC]" />
-              영상 처리 중
+              {t("uploadProgress.processing", "Processing video")}
             </span>
             <span className="tabular-nums">{Math.round(job.progress)}%</span>
           </div>
@@ -100,14 +105,14 @@ function UploadJobItem({
         <div className="flex items-center justify-between gap-2">
           <span className="inline-flex items-center gap-1.5 text-[11px] font-semibold text-emerald-400">
             <CheckCircle2 className="h-3.5 w-3.5" />
-            업로드 완료
+            {t("uploadProgress.completed", "Upload complete")}
           </span>
           {job.videoId && (
             <Link
               href={`/watch/${job.videoId}`}
               className="text-[11px] font-bold text-[#AFA9EC] hover:text-white"
             >
-              보기 →
+              {t("uploadProgress.view", "View")} →
             </Link>
           )}
         </div>
@@ -117,7 +122,7 @@ function UploadJobItem({
         <>
           <div className="mb-2 flex items-center gap-1.5 text-[11px] text-red-400">
             <AlertCircle className="h-3.5 w-3.5" />
-            <span className="line-clamp-2">{job.errorMessage ?? "업로드 실패"}</span>
+            <span className="line-clamp-2">{job.errorMessage ?? t("uploadProgress.failed", "Upload failed")}</span>
           </div>
           <button
             type="button"
@@ -125,7 +130,7 @@ function UploadJobItem({
             className="inline-flex items-center gap-1 text-[11px] font-bold text-[#AFA9EC] hover:text-white"
           >
             <RotateCw className="h-3 w-3" />
-            다시 시도
+            {t("uploadProgress.retry", "Retry")}
           </button>
         </>
       )}

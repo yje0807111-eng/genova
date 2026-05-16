@@ -185,7 +185,7 @@ function CommentBlock({
           {depth === 0 && pinned && (
             <span className="flex items-center gap-0.5 text-[10px] text-[#AFA9EC]">
               <Pin className="h-2.5 w-2.5" />
-              고정됨
+              {t("comments.pinned", "Pinned")}
             </span>
           )}
         </div>
@@ -280,15 +280,15 @@ function CommentBlock({
               boxShadow: "0 0 0 1px rgba(127,119,221,0.1), 0 40px 80px rgba(0,0,0,0.6)",
             }}
           >
-            <h2 className="text-lg font-black text-white">댓글 삭제</h2>
-            <p className="mt-1 text-sm text-white/35">이 댓글을 삭제하시겠습니까? 되돌릴 수 없습니다.</p>
+            <h2 className="text-lg font-black text-white">{t("comments.deleteTitle", "Delete comment")}</h2>
+            <p className="mt-1 text-sm text-white/35">{t("comments.deleteConfirm", "Are you sure you want to delete this comment? This cannot be undone.")}</p>
             <div className="mt-5 flex gap-3">
               <button
                 type="button"
                 onClick={() => setShowDeleteModal(false)}
                 className="flex-1 rounded-xl border border-white/[0.08] py-2.5 text-sm font-semibold text-white/50 transition hover:border-white/20 hover:text-white"
               >
-                취소
+                {t("comments.cancel", "Cancel")}
               </button>
               <button
                 type="button"
@@ -299,7 +299,7 @@ function CommentBlock({
                   boxShadow: "0 4px 16px rgba(220,38,38,0.3)",
                 }}
               >
-                삭제
+                {t("comments.delete", "삭제")}
               </button>
             </div>
           </div>

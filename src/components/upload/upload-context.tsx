@@ -97,7 +97,7 @@ export function UploadProvider({ children }: { children: React.ReactNode }) {
   const processJob = useCallback(async (job: UploadJob) => {
     try {
       const uploadRes = await fetch("/api/mux/upload", { method: "POST" });
-      if (!uploadRes.ok) throw new Error("Mux upload URL 발급 실패");
+      if (!uploadRes.ok) throw new Error(t("uploadCtx.muxUrlFailed", "Failed to issue Mux upload URL"));
       const { uploadUrl, uploadId } = await uploadRes.json();
       updateJob(job.id, { muxUploadId: uploadId, progress: 5 });
 
@@ -110,15 +110,18 @@ export function UploadProvider({ children }: { children: React.ReactNode }) {
             updateJob(job.id, { progress: 5 + pct * 0.6 });
           }
         };
-        xhr.onload = () => (xhr.status >= 200 && xhr.status < 300 ? resolve() : reject(new Error("업로드 실패")));
-        xhr.onerror = () => reject(new Error("네트워크 오류"));
+        xhr.onload = () => (xhr.status >= 200 && xhr.status < 300 ? resolve() : reject(new Error(t("uploadCtx.uploadFailed", "Upload failed"))));
+        xhr.onerror = () => reject(new Error(t("uploadCtx.networkError", "Network error")));
         xhr.send(job.videoFile);
       });
 
       updateJob(job.id, { progress: 65 });
 
       updateJob(job.id, { status: "processing", progress: 70 });
-      const asset = await pollMuxAsset(uploadId);
+      const asset = await pollMuxAsset(uploadId, {
+        errored: t("uploadCtx.muxProcessFailed", "Mux processing failed"),
+        timeout: t("uploadCtx.muxProcessTimeout", "Mux processing timed out"),
+      });
       updateJob(job.id, {
         muxPlaybackId: asset.playbackId,
         muxAssetId: asset.assetId,
@@ -161,12 +164,15 @@ export function UploadProvider({ children }: { children: React.ReactNode }) {
         videoId: result.videoId,
       });
 
-      toast.success(`"${job.title}" 업로드 완료`, {
+      toast.success(
+        t('uploadCtx.uploadComplete', '"{title}" upload complete').replace("{title}", job.title),
+        {
         action: {
-          label: "보기",
+          label: t("uploadCtx.viewAction", "View"),
           onClick: () => window.location.assign(`/watch/${result.videoId}`),
         },
-      });
+        },
+      );
 
       // Phase 3-2: lottery feedback toast.  Only emit when the user
       // actually opted in (originalAttestation === true) — silent
@@ -191,12 +197,12 @@ export function UploadProvider({ children }: { children: React.ReactNode }) {
         }
       }
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : "알 수 없는 오류";
+      const message = err instanceof Error ? err.message : t("uploadCtx.unknownError", "Unknown error");
       updateJob(job.id, {
         status: "failed",
         errorMessage: message,
       });
-      toast.error(`업로드 실패: ${message}`);
+      toast.error(t("uploadCtx.uploadFailedPrefix", "Upload failed: {message}").replace("{message}", message));
     }
   }, [updateJob]);
 
@@ -241,7 +247,10 @@ export function UploadProvider({ children }: { children: React.ReactNode }) {
   );
 }
 
-async function pollMuxAsset(uploadId: string): Promise<{
+async function pollMuxAsset(
+  uploadId: string,
+  errorCopy: { errored: string; timeout: string },
+): Promise<{
   playbackId: string;
   assetId: string;
   duration: number | null;
@@ -262,9 +271,9 @@ async function pollMuxAsset(uploadId: string): Promise<{
       };
     }
     if (data.status === "errored") {
-      throw new Error("Mux 처리 실패");
+      throw new Error(errorCopy.errored);
     }
     await new Promise((r) => setTimeout(r, 3000));
   }
-  throw new Error("Mux 처리 시간 초과");
+  throw new Error(errorCopy.timeout);
 }
