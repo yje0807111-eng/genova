@@ -1,6 +1,8 @@
+"use client";
+
 import { Globe, Instagram, X, Youtube } from "lucide-react";
 import { ProfileBioExpander } from "@/components/profile/profile-bio-expander";
-import { getServerLocale, getServerT } from "@/lib/i18n/server";
+import { useI18n } from "@/components/genova/language-provider";
 
 type SocialLinkProps = {
   websiteUrl: string | null;
@@ -80,19 +82,14 @@ type ProfileBioProps = {
 };
 
 /**
- * Server component (C-2b).  Renders the bio paragraph + the
- * expand/collapse toggle + the expanded-only block of tools chips,
- * country / joined meta, and social links.
- *
- * Was a "use client" leaf until C-2b — the only client need was the
- * expand state, which now lives in `<ProfileBioExpander>` (an
- * imported client island that swaps between two server-rendered
- * ReactNode slots).  All translation lookups happen here on the
- * server via `getServerLocale` / `getServerT`, so the bio renders
- * with the correct locale on the first byte shipped — no hydration
- * flash.
+ * Client component.  Renders the bio paragraph + the expand/collapse
+ * toggle + the expanded-only block of tools chips, country / joined
+ * meta, and social links.  Expand state lives in the imported
+ * `<ProfileBioExpander>` island.  Reads locale via `useI18n` so the
+ * bio re-localizes instantly on language switch (was a server
+ * component until then, which lagged a router.refresh behind).
  */
-export async function ProfileBio({
+export function ProfileBio({
   headerIntro,
   bioFull,
   headerToolsLine,
@@ -105,8 +102,7 @@ export async function ProfileBio({
   tiktokUrl,
   vimeoUrl,
 }: ProfileBioProps) {
-  const locale = await getServerLocale();
-  const t = getServerT(locale);
+  const { t, locale } = useI18n();
   const websiteLabel = t("profile.socialWebsite", "Website");
 
   const hasMore = Boolean(bioFull && bioFull.length > (headerIntro?.length ?? 0));

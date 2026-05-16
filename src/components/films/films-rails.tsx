@@ -1,7 +1,9 @@
+"use client";
+
 import Image from "next/image";
 import Link from "next/link";
 import { Trophy, PlayCircle, Clapperboard } from "lucide-react";
-import { getServerLocale, getServerT } from "@/lib/i18n/server";
+import { useI18n } from "@/components/genova/language-provider";
 import type { Video } from "@/lib/types";
 
 interface FilmsRailsProps {
@@ -17,7 +19,7 @@ interface FilmsRailsProps {
  *
  * Server-rendered: receives already-fetched arrays from page.tsx
  * (composed there via Promise.all alongside the existing prefetch)
- * and resolves locale-aware section titles via getServerT.  Empty
+ * and resolves locale-aware section titles via useI18n.  Empty
  * arrays are skipped silently — the slot collapses to nothing when
  * the user has no Continue Watching rows or the catalog has no
  * series/awards.
@@ -26,13 +28,12 @@ interface FilmsRailsProps {
  * stack ABOVE Continue Watching so newcomers see the curated content
  * first; returning viewers' resume queue is right below.
  */
-export async function FilmsRails({
+export function FilmsRails({
   series,
   awardWinners,
   continueWatching,
 }: FilmsRailsProps) {
-  const locale = await getServerLocale();
-  const t = getServerT(locale);
+  const { t, locale } = useI18n();
 
   // Nothing to render — collapse the whole slot.  Avoids an empty
   // 80-pixel gap above the regular Films grid.

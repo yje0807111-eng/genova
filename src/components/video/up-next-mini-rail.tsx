@@ -1,6 +1,8 @@
+"use client";
+
 import Image from "next/image";
 import Link from "next/link";
-import { getServerLocale, getServerT } from "@/lib/i18n/server";
+import { useI18n } from "@/components/genova/language-provider";
 import { cn } from "@/lib/utils/cn";
 import type { Video } from "@/lib/types";
 
@@ -16,9 +18,8 @@ interface Props {
  * via `WatchDesktopFlexRow#upNextSlot` so the parent client component
  * stays a server-rendered subtree.
  */
-export async function UpNextMiniRail({ related, currentVideoId }: Props) {
-  const locale = await getServerLocale();
-  const t = getServerT(locale);
+export function UpNextMiniRail({ related, currentVideoId }: Props) {
+  const { t } = useI18n();
 
   return (
     <div className="flex flex-col gap-1.5">

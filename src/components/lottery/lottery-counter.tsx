@@ -1,4 +1,6 @@
-import { getServerLocale, getServerT } from "@/lib/i18n/server";
+"use client";
+
+import { useI18n } from "@/components/genova/language-provider";
 import type { MonthlyTicketCount } from "@/lib/queries/lottery-queries";
 import { LotteryGuideInfoButton } from "./lottery-guide-info-button";
 
@@ -12,14 +14,13 @@ import { LotteryGuideInfoButton } from "./lottery-guide-info-button";
  * (card / inline variant 는 업로드 전용 페이지 폐기로 사용처가
  *  사라져 제거 — compact pill 만 유지.)
  */
-export async function LotteryCounter({
+export function LotteryCounter({
   count,
 }: {
   count: MonthlyTicketCount | null;
 }) {
+  const { t } = useI18n();
   if (!count) return null;
-  const locale = await getServerLocale();
-  const t = getServerT(locale);
 
   const used = count.total;
   const depleted = used >= 5;

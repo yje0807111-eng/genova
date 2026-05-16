@@ -1,5 +1,7 @@
+"use client";
+
 import { AnimateIn } from "@/components/animate-in";
-import { getServerLocale, getServerT } from "@/lib/i18n/server";
+import { useI18n } from "@/components/genova/language-provider";
 import { LotteryCounter } from "@/components/lottery/lottery-counter";
 import { ProfileBio } from "@/components/profile/profile-bio";
 import { ProfileCtaRow } from "@/components/profile/profile-cta-row";
@@ -80,9 +82,8 @@ type Props = {
  * accurate; if that invariant changes, lift the count back into the
  * client shell behind another slot.
  */
-export async function ProfileHeader(props: Props) {
-  const locale = await getServerLocale();
-  const t = getServerT(locale);
+export function ProfileHeader(props: Props) {
+  const { t, locale } = useI18n();
 
   return (
     <div>
