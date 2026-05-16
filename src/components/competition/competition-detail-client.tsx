@@ -264,7 +264,7 @@ export function CompetitionDetailClient({
 
       {/* ── Hero ─────────────────────────────────── */}
       <div
-        className="group/hero relative w-full overflow-hidden -mt-16 min-h-[60vh]"
+        className="group/hero relative w-full overflow-hidden -mt-16 min-h-[50vh] md:min-h-[60vh]"
       >
         {/* Background: video or image */}
         {bannerImage && isVideoUrl(bannerImage) ? (
@@ -354,7 +354,7 @@ export function CompetitionDetailClient({
         </Link>
 
         {/* Content layout */}
-        <div className="relative z-20 flex h-full min-h-[60vh] items-end px-10 pt-32 pb-14 lg:px-16">
+        <div className="relative z-20 flex h-full min-h-[50vh] items-end px-4 pt-24 pb-10 md:min-h-[60vh] md:px-10 md:pt-32 md:pb-14 lg:px-16">
           <div className="flex w-full items-center justify-between gap-12">
             {/* Left — Text content */}
             <div className="flex max-w-[560px] flex-col gap-6">
@@ -594,8 +594,8 @@ export function CompetitionDetailClient({
           우측엔 스크롤 내내 따라다니는 핵심 액션(마감·상금·지금 출품)을
           상시 노출 → 전환 동선 단축 (Kickstarter/영화제 랜딩 문법). */}
       <div data-tab-content className="sticky top-0 z-40 border-b border-white/[0.07] bg-[rgba(10,10,10,0.96)] backdrop-blur-lg">
-        <div className="mx-auto flex max-w-[1400px] items-center justify-between gap-4 px-8">
-          <div className="flex">
+        <div className="mx-auto flex max-w-[1400px] items-center justify-between gap-4 px-4 md:px-8">
+          <div className="flex flex-1 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
             {[
               { id: "overview", label: t("competition.detail.tabOverview") },
               { id: "judging", label: t("competition.detail.tabJudging") },
@@ -608,7 +608,7 @@ export function CompetitionDetailClient({
                 onClick={() =>
                   document.getElementById(s.id)?.scrollIntoView({ behavior: "smooth", block: "start" })
                 }
-                className="-mb-px border-b-2 border-transparent px-5 py-3.5 text-[13px] font-medium text-white/45 transition-all duration-200 hover:text-white"
+                className="-mb-px shrink-0 whitespace-nowrap border-b-2 border-transparent px-4 py-3.5 text-[13px] font-medium text-white/45 transition-all duration-200 hover:text-white md:px-5"
               >
                 {s.label}
               </button>
@@ -645,7 +645,7 @@ export function CompetitionDetailClient({
       </div>
 
       {/* ── Tab Content ──────────────────────────── */}
-      <div className="relative z-10 mx-auto min-h-[58vh] max-w-[1400px] space-y-20 px-8 py-12">
+      <div className="relative z-10 mx-auto min-h-[58vh] max-w-[1400px] space-y-20 px-4 py-12 md:px-8">
 
         {/* 개요 */}
         <section id="overview" className="scroll-mt-24">
