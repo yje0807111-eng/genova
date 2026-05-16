@@ -149,6 +149,48 @@ function CompetitionCard({ c, participantCount }: { c: Competition; participantC
             </span>
           )}
         </div>
+        {/* 썸네일 하단: 상태 + 참여자수 (참고용 정보를 위로 끌어올림).
+            하단 콘텐츠는 제목/상금만 남겨 심플하게. */}
+        <div className="absolute inset-x-2.5 bottom-2.5 flex items-center justify-between gap-2">
+          <span className="inline-flex items-center gap-1.5 rounded-md bg-black/55 px-2 py-0.5 text-[11px] font-semibold backdrop-blur-md">
+            <span
+              className={`h-1.5 w-1.5 rounded-full ${
+                votingState
+                  ? "animate-pulse bg-[#7F77DD]"
+                  : isOpen
+                    ? "animate-pulse bg-emerald-400"
+                    : isUpcoming
+                      ? "bg-sky-400"
+                      : "bg-white/25"
+              }`}
+            />
+            <span
+              className={
+                votingState
+                  ? "text-[#AFA9EC]"
+                  : isOpen
+                    ? "text-emerald-300"
+                    : isUpcoming
+                      ? "text-sky-300"
+                      : "text-white/45"
+              }
+            >
+              {votingState
+                ? t("competition.statusVoting", "투표중")
+                : isOpen
+                  ? t("competition.statusOpenShort")
+                  : isUpcoming
+                    ? t("competition.statusUpcoming")
+                    : t("competition.statusClosed")}
+            </span>
+          </span>
+          {participantCount > 0 ? (
+            <span className="shrink-0 rounded-md bg-black/55 px-2 py-0.5 text-[11px] tabular-nums text-white/75 backdrop-blur-md">
+              {participantCount.toLocaleString()}
+              <span className="ml-0.5 text-white/45">{t("competition.peopleUnit")}</span>
+            </span>
+          ) : null}
+        </div>
         <div className="absolute inset-0 flex items-center justify-center opacity-0 transition-opacity duration-200 group-hover:opacity-100">
           <span className="rounded-full border border-white/25 bg-black/55 px-4 py-1.5 text-[12px] font-bold text-white backdrop-blur-md">
             {t("competition.viewDetails", "자세히 보기")}
@@ -160,57 +202,16 @@ function CompetitionCard({ c, participantCount }: { c: Competition; participantC
         <h3 className="line-clamp-2 min-h-[2.6em] text-[15px] font-bold leading-snug text-white">
           {getLangText(locale, c.title_ko, c.title_en, c.title_ja, c.title)}
         </h3>
-        {c.sponsor ? (
-          <p className="mt-1 truncate text-[11px] text-white/40">
-            {t("competition.sponsoredBy", "주최")} <span className="text-white/65">{c.sponsor}</span>
-          </p>
-        ) : null}
-        <div className="mt-2 flex items-end justify-between gap-2">
+        <div className="mt-auto flex items-end justify-between gap-2 pt-2.5">
           <div className="min-w-0">
             <p className="text-[9px] font-bold uppercase tracking-[0.16em] text-white/35">
               {t("competition.colPrize")}
             </p>
-            <p className="truncate text-[16px] font-black text-[#F5D182]">{prize}</p>
+            <p className="truncate text-[17px] font-black text-[#F5D182]">{prize}</p>
           </div>
-          {participantCount > 0 ? (
-            <span className="shrink-0 pb-0.5 text-[11px] tabular-nums text-white/45">
-              {participantCount.toLocaleString()}
-              <span className="ml-0.5 text-white/30">{t("competition.peopleUnit")}</span>
-            </span>
-          ) : null}
-        </div>
-        <div className="mt-2.5 flex items-center gap-1.5 border-t border-white/[0.06] pt-2 text-[11px] text-white/40">
-          <span
-            className={`h-1.5 w-1.5 rounded-full ${
-              votingState
-                ? "animate-pulse bg-[#7F77DD]"
-                : isOpen
-                  ? "animate-pulse bg-emerald-400"
-                  : isUpcoming
-                    ? "bg-sky-400"
-                    : "bg-white/25"
-            }`}
-          />
-          <span
-            className={
-              votingState
-                ? "font-semibold text-[#AFA9EC]"
-                : isOpen
-                  ? "font-semibold text-emerald-300"
-                  : isUpcoming
-                    ? "font-semibold text-sky-300"
-                    : "text-white/35"
-            }
-          >
-            {votingState
-              ? t("competition.statusVoting", "투표중")
-              : isOpen
-                ? t("competition.statusOpenShort")
-                : isUpcoming
-                  ? t("competition.statusUpcoming")
-                  : t("competition.statusClosed")}
+          <span className="shrink-0 pb-0.5 text-[11px] tabular-nums text-white/30">
+            {deadlineLabel}
           </span>
-          <span className="text-white/30">{deadlineLabel}</span>
         </div>
       </div>
     </Link>
