@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { CompetitionListClient } from "@/components/competition/competition-list-client";
 import { FeaturedHeroCarousel } from "@/components/competition/featured-hero-carousel";
+import { CompetitionMobileBrowse } from "@/components/competition/competition-mobile-browse";
 import { fetchAllCompetitions } from "@/lib/queries";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 
@@ -94,19 +95,30 @@ export default async function CompetitionPage() {
 
   return (
     <div className="bg-[#0a0a0a] text-white">
-      {featuredCompetitions.length > 0 && (
-        <FeaturedHeroCarousel competitions={featuredCompetitions} />
-      )}
+      {/* 모바일 전용 — 캐러셀/밀집툴바 대신 피처카드+세로리스트 */}
+      <CompetitionMobileBrowse
+        active={active as any[]}
+        upcoming={upcoming as any[]}
+        closed={closed as any[]}
+        participantCounts={participantCountMap}
+      />
 
-      <div className="bg-[#0a0a0a]">
-        <div className="mx-auto max-w-[1680px] px-4 pt-8 pb-12 sm:px-8 lg:px-12">
-          <CompetitionListClient
-            active={active as any[]}
-            upcoming={upcoming as any[]}
-            closed={closed as any[]}
-            now={now.toISOString()}
-            participantCounts={participantCountMap}
-          />
+      {/* 데스크톱 — 기존 레이아웃 유지 */}
+      <div className="hidden md:block">
+        {featuredCompetitions.length > 0 && (
+          <FeaturedHeroCarousel competitions={featuredCompetitions} />
+        )}
+
+        <div className="bg-[#0a0a0a]">
+          <div className="mx-auto max-w-[1680px] px-4 pt-8 pb-12 sm:px-8 lg:px-12">
+            <CompetitionListClient
+              active={active as any[]}
+              upcoming={upcoming as any[]}
+              closed={closed as any[]}
+              now={now.toISOString()}
+              participantCounts={participantCountMap}
+            />
+          </div>
         </div>
       </div>
     </div>
