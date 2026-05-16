@@ -15,6 +15,7 @@ import { LotteryGuideModalProvider } from "@/components/lottery/lottery-guide-mo
 import { BusinessApplyModalProvider } from "@/components/business/business-apply-modal-context";
 import { UploadProgressWidget } from "@/components/upload/upload-progress-widget";
 import { SlimSidebar } from "./slim-sidebar";
+import { MobileBottomNav } from "./mobile-bottom-nav";
 import { SiteFooter } from "@/components/site-shell";
 
 function LayoutChrome({ children }: { children: ReactNode }) {
@@ -76,9 +77,11 @@ function LayoutChrome({ children }: { children: ReactNode }) {
         }}
         unreadMessageCount={unreadMessageCount}
       />
+      <MobileBottomNav />
       <div
         className={cn(
           "transition-all duration-300",
+          "pb-[calc(60px+env(safe-area-inset-bottom))] md:pb-0",
           "md:pl-[84px]",
           chatOpen ? "md:pr-80" : "md:pr-0",
         )}
