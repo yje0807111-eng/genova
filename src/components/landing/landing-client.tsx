@@ -1,10 +1,10 @@
 "use client";
 
 import Link from "next/link";
-import { ArrowRight, Trophy, Play, Calendar, Award } from "lucide-react";
+import Image from "next/image";
+import { ArrowRight, Play, Trophy, Clapperboard, Globe2, Sparkles } from "lucide-react";
 import { useI18n } from "@/components/genova/language-provider";
 import { cn } from "@/lib/utils/cn";
-import { ValuePropCards } from "@/components/landing/value-prop-cards";
 
 type FeaturedCompetition = {
   id: string;
@@ -32,196 +32,234 @@ export function LandingClient({
   const { locale, setLocale, t } = useI18n();
   const dateLocale = locale === "ja" ? "ja-JP" : locale === "en" ? "en-US" : "ko-KR";
 
+  const fmtDate = (d?: string | null) => {
+    if (!d) return null;
+    const dt = new Date(d);
+    if (Number.isNaN(dt.getTime())) return null;
+    return dt.toLocaleDateString(dateLocale, { year: "numeric", month: "short", day: "numeric" });
+  };
+
+  const features = [
+    {
+      Icon: Clapperboard,
+      title: t("landing.feat1Title", "AI 영화 스트리밍"),
+      desc: t("landing.feat1Desc", "전 세계 크리에이터의 AI 생성 영화를 한곳에서 감상하세요."),
+    },
+    {
+      Icon: Trophy,
+      title: t("landing.feat2Title", "상금 공모전"),
+      desc: t("landing.feat2Desc", "매월 열리는 공모전에 출품하고 상금과 데뷔 기회를 잡으세요."),
+    },
+    {
+      Icon: Globe2,
+      title: t("landing.feat3Title", "글로벌 무대"),
+      desc: t("landing.feat3Desc", "당신의 작품을 전 세계 관객과 심사위원에게 선보이세요."),
+    },
+  ];
+
+  const langs = ["en", "ko", "ja"] as const;
+
   return (
-    <div className="min-h-screen bg-[#0a0a0a] text-white overflow-x-hidden">
-      {/* Top nav */}
-      <nav className="fixed top-0 left-0 right-0 z-50 border-b border-white/[0.06] bg-[#0a0a0a]/85 backdrop-blur-xl">
-        <div className="mx-auto flex max-w-[1600px] items-center justify-between px-6 py-3 sm:px-10">
+    <div className="min-h-screen overflow-x-hidden bg-[#0a0a0a] text-white">
+      {/* ── Nav ─────────────────────────────── */}
+      <nav className="fixed inset-x-0 top-0 z-50 border-b border-white/[0.06] bg-[#0a0a0a]/80 backdrop-blur-xl">
+        <div className="mx-auto flex max-w-[1280px] items-center justify-between px-4 py-3 sm:px-8">
           <Link href="/landing" className="flex items-center gap-2">
             <span className="text-[18px] font-black tracking-tight">Genova</span>
             <span className="rounded-full border border-[#7F77DD]/30 bg-[#534AB7]/15 px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider text-[#AFA9EC]">
               Beta
             </span>
           </Link>
-          <div className="flex items-center gap-3">
-            {/* Language toggle */}
-            <div className="flex gap-1 rounded-full border border-white/[0.08] bg-white/[0.02] p-1 backdrop-blur-md">
-              {(["en", "ko", "ja"] as const).map((lang) => (
+          <div className="flex items-center gap-2 sm:gap-3">
+            <div className="flex gap-1 rounded-full border border-white/[0.08] bg-white/[0.02] p-1">
+              {langs.map((l) => (
                 <button
-                  key={lang}
+                  key={l}
                   type="button"
-                  onClick={() => setLocale(lang)}
+                  onClick={() => setLocale(l)}
                   className={cn(
-                    "h-6 rounded-full px-2.5 text-[10px] font-semibold transition",
-                    locale === lang ? "bg-white/10 text-white" : "text-white/35 hover:text-white/70",
+                    "rounded-full px-2.5 py-1 text-[11px] font-bold transition-colors",
+                    locale === l ? "bg-white text-[#0a0a0a]" : "text-white/55 hover:text-white",
                   )}
                 >
-                  {lang === "en" ? "EN" : lang === "ko" ? "KO" : "JA"}
+                  {l.toUpperCase()}
                 </button>
               ))}
             </div>
-            <Link href="/" className="hidden text-[12px] font-semibold text-white/55 hover:text-white sm:block px-3 py-1.5">
-              {t("landingPage.nav.explore", "Explore")}
+            <Link
+              href="/"
+              className="hidden px-3 py-1.5 text-[12px] font-semibold text-white/55 transition hover:text-white sm:block"
+            >
+              {t("landing.navEnter", "둘러보기")}
             </Link>
-            <Link href="/auth" className="rounded-full bg-white px-4 py-1.5 text-[12px] font-bold text-[#0a0a0a] hover:scale-105 transition">
-              {t("landingPage.nav.start", "Get Started")}
+            <Link
+              href="/auth"
+              className="rounded-full bg-white px-4 py-1.5 text-[12px] font-bold text-[#0a0a0a] transition hover:bg-white/90"
+            >
+              {t("landing.navStart", "시작하기")}
             </Link>
           </div>
         </div>
       </nav>
 
-      {/* HERO */}
-      <section className="relative overflow-hidden pt-20">
-        {/* Background textures */}
-        <div className="absolute inset-0 -z-10">
-          <div
-            className="absolute inset-0 opacity-30"
-            style={{
-              backgroundImage: "radial-gradient(circle at 1px 1px, var(--border-default) 1px, transparent 0)",
-              backgroundSize: "32px 32px",
-            }}
-          />
-          <div
-            className="absolute inset-0 opacity-[0.04]"
-            style={{
-              backgroundImage:
-                "linear-gradient(rgba(255,255,255,1) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,1) 1px, transparent 1px)",
-              backgroundSize: "80px 80px",
-            }}
-          />
-        </div>
-
-        <div className="pointer-events-none absolute inset-0 -z-10">
-          <div
-            className="absolute -left-20 top-10 h-[500px] w-[700px] rounded-full"
-            style={{
-              background: "radial-gradient(ellipse, var(--border-default) 0%, transparent 65%)",
-              filter: "blur(100px)",
-              animation: "search-pulse 6s ease-in-out infinite",
-            }}
-          />
-          <div
-            className="absolute right-0 top-32 h-[400px] w-[600px] rounded-full"
-            style={{
-              background: "radial-gradient(circle, rgba(83,74,183,0.14) 0%, transparent 70%)",
-              filter: "blur(100px)",
-              animation: "search-pulse 8s ease-in-out infinite reverse",
-            }}
-          />
-          <div
-            className="absolute left-1/3 top-1/2 h-[300px] w-[400px] rounded-full"
-            style={{
-              background: "radial-gradient(circle, rgba(175,169,236,0.08) 0%, transparent 70%)",
-              filter: "blur(80px)",
-              animation: "search-pulse 7s ease-in-out infinite",
-            }}
-          />
-        </div>
-
-        <div className="mx-auto max-w-[1600px] px-6 pb-10 pt-10 sm:px-10">
-          {/* Hero text */}
-          <div className="mb-10 text-center">
-            <div className="mb-5 inline-flex items-center gap-1.5">
-              <span className="text-[10px] font-bold uppercase tracking-[0.25em] text-[#AFA9EC]">
-                ✦ {t("landingPage.hero.badge", "Beta Now Open")}
-              </span>
-            </div>
-
-            <h1
-              className="bg-gradient-to-br from-white via-white to-[#AFA9EC] bg-clip-text pb-1 text-[40px] font-black leading-[1.05] tracking-[-0.035em] text-transparent sm:text-[56px]"
-              style={{ fontFamily: "var(--font-syne), var(--font-plus-jakarta), sans-serif" }}
+      {/* ── Hero ─────────────────────────────── */}
+      <section className="relative overflow-hidden px-4 pb-16 pt-28 sm:px-8 sm:pb-24 sm:pt-36">
+        {/* contained brand glow — 가로 오버플로우 없음 */}
+        <div
+          className="pointer-events-none absolute left-1/2 top-0 -z-10 h-[520px] w-[min(900px,120vw)] -translate-x-1/2"
+          style={{
+            background:
+              "radial-gradient(50% 60% at 50% 35%, rgba(83,74,183,0.20) 0%, rgba(83,74,183,0.06) 45%, transparent 75%)",
+            filter: "blur(40px)",
+          }}
+        />
+        <div className="mx-auto max-w-[860px] text-center">
+          <span className="mb-5 inline-flex items-center gap-1.5 rounded-full border border-white/[0.10] bg-white/[0.03] px-3 py-1 text-[10px] font-bold uppercase tracking-[0.22em] text-[#AFA9EC]">
+            <Sparkles className="h-3 w-3" />
+            {t("landing.eyebrow", "The Home of AI Filmmakers")}
+          </span>
+          <h1 className="bg-gradient-to-br from-white via-white to-[#AFA9EC] bg-clip-text pb-1 text-[34px] font-black leading-[1.1] tracking-[-0.03em] text-transparent sm:text-[56px]">
+            {t("landing.heroTitle", "AI가 만드는 영화의 시대")}
+          </h1>
+          <p className="mx-auto mt-4 max-w-[560px] text-[14px] leading-relaxed text-white/55 sm:text-[16px]">
+            {t(
+              "landing.heroSub",
+              "전 세계 AI 크리에이터들이 작품을 스트리밍하고, 공모전에서 경쟁하는 영화 플랫폼.",
+            )}
+          </p>
+          <div className="mt-7 flex flex-col items-center justify-center gap-2.5 sm:flex-row">
+            <Link
+              href="/"
+              className="group inline-flex w-full items-center justify-center gap-2 rounded-full bg-white px-6 py-3 text-[14px] font-bold text-[#0a0a0a] transition hover:bg-white/90 sm:w-auto"
             >
-              {t("landingPage.hero.title", "The Home of AI Filmmakers")}
-            </h1>
+              <Play className="h-4 w-4 fill-current" />
+              {t("landing.heroCtaPrimary", "지금 감상하기")}
+            </Link>
+            <Link
+              href="/competition"
+              className="group inline-flex w-full items-center justify-center gap-2 rounded-full border border-white/15 bg-white/[0.03] px-6 py-3 text-[14px] font-bold text-white backdrop-blur-xl transition hover:border-[#7F77DD]/50 hover:bg-[#534AB7]/15 sm:w-auto"
+            >
+              {t("landing.heroCtaSecondary", "공모전 보기")}
+              <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+            </Link>
+          </div>
+        </div>
+      </section>
 
-            <p className="mt-3 text-[14px] font-bold tracking-[-0.01em] text-white/70 sm:text-[15px]">
-              {t("landingPage.hero.subtitle", "A New Stage for AI Cinema")}
-            </p>
-
-            <p className="mx-auto mt-3 max-w-xl text-[13px] leading-relaxed text-white/50">
-              {t(
-                "landingPage.hero.desc",
-                "Not prompt copies — real creators, real AI cinema. Compete with creators worldwide and get recognized for your work.",
-              )}
-            </p>
-
-            <div className="mt-6 flex flex-wrap justify-center gap-2.5">
+      {/* ── Trending strip ───────────────────── */}
+      {trendingVideos.length > 0 && (
+        <section className="px-4 py-10 sm:px-8 sm:py-14">
+          <div className="mx-auto max-w-[1280px]">
+            <div className="mb-5 flex items-end justify-between gap-4">
+              <h2 className="text-[18px] font-black tracking-tight sm:text-[22px]">
+                {t("landing.trendingTitle", "지금 뜨는 작품")}
+              </h2>
               <Link
                 href="/"
-                className="group inline-flex items-center gap-2 rounded-full bg-white px-5 py-2.5 text-[13px] font-bold text-[#0a0a0a] transition hover:scale-105"
+                className="shrink-0 text-[12px] font-semibold text-white/45 transition hover:text-white"
               >
-                <Play className="h-3.5 w-3.5 fill-current" />
-                {t("landingPage.hero.ctaWatch", "Watch Films")}
-              </Link>
-              <Link
-                href="/auth"
-                className="group inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/[0.03] px-5 py-2.5 text-[13px] font-bold text-white backdrop-blur-xl transition hover:border-[#7F77DD]/50 hover:bg-[#534AB7]/15"
-              >
-                {t("landingPage.hero.ctaCreator", "Start as Creator")}
-                <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-1" />
+                {t("landing.seeAll", "전체 보기 →")}
               </Link>
             </div>
-
-            <div className="mt-6 inline-flex items-center gap-2.5">
-              <div className="relative flex h-1.5 w-1.5">
-                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
-                <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-emerald-400" />
-              </div>
-              <p className="text-[11px] text-white/50">
-                <span className="font-bold text-white/75">{t("landingPage.hero.betaRecruit", "Beta Creators Wanted")}</span>
-                <span className="mx-1.5 text-white/20">·</span>
-                <span>{t("landingPage.hero.betaPerk", "Founding member benefits")}</span>
-              </p>
+            <div className="-mx-4 flex gap-3 overflow-x-auto px-4 pb-2 [scrollbar-width:none] sm:mx-0 sm:grid sm:grid-cols-3 sm:overflow-visible sm:px-0 lg:grid-cols-6 [&::-webkit-scrollbar]:hidden">
+              {trendingVideos.slice(0, 12).map((v) => (
+                <Link
+                  key={v.id}
+                  href={`/watch/${v.id}`}
+                  className="group relative aspect-[2/3] w-[140px] shrink-0 overflow-hidden rounded-xl border border-white/[0.06] sm:w-auto"
+                >
+                  {v.thumbnailUrl ? (
+                    <Image
+                      src={v.thumbnailUrl}
+                      alt={v.title}
+                      fill
+                      sizes="(max-width:640px) 140px, 16vw"
+                      className="object-cover transition-transform duration-500 group-hover:scale-105"
+                    />
+                  ) : (
+                    <div
+                      className="h-full w-full"
+                      style={{ background: "linear-gradient(135deg, rgba(83,74,183,0.25) 0%, #0a0a0a 70%)" }}
+                    />
+                  )}
+                  <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 to-transparent p-2.5">
+                    <p className="line-clamp-2 text-[11px] font-bold leading-tight text-white">
+                      {v.title}
+                    </p>
+                  </div>
+                </Link>
+              ))}
             </div>
           </div>
+        </section>
+      )}
 
-          {/* Hero video grid */}
-          <div className="relative mb-12">
+      {/* ── Features ─────────────────────────── */}
+      <section className="px-4 py-12 sm:px-8 sm:py-20">
+        <div className="mx-auto grid max-w-[1280px] gap-4 sm:grid-cols-3">
+          {features.map(({ Icon, title, desc }) => (
             <div
-              className="pointer-events-none absolute -inset-10 -z-10"
-              style={{
-                background: "radial-gradient(ellipse at center, var(--border-default) 0%, transparent 60%)",
-                filter: "blur(60px)",
-              }}
-            />
-            <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-              {trendingVideos.slice(0, 4).map((v, i) => {
-                const offsets = ["mt-0", "mt-3", "mt-1", "mt-4"];
+              key={title}
+              className="rounded-2xl border border-white/[0.08] bg-white/[0.02] p-6 transition hover:border-[#7F77DD]/25"
+            >
+              <span className="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-[#534AB7]/15 text-[#AFA9EC]">
+                <Icon className="h-5 w-5" />
+              </span>
+              <h3 className="mt-4 text-[16px] font-bold text-white">{title}</h3>
+              <p className="mt-1.5 text-[13px] leading-relaxed text-white/50">{desc}</p>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* ── Featured competitions ────────────── */}
+      {featuredCompetitions.length > 0 && (
+        <section className="px-4 py-10 sm:px-8 sm:py-16">
+          <div className="mx-auto max-w-[1280px]">
+            <h2 className="mb-5 text-[18px] font-black tracking-tight sm:text-[22px]">
+              {t("landing.compTitle", "진행 중인 공모전")}
+            </h2>
+            <div className="grid gap-4 md:grid-cols-2">
+              {featuredCompetitions.map((c) => {
+                const deadline = fmtDate(c.deadline);
                 return (
                   <Link
-                    key={v.id}
-                    href={`/watch/${v.id}`}
-                    className={`group relative block overflow-hidden rounded-xl transition-all duration-500 hover:-translate-y-1.5 ${offsets[i] ?? ""}`}
-                    style={{ animation: `fade-in-up 0.8s ease-out ${i * 0.08}s both` }}
+                    key={c.id}
+                    href={`/competition/${c.id}`}
+                    className="group relative overflow-hidden rounded-2xl border border-white/[0.08]"
                   >
-                    <div className="relative aspect-square overflow-hidden bg-white/[0.03]">
-                      {v.thumbnailUrl && (
-                        <img
-                          src={v.thumbnailUrl}
-                          alt=""
-                          className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
+                    <div className="relative aspect-[16/9] w-full">
+                      {c.thumbnailUrl ? (
+                        <Image
+                          src={c.thumbnailUrl}
+                          alt={c.title}
+                          fill
+                          sizes="(max-width:768px) 100vw, 50vw"
+                          className="object-cover transition-transform duration-500 group-hover:scale-[1.03]"
+                        />
+                      ) : (
+                        <div
+                          className="h-full w-full"
+                          style={{ background: "linear-gradient(135deg, rgba(83,74,183,0.25) 0%, #0a0a0a 70%)" }}
                         />
                       )}
                       <div
-                        className="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-500 group-hover:opacity-100"
-                        style={{
-                          background: "radial-gradient(ellipse at center, rgba(83,74,183,0.12) 0%, transparent 72%)",
-                        }}
-                      />
-                      <div
                         className="absolute inset-0"
-                        style={{
-                          background: "linear-gradient(180deg, transparent 50%, rgba(10,10,10,0.9) 100%)",
-                        }}
+                        style={{ background: "linear-gradient(180deg, transparent 35%, rgba(10,10,10,0.6) 70%, #0a0a0a 100%)" }}
                       />
-                      <div className="absolute inset-0 rounded-xl ring-1 ring-inset ring-white/10 transition-all duration-500 group-hover:ring-[#7F77DD]/60" />
-                      <div className="absolute right-2.5 top-2.5 flex h-8 w-8 items-center justify-center rounded-full bg-white/10 opacity-0 backdrop-blur-md transition-all duration-500 group-hover:opacity-100">
-                        <Play className="h-3 w-3 fill-white text-white" />
-                      </div>
-                      <div className="absolute bottom-0 left-0 right-0 p-3">
-                        <p className="line-clamp-1 text-[11px] font-bold leading-tight text-white">
-                          {v.title}
-                        </p>
+                      <div className="absolute inset-x-0 bottom-0 p-5">
+                        {c.sponsor && (
+                          <p className="mb-1 text-[10px] font-bold uppercase tracking-[0.18em] text-[#AFA9EC]">
+                            {c.sponsor}
+                          </p>
+                        )}
+                        <h3 className="line-clamp-1 text-[18px] font-black text-white">{c.title}</h3>
+                        <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-[12px]">
+                          {c.prizeInfo && (
+                            <span className="font-bold tabular-nums text-[#F5D182]">{c.prizeInfo}</span>
+                          )}
+                          {deadline && <span className="text-white/45">~ {deadline}</span>}
+                        </div>
                       </div>
                     </div>
                   </Link>
@@ -229,231 +267,52 @@ export function LandingClient({
               })}
             </div>
           </div>
+        </section>
+      )}
 
-          <ValuePropCards />
-
-          {/* Featured Competitions */}
-          {featuredCompetitions.length > 0 && (
-            <div>
-              <div className="mb-6 flex items-end justify-between gap-3 border-b border-white/[0.06] pb-5">
-                <div>
-                  <div className="mb-2 flex items-center gap-2">
-                    <Award className="h-3 w-3 text-[#7F77DD]" />
-                    <p className="text-[10px] font-bold uppercase tracking-[0.25em] text-[#AFA9EC]">
-                      {t("landingPage.featured.label", "✦ Featured Competitions")}
-                    </p>
-                    <span className="rounded-full border border-emerald-500/40 bg-emerald-500/15 px-2 py-0.5 text-[9px] font-black text-emerald-300">
-                      Live
-                    </span>
-                  </div>
-                  <h2 className="text-[24px] font-black tracking-[-0.02em] text-white sm:text-[28px]">
-                    {t("landingPage.featured.heading", "Live Competitions")}
-                  </h2>
-                </div>
-                <Link
-                  href="/competition"
-                  className="group inline-flex shrink-0 items-center gap-1 text-[12px] font-semibold text-white/50 transition hover:text-white"
-                >
-                  {t("landingPage.featured.viewAll", "All Competitions")}
-                  <ArrowRight className="h-3 w-3 transition-transform group-hover:translate-x-0.5" />
-                </Link>
-              </div>
-
-              <div className="grid gap-4 lg:grid-cols-2">
-                {featuredCompetitions.map((c) => (
-                  <Link
-                    key={c.id}
-                    href={`/competition/${c.id}`}
-                    className="group relative block overflow-hidden rounded-2xl border border-white/[0.06] bg-[#1a1a1a] transition-all duration-500 hover:-translate-y-1 hover:border-[#7F77DD]/40 hover:shadow-[0_24px_56px_rgba(127,119,221,0.22)]"
-                  >
-                    <div
-                      className="pointer-events-none absolute -right-32 -top-32 h-96 w-96 rounded-full opacity-0 transition-opacity duration-500 group-hover:opacity-90"
-                      style={{
-                        background: "radial-gradient(circle, rgba(255,200,80,0.3) 0%, transparent 70%)",
-                        filter: "blur(60px)",
-                      }}
-                    />
-                    <div className="relative grid h-full gap-0 md:grid-cols-[1.2fr_1fr] md:h-[260px]">
-                      <div className="relative h-40 overflow-hidden md:h-full">
-                        {c.thumbnailUrl ? (
-                          <img
-                            src={c.thumbnailUrl}
-                            alt=""
-                            className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
-                          />
-                        ) : (
-                          <div
-                            className="relative h-full w-full overflow-hidden"
-                            style={{
-                              background: "#1a1a1a",
-                            }}
-                          >
-                            <div
-                              className="absolute inset-0 opacity-[0.06]"
-                              style={{
-                                backgroundImage:
-                                  "linear-gradient(var(--border-white-12) 1px, transparent 1px), linear-gradient(90deg, var(--border-white-12) 1px, transparent 1px)",
-                                backgroundSize: "32px 32px",
-                              }}
-                            />
-                            <div
-                              className="absolute inset-0 opacity-20"
-                              style={{
-                                backgroundImage:
-                                  "radial-gradient(circle at 1px 1px, rgba(255,255,255,0.15) 1px, transparent 0)",
-                                backgroundSize: "20px 20px",
-                              }}
-                            />
-                            <div
-                              className="pointer-events-none absolute left-1/2 top-1/2 h-64 w-64 -translate-x-1/2 -translate-y-1/2 rounded-full opacity-40 transition-all duration-700 group-hover:opacity-70 group-hover:scale-110"
-                              style={{
-                                background: "radial-gradient(circle, rgba(83,74,183,0.16) 0%, transparent 72%)",
-                                filter: "blur(40px)",
-                              }}
-                            />
-                            <div className="relative flex h-full w-full flex-col items-center justify-center px-6">
-                              <span
-                                className="mb-3 text-[64px] leading-none text-[#AFA9EC]/30 transition-all duration-500 group-hover:scale-110 group-hover:text-[#AFA9EC]/50"
-                                style={{ fontFamily: "var(--font-syne), serif" }}
-                              >
-                                ✦
-                              </span>
-                              <p className="text-[9px] font-bold uppercase tracking-[0.3em] text-white/30">
-                                Genova
-                              </p>
-                              <p className="mt-1 text-[9px] font-bold uppercase tracking-[0.25em] text-white/20">
-                                {t("landingPage.featured.comingSoon", "Coming Soon")}
-                              </p>
-                            </div>
-                            <div
-                              className="absolute inset-0"
-                              style={{
-                                background:
-                                  "radial-gradient(ellipse at center, transparent 30%, rgba(10,10,10,0.5) 100%)",
-                              }}
-                            />
-                          </div>
-                        )}
-                        <div
-                          className="absolute inset-0"
-                          style={{
-                            background: "linear-gradient(90deg, transparent 50%, rgba(10,10,10,0.6) 100%)",
-                          }}
-                        />
-                      </div>
-
-                      <div className="relative flex flex-col justify-between gap-4 p-5 sm:p-6">
-                        <div>
-                          {c.genre && (
-                            <p className="mb-3 text-[10px] font-bold uppercase tracking-[0.25em] text-[#AFA9EC]">
-                              ✦ {c.genre}
-                            </p>
-                          )}
-                          <h3 className="mb-3 line-clamp-2 text-[18px] font-black leading-[1.2] tracking-tight text-white sm:text-[20px]">
-                            {c.title}
-                          </h3>
-                          {c.sponsor && (
-                            <p className="mb-4 text-[12px] text-white/45">
-                              {t("landingPage.featured.sponsoredBy", "Sponsored by")}{" "}
-                              <span className="font-semibold text-white/70">{c.sponsor}</span>
-                            </p>
-                          )}
-
-                          <div className="grid grid-cols-2 gap-2.5">
-                            {c.prizeInfo && (
-                              <div className="rounded-xl border border-emerald-500/20 bg-emerald-500/[0.06] p-3">
-                                <div className="mb-1 flex items-center gap-1.5">
-                                  <Trophy className="h-3 w-3 text-emerald-400" />
-                                  <p className="text-[9px] font-bold uppercase tracking-wider text-emerald-300">
-                                    {t("landingPage.featured.prize", "Prize")}
-                                  </p>
-                                </div>
-                                <p className="text-[15px] font-black text-white">{c.prizeInfo}</p>
-                              </div>
-                            )}
-                            {c.deadline && (
-                              <div className="rounded-xl border border-white/[0.08] bg-white/[0.02] p-3">
-                                <div className="mb-1 flex items-center gap-1.5">
-                                  <Calendar className="h-3 w-3 text-[#AFA9EC]" />
-                                  <p className="text-[9px] font-bold uppercase tracking-wider text-white/50">
-                                    {t("landingPage.featured.deadline", "Deadline")}
-                                  </p>
-                                </div>
-                                <p className="text-[14px] font-black text-white">
-                                  {new Date(c.deadline).toLocaleDateString(dateLocale, {
-                                    month: "short",
-                                    day: "numeric",
-                                  })}
-                                </p>
-                              </div>
-                            )}
-                          </div>
-                        </div>
-
-                        <div className="inline-flex items-center gap-2 text-[13px] font-bold text-white transition group-hover:text-[#AFA9EC]">
-                          {t("landingPage.featured.cta", "View Competition")}
-                          <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
-                        </div>
-                      </div>
-                    </div>
-                  </Link>
-                ))}
-              </div>
-            </div>
-          )}
+      {/* ── Final CTA ────────────────────────── */}
+      <section className="relative overflow-hidden px-4 py-20 sm:px-8 sm:py-28">
+        <div
+          className="pointer-events-none absolute left-1/2 top-1/2 -z-10 h-[400px] w-[min(800px,120vw)] -translate-x-1/2 -translate-y-1/2"
+          style={{
+            background:
+              "radial-gradient(50% 60% at 50% 50%, rgba(83,74,183,0.18) 0%, transparent 72%)",
+            filter: "blur(40px)",
+          }}
+        />
+        <div className="mx-auto max-w-[640px] text-center">
+          <h2 className="text-[28px] font-black leading-tight tracking-[-0.02em] sm:text-[40px]">
+            {t("landing.finalTitle", "당신의 AI 영화, 지금 시작하세요")}
+          </h2>
+          <p className="mx-auto mt-3 max-w-[440px] text-[14px] text-white/55">
+            {t("landing.finalSub", "가입은 무료입니다. 작품을 올리고 공모전에 도전하세요.")}
+          </p>
+          <Link
+            href="/auth"
+            className="mt-7 inline-flex items-center gap-2 rounded-full bg-white px-7 py-3 text-[14px] font-bold text-[#0a0a0a] transition hover:bg-white/90"
+          >
+            {t("landing.finalCta", "무료로 시작하기")}
+            <ArrowRight className="h-4 w-4" />
+          </Link>
         </div>
       </section>
 
-      {/* Bottom CTA */}
-      <section className="border-t border-white/[0.06] py-12">
-        <div className="mx-auto max-w-[1600px] px-6 sm:px-10">
-          <div className="group/cta relative overflow-hidden rounded-2xl border border-white/[0.06] bg-[#1a1a1a] p-8 transition-[border-color,box-shadow] duration-300 hover:border-white/[0.12] hover:shadow-[0_0_32px_var(--border-default)] sm:p-10">
-            <div
-              className="pointer-events-none absolute -right-20 top-0 h-72 w-72 rounded-full opacity-0 transition-opacity duration-500 group-hover/cta:opacity-100"
-              style={{
-                background: "radial-gradient(circle, rgba(83,74,183,0.12) 0%, transparent 72%)",
-                filter: "blur(60px)",
-              }}
-            />
-            <div className="relative flex flex-col items-start justify-between gap-5 sm:flex-row sm:items-center">
-              <div>
-                <p className="mb-2 text-[10px] font-bold uppercase tracking-[0.25em] text-[#AFA9EC]">
-                  {t("landingPage.cta.badge", "✦ Join the Movement")}
-                </p>
-                <h2 className="text-[24px] font-black tracking-[-0.02em] text-white sm:text-[32px]">
-                  {t("landingPage.cta.heading", "Bring Your Cinema to Genova")}
-                </h2>
-                <p className="mt-1.5 text-[13px] text-white/50">{t("landingPage.cta.desc", "All features free during beta.")}</p>
-              </div>
-              <div className="flex shrink-0 gap-2">
-                <Link
-                  href="/auth"
-                  className="group inline-flex items-center gap-2 rounded-full bg-white px-6 py-3 text-[13px] font-bold text-[#0a0a0a] transition hover:scale-105"
-                >
-                  {t("landingPage.cta.button", "Get Started")}
-                  <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
-                </Link>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Footer */}
-      <footer className="border-t border-white/[0.06] py-6">
-        <div className="mx-auto flex max-w-[1600px] flex-wrap items-center justify-between gap-4 px-6 text-[11px] text-white/30 sm:px-10">
-          <p>© 2026 Genova</p>
-          <div className="flex gap-5">
-            <Link href="/terms" className="hover:text-white/55">
-              {t("landingPage.footer.terms", "Terms")}
+      {/* ── Footer ───────────────────────────── */}
+      <footer className="border-t border-white/[0.06] px-4 py-8 sm:px-8">
+        <div className="mx-auto flex max-w-[1280px] flex-col items-center justify-between gap-4 text-[12px] text-white/40 sm:flex-row">
+          <span className="font-black text-white/70">Genova</span>
+          <div className="flex flex-wrap items-center justify-center gap-x-5 gap-y-2">
+            <Link href="/" className="transition hover:text-white/70">
+              {t("nav.films", "Films")}
             </Link>
-            <Link href="/privacy" className="hover:text-white/55">
-              {t("landingPage.footer.privacy", "Privacy")}
+            <Link href="/competition" className="transition hover:text-white/70">
+              {t("nav.competition", "Competition")}
             </Link>
-            <Link href="/business" className="hover:text-white/55">
-              {t("landingPage.footer.business", "For Brands")}
+            <Link href="/auth" className="transition hover:text-white/70">
+              {t("landing.navStart", "시작하기")}
             </Link>
           </div>
+          <span>© {new Date().getFullYear()} Genova</span>
         </div>
       </footer>
     </div>
