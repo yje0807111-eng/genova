@@ -97,7 +97,7 @@ export default async function RootLayout({
         />
       </head>
       <body className="min-h-full bg-background font-sans text-balance">
-        <LayoutWrapper>{children}</LayoutWrapper>
+        <LayoutWrapper initialLocale={locale}>{children}</LayoutWrapper>
         <Toaster
           position="bottom-right"
           theme="dark"

@@ -2,14 +2,12 @@
 
 import { useRouter } from "next/navigation";
 import { createContext, useContext, useEffect, useMemo, useState } from "react";
-import { Locale, translate } from "@/lib/i18n/translations";
-import { LOCALE_COOKIE_NAME } from "@/lib/i18n/server";
+import { LOCALE_COOKIE_NAME } from "@/lib/i18n/constants";
+import { type Locale, translate } from "@/lib/i18n/translations";
 import { updateProfileLocaleAction } from "@/app/actions/profile";
 
 const STORAGE_KEY = "genova-locale";
-// Cookie name MUST match the server-side LOCALE_COOKIE_NAME so server and
-// client agree.  Re-exported here as a constant for readability; sourced
-// from `server.ts` so changing one updates both.
+// Cookie name MUST match `getServerLocale` — single source: `@/lib/i18n/constants`.
 const COOKIE_NAME = LOCALE_COOKIE_NAME;
 const COOKIE_MAX_AGE_SECONDS = 60 * 60 * 24 * 365; // 1 year
 
@@ -20,30 +18,6 @@ type LanguageContextValue = {
 };
 
 const LanguageContext = createContext<LanguageContextValue | null>(null);
-
-/**
- * Synchronous-on-the-client read of the locale cookie.  Used by the
- * `useState` initializer so the very first client render matches what
- * the server emitted (no hydration mismatch).  Falls through to
- * localStorage, then to `"en"` — keeping the localStorage fallback
- * preserves the user's existing preference during the B.2 rollout
- * window before everyone has the cookie set.
- */
-function readClientLocale(): Locale {
-  if (typeof document === "undefined") return "en";
-  const cookieMatch = document.cookie.match(/(?:^|;\s*)genova-locale=([^;]+)/);
-  if (cookieMatch) {
-    const v = decodeURIComponent(cookieMatch[1]);
-    if (v === "en" || v === "ko" || v === "ja") return v;
-  }
-  try {
-    const stored = window.localStorage.getItem(STORAGE_KEY);
-    if (stored === "ko" || stored === "en" || stored === "ja") return stored;
-  } catch {
-    /* localStorage disabled (incognito Safari, etc.) — ignore */
-  }
-  return "en";
-}
 
 function writeClientLocale(next: Locale) {
   try {
@@ -59,30 +33,35 @@ function writeClientLocale(next: Locale) {
   )}; Path=/; Max-Age=${COOKIE_MAX_AGE_SECONDS}; SameSite=Lax`;
 }
 
-export function LanguageProvider({ children }: { children: React.ReactNode }) {
+export function LanguageProvider({
+  children,
+  initialLocale,
+}: {
+  children: React.ReactNode;
+  /** From `getServerLocale()` in root layout — must match SSR. */
+  initialLocale: Locale;
+}) {
   const router = useRouter();
-  // Synchronously hydrate from cookie/localStorage so the first client
-  // render lines up with the server's cookie-derived locale.  Server
-  // emits `<html lang={locale}>` based on the cookie; this initializer
-  // reads the same source.
-  const [locale, setLocaleState] = useState<Locale>(() => readClientLocale());
+  // Use the server-resolved locale for the first render (SSR + hydration).
+  // Do not read document.cookie or localStorage here — that diverges from
+  // `getServerLocale()` (profile DB > cookie > en) and causes mismatches.
+  const [locale, setLocaleState] = useState<Locale>(initialLocale);
 
-  // Keep `<html lang>` in sync on mount in case it was hard-coded to en
-  // by an older root layout that has not yet been deployed with the
-  // dynamic-lang change (B.2-3 follow-up).  Safe to remove once
-  // B.2-3 ships and stabilizes.
   useEffect(() => {
-    if (typeof document !== "undefined") {
-      document.documentElement.lang = locale;
-    }
+    setLocaleState(initialLocale);
+  }, [initialLocale]);
+
+  // After hydration, persist the server locale to this device so toggles
+  // and legacy localStorage-only sessions converge without changing paint.
+  useEffect(() => {
+    document.documentElement.lang = locale;
+    writeClientLocale(locale);
   }, [locale]);
 
   const setLocale = (next: Locale) => {
     setLocaleState(next);
     writeClientLocale(next);
-    if (typeof document !== "undefined") {
-      document.documentElement.lang = next;
-    }
+    document.documentElement.lang = next;
     // B.2-7: fire-and-forget the server action so the choice follows
     // the user across devices.  Signed-out callers get an ok:true
     // no-op (the action returns success without writing) so we never
