@@ -316,7 +316,7 @@ export function CompetitionDetailClient({
         </Link>
 
         {/* Content layout */}
-        <div className="relative z-20 flex h-full min-h-[54vh] items-center px-10 pt-24 pb-14 lg:px-16">
+        <div className="relative z-20 flex h-full min-h-[54vh] items-center px-10 pt-32 pb-12 lg:px-16">
           <div className="flex w-full items-center justify-between gap-12">
             {/* Left — Text content */}
             <div className="flex max-w-[560px] flex-col gap-6">
@@ -357,7 +357,7 @@ export function CompetitionDetailClient({
 
               {/* Title */}
               <h1
-                className="text-3xl font-black leading-tight tracking-tight md:text-4xl lg:text-5xl text-white"
+                className="break-keep text-3xl font-black leading-tight tracking-tight md:text-4xl lg:text-5xl text-white"
                 style={{
                   textShadow: "0 2px 20px rgba(0,0,0,0.5)",
                 }}
@@ -457,7 +457,7 @@ export function CompetitionDetailClient({
 
             {/* Right — Prize Card */}
             <div
-              className="hidden w-[280px] shrink-0 rounded-2xl p-6 md:block"
+              className="hidden w-[280px] shrink-0 self-center rounded-2xl p-5 md:block"
               style={{
                 background: "linear-gradient(135deg, rgba(245,158,11,0.1) 0%, rgba(245,158,11,0.05) 100%)",
                 border: "1px solid rgba(245,158,11,0.3)",
