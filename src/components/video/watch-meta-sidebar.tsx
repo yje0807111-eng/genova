@@ -165,19 +165,20 @@ export function WatchMetaSidebar({
           )}
         </div>
 
-        {/* Engagement + actions — 모바일은 버튼이 커서 축소 */}
-        <div className="flex origin-left scale-[0.85] items-center gap-2 md:scale-100">
-          <div className="flex-1">
-            <VideoEngagementBar
-              videoId={videoId}
-              likeCount={video.likeCount ?? 0}
-              likedByMe={video.likedByMe ?? false}
-              saveCount={video.saveCount ?? 0}
-              savedByMe={video.savedByMe ?? false}
-            />
-          </div>
+        {/* Engagement + actions — 풀폭 균등 액션 바 (좋아요·저장이
+            동일 너비로 늘어나고, 공유·더보기는 우측 고정). 기존의
+            왼쪽 정렬 축소 클러스터 구조 폐기. */}
+        <div className="flex items-center gap-2">
+          <VideoEngagementBar
+            videoId={videoId}
+            likeCount={video.likeCount ?? 0}
+            likedByMe={video.likedByMe ?? false}
+            saveCount={video.saveCount ?? 0}
+            savedByMe={video.savedByMe ?? false}
+            className="min-w-0 flex-1 [&>button]:flex-1 [&>button]:justify-center"
+          />
           {playerActions && (
-            <div className="flex shrink-0 items-center gap-1">
+            <div className="flex shrink-0 items-center gap-2">
               {playerActions}
             </div>
           )}
@@ -222,9 +223,10 @@ export function WatchMetaSidebar({
         </button>
       </div>
 
-      {/* Tab content */}
+      {/* Tab content — 모바일은 댓글이 무한히 아래로 늘어나지 않도록
+          최대 높이 제한 + 내부 스크롤. 데스크톱은 기존 flex 채움. */}
       <div
-        className="min-h-0 flex-1 overflow-y-auto overscroll-contain"
+        className="max-h-[65vh] min-h-0 flex-1 overflow-y-auto overscroll-contain md:max-h-none"
         onWheel={(e) => e.stopPropagation()}
       >
         {activeTab === "comments" ? (

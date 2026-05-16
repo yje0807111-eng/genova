@@ -277,11 +277,14 @@ export default async function WatchDetailPage({
         isFollowingCreator={isFollowing}
       />
 
-      <WatchRecommendationsSections
-        sameGenreVideos={sameGenreVideos}
-        trendingVideos={trendingVideos}
-        currentVideoId={video.id}
-      />
+      {/* 모바일에선 숨김 — 시청 페이지 과밀 완화 */}
+      <div className="hidden md:block">
+        <WatchRecommendationsSections
+          sameGenreVideos={sameGenreVideos}
+          trendingVideos={trendingVideos}
+          currentVideoId={video.id}
+        />
+      </div>
     </div>
   );
 }
