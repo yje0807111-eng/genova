@@ -44,7 +44,7 @@ export async function generateMetadata({
   const sponsor = (competition.sponsor as string | null)?.trim();
   const prize = pickLocalized(competition, "prize_info", locale);
   const description =
-    (competition.description as string | null)?.trim() ||
+    pickLocalized(competition, "description", locale)?.trim() ||
     [sponsor ? `Hosted by ${sponsor}.` : null, prize ? `Prize pool: ${prize}.` : null, "Submit your AI film and compete on Genova."]
       .filter(Boolean)
       .join(" ");

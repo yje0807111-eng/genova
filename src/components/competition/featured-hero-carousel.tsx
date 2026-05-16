@@ -14,6 +14,9 @@ type Competition = {
   title_en?: string | null;
   title_ja?: string | null;
   description: string | null;
+  description_ko?: string | null;
+  description_en?: string | null;
+  description_ja?: string | null;
   thumbnail_url: string | null;
   deadline: string;
   prize_info: string;
@@ -79,6 +82,11 @@ export function FeaturedHeroCarousel({ competitions }: Props) {
           : locale === "ja"
             ? (c.prize_info_ja ?? c.prize_info)
             : (c.prize_info_en ?? c.prize_info);
+        const description = locale === "ko"
+          ? (c.description_ko ?? c.description)
+          : locale === "ja"
+            ? (c.description_ja ?? c.description)
+            : (c.description_en ?? c.description);
 
         const deadline = new Date(c.deadline);
         const now = new Date();
@@ -149,12 +157,12 @@ export function FeaturedHeroCarousel({ competitions }: Props) {
                   </h1>
                 </div>
 
-                {c.description && (
+                {description && (
                   <p
                     className="line-clamp-1 max-w-[520px] text-[13px] leading-relaxed text-white/55"
                     style={{ textShadow: "0 1px 8px rgba(0,0,0,0.5)" }}
                   >
-                    {c.description}
+                    {description}
                   </p>
                 )}
 

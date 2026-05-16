@@ -38,7 +38,9 @@ export function EditCompetitionForm({ competition }: { competition: any }) {
     title_ko: competition.title_ko ?? competition.title ?? "",
     title_en: competition.title_en ?? "",
     title_ja: competition.title_ja ?? "",
-    description: competition.description ?? "",
+    description_ko: competition.description_ko ?? competition.description ?? "",
+    description_en: competition.description_en ?? "",
+    description_ja: competition.description_ja ?? "",
     genre: competition.genre ?? "All",
     status: competition.status ?? "Open",
     deadline: competition.deadline ?? "",
@@ -443,10 +445,12 @@ export function EditCompetitionForm({ competition }: { competition: any }) {
                       />
                     </div>
                     <div>
-                      <label className={adminTokens.inputLabel}>{t("adminCompEdit.fieldSubtitle", "Subtitle")}</label>
+                      <label className={adminTokens.inputLabel}>{t("adminCompEdit.fieldSubtitle", "Subtitle")} {langSuffix}</label>
                       <input
-                        value={form.description}
-                        onChange={(e) => setForm((p) => ({ ...p, description: e.target.value }))}
+                        value={form[`description_${langTab}` as "description_ko" | "description_en" | "description_ja"]}
+                        onChange={(e) =>
+                          setForm((p) => ({ ...p, [`description_${langTab}`]: e.target.value } as typeof p))
+                        }
                         className={inp}
                         placeholder={t("adminCompEdit.subtitlePh", "e.g. A global competition for AI video creators")}
                       />

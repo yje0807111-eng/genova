@@ -54,7 +54,12 @@ export async function requireAdminWithService(): Promise<
   if ("error" in auth) return auth;
   const service = createServiceSupabaseClient();
   if (!service) {
-    return { error: "Service role key not configured." };
+    return {
+      error:
+        "서버 설정 오류: SUPABASE_SERVICE_ROLE_KEY 환경변수가 없습니다. " +
+        "Supabase 대시보드(Project Settings → API → service_role)의 키를 " +
+        "서버 환경(.env.local / 배포 환경)에 추가하고 서버를 재시작하세요.",
+    };
   }
   return { ...auth, service };
 }

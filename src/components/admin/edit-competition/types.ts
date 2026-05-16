@@ -2,7 +2,9 @@ export type EditCompetitionFormState = {
   title_ko: string;
   title_en: string;
   title_ja: string;
-  description: string;
+  description_ko: string;
+  description_en: string;
+  description_ja: string;
   genre: string;
   status: string;
   deadline: string;

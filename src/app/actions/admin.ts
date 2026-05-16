@@ -89,6 +89,9 @@ export async function updateCompetitionAction(
     title_en?: string;
     title_ja?: string;
     description?: string;
+    description_ko?: string;
+    description_en?: string;
+    description_ja?: string;
     genre: string;
     status: string;
     deadline: string;
@@ -135,6 +138,12 @@ export async function updateCompetitionAction(
 
   const titleMain =
     form.title_ko?.trim() || form.title_en?.trim() || form.title_ja?.trim() || "";
+  const descriptionMain =
+    form.description_ko?.trim() ||
+    form.description_en?.trim() ||
+    form.description_ja?.trim() ||
+    form.description?.trim() ||
+    "";
   const prizeMain =
     form.prize_info_ko?.trim() ||
     form.prize_info_en?.trim() ||
@@ -145,7 +154,10 @@ export async function updateCompetitionAction(
     .from("competitions")
     .update({
       title: titleMain,
-      description: form.description?.trim() || null,
+      description: descriptionMain || null,
+      description_ko: form.description_ko?.trim() || null,
+      description_en: form.description_en?.trim() || null,
+      description_ja: form.description_ja?.trim() || null,
       title_ko: form.title_ko?.trim() || null,
       title_en: form.title_en?.trim() || null,
       title_ja: form.title_ja?.trim() || null,
