@@ -255,7 +255,7 @@ export function CompetitionDetailClient({
 
       {/* ── Hero ─────────────────────────────────── */}
       <div
-        className="group/hero surface-hero-glow relative w-full overflow-hidden rounded-2xl -mt-16 min-h-[50vh] border border-line-strong"
+        className="group/hero surface-hero-glow relative w-full overflow-hidden rounded-2xl -mt-16 min-h-[54vh] border border-line-strong"
       >
         {/* Background: video or image */}
         {bannerImage && isVideoUrl(bannerImage) ? (
@@ -279,7 +279,7 @@ export function CompetitionDetailClient({
         ) : (
           <div
             className="absolute inset-0 flex items-center justify-center"
-            style={{ background: "linear-gradient(135deg, #1a1547 0%, #0a0a0a 100%)" }}
+            style={{ background: "linear-gradient(135deg, rgba(83,74,183,0.20) 0%, #0a0a0a 70%)" }}
           >
             <Image src="/genova-logo.png" alt="Genova" width={96} height={96} className="h-24 w-24 object-contain opacity-20" />
             <div className="pointer-events-none absolute inset-0 overflow-hidden">
@@ -316,10 +316,10 @@ export function CompetitionDetailClient({
         </Link>
 
         {/* Content layout */}
-        <div className="relative z-20 flex h-full min-h-[50vh] items-center px-10 pt-20 pb-10 lg:px-16">
-          <div className="flex w-full items-center justify-between gap-10">
-            {/* Left ~30% — Text content */}
-            <div className="flex max-w-[560px] flex-col gap-5">
+        <div className="relative z-20 flex h-full min-h-[54vh] items-center px-10 pt-24 pb-14 lg:px-16">
+          <div className="flex w-full items-center justify-between gap-12">
+            {/* Left — Text content */}
+            <div className="flex max-w-[560px] flex-col gap-6">
               {/* Status Badge */}
               {isOpen && (
                 <span
@@ -372,22 +372,13 @@ export function CompetitionDetailClient({
               )}
 
               {/* Meta info blocks */}
-              <div className="mt-1 flex flex-wrap items-start gap-x-6 gap-y-3">
+              <div className="mt-1 flex flex-wrap items-start gap-x-8 gap-y-4">
                 <div className="flex flex-col">
                   <span className="text-[10px] font-bold uppercase tracking-[0.18em] text-white/40">
                     {t("competition.period", "접수 기간")}
                   </span>
                   <span className="mt-0.5 text-[14px] font-bold tabular-nums text-white">
                     {deadlineLabel}
-                  </span>
-                </div>
-
-                <div className="flex flex-col">
-                  <span className="text-[10px] font-bold uppercase tracking-[0.18em] text-white/40">
-                    {t("competition.totalPrize", "총 상금")}
-                  </span>
-                  <span className="mt-0.5 text-[14px] font-bold text-amber-300">
-                    {prizeDisplay}
                   </span>
                 </div>
 
@@ -543,7 +534,7 @@ export function CompetitionDetailClient({
       </div>
 
       {/* ── Tab Content ──────────────────────────── */}
-      <div className="mx-auto max-w-[1400px] px-8 py-10">
+      <div className="mx-auto min-h-[58vh] max-w-[1400px] px-8 py-12">
 
         {/* 개요 */}
         {activeTab === "overview" && (
@@ -1400,7 +1391,7 @@ export function CompetitionDetailClient({
               </div>
 
               {sortedVideos.length === 0 ? (
-                <div className="flex flex-col items-center justify-center py-24 text-center">
+                <div className="flex min-h-[42vh] flex-col items-center justify-center py-20 text-center">
                   <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full border border-white/10 bg-white/5">
                     <Upload size={24} className="text-white/20" />
                   </div>
