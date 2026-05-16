@@ -457,48 +457,73 @@ export function CompetitionDetailClient({
 
             {/* Right — Prize Card */}
             <div
-              className="hidden w-[280px] shrink-0 self-center rounded-2xl p-5 md:block"
+              className="hidden w-[280px] shrink-0 self-center overflow-hidden rounded-2xl md:block"
               style={{
-                background: "linear-gradient(135deg, rgba(245,158,11,0.1) 0%, rgba(245,158,11,0.05) 100%)",
-                border: "1px solid rgba(245,158,11,0.3)",
+                background:
+                  "linear-gradient(160deg, rgba(245,158,11,0.13) 0%, rgba(245,158,11,0.045) 55%, rgba(10,10,10,0.45) 100%)",
+                border: "1px solid rgba(245,158,11,0.28)",
                 backdropFilter: "blur(16px)",
-                boxShadow: "0 0 32px rgba(245,158,11,0.1)",
+                boxShadow: "0 0 36px rgba(245,158,11,0.10), inset 0 1px 0 rgba(255,233,176,0.18)",
               }}
             >
-              <div className="mb-4 flex items-center gap-2">
-                <Trophy size={16} className="text-amber-400" />
-                <span className="text-[11px] font-bold uppercase tracking-[0.2em] text-amber-300">
-                  {t("competition.detail.grandPrizeLabel")}
-                </span>
-              </div>
-              <p
-                className="text-3xl font-black leading-none tabular-nums"
-                style={{
-                  background: "linear-gradient(135deg, #fde68a 0%, #fbbf24 100%)",
-                  WebkitBackgroundClip: "text",
-                  WebkitTextFillColor: "transparent",
-                  backgroundClip: "text",
-                }}
-              >
-                {competition.prize_grand ?? prizeDisplay}
-              </p>
-              {competition.prize_grand && (
-                <p className="mt-3 text-[12px] text-amber-200/50">
-                  {t("competition.detail.prizeTotalWord")}: {prizeDisplay}
+              {/* Grand prize — hero */}
+              <div className="px-5 pt-5 pb-4">
+                <div className="flex items-center gap-1.5">
+                  <Trophy size={13} className="text-amber-300" fill="currentColor" />
+                  <span className="text-[10px] font-black uppercase tracking-[0.22em] text-amber-300/90">
+                    {t("competition.detail.grandPrizeLabel")}
+                  </span>
+                </div>
+                <p
+                  className="mt-2 text-[34px] font-black leading-none tabular-nums"
+                  style={{
+                    background: "linear-gradient(135deg, #FFE9B0 0%, #FBBF24 60%, #C8963E 100%)",
+                    WebkitBackgroundClip: "text",
+                    WebkitTextFillColor: "transparent",
+                    backgroundClip: "text",
+                  }}
+                >
+                  {competition.prize_grand ?? prizeDisplay}
                 </p>
-              )}
+              </div>
+
+              {/* Tier breakdown — ranked list */}
               {competition.prize_excellence && (
-                <div className="mt-4 border-t border-amber-400/15 pt-4 space-y-2">
+                <div className="space-y-1 border-t border-amber-400/15 px-3 py-3">
                   {[
                     { label: t("competition.detail.prizeEyebrowExcellence"), value: competition.prize_excellence },
-                    competition.prize_merit ? { label: t("competition.detail.prizeEyebrowMerit"), value: competition.prize_merit } : null,
-                    competition.prize_audience ? { label: t("competition.detail.prizeEyebrowAudience"), value: competition.prize_audience } : null,
-                  ].filter(Boolean).map((item) => (
-                    <div key={item!.label} className="flex items-center justify-between">
-                      <span className="text-[11px] text-amber-200/40">{item!.label}</span>
-                      <span className="text-[13px] font-bold tabular-nums text-amber-200/70">{item!.value}</span>
-                    </div>
-                  ))}
+                    competition.prize_merit
+                      ? { label: t("competition.detail.prizeEyebrowMerit"), value: competition.prize_merit }
+                      : null,
+                    competition.prize_audience
+                      ? { label: t("competition.detail.prizeEyebrowAudience"), value: competition.prize_audience }
+                      : null,
+                  ]
+                    .filter(Boolean)
+                    .map((item, i) => (
+                      <div
+                        key={item!.label}
+                        className="flex items-center justify-between rounded-lg px-2 py-1.5 transition hover:bg-amber-500/[0.06]"
+                      >
+                        <span className="flex items-center gap-2">
+                          <span className="flex h-5 w-5 items-center justify-center rounded-full text-[10px] font-black tabular-nums text-amber-200/80" style={{ background: "rgba(245,158,11,0.14)", border: "1px solid rgba(245,158,11,0.22)" }}>
+                            {i + 2}
+                          </span>
+                          <span className="text-[12px] font-semibold text-amber-100/75">{item!.label}</span>
+                        </span>
+                        <span className="text-[13px] font-bold tabular-nums text-amber-100/90">{item!.value}</span>
+                      </div>
+                    ))}
+                </div>
+              )}
+
+              {/* Total — footer summary */}
+              {competition.prize_grand && (
+                <div className="flex items-center justify-between border-t border-amber-400/15 bg-amber-500/[0.05] px-5 py-3">
+                  <span className="text-[10px] font-black uppercase tracking-[0.18em] text-amber-200/55">
+                    {t("competition.detail.prizeTotalWord")}
+                  </span>
+                  <span className="text-[12px] font-bold tabular-nums text-amber-100/85">{prizeDisplay}</span>
                 </div>
               )}
             </div>
