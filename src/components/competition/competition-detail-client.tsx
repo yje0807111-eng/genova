@@ -1074,7 +1074,66 @@ export function CompetitionDetailClient({
                 const progress = stages.length > 1 ? (currentIdx / (stages.length - 1)) * 100 : 0;
 
                 return (
-                  <div className="relative">
+                  <>
+                  {/* 모바일 전용 — 세로 스테퍼 (가로 grid-cols-5 가 폰에서 붕괴) */}
+                  <ol className="md:hidden">
+                    {stages.map((stage, idx) => {
+                      const isPast = idx < currentIdx || (stage.done && !stage.active);
+                      const isNow = stage.active;
+                      const last = idx === stages.length - 1;
+                      return (
+                        <li key={stage.label} className="relative flex gap-3 pb-5 last:pb-0">
+                          <div className="relative flex w-4 shrink-0 flex-col items-center">
+                            <span
+                              className="relative z-10 mt-1 h-3 w-3 rounded-full"
+                              style={
+                                isNow
+                                  ? { background: "#AFA9EC", boxShadow: "0 0 0 4px rgba(127,119,221,0.15)" }
+                                  : isPast
+                                    ? { background: "#7F77DD" }
+                                    : { background: "rgba(255,255,255,0.18)", border: "1.5px solid rgba(255,255,255,0.25)" }
+                              }
+                            />
+                            {!last && (
+                              <span
+                                className="absolute top-4 bottom-0 w-px"
+                                style={{ background: isPast ? "rgba(127,119,221,0.4)" : "rgba(255,255,255,0.10)" }}
+                              />
+                            )}
+                          </div>
+                          <div className="min-w-0 flex-1">
+                            <p
+                              className="text-[10px] font-black uppercase tracking-[0.22em]"
+                              style={{ color: isNow ? "#AFA9EC" : isPast ? "rgba(175,169,236,0.85)" : "rgba(255,255,255,0.5)" }}
+                            >
+                              {t("competition.detail.stageStep").replace("{n}", String(idx + 1).padStart(2, "0"))}
+                            </p>
+                            <p className="mt-0.5 text-[15px] font-bold text-white">{stage.label}</p>
+                            <p
+                              className="mt-0.5 text-[13px] font-semibold tabular-nums"
+                              style={{ color: stage.date ? (isNow ? "#AFA9EC" : "rgba(255,255,255,0.6)") : "rgba(255,255,255,0.3)" }}
+                            >
+                              {stage.date ?? t("competition.detail.dateTbd")}
+                            </p>
+                            {isNow && (
+                              <span className="mt-1.5 inline-flex items-center gap-1 text-[10px] font-black uppercase tracking-wider text-emerald-400">
+                                <span className="animate-pulse">●</span>
+                                {t("competition.detail.badgeActive")}
+                              </span>
+                            )}
+                            {isPast && !isNow && (
+                              <span className="mt-1.5 inline-flex text-[10px] font-black uppercase tracking-wider text-accent-light/80">
+                                {t("competition.detail.badgeDone")}
+                              </span>
+                            )}
+                          </div>
+                        </li>
+                      );
+                    })}
+                  </ol>
+
+                  {/* 데스크톱 — 가로 타임라인 */}
+                  <div className="relative hidden md:block">
                     {/* Progress Bar */}
                     <div
                       className="relative mb-9 h-[6px] w-full overflow-hidden rounded-full"
@@ -1208,6 +1267,7 @@ export function CompetitionDetailClient({
                       })}
                     </div>
                   </div>
+                  </>
                 );
               })()}
             </div>
