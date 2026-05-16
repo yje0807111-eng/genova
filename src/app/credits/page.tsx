@@ -4,6 +4,7 @@ import { AnimateIn } from "@/components/animate-in";
 import { CreditsPurchaseGrid } from "@/components/credits/credits-purchase-grid";
 import { fetchCreditTransactionsForUser } from "@/lib/queries/credits-queries";
 import { fetchOwnProfile } from "@/lib/queries/profile-queries";
+import { getServerLocale, getServerT } from "@/lib/i18n/server";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 
 export const dynamic = "force-dynamic";
@@ -17,26 +18,41 @@ function formatNum(n: number): string {
   return new Intl.NumberFormat("en-US").format(n);
 }
 
-const POINTS_USAGE = [
-  {
-    title: "Convert to Credits",
-    body: "Exchange reward Points for Credits at the platform rate to unlock premium tools and catalog content.",
-  },
-  {
-    title: "Studio & generation",
-    body: "Spend Credits on Genova Studio sessions, renders, and AI-assisted workflows tied to your projects.",
-  },
-  {
-    title: "Recipes & packs",
-    body: "Purchase creator Recipes, style packs, and reusable prompt templates from the marketplace.",
-  },
-  {
-    title: "1:1 prompt trades",
-    body: "Tip creators or buy bespoke prompt sessions — Points and Credits keep peer trades transparent.",
-  },
-];
-
 export default async function CreditsPage() {
+  const locale = await getServerLocale();
+  const t = getServerT(locale);
+
+  const POINTS_USAGE = [
+    {
+      title: t("creditsPage.usageConvertTitle", "Convert to Credits"),
+      body: t(
+        "creditsPage.usageConvertBody",
+        "Exchange reward Points for Credits at the platform rate to unlock premium tools and catalog content.",
+      ),
+    },
+    {
+      title: t("creditsPage.usageStudioTitle", "Studio & generation"),
+      body: t(
+        "creditsPage.usageStudioBody",
+        "Spend Credits on Genova Studio sessions, renders, and AI-assisted workflows tied to your projects.",
+      ),
+    },
+    {
+      title: t("creditsPage.usageRecipesTitle", "Recipes & packs"),
+      body: t(
+        "creditsPage.usageRecipesBody",
+        "Purchase creator Recipes, style packs, and reusable prompt templates from the marketplace.",
+      ),
+    },
+    {
+      title: t("creditsPage.usageTradesTitle", "1:1 prompt trades"),
+      body: t(
+        "creditsPage.usageTradesBody",
+        "Tip creators or buy bespoke prompt sessions — Points and Credits keep peer trades transparent.",
+      ),
+    },
+  ];
+
   const supabase = await createServerSupabaseClient();
   if (!supabase) redirect("/auth");
   const {
@@ -70,32 +86,35 @@ export default async function CreditsPage() {
 
       <div className="page-cinematic relative mx-auto max-w-5xl space-y-10 px-6 py-10 text-[#EEEDFE] sm:px-8 lg:px-10">
         <AnimateIn delay={0} className="space-y-3">
-          <p className="text-[11px] uppercase tracking-[0.24em] text-[#7F77DD]/90">Wallet</p>
-          <h1 className="text-4xl font-bold tracking-tight sm:text-[42px]">Credits &amp; Points</h1>
+          <p className="text-[11px] uppercase tracking-[0.24em] text-[#7F77DD]/90">{t("creditsPage.eyebrow", "Wallet")}</p>
+          <h1 className="text-4xl font-bold tracking-tight sm:text-[42px]">{t("creditsPage.title", "Credits & Points")}</h1>
           <p className="max-w-2xl text-sm text-[#AFA9EC]">
-            Top up Credits for studio time and purchases; earn Points from community activity and convert them when you are ready.
+            {t(
+              "creditsPage.subtitle",
+              "Top up Credits for studio time and purchases; earn Points from community activity and convert them when you are ready.",
+            )}
           </p>
         </AnimateIn>
 
         <AnimateIn delay={0.05}>
           <section className="rounded-2xl border border-white/10 bg-[linear-gradient(165deg,rgba(19,16,40,0.92)_0%,rgba(10,10,10,0.96)_100%)] p-6 shadow-[inset_0_1px_0_var(--tint-purple-12)] backdrop-blur-sm sm:p-8">
-            <h2 className="sr-only">Balance</h2>
+            <h2 className="sr-only">{t("creditsPage.balanceHeading", "Balance")}</h2>
             <div className="grid gap-6 sm:grid-cols-2">
               <div>
-                <p className="text-xs font-medium uppercase tracking-[0.18em] text-[#7F77DD]">Credits</p>
+                <p className="text-xs font-medium uppercase tracking-[0.18em] text-[#7F77DD]">{t("creditsPage.creditsLabel", "Credits")}</p>
                 <p className="mt-2 font-display text-4xl font-bold tabular-nums text-[#F8F7FF]">{formatNum(profile.credits)}</p>
-                <p className="mt-1 text-xs text-[#AFA9EC]/90">Spend on Studio, recipes, and catalog unlocks.</p>
+                <p className="mt-1 text-xs text-[#AFA9EC]/90">{t("creditsPage.creditsHint", "Spend on Studio, recipes, and catalog unlocks.")}</p>
               </div>
               <div>
-                <p className="text-xs font-medium uppercase tracking-[0.18em] text-[#7F77DD]">Points</p>
+                <p className="text-xs font-medium uppercase tracking-[0.18em] text-[#7F77DD]">{t("creditsPage.pointsLabel", "Points")}</p>
                 <p className="mt-2 font-display text-4xl font-bold tabular-nums text-[#F8F7FF]">{formatNum(profile.points)}</p>
-                <p className="mt-1 text-xs text-[#AFA9EC]/90">Earn from engagement; convert to Credits anytime.</p>
+                <p className="mt-1 text-xs text-[#AFA9EC]/90">{t("creditsPage.pointsHint", "Earn from engagement; convert to Credits anytime.")}</p>
               </div>
             </div>
             <div className="mt-8 rounded-xl border border-[#534AB7]/25 bg-black/25 px-4 py-3 text-center text-sm text-[#AFA9EC]">
-              <span className="font-semibold text-[#EEEDFE]">100 Points = $1 = 1,000 Credits</span>
+              <span className="font-semibold text-[#EEEDFE]">{t("creditsPage.exchangeRate", "100 Points = $1 = 1,000 Credits")}</span>
               <span className="mx-2 text-[#534AB7]/80">·</span>
-              Rates and bonuses may vary by region; final amounts shown at checkout.
+              {t("creditsPage.exchangeNote", "Rates and bonuses may vary by region; final amounts shown at checkout.")}
             </div>
           </section>
         </AnimateIn>
@@ -104,9 +123,9 @@ export default async function CreditsPage() {
           <section className="space-y-5" aria-labelledby="packages-heading">
             <div>
               <h2 id="packages-heading" className="text-xl font-bold text-[#EEEDFE]">
-                Credit packs
+                {t("creditsPage.packsHeading", "Credit packs")}
               </h2>
-              <p className="mt-1 text-sm text-[#AFA9EC]">Larger packs include bonus Credits. Payments will open in a secure flow when checkout goes live.</p>
+              <p className="mt-1 text-sm text-[#AFA9EC]">{t("creditsPage.packsSubtitle", "Larger packs include bonus Credits. Payments will open in a secure flow when checkout goes live.")}</p>
             </div>
             <CreditsPurchaseGrid />
           </section>
@@ -115,7 +134,7 @@ export default async function CreditsPage() {
         <AnimateIn delay={0.12}>
           <section className="space-y-5" aria-labelledby="usage-heading">
             <h2 id="usage-heading" className="text-xl font-bold text-[#EEEDFE]">
-              What you can do with Points
+              {t("creditsPage.usageHeading", "What you can do with Points")}
             </h2>
             <div className="grid gap-4 sm:grid-cols-2">
               {POINTS_USAGE.map((item) => (
@@ -134,21 +153,21 @@ export default async function CreditsPage() {
         <AnimateIn delay={0.15}>
           <section className="space-y-4" aria-labelledby="history-heading">
             <h2 id="history-heading" className="text-xl font-bold text-[#EEEDFE]">
-              Credit activity
+              {t("creditsPage.historyHeading", "Credit activity")}
             </h2>
             {transactions.length === 0 ? (
               <div className="rounded-xl border border-dashed border-white/15 bg-[#1A1535]/40 px-6 py-14 text-center text-sm text-[#AFA9EC]">
-                No transactions yet
+                {t("creditsPage.noTransactions", "No transactions yet")}
               </div>
             ) : (
               <div className="overflow-hidden rounded-xl border border-white/10">
                 <table className="w-full text-left text-sm">
                   <thead className="bg-[#0A0818]/80 text-xs uppercase tracking-wider text-[#7F77DD]">
                     <tr>
-                      <th className="px-4 py-3 font-semibold">Date</th>
-                      <th className="px-4 py-3 font-semibold">Details</th>
-                      <th className="px-4 py-3 text-right font-semibold">Change</th>
-                      <th className="hidden px-4 py-3 text-right font-semibold sm:table-cell">Balance</th>
+                      <th className="px-4 py-3 font-semibold">{t("creditsPage.colDate", "Date")}</th>
+                      <th className="px-4 py-3 font-semibold">{t("creditsPage.colDetails", "Details")}</th>
+                      <th className="px-4 py-3 text-right font-semibold">{t("creditsPage.colChange", "Change")}</th>
+                      <th className="hidden px-4 py-3 text-right font-semibold sm:table-cell">{t("creditsPage.colBalance", "Balance")}</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-white/10 bg-[#131028]/50">

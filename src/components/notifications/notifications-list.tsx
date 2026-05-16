@@ -160,7 +160,7 @@ export function NotificationsList({
       <div className="mb-5 flex items-center justify-between border-b border-white/[0.06] pb-4">
         <div>
           <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-[#7F77DD]/60">
-            {t("notifications.inboxEyebrow")}
+            {t("notifications.inboxEyebrow", "INBOX")}
           </p>
           <h1 className="mt-0.5 text-xl font-black tracking-tight text-white">
             {t("notifications.title", "Notifications")}
@@ -266,14 +266,14 @@ export function NotificationsList({
           </div>
           <p className="text-base font-bold text-white/50">
             {filter === "unread"
-              ? t("notifications.emptyUnreadList")
+              ? t("notifications.emptyUnreadList", "No unread notifications")
               : filter === "read"
                 ? t("notifications.emptyRead", "No read notifications")
                 : t("notifications.empty", "No notifications yet.")}
           </p>
           <p className="mt-1 text-sm text-white/25">
             {filter === "unread"
-              ? t("notifications.unreadAllCaughtUp")
+              ? t("notifications.unreadAllCaughtUp", "You're all caught up.")
               : t("notifications.emptyHint", "Likes, comments, and follows will appear here.")}
           </p>
         </div>

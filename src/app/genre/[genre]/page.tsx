@@ -10,6 +10,7 @@ import {
   type MainGenreKey,
 } from "@/lib/constants/genres";
 import { fetchVideosByGenre, type GenrePageSort } from "@/lib/queries/search-queries";
+import { getServerLocale, getServerT } from "@/lib/i18n/server";
 
 export const dynamic = "force-dynamic";
 
@@ -59,6 +60,9 @@ export default async function GenreExplorePage({
 
   const videos = await fetchVideosByGenre(key, subValid, sort);
 
+  const locale = await getServerLocale();
+  const t = getServerT(locale);
+
   return (
     <div className="min-h-screen text-white">
       {/* Hero header */}
@@ -98,18 +102,21 @@ export default async function GenreExplorePage({
             className="group mb-6 inline-flex items-center gap-2 text-[12px] font-semibold uppercase tracking-[0.15em] text-white/35 transition hover:text-white"
           >
             <span className="transition-transform group-hover:-translate-x-1">←</span>
-            Back to Discover
+            {t("genrePage.backToDiscover", "Back to Discover")}
           </Link>
 
           <p className="text-[10px] font-semibold uppercase tracking-[0.3em] text-white/30">
-            Genre
+            {t("genrePage.eyebrow", "Genre")}
           </p>
           <div className="mt-3 flex items-baseline gap-4 flex-wrap">
             <h1 className="bg-gradient-to-br from-white via-white to-[#AFA9EC] bg-clip-text pb-2 text-[64px] font-black tracking-[-0.04em] leading-[1.1] text-transparent sm:text-[80px]" style={{ animation: "search-pulse 4s ease-in-out infinite" }}>
               {MAIN_GENRE_LABELS[key]}
             </h1>
             <span className="text-[16px] font-medium text-white/35">
-              {videos.length} {videos.length === 1 ? "film" : "films"}
+              {videos.length}{" "}
+              {videos.length === 1
+                ? t("genrePage.filmCountSingular", "film")
+                : t("genrePage.filmCountPlural", "films")}
             </span>
           </div>
         </div>
@@ -128,7 +135,7 @@ export default async function GenreExplorePage({
                     : "whitespace-nowrap text-[13px] font-medium text-white/35 transition hover:text-white/70"
                 }
               >
-                All
+                {t("genrePage.subFilterAll", "All")}
               </Link>
               {subGenreKeys
                 .filter((k) => k !== "other")
@@ -152,9 +159,9 @@ export default async function GenreExplorePage({
           <div className="flex items-center gap-1.5 text-[11px]">
             {(
               [
-                ["latest", "Latest"],
-                ["popular", "Popular"],
-                ["award", "Awards First"],
+                ["latest", t("genrePage.sortLatest", "Latest")],
+                ["popular", t("genrePage.sortPopular", "Popular")],
+                ["award", t("genrePage.sortAward", "Awards First")],
               ] as const
             ).map(([k, label]) => (
               <Link
@@ -185,9 +192,11 @@ export default async function GenreExplorePage({
                 <span className="text-[20px] text-[#7F77DD]/70">✦</span>
               </div>
               <p className="text-[16px] font-bold text-white/70">
-                No films match these filters
+                {t("genrePage.emptyTitle", "No films match these filters")}
               </p>
-              <p className="mt-1.5 text-[12px] text-white/35">Try a different sub-genre or sort</p>
+              <p className="mt-1.5 text-[12px] text-white/35">
+                {t("genrePage.emptyHint", "Try a different sub-genre or sort")}
+              </p>
               <div className="mt-7 flex flex-wrap justify-center gap-2">
                 {(["film", "animation", "music", "daily", "art"] as const)
                   .filter((g) => g !== key)
