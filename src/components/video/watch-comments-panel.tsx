@@ -59,13 +59,13 @@ export function WatchDesktopFlexRow({
   return (
     <div className="space-y-6">
       {/* Row 1: player + sidebar + mini queue */}
-      <div className="grid grid-cols-[1fr_380px_84px] gap-4">
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-[1fr_380px_84px]">
         <div className="min-w-0">
           {playerSlot}
         </div>
 
         <aside className="relative">
-          <div className="absolute inset-0 flex flex-col overflow-hidden rounded-xl border border-white/[0.06] bg-white/[0.01]">
+          <div className="flex flex-col overflow-hidden rounded-xl border border-white/[0.06] bg-white/[0.01] lg:absolute lg:inset-0">
             <WatchMetaSidebar
               videoId={videoId}
               video={video}
@@ -87,7 +87,7 @@ export function WatchDesktopFlexRow({
         </aside>
 
         <aside className="relative">
-          <div className="absolute inset-0 flex flex-col gap-1.5 overflow-x-hidden overflow-y-auto">
+          <div className="flex flex-col gap-1.5 overflow-x-hidden lg:absolute lg:inset-0 lg:overflow-y-auto">
             {upNextSlot}
           </div>
         </aside>
@@ -95,7 +95,7 @@ export function WatchDesktopFlexRow({
 
       {/* Row 2: series slider — left column width only */}
       {leftAfterDescription && (
-        <div className="grid grid-cols-[1fr_380px_84px] gap-4">
+        <div className="grid grid-cols-1 gap-4 lg:grid-cols-[1fr_380px_84px]">
           <div className="min-w-0">
             {leftAfterDescription}
           </div>
