@@ -7,7 +7,7 @@ import type { Competition } from "@/lib/types";
 import type { Video } from "@/lib/types";
 import { useI18n } from "@/components/genova/language-provider";
 import { useGenreFilter } from "@/components/genova/genre-filter-context";
-import { AnimateIn } from "@/components/animate-in";
+import { ScrollReveal } from "@/components/scroll-reveal";
 import { HomeGenreCarousel } from "@/components/genova/home-genre-carousel";
 import { HoverPreviewCard } from "@/components/genova/hover-preview-card";
 import { parseRuntimeToSeconds } from "@/components/video/video-card";
@@ -256,14 +256,14 @@ export function HomePageClient(props: HomePageClientProps) {
     <>
       <HomeMobileFeed videosFromDb={videosFromDb} />
       <div className="hidden min-h-screen bg-background md:block">
-      <AnimateIn delay={0.05}>{competitionBannerSlot}</AnimateIn>
+      <ScrollReveal delay={0.05}>{competitionBannerSlot}</ScrollReveal>
 
       <div data-content-start className="w-full space-y-2 px-6 pb-12 pt-4 sm:space-y-3 sm:px-8">
-        <AnimateIn delay={0.07}>
+        <ScrollReveal delay={0.07}>
           <HomeGenreCarousel slides={carouselSlides} />
-        </AnimateIn>
+        </ScrollReveal>
 
-        <AnimateIn delay={0.09} className="relative z-[60]">
+        <ScrollReveal delay={0.09} className="relative z-[60]">
           <HomeTabNav
             activeMainTab={activeMainTab}
             activeSubGenre={activeSubGenre}
@@ -277,9 +277,9 @@ export function HomePageClient(props: HomePageClientProps) {
             onSortChange={setActiveSort}
             onSearchChange={setSearchQuery}
           />
-        </AnimateIn>
+        </ScrollReveal>
 
-        <AnimateIn delay={0.11} className="relative z-0">
+        <ScrollReveal delay={0.11} className="relative z-0">
          <div className="min-h-[800px]">
           {/* F4: Films Beta 2 rails (Series / Award Winners / Continue
               Watching).  Only on the default Films landing view —
@@ -315,7 +315,7 @@ export function HomePageClient(props: HomePageClientProps) {
             </div>
           )}
          </div>
-        </AnimateIn>
+        </ScrollReveal>
 
         {hasMore && (
           <div ref={loadMoreRef} className="flex justify-center py-8">

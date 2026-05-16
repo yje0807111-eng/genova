@@ -8,6 +8,7 @@ import { useI18n } from "@/components/genova/language-provider";
 import type { Locale } from "@/lib/i18n/translations";
 import { intlDateLocale } from "@/lib/i18n/browser-locale";
 import { formatPrizeWithConversion } from "@/lib/utils/format-prize";
+import { ScrollReveal } from "@/components/scroll-reveal";
 
 type Competition = {
   id: string;
@@ -473,7 +474,7 @@ export function CompetitionListClient({
 
   return (
     <div className="space-y-4">
-      <div className="mb-6">
+      <ScrollReveal className="mb-6">
         <p className="inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-[0.22em] text-white/45">
           <span>◆</span>
           {t("competition.allLabel", "ALL CONTESTS")}
@@ -481,7 +482,7 @@ export function CompetitionListClient({
         <h2 className="mt-1.5 text-[24px] font-black tracking-tight text-white sm:text-[28px]">
           {t("competition.allSectionTitle", "전체 공모전")}
         </h2>
-      </div>
+      </ScrollReveal>
 
       <div id="competition-list-section" className="flex items-center justify-between border-b border-white/[0.08] pb-0 scroll-mt-20">
         <div className="flex gap-1">
@@ -590,7 +591,11 @@ export function CompetitionListClient({
         </div>
       ) : (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-          {paginated.map((c) => <CompetitionCard key={c.id} c={c} participantCount={participantCounts[c.id] ?? 0} />)}
+          {paginated.map((c, idx) => (
+            <ScrollReveal key={c.id} delay={Math.min(idx, 8) * 0.04}>
+              <CompetitionCard c={c} participantCount={participantCounts[c.id] ?? 0} />
+            </ScrollReveal>
+          ))}
         </div>
       )}
 

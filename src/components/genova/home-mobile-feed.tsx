@@ -8,6 +8,7 @@ import type { Video } from "@/lib/types";
 import { useI18n } from "@/components/genova/language-provider";
 import { videoToCardProps } from "@/components/genova/video-card";
 import { MAIN_GENRE_KEYS, MAIN_GENRE_LABELS, normalizeToMainGenre } from "@/lib/constants/genres";
+import { ScrollReveal } from "@/components/scroll-reveal";
 
 type GenreChip = "all" | (typeof MAIN_GENRE_KEYS)[number];
 type Sort = "latest" | "popular";
@@ -154,10 +155,11 @@ export function HomeMobileFeed({ videosFromDb }: { videosFromDb: Video[] }) {
 
       {/* 1열 세로 피드 — 풀폭 가로 카드 */}
       <div className="flex flex-col gap-5 px-4 pb-10 pt-4">
-        {filtered.map((v) => {
+        {filtered.map((v, i) => {
           const cp = videoToCardProps(v, locale);
           return (
-            <Link key={v.id} href={`/watch/${v.id}`} className="block">
+            <ScrollReveal key={v.id} delay={Math.min(i, 6) * 0.05}>
+            <Link href={`/watch/${v.id}`} className="block">
               <div className="relative aspect-video w-full overflow-hidden rounded-xl border border-white/[0.06]">
                 <Image
                   src={cp.thumbnail}
@@ -189,6 +191,7 @@ export function HomeMobileFeed({ videosFromDb }: { videosFromDb: Video[] }) {
                 </div>
               </div>
             </Link>
+            </ScrollReveal>
           );
         })}
       </div>

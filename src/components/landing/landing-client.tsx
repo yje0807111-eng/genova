@@ -4,7 +4,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { ArrowRight, Play, Trophy, Clapperboard, Globe2, Sparkles } from "lucide-react";
 import { useI18n } from "@/components/genova/language-provider";
-import { ScrollReveal } from "@/components/landing/scroll-reveal";
+import { ScrollReveal } from "@/components/scroll-reveal";
 import { cn } from "@/lib/utils/cn";
 
 type FeaturedCompetition = {
