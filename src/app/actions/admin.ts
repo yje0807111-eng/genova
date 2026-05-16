@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { requireAdminWithService } from "@/lib/auth/admin-actions";
+import { logAdminAction } from "@/lib/audit";
 import { createNotification } from "@/lib/notifications";
 
 type AdminResult = { ok: true } | { ok: false; message: string };
@@ -240,10 +241,11 @@ export async function updateCompetitionStatusAction(id: string, status: string):
 export async function deleteCompetitionAction(id: string): Promise<{ ok: boolean; message?: string }> {
   const auth = await requireAdminWithService();
   if ("error" in auth) return { ok: false, message: auth.error ?? "Unauthorized" };
-  const { service } = auth;
+  const { service, user } = auth;
 
   const { error } = await service.from("competitions").delete().eq("id", id);
   if (error) return { ok: false, message: error.message };
+  await logAdminAction(service, user, "competition.delete", { type: "competition", id });
   revalidatePath("/admin");
   revalidatePath("/competition");
   return { ok: true };

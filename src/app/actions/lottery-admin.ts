@@ -5,6 +5,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { sendWinnerNotificationEmail } from "@/lib/email";
 import { createNotification } from "@/lib/notifications";
 import { requireAdminWithService } from "@/lib/auth/admin-actions";
+import { logAdminAction } from "@/lib/audit";
 
 /**
  * Phase 6-A: admin server actions for the entry-lottery system.
@@ -111,6 +112,17 @@ export async function redrawWinnerSlotAction(input: {
   // H2-D.6: surface failure counts.
   const dispatch = await dispatchWinnerNotifications(auth.service, input.competitionId);
 
+  await logAdminAction(auth.service, auth.user, "lottery.redrawWinnerSlot", {
+    type: "competition",
+    id: input.competitionId,
+    detail: {
+      prizeTier: input.prizeTier,
+      reason: input.reason.trim(),
+      drawingLogId: data.drawing_log_id,
+      newWinnerId: data.new_winner_id,
+    },
+  });
+
   revalidatePath(`/competition/${input.competitionId}`);
   revalidatePath(`/competition/${input.competitionId}/results`);
   revalidatePath("/admin");
@@ -193,6 +205,12 @@ export async function markWinnerInfoPaidAction(input: {
     .in("claim_status", ["confirmed", "submitted"]);
   if (winnerErr) return { ok: false, message: winnerErr.message };
 
+  await logAdminAction(auth.service, auth.user, "lottery.markWinnerPaid", {
+    type: "winner",
+    id: input.winnerId,
+    detail: { paymentReference: input.paymentReference.trim() },
+  });
+
   revalidatePath("/admin");
   return { ok: true };
 }
@@ -271,6 +289,12 @@ export async function revokeEntryTicketAction(input: {
     .update({ eligible: false })
     .eq("ticket_id", input.ticketId);
   if (entriesErr) return { ok: false, message: entriesErr.message };
+
+  await logAdminAction(auth.service, auth.user, "lottery.revokeEntryTicket", {
+    type: "entry_ticket",
+    id: input.ticketId,
+    detail: { reason: input.reason },
+  });
 
   revalidatePath("/admin");
   return { ok: true };

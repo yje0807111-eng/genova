@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { requireAdmin } from "@/lib/auth/admin-actions";
+import { logAdminAction } from "@/lib/audit";
 import { FILMS_GENRE_KEYS, MAIN_GENRE_LABELS, type MainGenreKey } from "@/lib/constants/genres";
 import { createNotification } from "@/lib/notifications";
 import { createServiceSupabaseClient } from "@/lib/supabase/service";
@@ -92,6 +93,12 @@ export async function grantCompetitionTrophyAction(input: {
     // {title} / {award} placeholders.  Switch arm in
     // notifications-i18n.ts.
     metadata: { kind: "competition", competition_title: compTitle, award },
+  });
+
+  await logAdminAction(svc, auth.user, "trophy.grantCompetition", {
+    type: "trophy",
+    id: competitionId,
+    detail: { userId, award },
   });
 
   revalidatePath("/admin");
@@ -284,6 +291,12 @@ export async function revokeTrophyAction(trophyId: string): Promise<AdminResult>
 
   const { error } = await svc.from("trophies").delete().eq("id", trophyId);
   if (error) return { ok: false, message: error.message };
+
+  await logAdminAction(svc, auth.user, "trophy.revoke", {
+    type: "trophy",
+    id: trophyId,
+    detail: { userId: existing.user_id, competitionId: existing.competition_id },
+  });
 
   revalidatePath("/admin");
   revalidatePath(`/profile/${existing.user_id}`);
