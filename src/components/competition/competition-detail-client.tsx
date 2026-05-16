@@ -839,10 +839,10 @@ export function CompetitionDetailClient({
 
             {/* 상금 구성 — 균등 그리드 + 1등 강조 (Stripe 스타일) */}
             <div className="py-10 border-t border-white/[0.06]">
-              <div className="mb-7 flex items-end justify-between gap-4">
+              <div className="mb-7 flex flex-col items-start gap-3 md:flex-row md:items-end md:justify-between md:gap-4">
                 <div className="flex items-center gap-3">
                   <span className="text-sm text-[#7F77DD]">✦</span>
-                  <h2 className="text-[22px] font-black tracking-tight text-white">{t("competition.detail.prizeBreakdownHeading")}</h2>
+                  <h2 className="text-[18px] font-black tracking-tight text-white md:text-[22px]">{t("competition.detail.prizeBreakdownHeading")}</h2>
                   <span className="h-[2px] w-8 rounded-full bg-gradient-to-r from-[#7F77DD] to-transparent" />
                 </div>
                 <div className="flex items-center gap-3 rounded-xl border border-white/10 bg-white/[0.04] px-4 py-2 backdrop-blur-md">
@@ -862,7 +862,7 @@ export function CompetitionDetailClient({
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 md:grid-cols-4">
+              <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
                 {[
                   {
                     rank: "01",
@@ -941,7 +941,7 @@ export function CompetitionDetailClient({
                 ].map((tier) => (
                   <div
                     key={tier.rank}
-                    className="group relative overflow-hidden rounded-2xl p-6 transition-all duration-300 hover:scale-[1.02]"
+                    className="group relative overflow-hidden rounded-2xl p-4 transition-all duration-300 hover:scale-[1.02] md:p-6"
                     style={{
                       background: tier.cardBg,
                       border:
@@ -1016,7 +1016,7 @@ export function CompetitionDetailClient({
                         style={{ borderTop: `1px solid ${tier.divider}` }}
                       >
                         <p
-                          className="text-3xl font-bold leading-none tracking-tight tabular-nums"
+                          className="text-2xl font-bold leading-none tracking-tight tabular-nums md:text-3xl"
                           style={{
                             color:
                               tier.rank === "01"
@@ -1552,7 +1552,7 @@ export function CompetitionDetailClient({
             )}
 
             <div>
-              <div className="mb-6 flex items-center justify-between">
+              <div className="mb-6 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
                 <div className="flex items-center gap-3">
                   <span className="text-sm text-[#7F77DD]">✦</span>
                   <h2 className="text-[22px] font-black tracking-tight text-white">{t("competition.detail.entriesAllTitle")}</h2>
