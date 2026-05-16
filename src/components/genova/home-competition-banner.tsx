@@ -3,7 +3,6 @@
 import Link from "next/link";
 import { ArrowRight, PlayCircle, Calendar, Users } from "lucide-react";
 import { useI18n } from "@/components/genova/language-provider";
-import { BrowseFilmsButton } from "@/components/genova/browse-films-button";
 
 type HeroCompetition = {
   title?: string | null;
@@ -127,11 +126,6 @@ export function HomeCompetitionBanner({ competition, stats }: Props) {
               {t("home.hero.cta.primary", "공모전 참여하기")}
               <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" />
             </Link>
-            {/* Client island — only the scrollIntoView handler needs to
-                live in the browser bundle; label remains server-rendered. */}
-            <BrowseFilmsButton>
-              {t("home.hero.cta.secondary", "작품 둘러보기")}
-            </BrowseFilmsButton>
           </div>
 
           <div className="grid max-w-[680px] grid-cols-3 gap-3 pt-4 sm:gap-3.5">
