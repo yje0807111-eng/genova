@@ -167,7 +167,6 @@ export function CompetitionDetailClient({
   const dateLocale = intlDateLocale(locale);
   const [sortBy, setSortBy] = useState<"views" | "newest" | "award">("views");
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
-  const [activeTab, setActiveTab] = useState<"overview" | "judging" | "faq" | "entries">("overview");
 
   useEffect(() => {
     console.log("[COMP_CLIENT_DEBUG]", {
@@ -234,7 +233,19 @@ export function CompetitionDetailClient({
   ];
 
   return (
-    <div className="min-h-screen text-white">
+    <div className="relative min-h-screen text-white">
+      {/* 히어로 분위기를 본문 시작부에서 짧게 이어주는 앰버언트 글로우.
+          이음매에서만 은은히 번지고 한 화면 안에 완전히 소멸 — 본문은
+          깨끗하게 유지(가독성/집중). Apple TV+/Spotify 디테일 문법. */}
+      <div
+        className="pointer-events-none absolute inset-x-0 top-[44vh] z-0 h-[82vh]"
+        style={{
+          background:
+            "radial-gradient(70% 60% at 26% 8%, rgba(127,119,221,0.12) 0%, rgba(83,74,183,0.05) 34%, transparent 68%)",
+          filter: "blur(24px)",
+        }}
+        aria-hidden
+      />
 
       {/* Phase 4-B: winners-announced banner.  Renders only once
           the admin has triggered a draw.  Links to the dedicated
@@ -260,7 +271,7 @@ export function CompetitionDetailClient({
 
       {/* ── Hero ─────────────────────────────────── */}
       <div
-        className="group/hero surface-hero-glow relative w-full overflow-hidden rounded-2xl -mt-16 min-h-[54vh] border border-line-strong"
+        className="group/hero relative w-full overflow-hidden -mt-16 min-h-[60vh]"
       >
         {/* Background: video or image */}
         {bannerImage && isVideoUrl(bannerImage) ? (
@@ -269,7 +280,7 @@ export function CompetitionDetailClient({
             muted
             loop
             playsInline
-            className="absolute inset-0 h-full w-full object-cover"
+            className="hero-kenburns absolute inset-0 h-full w-full object-cover"
             src={bannerImage}
           />
         ) : bannerImage ? (
@@ -279,7 +290,7 @@ export function CompetitionDetailClient({
             fill
             priority
             sizes="100vw"
-            className="object-cover"
+            className="hero-kenburns object-cover"
           />
         ) : (
           <div
@@ -300,15 +311,42 @@ export function CompetitionDetailClient({
           </div>
         )}
 
-        {/* Left gradient overlay */}
+        {/* Cinematic scrim stack (Netflix/Disney+/A24 key-art 문법):
+            ① 좌→우 디렉셔널 스크림 — 텍스트 가독성, 우측 이미지 호흡
+            ② 하단 페이드 — 페이지 배경(#0a0a0a)까지 완전히 녹여 본문과 무경계 연결
+            ③ 상단 스크림 — 밝은 이미지 위 내비/뒤로가기 가독성
+            ④ 비네트 — 가장자리 미세 암부로 영화적 깊이 */}
         <div
           className="absolute inset-0 pointer-events-none"
-          style={{ background: "linear-gradient(90deg, rgba(10,10,10,0.95) 0%, rgba(10,10,10,0.6) 50%, transparent 80%)" }}
+          style={{ background: "linear-gradient(90deg, #0a0a0a 0%, rgba(10,10,10,0.86) 26%, rgba(10,10,10,0.45) 54%, transparent 84%)" }}
         />
-        {/* Bottom gradient overlay */}
         <div
           className="absolute inset-0 pointer-events-none"
-          style={{ background: "linear-gradient(180deg, transparent 60%, rgba(10,10,10,0.85) 100%)" }}
+          style={{ background: "linear-gradient(180deg, transparent 34%, rgba(10,10,10,0.5) 62%, rgba(10,10,10,0.88) 84%, #0a0a0a 100%)" }}
+        />
+        <div
+          className="absolute inset-x-0 top-0 h-32 pointer-events-none"
+          style={{ background: "linear-gradient(180deg, rgba(10,10,10,0.72) 0%, transparent 100%)" }}
+        />
+        <div
+          className="absolute inset-0 pointer-events-none"
+          style={{ background: "radial-gradient(125% 85% at 50% 32%, transparent 52%, rgba(0,0,0,0.5) 100%)" }}
+        />
+        {/* ⑤ 브랜드 퍼플 글로우 — 텍스트측 깊이 + 브랜드 아이덴티티 (좌하단 발광) */}
+        <div
+          className="absolute -left-40 bottom-0 h-[85%] w-[60%] pointer-events-none"
+          style={{
+            background: "radial-gradient(circle at 28% 72%, rgba(127,119,221,0.22) 0%, rgba(83,74,183,0.10) 38%, transparent 66%)",
+            filter: "blur(36px)",
+          }}
+        />
+        {/* ⑥ 필름 그레인 — A24/MUBI 시그니처 텍스처. assetless SVG noise. */}
+        <div
+          className="absolute inset-0 pointer-events-none opacity-[0.05] mix-blend-soft-light"
+          style={{
+            backgroundImage:
+              "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)'/%3E%3C/svg%3E\")",
+          }}
         />
 
         {/* Back button */}
@@ -321,7 +359,7 @@ export function CompetitionDetailClient({
         </Link>
 
         {/* Content layout */}
-        <div className="relative z-20 flex h-full min-h-[54vh] items-center px-10 pt-32 pb-12 lg:px-16">
+        <div className="relative z-20 flex h-full min-h-[60vh] items-end px-10 pt-32 pb-14 lg:px-16">
           <div className="flex w-full items-center justify-between gap-12">
             {/* Left — Text content */}
             <div className="flex max-w-[560px] flex-col gap-6">
@@ -465,11 +503,9 @@ export function CompetitionDetailClient({
                 )}
                 <button
                   type="button"
-                  onClick={() => {
-                    const el = document.querySelector("[data-tab-content]");
-                    if (el) el.scrollIntoView({ behavior: "smooth" });
-                    setActiveTab("overview");
-                  }}
+                  onClick={() =>
+                    document.getElementById("overview")?.scrollIntoView({ behavior: "smooth", block: "start" })
+                  }
                   className="inline-flex items-center gap-1.5 rounded-full border border-white/[0.15] bg-white/[0.03] px-5 py-2.5 text-[13px] font-semibold text-white/80 backdrop-blur-md transition hover:border-white/[0.3] hover:bg-white/[0.08] hover:text-white"
                 >
                   {t("competition.detail.viewDetailsCta")}
@@ -479,15 +515,20 @@ export function CompetitionDetailClient({
 
             {/* Right — Prize Card */}
             <div
-              className="hidden w-[280px] shrink-0 self-center overflow-hidden rounded-2xl md:block"
+              className="relative hidden w-[280px] shrink-0 self-center overflow-hidden rounded-2xl md:block"
               style={{
                 background:
-                  "linear-gradient(160deg, rgba(245,158,11,0.13) 0%, rgba(245,158,11,0.045) 55%, rgba(10,10,10,0.45) 100%)",
-                border: "1px solid rgba(245,158,11,0.28)",
-                backdropFilter: "blur(16px)",
-                boxShadow: "0 0 36px rgba(245,158,11,0.10), inset 0 1px 0 rgba(255,233,176,0.18)",
+                  "linear-gradient(165deg, rgba(255,255,255,0.06) 0%, rgba(10,10,10,0.5) 58%, rgba(10,10,10,0.62) 100%)",
+                border: "1px solid rgba(255,255,255,0.10)",
+                backdropFilter: "blur(20px)",
+                boxShadow: "0 18px 50px rgba(0,0,0,0.45), inset 0 1px 0 rgba(255,255,255,0.08)",
               }}
             >
+              {/* 상단 금색 헤어라인 — 상금 패널 식별 액센트 (절제) */}
+              <div
+                className="pointer-events-none absolute inset-x-0 top-0 h-px"
+                style={{ background: "linear-gradient(to right, transparent, rgba(245,209,130,0.55) 50%, transparent)" }}
+              />
               {/* Grand prize — hero */}
               <div className="px-5 pt-5 pb-4">
                 <div className="flex items-center gap-1.5">
@@ -511,7 +552,7 @@ export function CompetitionDetailClient({
 
               {/* Tier breakdown — ranked list */}
               {competition.prize_excellence && (
-                <div className="space-y-1 border-t border-amber-400/15 px-3 py-3">
+                <div className="space-y-1 border-t border-white/[0.08] px-3 py-3">
                   {[
                     { label: t("competition.detail.prizeEyebrowExcellence"), value: competition.prize_excellence },
                     competition.prize_merit
@@ -525,15 +566,15 @@ export function CompetitionDetailClient({
                     .map((item, i) => (
                       <div
                         key={item!.label}
-                        className="flex items-center justify-between rounded-lg px-2 py-1.5 transition hover:bg-amber-500/[0.06]"
+                        className="flex items-center justify-between rounded-lg px-2 py-1.5 transition hover:bg-white/[0.04]"
                       >
                         <span className="flex items-center gap-2">
-                          <span className="flex h-5 w-5 items-center justify-center rounded-full text-[10px] font-black tabular-nums text-amber-200/80" style={{ background: "rgba(245,158,11,0.14)", border: "1px solid rgba(245,158,11,0.22)" }}>
+                          <span className="flex h-5 w-5 items-center justify-center rounded-full text-[10px] font-black tabular-nums text-white/55" style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.10)" }}>
                             {i + 2}
                           </span>
-                          <span className="text-[12px] font-semibold text-amber-100/75">{item!.label}</span>
+                          <span className="text-[12px] font-semibold text-white/55">{item!.label}</span>
                         </span>
-                        <span className="text-[13px] font-bold tabular-nums text-amber-100/90">{item!.value}</span>
+                        <span className="text-[13px] font-bold tabular-nums text-[#F5D182]">{item!.value}</span>
                       </div>
                     ))}
                 </div>
@@ -541,11 +582,11 @@ export function CompetitionDetailClient({
 
               {/* Total — footer summary */}
               {competition.prize_grand && (
-                <div className="flex items-center justify-between border-t border-amber-400/15 bg-amber-500/[0.05] px-5 py-3">
-                  <span className="text-[10px] font-black uppercase tracking-[0.18em] text-amber-200/55">
+                <div className="flex items-center justify-between border-t border-white/[0.08] bg-white/[0.03] px-5 py-3">
+                  <span className="text-[10px] font-black uppercase tracking-[0.18em] text-white/45">
                     {t("competition.detail.prizeTotalWord")}
                   </span>
-                  <span className="text-[12px] font-bold tabular-nums text-amber-100/85">{prizeDisplay}</span>
+                  <span className="text-[12px] font-bold tabular-nums text-[#F5D182]/85">{prizeDisplay}</span>
                 </div>
               )}
             </div>
@@ -553,38 +594,66 @@ export function CompetitionDetailClient({
         </div>
       </div>
 
-      {/* ── Tabs ─────────────────────────────────── */}
+      {/* ── Sticky section nav + persistent action ──
+          탭 제거 → 단일 스크롤. 라벨은 섹션으로 점프하는 앵커가 되고,
+          우측엔 스크롤 내내 따라다니는 핵심 액션(마감·상금·지금 출품)을
+          상시 노출 → 전환 동선 단축 (Kickstarter/영화제 랜딩 문법). */}
       <div data-tab-content className="sticky top-0 z-40 border-b border-white/[0.07] bg-[rgba(10,10,10,0.96)] backdrop-blur-lg">
-        <div className="mx-auto max-w-[1400px] px-8">
+        <div className="mx-auto flex max-w-[1400px] items-center justify-between gap-4 px-8">
           <div className="flex">
             {[
-              { key: "overview", label: t("competition.detail.tabOverview") },
-              { key: "judging", label: t("competition.detail.tabJudging") },
-              { key: "faq", label: t("competition.detail.tabSupport") },
-              { key: "entries", label: t("competition.detail.tabEntriesCount").replace("{n}", String(videos.length)) },
-            ].map((tab) => (
+              { id: "overview", label: t("competition.detail.tabOverview") },
+              { id: "judging", label: t("competition.detail.tabJudging") },
+              { id: "faq", label: t("competition.detail.tabSupport") },
+              { id: "entries", label: t("competition.detail.tabEntriesCount").replace("{n}", String(videos.length)) },
+            ].map((s) => (
               <button
-                key={tab.key}
+                key={s.id}
                 type="button"
-                onClick={() => setActiveTab(tab.key as typeof activeTab)}
-                className={`-mb-px border-b-2 px-5 py-3.5 text-[13px] font-medium transition-all duration-200 ${
-                  activeTab === tab.key
-                    ? "border-[#7F77DD] text-white"
-                    : "border-transparent text-white/35 hover:text-white/65"
-                }`}
+                onClick={() =>
+                  document.getElementById(s.id)?.scrollIntoView({ behavior: "smooth", block: "start" })
+                }
+                className="-mb-px border-b-2 border-transparent px-5 py-3.5 text-[13px] font-medium text-white/45 transition-all duration-200 hover:text-white"
               >
-                {tab.label}
+                {s.label}
               </button>
             ))}
+          </div>
+
+          <div className="hidden items-center gap-4 md:flex">
+            {d > 0 && isOpen ? (
+              <span className="flex items-center gap-1.5 text-[12px] font-bold text-[#AFA9EC]">
+                <span className="h-1.5 w-1.5 rounded-full bg-[#7F77DD] animate-pulse" />
+                D-{d}
+              </span>
+            ) : null}
+            <span className="hidden text-[12px] font-bold tabular-nums text-[#F5D182] lg:inline">
+              {prizeDisplay}
+            </span>
+            {isOpen ? (
+              <button
+                type="button"
+                onClick={() => openUploadModal({ competitionId: competition.id })}
+                className="group inline-flex items-center gap-1.5 rounded-full px-4 py-1.5 text-[12px] font-bold text-white transition hover:opacity-90"
+                style={{
+                  backgroundImage: "var(--gradient-cta-primary)",
+                  border: "1px solid var(--border-emphasis)",
+                  boxShadow: "var(--shadow-cta)",
+                }}
+              >
+                {t("competition.detail.submitNowCta")}
+                <ArrowRight className="h-3 w-3 transition-transform group-hover:translate-x-0.5" />
+              </button>
+            ) : null}
           </div>
         </div>
       </div>
 
       {/* ── Tab Content ──────────────────────────── */}
-      <div className="mx-auto min-h-[58vh] max-w-[1400px] px-8 py-12">
+      <div className="relative z-10 mx-auto min-h-[58vh] max-w-[1400px] space-y-20 px-8 py-12">
 
         {/* 개요 */}
-        {activeTab === "overview" && (
+        <section id="overview" className="scroll-mt-24">
           <div className="space-y-6">
 
             {/* 공모전 소개 + 참가 규칙 */}
@@ -1137,10 +1206,10 @@ export function CompetitionDetailClient({
             </div>
 
           </div>
-        )}
+        </section>
 
         {/* 심사 및 시상 */}
-        {activeTab === "judging" && (
+        <section id="judging" className="scroll-mt-24">
           <div className="grid grid-cols-1 gap-6 lg:grid-cols-[1fr_320px]">
             <div className="space-y-6">
               <div
@@ -1309,10 +1378,10 @@ export function CompetitionDetailClient({
               </div>
             </div>
           </div>
-        )}
+        </section>
 
         {/* 문의 */}
-        {activeTab === "faq" && (
+        <section id="faq" className="scroll-mt-24">
           <div className="max-w-2xl space-y-5">
             {(competition.announcement_ko || competition.announcement_en || competition.announcement_ja || competition.announcement) && (
               <div className="rounded-2xl p-6" style={{ background: "linear-gradient(135deg, var(--tint-accent-15) 0%, rgba(40,35,100,0.1) 100%)", border: "1px solid rgba(127,119,221,0.2)" }}>
@@ -1365,10 +1434,10 @@ export function CompetitionDetailClient({
               </a>
             </div>
           </div>
-        )}
+        </section>
 
         {/* 출품작 */}
-        {activeTab === "entries" && (
+        <section id="entries" className="scroll-mt-24">
           <div className="space-y-8">
             {featuredVideos.length > 0 && (
               <div>
@@ -1551,7 +1620,7 @@ export function CompetitionDetailClient({
               )}
             </div>
           </div>
-        )}
+        </section>
 
       </div>
     </div>

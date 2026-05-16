@@ -46,6 +46,8 @@ export const koOverrides: Record<string, string> = {
   "admin.active": "진행중",
 
   "sidebar.home": "홈",
+  "sidebar.competition": "공모전",
+  "sidebar.notifications": "알림",
   "sidebar.language": "언어",
 
   "meta.brand": "Genova",
@@ -1476,6 +1478,8 @@ export const koOverrides: Record<string, string> = {
   "adminCompCreate.eligibilityLabel": "참가 자격",
   "adminCompCreate.submissionGuidelinesLabel": "출품 가이드라인",
   "adminCompCreate.judgingCriteriaLabel": "심사 방법",
+  "adminCompCreate.judgingProcessLabel": "심사 진행 단계",
+  "adminCompCreate.judgingProcessHint": "한 줄에 한 단계씩. \"제목 — 설명\" 형식으로 적으면 제목과 설명이 분리됩니다.",
   "adminCompCreate.rulesLabel": "규칙",
   "adminCompCreate.submitting": "생성 중...",
   "adminCompCreate.submitMissing": "필수 항목을 입력하세요",
@@ -1682,6 +1686,9 @@ export const koOverrides: Record<string, string> = {
   "adminCompEditRules.submissionGuidelinesPlaceholder": "예: 90초 이내 AI 생성 영상",
   "adminCompEditRules.judgingCriteriaLabel": "심사 방법",
   "adminCompEditRules.judgingCriteriaPlaceholder": "예: 심사위원 50% + 시청자 투표 50%",
+  "adminCompEditRules.judgingProcessLabel": "심사 진행 단계",
+  "adminCompEditRules.judgingProcessHint": "한 줄에 한 단계씩. \"제목 — 설명\" 형식으로 적으면 제목과 설명이 분리되고, \"—\"가 없는 줄은 단계 제목이 됩니다.",
+  "adminCompEditRules.judgingProcessPlaceholder": "예:\n1차 — 운영진이 규정 준수 여부를 사전 심사합니다.\n2차 — 심사위원 평가 (100%).\n최종 — 투표 마감 후 결과를 발표합니다.",
   "adminCompEditRules.rulesLabel": "규칙",
   "adminCompEditRules.rulesPlaceholder": "예: AI로 제작한 영상만 출품 가능",
 

@@ -38,8 +38,8 @@ const TOP_NAV: {
   { href: "/", labelKey: "sidebar.home", labelFb: "Home", icon: Home, match: (p) => p === "/" },
   {
     href: "/competition",
-    labelKey: "nav.competition",
-    labelFb: "Competition",
+    labelKey: "sidebar.competition",
+    labelFb: "Contest",
     icon: Trophy,
     match: (p) => p === "/competition" || p.startsWith("/competition/"),
   },
@@ -396,7 +396,7 @@ export function SlimSidebar({ onOpenChat, unreadMessageCount = 0 }: SlimSidebarP
           >
             <Bell className="h-5 w-5 shrink-0" aria-hidden />
             <span className="max-w-[64px] whitespace-nowrap text-center text-[9px] font-semibold uppercase tracking-wider">
-              {t("notifications.title")}
+              {t("sidebar.notifications", "Alerts")}
             </span>
             {userId && notifUnread > 0 && !showNotifications ? (
               <span

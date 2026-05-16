@@ -285,8 +285,8 @@
      - --glow-text (text-shadow, use [text-shadow:var(--glow-text)])
   */
 
-  --font-sans: var(--font-plus-jakarta), ui-sans-serif, system-ui, sans-serif;
-  --font-display: var(--font-syne), var(--font-plus-jakarta), ui-sans-serif, system-ui, sans-serif;
+  --font-sans: var(--font-plus-jakarta), "Pretendard Variable", Pretendard, "Noto Sans JP", ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-syne), var(--font-plus-jakarta), "Pretendard Variable", Pretendard, "Noto Sans JP", ui-sans-serif, system-ui, sans-serif;
 }
 
 html {
@@ -299,6 +299,10 @@ body {
   color: var(--foreground);
   font-family: var(--font-sans);
   font-size: 15px;
+  /* Plus Jakarta x-height 기준으로 정규화 → 라틴은 사실상 불변,
+     x-height 작은 Pretendard/Noto Sans JP(한·일)만 광학적으로 확대.
+     체감 조절은 이 값 하나만 0.50~0.55 사이에서 미세 조정. */
+  font-size-adjust: 0.52;
   line-height: 1.65;
   font-feature-settings: "ss02" on, "cv11" on;
   -webkit-font-smoothing: antialiased;
@@ -588,6 +592,21 @@ body {
 @keyframes search-pulse {
   0%, 100% { opacity: 1; }
   50% { opacity: 0.92; }
+}
+
+/* hero-kenburns — 히어로 키아트 슬로우 시네마틱 줌.
+   Netflix/Disney+/A24/MUBI 디테일 히어로의 "살아있는" 느낌.
+   접근성: prefers-reduced-motion 시 정지. */
+@keyframes heroKenBurns {
+  from { transform: scale(1); }
+  to   { transform: scale(1.08); }
+}
+.hero-kenburns {
+  animation: heroKenBurns 26s ease-in-out infinite alternate;
+  will-change: transform;
+}
+@media (prefers-reduced-motion: reduce) {
+  .hero-kenburns { animation: none; }
 }
 
 /* ============================================================

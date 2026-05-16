@@ -46,6 +46,8 @@ export const jaOverrides: Record<string, string> = {
   "admin.active": "進行中",
 
   "sidebar.home": "ホーム",
+  "sidebar.competition": "コンペ",
+  "sidebar.notifications": "通知",
   "sidebar.language": "言語",
 
   "meta.brand": "Genova",
@@ -1453,6 +1455,8 @@ export const jaOverrides: Record<string, string> = {
   "adminCompCreate.eligibilityLabel": "参加資格",
   "adminCompCreate.submissionGuidelinesLabel": "出品ガイドライン",
   "adminCompCreate.judgingCriteriaLabel": "審査方法",
+  "adminCompCreate.judgingProcessLabel": "審査プロセス（ステップ）",
+  "adminCompCreate.judgingProcessHint": "1行に1ステップ。「タイトル — 説明」の形式でタイトルと詳細を分けられます。",
   "adminCompCreate.rulesLabel": "ルール",
   "adminCompCreate.submitting": "作成中...",
   "adminCompCreate.submitMissing": "必須項目を入力してください",
@@ -1659,6 +1663,9 @@ export const jaOverrides: Record<string, string> = {
   "adminCompEditRules.submissionGuidelinesPlaceholder": "例: 90秒以内のAI生成動画",
   "adminCompEditRules.judgingCriteriaLabel": "審査方法",
   "adminCompEditRules.judgingCriteriaPlaceholder": "例: 審査員50% + 視聴者投票50%",
+  "adminCompEditRules.judgingProcessLabel": "審査プロセス（ステップ）",
+  "adminCompEditRules.judgingProcessHint": "1行に1ステップ。「タイトル — 説明」の形式でタイトルと詳細を分けられ、「—」のない行はステップ名になります。",
+  "adminCompEditRules.judgingProcessPlaceholder": "例:\n1次 — 運営がルール遵守を事前審査します。\n2次 — 審査員による評価（100%）。\n最終 — 投票締め切り後に結果を発表します。",
   "adminCompEditRules.rulesLabel": "ルール",
   "adminCompEditRules.rulesPlaceholder": "例: AI生成動画のみ出品可能",
 
