@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Plus_Jakarta_Sans, Syne } from "next/font/google";
 import { LayoutWrapper } from "@/components/genova/layout-wrapper";
 import { getServerLocale } from "@/lib/i18n/server";
@@ -18,6 +18,14 @@ const syne = Syne({
   weight: ["400", "500", "600", "700", "800"],
   display: "swap",
 });
+
+// 모바일 필수 — 없으면 브라우저가 ~980px 데스크톱 레이아웃을 그려
+// 축소 표시(반응형 breakpoint 무력화). 모든 모바일 깨짐의 근본 원인.
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  viewportFit: "cover",
+};
 
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || "https://genovafilm.com"),
