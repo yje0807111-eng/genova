@@ -25,6 +25,9 @@ type Competition = {
   prize_info_ja?: string | null;
   sponsor: string | null;
   description?: string | null;
+  description_ko?: string | null;
+  description_en?: string | null;
+  description_ja?: string | null;
   thumbnail_url?: string | null;
   exchange_rate_usd_krw?: number | null;
   exchange_rate_usd_jpy?: number | null;
@@ -199,9 +202,23 @@ function CompetitionCard({ c, participantCount }: { c: Competition; participantC
       </div>
 
       <div className="flex flex-1 flex-col p-3.5">
-        <h3 className="line-clamp-2 min-h-[2.6em] text-[15px] font-bold leading-snug text-white">
+        <h3 className="line-clamp-2 text-[15px] font-bold leading-snug text-white">
           {getLangText(locale, c.title_ko, c.title_en, c.title_ja, c.title)}
         </h3>
+        {(() => {
+          const sub = getLangText(
+            locale,
+            c.description_ko,
+            c.description_en,
+            c.description_ja,
+            c.description ?? "",
+          ).trim();
+          return sub ? (
+            <p className="mt-1 line-clamp-2 text-[11.5px] leading-snug text-white/40">
+              {sub}
+            </p>
+          ) : null;
+        })()}
         <div className="mt-auto flex items-end justify-between gap-2 pt-2.5">
           <div className="min-w-0">
             <p className="text-[9px] font-bold uppercase tracking-[0.16em] text-white/35">
