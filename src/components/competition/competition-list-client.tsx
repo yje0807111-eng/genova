@@ -151,7 +151,7 @@ function CompetitionCard({ c, participantCount }: { c: Competition; participantC
         </div>
         <div className="absolute inset-0 flex items-center justify-center opacity-0 transition-opacity duration-200 group-hover:opacity-100">
           <span className="rounded-full border border-white/25 bg-black/55 px-4 py-1.5 text-[12px] font-bold text-white backdrop-blur-md">
-            {t("competition.viewDetails", "자세히 보기")} →
+            {t("competition.viewDetails", "자세히 보기")}
           </span>
         </div>
       </div>

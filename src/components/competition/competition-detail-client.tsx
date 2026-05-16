@@ -11,7 +11,7 @@ import { cn } from "@/lib/utils/cn";
 import { HoverPreviewCard } from "@/components/genova/hover-preview-card";
 import { useUploadModal } from "@/components/upload/upload-modal-context";
 import type { Video as AppVideo } from "@/lib/types";
-import { Trophy, ChevronLeft, Upload, Star, Grid, List, Award, Medal } from "lucide-react";
+import { Trophy, ChevronLeft, Upload, Star, Grid, List, Award, Medal, ArrowRight } from "lucide-react";
 
 function isVideoUrl(url: string): boolean {
   return /\.(mp4|webm|ogg|mov)(\?.*)?$/i.test(url);
@@ -440,24 +440,15 @@ export function CompetitionDetailClient({
                 ) : null}
               </div>
 
-              {/* CTA Buttons */}
-              <div className="mt-1 flex items-center gap-3">
-                <button
-                  type="button"
-                  onClick={() => {
-                    const el = document.querySelector("[data-tab-content]");
-                    if (el) el.scrollIntoView({ behavior: "smooth" });
-                    setActiveTab("overview");
-                  }}
-                  className="inline-flex items-center gap-2 rounded-lg border border-white/[0.15] bg-white/[0.05] px-6 py-2.5 text-[14px] font-semibold text-white/85 backdrop-blur-md transition hover:bg-white/[0.1] hover:text-white"
-                >
-                  {t("competition.detail.viewDetailsCta")}
-                </button>
+              {/* CTA Buttons — featured-hero 캐러셀과 동일 디자인 언어
+                  (pill / 퍼플 그라데이션 primary + 글래스 보조).
+                  순서: 지금 출품하기(primary) → 자세히 보기(보조). */}
+              <div className="mt-1 flex flex-wrap items-center gap-2.5">
                 {isOpen && (
                   <button
                     type="button"
                     onClick={() => openUploadModal({ competitionId: competition.id })}
-                    className="inline-flex items-center gap-2 rounded-lg px-6 py-2.5 text-[14px] font-bold text-white transition hover:opacity-90"
+                    className="group inline-flex items-center gap-1.5 rounded-full px-6 py-2.5 text-[13px] font-bold text-white transition hover:opacity-90"
                     style={{
                       backgroundImage: "var(--gradient-cta-primary)",
                       border: "1px solid var(--border-emphasis)",
@@ -465,8 +456,20 @@ export function CompetitionDetailClient({
                     }}
                   >
                     {t("competition.detail.submitNowCta")}
+                    <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" />
                   </button>
                 )}
+                <button
+                  type="button"
+                  onClick={() => {
+                    const el = document.querySelector("[data-tab-content]");
+                    if (el) el.scrollIntoView({ behavior: "smooth" });
+                    setActiveTab("overview");
+                  }}
+                  className="inline-flex items-center gap-1.5 rounded-full border border-white/[0.15] bg-white/[0.03] px-5 py-2.5 text-[13px] font-semibold text-white/80 backdrop-blur-md transition hover:border-white/[0.3] hover:bg-white/[0.08] hover:text-white"
+                >
+                  {t("competition.detail.viewDetailsCta")}
+                </button>
               </div>
             </div>
 
