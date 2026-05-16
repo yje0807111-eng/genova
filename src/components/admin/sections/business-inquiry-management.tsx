@@ -254,7 +254,7 @@ export function BusinessInquiryManagement({
                         "min-w-[100px] cursor-pointer text-[11px]",
                         item.status === "new" && "border-amber-400/40 text-amber-300",
                         item.status === "contacted" && "border-sky-400/40 text-sky-300",
-                        item.status === "in_progress" && "border-violet-400/40 text-violet-300",
+                        item.status === "in_progress" && "border-[#7F77DD]/40 text-[#AFA9EC]",
                         item.status === "closed" && "border-white/10 text-white/35",
                       )}
                     >

@@ -106,7 +106,7 @@ export function CompetitionBanner({ deadlineIso }: { deadlineIso: string | null 
             <Link
               href="/competition"
               className={cn(
-                "inline-flex h-10 items-center justify-center gap-2 whitespace-nowrap rounded-[var(--radius)] bg-[#8b5cf6] px-6 py-2.5 text-sm font-medium text-white transition-colors hover:bg-[#7c3aed] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#8b5cf6]/50",
+                "inline-flex h-10 items-center justify-center gap-2 whitespace-nowrap rounded-[var(--radius)] bg-[#7F77DD] px-6 py-2.5 text-sm font-medium text-white transition-colors hover:bg-[#6B5FD4] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#7F77DD]/50",
               )}
             >
               {t("banner.enterNow", "Enter Now")}

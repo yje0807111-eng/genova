@@ -73,7 +73,7 @@ export function SeriesEpisodesSlider({
         <button
           type="button"
           onClick={() => setShowAll(true)}
-          className="flex items-center gap-1 text-xs text-white/35 transition hover:text-purple-400"
+          className="flex items-center gap-1 text-xs text-white/35 transition hover:text-[#AFA9EC]"
         >
           {t("series.viewAllEpisodes")}
         </button>
@@ -105,7 +105,7 @@ export function SeriesEpisodesSlider({
                     sizes="180px"
                     className="object-cover transition duration-300 group-hover:scale-105"
                   />
-                  <div className="absolute left-2 top-2 rounded-md bg-black/60 px-1.5 py-0.5 text-xs font-bold text-purple-400 backdrop-blur-sm">
+                  <div className="absolute left-2 top-2 rounded-md bg-black/60 px-1.5 py-0.5 text-xs font-bold text-[#AFA9EC] backdrop-blur-sm">
                     {episodeBadge(ep.episodeNumber ?? 0)}
                   </div>
                   <div className="absolute bottom-2 left-2 scale-75 opacity-0 transition-all duration-200 group-hover:scale-90 group-hover:opacity-100">
@@ -254,7 +254,7 @@ export function SeriesEpisodesSlider({
                     {/* Info */}
                     <div className="min-w-0 flex-1 py-0.5">
                       <div className="flex flex-wrap items-center gap-2">
-                        <span className="text-xs font-bold text-purple-400">EP.{ep.episodeNumber}</span>
+                        <span className="text-xs font-bold text-[#AFA9EC]">EP.{ep.episodeNumber}</span>
                         {ep.id === currentVideoId ? (
                           <span className="rounded-full bg-[#534AB7]/40 px-2 py-0.5 text-[9px] font-semibold text-white/55">
                             Now Playing

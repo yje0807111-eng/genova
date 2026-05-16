@@ -1286,11 +1286,11 @@ export function ChatDrawer({
                                 alt=""
                                 className={cn(
                                   "h-9 w-9 rounded-full object-cover",
-                                  user.hasNewVideo ? "ring-2 ring-[#8b5cf6] ring-offset-1 ring-offset-[#0a0a0a]" : "",
+                                  user.hasNewVideo ? "ring-2 ring-[#7F77DD] ring-offset-1 ring-offset-[#0a0a0a]" : "",
                                 )}
                               />
                               {user.hasNewVideo ? (
-                                <span className="absolute -right-0.5 -top-0.5 flex h-3 w-3 items-center justify-center rounded-full bg-[#8b5cf6] text-[7px] font-bold text-white">
+                                <span className="absolute -right-0.5 -top-0.5 flex h-3 w-3 items-center justify-center rounded-full bg-[#7F77DD] text-[7px] font-bold text-white">
                                   N
                                 </span>
                               ) : null}
