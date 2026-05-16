@@ -40,7 +40,8 @@ export function LandingClient({
     return dt.toLocaleDateString(dateLocale, { year: "numeric", month: "short", day: "numeric" });
   };
 
-  const heroBackdrop = trendingVideos.find((v) => v.thumbnailUrl)?.thumbnailUrl ?? null;
+  // 프로필 기본 배너(퍼플 네뷸라)를 히어로 배경으로 — 단색 배경 탈피.
+  const heroBackdrop = "/default-banner.png";
   const marquee = trendingVideos.filter((v) => v.thumbnailUrl).slice(0, 10);
   const marqueeLoop = marquee.length > 0 ? [...marquee, ...marquee] : [];
 
@@ -205,7 +206,7 @@ export function LandingClient({
                 <Link
                   key={`${v.id}-${i}`}
                   href={`/watch/${v.id}`}
-                  className="relative aspect-[2/3] w-[120px] shrink-0 overflow-hidden rounded-lg border border-white/[0.06]"
+                  className="group relative aspect-video w-[260px] shrink-0 overflow-hidden rounded-xl border border-white/[0.08] sm:w-[300px]"
                   aria-hidden={i >= marquee.length}
                 >
                   {v.thumbnailUrl && (
@@ -213,10 +214,13 @@ export function LandingClient({
                       src={v.thumbnailUrl}
                       alt={v.title}
                       fill
-                      sizes="120px"
-                      className="object-cover"
+                      sizes="(max-width:640px) 260px, 300px"
+                      className="object-cover transition-transform duration-500 group-hover:scale-105"
                     />
                   )}
+                  <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/75 to-transparent p-3">
+                    <p className="line-clamp-1 text-[12px] font-bold text-white">{v.title}</p>
+                  </div>
                 </Link>
               ))}
             </div>
@@ -228,7 +232,11 @@ export function LandingClient({
       )}
 
       {/* ── Features ─────────────────────────── */}
-      <section className="px-4 py-16 sm:px-8 sm:py-24">
+      <section className="relative overflow-hidden px-4 py-16 sm:px-8 sm:py-24">
+        <div
+          className="pointer-events-none absolute left-1/2 top-0 -z-10 h-[420px] w-[min(1000px,120vw)] -translate-x-1/2"
+          style={{ background: "radial-gradient(50% 60% at 50% 30%, rgba(83,74,183,0.10) 0%, transparent 70%)", filter: "blur(50px)" }}
+        />
         <AnimateIn delay={0.05} className="mx-auto mb-10 max-w-[720px] text-center">
           <h2 className="text-[26px] font-black tracking-[-0.02em] sm:text-[36px]">
             {t("landing.featSectionTitle", "영화를 보고, 만들고, 겨루다")}
@@ -242,13 +250,27 @@ export function LandingClient({
             <AnimateIn
               key={title}
               delay={0.1 + i * 0.08}
-              className="rounded-2xl border border-white/[0.08] bg-white/[0.02] p-6 transition hover:border-[#7F77DD]/25 hover:bg-white/[0.035]"
+              className="group relative overflow-hidden rounded-2xl border border-white/[0.08] p-6 transition hover:border-[#7F77DD]/30"
             >
-              <span className="inline-flex h-11 w-11 items-center justify-center rounded-xl bg-[#534AB7]/15 text-[#AFA9EC]">
-                <Icon className="h-5 w-5" />
-              </span>
-              <h3 className="mt-4 text-[17px] font-bold text-white">{title}</h3>
-              <p className="mt-1.5 text-[13px] leading-relaxed text-white/50">{desc}</p>
+              <div
+                className="pointer-events-none absolute inset-0"
+                style={{ background: "linear-gradient(160deg, rgba(127,119,221,0.07) 0%, rgba(10,10,10,0.4) 55%, rgba(10,10,10,0.55) 100%)" }}
+              />
+              <div
+                className="pointer-events-none absolute inset-x-0 top-0 h-px"
+                style={{ background: "linear-gradient(to right, transparent, rgba(127,119,221,0.4) 50%, transparent)" }}
+              />
+              <div
+                className="pointer-events-none absolute -right-12 -top-12 h-32 w-32 rounded-full opacity-0 transition-opacity duration-500 group-hover:opacity-100"
+                style={{ background: "radial-gradient(circle, rgba(83,74,183,0.16) 0%, transparent 70%)", filter: "blur(28px)" }}
+              />
+              <div className="relative">
+                <span className="inline-flex h-11 w-11 items-center justify-center rounded-xl border border-[#7F77DD]/20 bg-[#534AB7]/15 text-[#AFA9EC]">
+                  <Icon className="h-5 w-5" />
+                </span>
+                <h3 className="mt-4 text-[17px] font-bold text-white">{title}</h3>
+                <p className="mt-1.5 text-[13px] leading-relaxed text-white/50">{desc}</p>
+              </div>
             </AnimateIn>
           ))}
         </div>
@@ -256,7 +278,11 @@ export function LandingClient({
 
       {/* ── Featured competitions ────────────── */}
       {featuredCompetitions.length > 0 && (
-        <section className="px-4 py-12 sm:px-8 sm:py-20">
+        <section className="relative overflow-hidden px-4 py-12 sm:px-8 sm:py-20">
+          <div
+            className="pointer-events-none absolute right-0 top-1/4 -z-10 h-[400px] w-[min(700px,90vw)]"
+            style={{ background: "radial-gradient(circle at 70% 50%, rgba(83,74,183,0.10) 0%, transparent 70%)", filter: "blur(50px)" }}
+          />
           <div className="mx-auto max-w-[1280px]">
             <AnimateIn delay={0.05} className="mb-6 flex items-end justify-between gap-4">
               <h2 className="text-[22px] font-black tracking-[-0.02em] sm:text-[30px]">
