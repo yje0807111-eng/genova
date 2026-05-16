@@ -159,7 +159,7 @@ export function GenovaProfileClient({
    */
   headerSlot: ReactNode;
 }) {
-  const { t } = useI18n();
+  const { t, locale, setLocale } = useI18n();
   const { open: openUploadModal } = useUploadModal();
   const { open: openEditModal } = useEditModal();
   const [activeTab, setActiveTab] = useState<TabKey>("Videos");
@@ -249,15 +249,15 @@ export function GenovaProfileClient({
       <AnimateIn delay={0.1}>
       <div className="pb-12 pt-6">
         <div className="mx-auto min-w-0 w-full max-w-[1800px] px-6 sm:px-10 lg:px-14">
-            <div className="flex items-center justify-between gap-6 py-3">
-              <div className="flex items-center gap-2">
+            <div className="flex flex-col gap-3 py-3 md:flex-row md:items-center md:justify-between md:gap-6">
+              <div className="flex w-full items-center gap-2 overflow-x-auto [scrollbar-width:none] md:w-auto md:overflow-visible [&::-webkit-scrollbar]:hidden">
                 {tabs.map((tab) => (
                   <button
                     key={tab}
                     type="button"
                     onClick={() => setActiveTab(tab)}
                     className={cn(
-                      "flex min-w-[88px] items-center justify-center gap-1.5 rounded-lg px-3 py-1.5 text-[12px] transition",
+                      "flex min-w-[88px] shrink-0 items-center justify-center gap-1.5 whitespace-nowrap rounded-lg px-3 py-1.5 text-[12px] transition",
                       activeTab === tab
                         ? "border border-white/[0.08] bg-gradient-to-br from-white/[0.06] to-white/[0.02] font-bold text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]"
                         : "border border-transparent font-semibold text-white/45 hover:bg-white/[0.03] hover:text-white/80",
@@ -278,6 +278,22 @@ export function GenovaProfileClient({
                 ))}
               </div>
               <div className="flex shrink-0 items-center gap-2">
+                {/* 모바일 전용 언어 선택 (데스크톱은 사이드바 글로브) */}
+                <div className="mr-auto flex gap-1 rounded-full border border-white/[0.08] bg-white/[0.03] p-1 md:hidden">
+                  {(["en", "ko", "ja"] as const).map((lng) => (
+                    <button
+                      key={lng}
+                      type="button"
+                      onClick={() => setLocale(lng)}
+                      className={cn(
+                        "rounded-full px-3 py-1 text-[11px] font-bold transition-colors",
+                        locale === lng ? "bg-white text-[#0a0a0a]" : "text-white/55",
+                      )}
+                    >
+                      {lng.toUpperCase()}
+                    </button>
+                  ))}
+                </div>
                 <div className="relative">
                   <select
                     value={sortBy}

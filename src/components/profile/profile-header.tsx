@@ -93,7 +93,7 @@ export function ProfileHeader(props: Props) {
           <ProfileCoverBanner bannerUrl={props.bannerUrl} />
 
           <AnimateIn delay={0.05}>
-            <div className="relative z-10 mx-auto w-full max-w-[800px] -mt-60 px-6 pb-2 sm:px-8 md:-mt-72">
+            <div className="relative z-10 mx-auto w-full max-w-[800px] -mt-36 px-6 pb-2 sm:px-8 md:-mt-72">
               <div className="flex flex-col items-center text-center">
                 <ProfileAvatar avatarUrl={props.avatarUrl} displayName={props.displayName} />
 

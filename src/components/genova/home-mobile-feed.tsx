@@ -15,7 +15,7 @@ type Sort = "latest" | "popular";
 // 모바일 전용 홈 — 데스크톱의 탭/캐러셀/필름레일 복합 UI 대신
 // "시청 진입 최단화" 1열 세로 피드(풀폭 가로 카드). md:hidden 분기.
 export function HomeMobileFeed({ videosFromDb }: { videosFromDb: Video[] }) {
-  const { t, locale, setLocale } = useI18n();
+  const { t, locale } = useI18n();
   const [genre, setGenre] = useState<GenreChip>("all");
   const [sort, setSort] = useState<Sort>("latest");
 
@@ -80,33 +80,8 @@ export function HomeMobileFeed({ videosFromDb }: { videosFromDb: Video[] }) {
     ...MAIN_GENRE_KEYS.map((k) => ({ key: k, label: MAIN_GENRE_LABELS[k] })),
   ];
 
-  const langs: { code: "en" | "ko" | "ja"; label: string }[] = [
-    { code: "en", label: "EN" },
-    { code: "ko", label: "KO" },
-    { code: "ja", label: "JA" },
-  ];
-
   return (
-    <div className="md:hidden">
-      {/* 상단 바 — 언어 선택 */}
-      <div className="flex items-center justify-end px-4 pt-3">
-        <div className="flex gap-1 rounded-full border border-white/[0.08] bg-white/[0.03] p-1">
-          {langs.map((l) => (
-            <button
-              key={l.code}
-              type="button"
-              onClick={() => setLocale(l.code)}
-              className={
-                "rounded-full px-3 py-1 text-[11px] font-bold transition-colors " +
-                (locale === l.code ? "bg-white text-[#0a0a0a]" : "text-white/55")
-              }
-            >
-              {l.label}
-            </button>
-          ))}
-        </div>
-      </div>
-
+    <div className="overflow-x-hidden md:hidden">
       {/* 공모전 진입 스트립 */}
       <Link
         href="/competition"
