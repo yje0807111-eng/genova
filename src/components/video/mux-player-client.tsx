@@ -42,7 +42,17 @@ export function MuxPlayerClient({
     const media = playerRef.current as unknown as HTMLMediaElement | null;
     if (!media) return;
     try {
-      media.currentTime = initialProgressSeconds;
+      // 끝까지(또는 거의 끝까지) 본 영상은 재개하지 않고 처음부터.
+      // 안 그러면 저장된 끝 위치로 seek → 즉시 onEnded → 다음 영상
+      // 으로 또 넘어가는 무한 스킵 루프가 발생한다.
+      const dur = Number(media.duration ?? 0);
+      const nearEnd =
+        Number.isFinite(dur) &&
+        dur > 0 &&
+        (initialProgressSeconds >= dur - 5 || initialProgressSeconds >= dur * 0.97);
+      if (!nearEnd) {
+        media.currentTime = initialProgressSeconds;
+      }
       restoreDoneRef.current = true;
     } catch {
       // Ignore seeking failures during early metadata lifecycle.
