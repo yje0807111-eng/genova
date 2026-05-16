@@ -168,13 +168,6 @@ export function CompetitionDetailClient({
   const [sortBy, setSortBy] = useState<"views" | "newest" | "award">("views");
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
 
-  useEffect(() => {
-    console.log("[COMP_CLIENT_DEBUG]", {
-      videosLength: videos.length,
-      videos: videos.map((v) => ({ id: v.id, title: v.title })),
-    });
-  }, [videos]);
-
   const getText = (ko: string | null | undefined, en: string | null | undefined, ja: string | null | undefined, fallback: string) => {
     if (locale === "ko") return ko || en || ja || fallback;
     if (locale === "ja") return ja || en || ko || fallback;
