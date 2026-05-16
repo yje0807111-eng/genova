@@ -366,7 +366,7 @@ export function CompetitionDetailClient({
               {/* Sponsor tag */}
               {competition.sponsor && (
                 <span className="text-[10px] uppercase tracking-[0.2em] text-[#AFA9EC]">
-                  ✦ SPONSORED BY {competition.sponsor.toUpperCase()}
+                  ✦ {t("competition.sponsoredBy", "Hosted by")} · {competition.sponsor}
                 </span>
               )}
 
@@ -597,8 +597,12 @@ export function CompetitionDetailClient({
                       className="absolute inset-0 h-full w-full object-cover object-center"
                       style={{ opacity: 0.4, filter: "saturate(1.05) brightness(0.78)" }}
                     />
-                    <div className="absolute inset-0" style={{ background: "linear-gradient(to right, rgba(8,6,20,1) 0%, rgba(8,6,20,0.6) 35%, rgba(8,6,20,0.1) 75%, rgba(8,6,20,0) 100%)" }} />
-                    <div className="absolute inset-0" style={{ background: "linear-gradient(to bottom, rgba(8,6,20,0.5) 0%, transparent 25%, transparent 75%, rgba(8,6,20,0.5) 100%)" }} />
+                    {/* content-side fade (left → readable text) */}
+                    <div className="absolute inset-0" style={{ background: "linear-gradient(to right, rgba(8,6,20,1) 0%, rgba(8,6,20,0.6) 35%, rgba(8,6,20,0.12) 72%, rgba(8,6,20,0) 92%)" }} />
+                    {/* top/bottom feather → blends into rounded card corners */}
+                    <div className="absolute inset-0" style={{ background: "linear-gradient(to bottom, rgba(8,6,20,0.85) 0%, transparent 22%, transparent 78%, rgba(8,6,20,0.85) 100%)" }} />
+                    {/* right-edge feather → dissolves into the card boundary */}
+                    <div className="absolute inset-0" style={{ background: "linear-gradient(to right, transparent 60%, rgba(8,6,20,0.55) 86%, rgba(8,6,20,0.9) 100%)" }} />
                     <div className="absolute inset-0" style={{ background: "linear-gradient(to left, transparent 0%, rgba(10,10,10,0.3) 45%, rgba(10,10,10,0.7) 100%)" }} />
                   </div>
 

@@ -210,8 +210,7 @@ function CompetitionCard({ c, participantCount }: { c: Competition; participantC
                   ? t("competition.statusUpcoming")
                   : t("competition.statusClosed")}
           </span>
-          <span className="text-white/20">·</span>
-          <span>{deadlineLabel}</span>
+          <span className="text-white/30">{deadlineLabel}</span>
         </div>
       </div>
     </Link>
