@@ -19,6 +19,7 @@ import type { GenreFilter } from "@/lib/genova-genre";
 import { HomeTabNav } from "@/components/genova/home-tab-nav";
 import type { MainTab, SubGenre, SortKey } from "@/components/genova/home-tab-nav";
 import { AwardsGallery } from "@/components/genova/awards-gallery";
+import { HomeMobileFeed } from "@/components/genova/home-mobile-feed";
 
 type HeroAwardVideos = {
   grandPrize: Video | null;
@@ -252,7 +253,9 @@ export function HomePageClient(props: HomePageClientProps) {
   }, [videos, activeMainTab, activeSubGenre, activeSort, searchQuery]);
 
   return (
-    <div className="min-h-screen bg-background">
+    <>
+      <HomeMobileFeed videosFromDb={videosFromDb} />
+      <div className="hidden min-h-screen bg-background md:block">
       <AnimateIn delay={0.05}>{competitionBannerSlot}</AnimateIn>
 
       <div data-content-start className="w-full space-y-2 px-6 pb-12 pt-4 sm:space-y-3 sm:px-8">
@@ -324,5 +327,6 @@ export function HomePageClient(props: HomePageClientProps) {
 
       </div>
     </div>
+    </>
   );
 }
