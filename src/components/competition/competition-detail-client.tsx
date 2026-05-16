@@ -590,20 +590,26 @@ export function CompetitionDetailClient({
               <div className="h-full">
                 <div className="surface-card relative h-full overflow-hidden">
 
-                  <div className="pointer-events-none absolute right-0 top-0 bottom-0 w-[50%]">
+                  {/* 트로피 워터마크 — 색 오버레이 대신 이미지 자체를
+                      알파 마스크로 사방 페이드.  카드의 --gradient-card-bg
+                      표면이 그대로 비쳐 경계/색 단차 없이 자연스럽게 이어짐.
+                      상하는 inset 으로 둥근 모서리와 분리. */}
+                  <div className="pointer-events-none absolute bottom-6 right-0 top-6 w-[52%]">
                     <img
                       src="/competition-trophy.png"
                       alt=""
-                      className="absolute inset-0 h-full w-full object-cover object-center"
-                      style={{ opacity: 0.4, filter: "saturate(1.05) brightness(0.78)" }}
+                      className="absolute inset-0 h-full w-full object-contain object-center"
+                      style={{
+                        opacity: 0.3,
+                        filter: "saturate(1.05)",
+                        WebkitMaskImage:
+                          "linear-gradient(to right, transparent 0%, rgba(0,0,0,0.45) 38%, #000 64%, rgba(0,0,0,0.5) 88%, transparent 100%), linear-gradient(to bottom, transparent 0%, #000 24%, #000 76%, transparent 100%)",
+                        WebkitMaskComposite: "source-in",
+                        maskImage:
+                          "linear-gradient(to right, transparent 0%, rgba(0,0,0,0.45) 38%, #000 64%, rgba(0,0,0,0.5) 88%, transparent 100%), linear-gradient(to bottom, transparent 0%, #000 24%, #000 76%, transparent 100%)",
+                        maskComposite: "intersect",
+                      }}
                     />
-                    {/* content-side fade (left → readable text) */}
-                    <div className="absolute inset-0" style={{ background: "linear-gradient(to right, rgba(8,6,20,1) 0%, rgba(8,6,20,0.6) 35%, rgba(8,6,20,0.12) 72%, rgba(8,6,20,0) 92%)" }} />
-                    {/* top/bottom feather → blends into rounded card corners */}
-                    <div className="absolute inset-0" style={{ background: "linear-gradient(to bottom, rgba(8,6,20,0.85) 0%, transparent 22%, transparent 78%, rgba(8,6,20,0.85) 100%)" }} />
-                    {/* right-edge feather → dissolves into the card boundary */}
-                    <div className="absolute inset-0" style={{ background: "linear-gradient(to right, transparent 60%, rgba(8,6,20,0.55) 86%, rgba(8,6,20,0.9) 100%)" }} />
-                    <div className="absolute inset-0" style={{ background: "linear-gradient(to left, transparent 0%, rgba(10,10,10,0.3) 45%, rgba(10,10,10,0.7) 100%)" }} />
                   </div>
 
                   {/* 우측 배경 글로우 orb */}
