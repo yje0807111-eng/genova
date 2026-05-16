@@ -234,8 +234,8 @@ export function CompetitionDetailClient({
         className="pointer-events-none absolute inset-x-0 top-[44vh] z-0 h-[82vh]"
         style={{
           background:
-            "radial-gradient(70% 60% at 26% 8%, rgba(127,119,221,0.12) 0%, rgba(83,74,183,0.05) 34%, transparent 68%)",
-          filter: "blur(24px)",
+            "radial-gradient(72% 60% at 24% 6%, rgba(83,74,183,0.07) 0%, rgba(83,74,183,0.03) 38%, transparent 70%)",
+          filter: "blur(32px)",
         }}
         aria-hidden
       />
@@ -325,12 +325,14 @@ export function CompetitionDetailClient({
           className="absolute inset-0 pointer-events-none"
           style={{ background: "radial-gradient(125% 85% at 50% 32%, transparent 52%, rgba(0,0,0,0.5) 100%)" }}
         />
-        {/* ⑤ 브랜드 퍼플 글로우 — 텍스트측 깊이 + 브랜드 아이덴티티 (좌하단 발광) */}
+        {/* ⑤ 브랜드 컬러 캐스트 — 밝은 글로우 blob(올드함) 대신,
+            그림자측에 거의 안 보이게 깔리는 절제된 시네마틱 색조.
+            깊은 코어 톤(#534AB7) 저채도·저불투명·광역 확산. */}
         <div
-          className="absolute -left-40 bottom-0 h-[85%] w-[60%] pointer-events-none"
+          className="absolute -left-48 bottom-0 h-[95%] w-[68%] pointer-events-none"
           style={{
-            background: "radial-gradient(circle at 28% 72%, rgba(127,119,221,0.22) 0%, rgba(83,74,183,0.10) 38%, transparent 66%)",
-            filter: "blur(36px)",
+            background: "radial-gradient(58% 72% at 20% 82%, rgba(83,74,183,0.10) 0%, rgba(83,74,183,0.04) 46%, transparent 74%)",
+            filter: "blur(64px)",
           }}
         />
         {/* ⑥ 필름 그레인 — A24/MUBI 시그니처 텍스처. assetless SVG noise. */}
@@ -361,10 +363,10 @@ export function CompetitionDetailClient({
                 <span
                   className="inline-flex w-fit items-center gap-2 rounded-full px-4 py-1.5 text-[11px] font-bold uppercase tracking-[0.15em]"
                   style={{
-                    background: "rgba(83,74,183,0.2)",
-                    border: "1px solid rgba(127,119,221,0.4)",
-                    color: "#AFA9EC",
-                    boxShadow: "0 0 12px rgba(83,74,183,0.4)",
+                    background: "rgba(83,74,183,0.12)",
+                    border: "1px solid rgba(127,119,221,0.22)",
+                    color: "#C4BEEF",
+                    backdropFilter: "blur(8px)",
                   }}
                 >
                   <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
@@ -375,10 +377,10 @@ export function CompetitionDetailClient({
                 <span
                   className="inline-flex w-fit items-center gap-2 rounded-full px-4 py-1.5 text-[11px] font-bold uppercase tracking-[0.15em]"
                   style={{
-                    background: "rgba(127,119,221,0.18)",
-                    border: "1px solid rgba(127,119,221,0.4)",
-                    color: "#AFA9EC",
-                    boxShadow: "0 0 12px rgba(127,119,221,0.35)",
+                    background: "rgba(127,119,221,0.10)",
+                    border: "1px solid rgba(127,119,221,0.22)",
+                    color: "#C4BEEF",
+                    backdropFilter: "blur(8px)",
                   }}
                 >
                   <span className="h-1.5 w-1.5 rounded-full bg-[#7F77DD] animate-pulse" />
