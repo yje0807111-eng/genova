@@ -1,6 +1,7 @@
 "use client";
 
 import { adminTokens } from "@/lib/admin-styles";
+import { useI18n } from "@/components/genova/language-provider";
 import type { EditCompetitionFormState } from "./types";
 
 const inp =
@@ -15,12 +16,18 @@ export function EditCompetitionRulesFields({
   setForm: (updater: (p: EditCompetitionFormState) => EditCompetitionFormState) => void;
   langTab: "ko" | "en" | "ja";
 }) {
-  const suffix = langTab === "ko" ? "(한국어)" : langTab === "en" ? "(영어)" : "(일본어)";
+  const { t } = useI18n();
+  const suffix =
+    langTab === "ko"
+      ? t("adminCompEdit.langSuffixKo", "(Korean)")
+      : langTab === "en"
+        ? t("adminCompEdit.langSuffixEn", "(English)")
+        : t("adminCompEdit.langSuffixJa", "(Japanese)");
   return (
     <div className="space-y-3">
       <div>
-        <label className={adminTokens.inputLabel}>주제 {suffix}</label>
-        <p className="mb-1.5 text-[10px] text-white/25">각 주제를 줄바꿈(Enter)으로 구분하면 번호가 자동으로 붙습니다.</p>
+        <label className={adminTokens.inputLabel}>{t("adminCompEditRules.topicLabel", "Topic")} {suffix}</label>
+        <p className="mb-1.5 text-[10px] text-white/25">{t("adminCompEditRules.topicHint", "Separate each topic with a line break (Enter) and numbers will be added automatically.")}</p>
         <textarea
           value={form[`rules_${langTab}` as "rules_ko" | "rules_en" | "rules_ja"]}
           onChange={(e) =>
@@ -28,17 +35,14 @@ export function EditCompetitionRulesFields({
           }
           rows={6}
           className={inp + " resize-none"}
-          placeholder={
-            langTab === "ko"
-              ? "예:\nAI가 인간을 대신할 수 없는 순간을 담아주세요.\n장르와 형식에 제한이 없습니다.\n90초 이내로 완성해주세요."
-              : langTab === "en"
-                ? "e.g.:\nCapture a moment AI cannot replace.\nNo genre or format restrictions.\nComplete within 90 seconds."
-                : "例:\nAIが人間に代われない瞬間を表現してください。\nジャンルや形式に制限はありません。\n90秒以内に仕上げてください。"
-          }
+          placeholder={t(
+            "adminCompEditRules.topicPlaceholder",
+            "e.g.:\nCapture a moment AI cannot replace.\nNo genre or format restrictions.\nComplete within 90 seconds.",
+          )}
         />
       </div>
       <div>
-        <label className={adminTokens.inputLabel}>참가 자격 {suffix}</label>
+        <label className={adminTokens.inputLabel}>{t("adminCompEditRules.eligibilityLabel", "Eligibility")} {suffix}</label>
         <textarea
           value={form[`eligibility_${langTab}` as "eligibility_ko" | "eligibility_en" | "eligibility_ja"]}
           onChange={(e) =>
@@ -46,17 +50,14 @@ export function EditCompetitionRulesFields({
           }
           rows={2}
           className={inp + " resize-none"}
-          placeholder={
-            langTab === "ko"
-              ? "예: 전 세계 AI 크리에이터 누구나"
-              : langTab === "en"
-                ? "e.g. Open to all AI creators worldwide"
-                : "例: 世界中のAIクリエイター"
-          }
+          placeholder={t(
+            "adminCompEditRules.eligibilityPlaceholder",
+            "e.g. Open to all AI creators worldwide",
+          )}
         />
       </div>
       <div>
-        <label className={adminTokens.inputLabel}>출품 가이드라인 {suffix}</label>
+        <label className={adminTokens.inputLabel}>{t("adminCompEditRules.submissionGuidelinesLabel", "Submission Guidelines")} {suffix}</label>
         <textarea
           value={
             form[
@@ -71,17 +72,14 @@ export function EditCompetitionRulesFields({
           }
           rows={2}
           className={inp + " resize-none"}
-          placeholder={
-            langTab === "ko"
-              ? "예: 90초 이내 AI 생성 영상"
-              : langTab === "en"
-                ? "e.g. AI-generated video under 90 seconds"
-                : "例: 90秒以内のAI生成動画"
-          }
+          placeholder={t(
+            "adminCompEditRules.submissionGuidelinesPlaceholder",
+            "e.g. AI-generated video under 90 seconds",
+          )}
         />
       </div>
       <div>
-        <label className={adminTokens.inputLabel}>심사 방법 {suffix}</label>
+        <label className={adminTokens.inputLabel}>{t("adminCompEditRules.judgingCriteriaLabel", "Judging Method")} {suffix}</label>
         <textarea
           value={
             form[`judging_criteria_${langTab}` as "judging_criteria_ko" | "judging_criteria_en" | "judging_criteria_ja"]
@@ -91,17 +89,14 @@ export function EditCompetitionRulesFields({
           }
           rows={2}
           className={inp + " resize-none"}
-          placeholder={
-            langTab === "ko"
-              ? "예: 심사위원 50% + 시청자 투표 50%"
-              : langTab === "en"
-                ? "e.g. Judges 50% + Audience vote 50%"
-                : "例: 審査員50% + 視聴者投票50%"
-          }
+          placeholder={t(
+            "adminCompEditRules.judgingCriteriaPlaceholder",
+            "e.g. Judges 50% + Audience vote 50%",
+          )}
         />
       </div>
       <div>
-        <label className={adminTokens.inputLabel}>규칙 {suffix}</label>
+        <label className={adminTokens.inputLabel}>{t("adminCompEditRules.rulesLabel", "Rules")} {suffix}</label>
         <textarea
           value={form[`rules_${langTab}` as "rules_ko" | "rules_en" | "rules_ja"]}
           onChange={(e) =>
@@ -109,13 +104,10 @@ export function EditCompetitionRulesFields({
           }
           rows={3}
           className={inp + " resize-none"}
-          placeholder={
-            langTab === "ko"
-              ? "예: AI로 제작한 영상만 출품 가능"
-              : langTab === "en"
-                ? "e.g. Only AI-generated videos allowed"
-                : "例: AI生成動画のみ出品可能"
-          }
+          placeholder={t(
+            "adminCompEditRules.rulesPlaceholder",
+            "e.g. Only AI-generated videos allowed",
+          )}
         />
       </div>
     </div>

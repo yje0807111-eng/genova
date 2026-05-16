@@ -1,6 +1,7 @@
 "use client";
 
 import { adminTokens } from "@/lib/admin-styles";
+import { useI18n } from "@/components/genova/language-provider";
 import type { EditCompetitionFormState } from "./types";
 
 const inp =
@@ -17,6 +18,7 @@ export function EditCompetitionPrizeFields({
   prizeAmount: string;
   priceCurrency: "KRW" | "USD" | "JPY";
 }) {
+  const { t } = useI18n();
   return (
     <div>
       {/* 총상금 잔액 표시 */}
@@ -39,17 +41,17 @@ export function EditCompetitionPrizeFields({
             }}
           >
             <div className="flex items-center justify-between">
-              <span className="text-[10px] text-white/35">총 상금</span>
+              <span className="text-[10px] text-white/35">{t("adminCompEditPrize.totalPrize", "Total prize")}</span>
               <span className="text-[13px] font-bold text-white">{sym}{total.toLocaleString()}</span>
             </div>
             <div className="flex items-center justify-between mt-1.5">
-              <span className="text-[10px] text-white/35">배분됨</span>
+              <span className="text-[10px] text-white/35">{t("adminCompEditPrize.allocated", "Allocated")}</span>
               <span className="text-[12px] font-semibold text-white/55">{sym}{allocated.toLocaleString()}</span>
             </div>
             <div className="mt-1.5 h-px bg-white/10" />
             <div className="flex items-center justify-between mt-1.5">
               <span className="text-[10px] font-bold" style={{ color: isOver ? "#ef4444" : "#AFA9EC" }}>
-                {isOver ? "초과" : "남은 금액"}
+                {isOver ? t("adminCompEditPrize.over", "Over") : t("adminCompEditPrize.remaining", "Remaining")}
               </span>
               <span
                 className="text-[13px] font-extrabold"
@@ -88,7 +90,7 @@ export function EditCompetitionPrizeFields({
                 })
               }
             >
-              잔액 대상에 채우기
+              {t("adminCompEditPrize.fillGrandWithRemaining", "Fill Grand Prize with remaining")}
             </button>
             <button
               type="button"
@@ -103,7 +105,7 @@ export function EditCompetitionPrizeFields({
                 }))
               }
             >
-              전체 지우기
+              {t("adminCompEditPrize.clearAll", "Clear all")}
             </button>
           </div>
         );
@@ -111,9 +113,9 @@ export function EditCompetitionPrizeFields({
 
       <div className="space-y-2">
         {[
-          { key: "prize_grand", label: "대상" },
-          { key: "prize_excellence", label: "우수상" },
-          { key: "prize_merit", label: "장려상" },
+          { key: "prize_grand", label: t("adminCompEditPrize.grandPrize", "Grand Prize") },
+          { key: "prize_excellence", label: t("adminCompEditPrize.excellenceAward", "Excellence Award") },
+          { key: "prize_merit", label: t("adminCompEditPrize.meritAward", "Merit Award") },
         ].map((tier) => {
           const sym = priceCurrency === "KRW" ? "₩" : priceCurrency === "USD" ? "$" : "¥";
           const val = form[tier.key as "prize_grand" | "prize_excellence" | "prize_merit"];
@@ -165,7 +167,7 @@ export function EditCompetitionPrizeFields({
           const total = num * count;
           return (
             <div>
-              <label className={adminTokens.inputLabel}>관객상</label>
+              <label className={adminTokens.inputLabel}>{t("adminCompEditPrize.audienceAward", "Audience Award")}</label>
               <div className="flex items-center gap-2">
                 <div className="relative" style={{ flex: "3" }}>
                   <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[11px] text-white/30">{sym}</span>
@@ -194,11 +196,14 @@ export function EditCompetitionPrizeFields({
                     placeholder="1"
                   />
                 </div>
-                <span className="shrink-0 text-[11px] text-white/30">명</span>
+                <span className="shrink-0 text-[11px] text-white/30">{t("adminCompEditPrize.peopleSuffix", "people")}</span>
               </div>
               {num > 0 && (
                 <p className="mt-0.5 text-[10px] text-white/30">
-                  1인당 {sym}{num.toLocaleString()} × {count}명 = <span className="text-[#AFA9EC]">{sym}{total.toLocaleString()}</span>
+                  {t("adminCompEditPrize.audienceBreakdown", "{amount} per person × {count} people = ")
+                    .replace("{amount}", `${sym}${num.toLocaleString()}`)
+                    .replace("{count}", String(count))}
+                  <span className="text-[#AFA9EC]">{sym}{total.toLocaleString()}</span>
                   {priceCurrency === "USD" && <span className="ml-2">· ₩{(total * (form.exchange_rate_usd_krw || 1350)).toLocaleString()}</span>}
                 </p>
               )}

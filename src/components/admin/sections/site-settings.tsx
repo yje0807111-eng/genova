@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { useI18n } from "@/components/genova/language-provider";
 import { adminTokens } from "@/lib/admin-styles";
 import type { Competition } from "@/lib/types";
 import { cn } from "@/lib/utils/cn";
@@ -36,6 +37,7 @@ export function SiteSettings({
   competitions: Competition[];
   onMessage: (message: string) => void;
 }) {
+  const { t } = useI18n();
   const [heroEyebrowKo, setHeroEyebrowKo] = useState("");
   const [heroEyebrowEn, setHeroEyebrowEn] = useState("");
   const [heroEyebrowJa, setHeroEyebrowJa] = useState("");
@@ -47,7 +49,7 @@ export function SiteSettings({
   const savedTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const flashSaved = () => {
-    setSavedMessage("✓ 저장됨");
+    setSavedMessage(t("adminSiteSettings.savedFlash", "✓ Saved"));
     if (savedTimerRef.current) clearTimeout(savedTimerRef.current);
     savedTimerRef.current = setTimeout(() => setSavedMessage(null), 2500);
   };
@@ -85,12 +87,13 @@ export function SiteSettings({
 
   return (
     <div className={cn(adminTokens.card, "mt-4")}>
-      <h2 className={adminTokens.sectionHeader}>사이트 설정</h2>
+      <h2 className={adminTokens.sectionHeader}>{t("adminSiteSettings.header", "Site Settings")}</h2>
       {savedMessage ? <span className="mb-3 block text-[11px] text-emerald-400">{savedMessage}</span> : null}
 
       <div className="space-y-4">
         <div>
-          <label className={adminTokens.inputLabel}>Films 히어로 배너 텍스트</label>
+          <label className={adminTokens.inputLabel}>{t("adminSiteSettings.filmsHeroLabel", "Films Hero Banner Text")}</label>
+          {/* 언어 탭 라벨은 고정 코드 표기라 번역 대상 아님 */}
           <div className="mb-3 flex gap-1 rounded-md border border-white/[0.06] bg-white/[0.02] p-1">
             {(
               [
@@ -123,10 +126,10 @@ export function SiteSettings({
               className={inputFlex}
               placeholder={
                 eyebrowLangTab === "ko"
-                  ? "예: 제1회 Genova AI 단편영화 공모전"
+                  ? t("adminSiteSettings.filmsHeroPlaceholderKo", "e.g. 1st Genova AI Short Film Competition")
                   : eyebrowLangTab === "en"
-                    ? "e.g. 1ST GENOVA AI FILM COMPETITION"
-                    : "例: 第1回 Genova AI 映画コンペ"
+                    ? t("adminSiteSettings.filmsHeroPlaceholderEn", "e.g. 1ST GENOVA AI FILM COMPETITION")
+                    : t("adminSiteSettings.filmsHeroPlaceholderJa", "e.g. 1st Genova AI Film Competition")
               }
             />
             <button
@@ -140,26 +143,32 @@ export function SiteSettings({
                     postSiteSetting("films_hero_eyebrow_en", heroEyebrowEn),
                     postSiteSetting("films_hero_eyebrow_ja", heroEyebrowJa),
                   ]);
-                  onMessage("저장되었습니다.");
+                  onMessage(t("adminSiteSettings.saveSuccess", "Saved."));
                   flashSaved();
                 } catch (e) {
-                  onMessage(e instanceof Error ? `저장 실패: ${e.message}` : "저장 실패");
+                  onMessage(
+                    e instanceof Error
+                      ? t("adminSiteSettings.saveFailedDetail", "Save failed: {message}").replace("{message}", e.message)
+                      : t("adminSiteSettings.saveFailed", "Save failed"),
+                  );
                 } finally {
                   setHeroEyebrowLoading(false);
                 }
               }}
               className={cn(adminTokens.buttonSecondary, "h-9 shrink-0 px-3")}
             >
-              {heroEyebrowLoading ? "저장 중..." : "저장"}
+              {heroEyebrowLoading
+                ? t("adminSiteSettings.saving", "Saving...")
+                : t("adminSiteSettings.save", "Save")}
             </button>
           </div>
         </div>
 
         <div>
-          <label className={adminTokens.inputLabel}>홈 배너 공모전</label>
+          <label className={adminTokens.inputLabel}>{t("adminSiteSettings.homeBannerLabel", "Home Banner Competition")}</label>
           <div className="flex items-end gap-2">
             <select value={homeFeaturedCompId} onChange={(e) => setHomeFeaturedCompId(e.target.value)} className={inputFlex}>
-              <option value="">자동 선택 (진행 중인 공모전)</option>
+              <option value="">{t("adminSiteSettings.homeBannerAuto", "Auto (ongoing competition)")}</option>
               {competitions.map((c) => (
                 <option key={c.id} value={c.id}>
                   {c.title}
@@ -173,17 +182,23 @@ export function SiteSettings({
                 setHomeFeaturedLoading(true);
                 try {
                   await postSiteSetting("home_featured_competition_id", homeFeaturedCompId);
-                  onMessage("저장되었습니다.");
+                  onMessage(t("adminSiteSettings.saveSuccess", "Saved."));
                   flashSaved();
                 } catch (e) {
-                  onMessage(e instanceof Error ? `저장 실패: ${e.message}` : "저장 실패");
+                  onMessage(
+                    e instanceof Error
+                      ? t("adminSiteSettings.saveFailedDetail", "Save failed: {message}").replace("{message}", e.message)
+                      : t("adminSiteSettings.saveFailed", "Save failed"),
+                  );
                 } finally {
                   setHomeFeaturedLoading(false);
                 }
               }}
               className={cn(adminTokens.buttonSecondary, "h-9 shrink-0 px-3")}
             >
-              {homeFeaturedLoading ? "저장 중..." : "저장"}
+              {homeFeaturedLoading
+                ? t("adminSiteSettings.saving", "Saving...")
+                : t("adminSiteSettings.save", "Save")}
             </button>
           </div>
         </div>

@@ -60,15 +60,15 @@ export function AdminHero({
         <div className="flex flex-wrap items-center gap-2">
           <div className="flex items-center gap-1.5 rounded-md border border-white/[0.06] bg-white/[0.02] px-3 py-1.5">
             <span className="text-[14px] font-bold tabular-nums text-white">{totalVideos}</span>
-            <span className="text-[11px] text-white/50">{t("admin.totalFilms", "전체 영상")}</span>
+            <span className="text-[11px] text-white/50">{t("adminHero.totalVideos", "All Videos")}</span>
           </div>
           <div className="flex items-center gap-1.5 rounded-md border border-white/[0.06] bg-white/[0.02] px-3 py-1.5">
             <span className="text-[14px] font-bold tabular-nums text-white">{totalCompetitions}</span>
-            <span className="text-[11px] text-white/50">{t("admin.competitions", "공모전")}</span>
+            <span className="text-[11px] text-white/50">{t("adminHero.competitions", "Competitions")}</span>
           </div>
           <div className="flex items-center gap-1.5 rounded-md border border-emerald-500/15 bg-emerald-500/[0.04] px-3 py-1.5">
             <span className="text-[14px] font-bold tabular-nums text-emerald-400">{activeCompetitions}</span>
-            <span className="text-[11px] text-emerald-400/70">{t("admin.active", "진행중")}</span>
+            <span className="text-[11px] text-emerald-400/70">{t("admin.active", "Active")}</span>
           </div>
         </div>
       </div>

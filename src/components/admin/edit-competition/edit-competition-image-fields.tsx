@@ -2,6 +2,7 @@
 
 import type { RefObject } from "react";
 import { adminTokens } from "@/lib/admin-styles";
+import { useI18n } from "@/components/genova/language-provider";
 import type { EditCompetitionFormState } from "./types";
 
 export function EditCompetitionImageFields({
@@ -21,10 +22,11 @@ export function EditCompetitionImageFields({
   sponsorLogoPreview: string | null;
   setSponsorLogoPreview: (value: string | null) => void;
 }) {
+  const { t } = useI18n();
   return (
     <div className="grid gap-4 sm:grid-cols-2">
       <div>
-        <label className={adminTokens.inputLabel}>공모전 썸네일</label>
+        <label className={adminTokens.inputLabel}>{t("adminCompEditImage.thumbnailLabel", "Competition thumbnail")}</label>
         {thumbnailPreview ? (
           <div className="relative overflow-hidden rounded-xl border border-white/[0.08]">
             {/* eslint-disable-next-line @next/next/no-img-element -- blob: URI or persisted URL after upload; next/image not applicable to blob */}
@@ -34,7 +36,7 @@ export function EditCompetitionImageFields({
               onClick={() => thumbInputRef.current?.click()}
               className="absolute right-12 top-2 rounded-lg bg-black/70 px-3 py-1.5 text-xs font-semibold text-white backdrop-blur-sm transition hover:bg-black/90"
             >
-              변경
+              {t("adminCompEditImage.change", "Change")}
             </button>
             <button
               type="button"
@@ -59,12 +61,12 @@ export function EditCompetitionImageFields({
             <svg className="h-6 w-6 text-[#7F77DD]/40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5}>
               <path d="M12 16v-8m0 0-3 3m3-3 3 3M4 17h16" strokeLinecap="round" strokeLinejoin="round" />
             </svg>
-            <p className="text-xs text-white/30">썸네일 업로드</p>
+            <p className="text-xs text-white/30">{t("adminCompEditImage.thumbnailUpload", "Upload thumbnail")}</p>
           </button>
         )}
       </div>
       <div>
-        <label className={adminTokens.inputLabel}>스폰서 로고</label>
+        <label className={adminTokens.inputLabel}>{t("adminCompEditImage.sponsorLogoLabel", "Sponsor logo")}</label>
         {sponsorLogoPreview ? (
           <div className="relative overflow-hidden rounded-xl border border-white/[0.08] p-3">
             {/* eslint-disable-next-line @next/next/no-img-element -- blob: URI or persisted URL after upload; next/image not applicable to blob */}
@@ -74,7 +76,7 @@ export function EditCompetitionImageFields({
               onClick={() => sponsorLogoInputRef.current?.click()}
               className="absolute right-12 top-2 rounded-lg bg-black/70 px-2 py-1 text-xs text-white"
             >
-              변경
+              {t("adminCompEditImage.change", "Change")}
             </button>
             <button
               type="button"
@@ -96,7 +98,7 @@ export function EditCompetitionImageFields({
             onClick={() => sponsorLogoInputRef.current?.click()}
             className="flex h-20 w-full flex-col items-center justify-center gap-2 rounded-xl border border-dashed border-white/[0.08] bg-white/[0.02] transition hover:border-white/20"
           >
-            <p className="text-xs text-white/30">스폰서 로고 업로드</p>
+            <p className="text-xs text-white/30">{t("adminCompEditImage.sponsorLogoUpload", "Upload sponsor logo")}</p>
           </button>
         )}
       </div>
