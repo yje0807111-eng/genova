@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { Trophy } from "lucide-react";
+import { Search } from "lucide-react";
 import type { Video } from "@/lib/types";
 import { useI18n } from "@/components/genova/language-provider";
 import { videoToCardProps } from "@/components/genova/video-card";
@@ -18,6 +18,7 @@ export function HomeMobileFeed({ videosFromDb }: { videosFromDb: Video[] }) {
   const { t, locale } = useI18n();
   const [genre, setGenre] = useState<GenreChip>("all");
   const [sort, setSort] = useState<Sort>("latest");
+  const [query, setQuery] = useState("");
 
   const [videos, setVideos] = useState<Video[]>(videosFromDb);
   const [page, setPage] = useState(0);
@@ -66,8 +67,16 @@ export function HomeMobileFeed({ videosFromDb }: { videosFromDb: Video[] }) {
     return () => obs.disconnect();
   }, [hasMore, loadMore]);
 
+  const q = query.trim().toLowerCase();
   const filtered = videos
     .filter((v) => (genre === "all" ? true : normalizeToMainGenre(v.genre) === genre))
+    .filter((v) =>
+      q
+        ? `${v.title ?? ""} ${v.creatorName ?? v.uploaderDisplayName ?? ""}`
+            .toLowerCase()
+            .includes(q)
+        : true,
+    )
     .slice()
     .sort((a, b) =>
       sort === "popular"
@@ -82,21 +91,28 @@ export function HomeMobileFeed({ videosFromDb }: { videosFromDb: Video[] }) {
 
   return (
     <div className="overflow-x-hidden md:hidden">
-      {/* 공모전 진입 스트립 */}
-      <Link
-        href="/competition"
-        className="mx-4 mt-3 flex items-center justify-between gap-3 rounded-2xl border border-white/[0.08] bg-white/[0.03] px-4 py-3"
-      >
-        <span className="flex items-center gap-2.5">
-          <Trophy size={16} className="text-[#AFA9EC]" />
-          <span className="text-[13px] font-bold text-white">
-            {t("nav.competition", "Competition")}
-          </span>
-        </span>
-        <span className="text-[12px] font-semibold text-white/45">
-          {t("competition.detail.viewDetailsCta", "View →")}
-        </span>
-      </Link>
+      {/* 검색 — 피드 내 실시간 필터 (제목·크리에이터) */}
+      <div className="mx-4 mt-3 flex items-center gap-2.5 rounded-2xl border border-white/[0.08] bg-white/[0.03] px-4 py-3">
+        <Search size={16} className="shrink-0 text-white/40" />
+        <input
+          type="text"
+          inputMode="search"
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          placeholder={t("search.placeholder", "Search videos")}
+          className="min-w-0 flex-1 bg-transparent text-[14px] text-white placeholder:text-white/35 outline-none"
+        />
+        {query ? (
+          <button
+            type="button"
+            onClick={() => setQuery("")}
+            className="shrink-0 text-[12px] font-semibold text-white/40"
+            aria-label="Clear"
+          >
+            ✕
+          </button>
+        ) : null}
+      </div>
 
       {/* 장르 칩 — 가로 스크롤 */}
       <div className="mt-4 flex gap-2 overflow-x-auto px-4 pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">

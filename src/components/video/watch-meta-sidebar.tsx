@@ -165,8 +165,8 @@ export function WatchMetaSidebar({
           )}
         </div>
 
-        {/* Engagement + actions */}
-        <div className="flex items-center gap-2">
+        {/* Engagement + actions — 모바일은 버튼이 커서 축소 */}
+        <div className="flex origin-left scale-[0.85] items-center gap-2 md:scale-100">
           <div className="flex-1">
             <VideoEngagementBar
               videoId={videoId}

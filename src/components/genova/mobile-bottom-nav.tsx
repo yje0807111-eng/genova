@@ -16,6 +16,20 @@ export function MobileBottomNav() {
   const { t } = useI18n();
   const { open: openUploadModal } = useUploadModal();
   const [userId, setUserId] = useState<string | null>(null);
+  // 스크롤 다운 시 숨김, 업 시 노출 — 콘텐츠 읽을 때 방해 안 되도록.
+  const [hidden, setHidden] = useState(false);
+
+  useEffect(() => {
+    let lastY = window.scrollY;
+    const onScroll = () => {
+      const y = window.scrollY;
+      if (Math.abs(y - lastY) < 8) return;
+      setHidden(y > lastY && y > 64);
+      lastY = y;
+    };
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
 
   useEffect(() => {
     const supabase = getBrowserSupabaseClient();
@@ -37,7 +51,10 @@ export function MobileBottomNav() {
 
   return (
     <nav
-      className="fixed inset-x-0 bottom-0 z-[60] flex border-t border-white/[0.07] bg-[rgba(10,10,10,0.96)] pb-[env(safe-area-inset-bottom)] backdrop-blur-xl md:hidden"
+      className={cn(
+        "fixed inset-x-0 bottom-0 z-[60] flex border-t border-white/[0.07] bg-[rgba(10,10,10,0.96)] pb-[env(safe-area-inset-bottom)] backdrop-blur-xl transition-transform duration-300 md:hidden",
+        hidden ? "translate-y-full" : "translate-y-0",
+      )}
       aria-label="Mobile navigation"
     >
       <Link href="/" className={itemCls(pathname === "/")}>
