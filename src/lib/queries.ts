@@ -253,15 +253,31 @@ export async function fetchRelatedVideos(excludeId: string, limit = 8): Promise<
 
   const { data: { user } } = await supabase.auth.getUser();
   let watchedIds: string[] = [];
+  // 최근 50개 시청 기록 중 97% 이상 본(거의 완주한) 영상.
+  // Up Next 에 다시 노출되지 않도록 추천·fallback 양쪽에서 제외.
+  let completedIds: string[] = [];
 
   if (user) {
     const { data: history } = await supabase
       .from("watch_history")
-      .select("video_id")
+      .select("video_id, progress_seconds, duration_seconds")
       .eq("user_id", user.id)
       .order("watched_at", { ascending: false })
       .limit(50);
-    watchedIds = [...new Set((history ?? []).map((h) => h.video_id as string).filter(Boolean))];
+    const rows = history ?? [];
+    watchedIds = [...new Set(rows.map((h) => h.video_id as string).filter(Boolean))];
+    completedIds = [
+      ...new Set(
+        rows
+          .filter((h) => {
+            const prog = Number(h.progress_seconds ?? 0);
+            const dur = Number(h.duration_seconds ?? 0);
+            return dur > 0 && prog / dur >= 0.97;
+          })
+          .map((h) => h.video_id as string)
+          .filter(Boolean),
+      ),
+    ];
   }
 
   // Profile data is attached below via mergeVideoRows (sourced from
@@ -289,7 +305,11 @@ export async function fetchRelatedVideos(excludeId: string, limit = 8): Promise<
 
   if (rows.length < limit) {
     const needed = limit - rows.length;
-    const existingIds = new Set<string>([excludeId, ...rows.map((v) => v.id as string)]);
+    const existingIds = new Set<string>([
+      excludeId,
+      ...rows.map((v) => v.id as string),
+      ...completedIds,
+    ]);
 
     let q2 = supabase
       .from("videos")
