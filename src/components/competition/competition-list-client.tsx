@@ -91,9 +91,10 @@ function CompetitionCard({ c, participantCount }: { c: Competition; participantC
     month: "2-digit",
     day: "2-digit",
   });
-  const isOpen = ["Open", "접수중", "In Review", "Voting"].includes(c.status);
+  const votingState = isVoting(c);
+  const isOpen = !votingState && ["Open", "접수중", "In Review"].includes(c.status);
   const isUpcoming = ["Upcoming", "예정"].includes(c.status);
-  const isClosed = !isOpen && !isUpcoming;
+  const isClosed = !isOpen && !isUpcoming && !votingState;
   const urgent = isOpen && d >= 0 && d <= 3;
   const prize = formatPrizeWithConversion(
     c.prize_info_ko,
@@ -181,15 +182,33 @@ function CompetitionCard({ c, participantCount }: { c: Competition; participantC
         <div className="mt-2.5 flex items-center gap-1.5 border-t border-white/[0.06] pt-2 text-[11px] text-white/40">
           <span
             className={`h-1.5 w-1.5 rounded-full ${
-              isOpen ? "animate-pulse bg-emerald-400" : isUpcoming ? "bg-sky-400" : "bg-white/25"
+              votingState
+                ? "animate-pulse bg-[#7F77DD]"
+                : isOpen
+                  ? "animate-pulse bg-emerald-400"
+                  : isUpcoming
+                    ? "bg-sky-400"
+                    : "bg-white/25"
             }`}
           />
           <span
             className={
-              isOpen ? "font-semibold text-emerald-300" : isUpcoming ? "font-semibold text-sky-300" : "text-white/35"
+              votingState
+                ? "font-semibold text-[#AFA9EC]"
+                : isOpen
+                  ? "font-semibold text-emerald-300"
+                  : isUpcoming
+                    ? "font-semibold text-sky-300"
+                    : "text-white/35"
             }
           >
-            {isOpen ? t("competition.statusOpen") : isUpcoming ? t("competition.statusUpcoming") : t("competition.statusClosed")}
+            {votingState
+              ? t("competition.statusVoting", "투표중")
+              : isOpen
+                ? t("competition.statusOpen")
+                : isUpcoming
+                  ? t("competition.statusUpcoming")
+                  : t("competition.statusClosed")}
           </span>
           <span className="text-white/20">·</span>
           <span>{deadlineLabel}</span>
@@ -204,9 +223,10 @@ function CompetitionTableRow({ c, idx, participantCount }: { c: Competition; idx
   const dateLocale = intlDateLocale(locale);
   const d = dDay(c.deadline);
   const thumb = c.thumbnail_url || null;
-  const isOpen = ["Open", "접수중", "In Review", "Voting"].includes(c.status);
+  const votingState = isVoting(c);
+  const isOpen = !votingState && ["Open", "접수중", "In Review"].includes(c.status);
   const isUpcoming = ["Upcoming", "예정"].includes(c.status);
-  const isClosed = !isOpen && !isUpcoming;
+  const isClosed = !isOpen && !isUpcoming && !votingState;
   const deadlineLabel = new Date(c.deadline).toLocaleDateString(dateLocale, {
     year: "numeric",
     month: "2-digit",
@@ -270,19 +290,33 @@ function CompetitionTableRow({ c, idx, participantCount }: { c: Competition; idx
           </h3>
           <span
             className={`shrink-0 inline-flex items-center gap-1 rounded-full px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider ${
-              isOpen
-                ? "bg-emerald-500/20 text-emerald-300"
-                : isUpcoming
-                  ? "bg-sky-500/20 text-sky-300"
-                  : "bg-white/[0.08] text-white/40"
+              votingState
+                ? "bg-[#7F77DD]/20 text-[#AFA9EC]"
+                : isOpen
+                  ? "bg-emerald-500/20 text-emerald-300"
+                  : isUpcoming
+                    ? "bg-sky-500/20 text-sky-300"
+                    : "bg-white/[0.08] text-white/40"
             }`}
           >
             <span
               className={`h-1 w-1 rounded-full ${
-                isOpen ? "animate-pulse bg-emerald-400" : isUpcoming ? "bg-sky-400" : "bg-white/30"
+                votingState
+                  ? "animate-pulse bg-[#7F77DD]"
+                  : isOpen
+                    ? "animate-pulse bg-emerald-400"
+                    : isUpcoming
+                      ? "bg-sky-400"
+                      : "bg-white/30"
               }`}
             />
-            {isOpen ? t("competition.statusOpenShort") : isUpcoming ? t("competition.statusUpcoming") : t("competition.statusClosed")}
+            {votingState
+              ? t("competition.statusVoting", "투표중")
+              : isOpen
+                ? t("competition.statusOpenShort")
+                : isUpcoming
+                  ? t("competition.statusUpcoming")
+                  : t("competition.statusClosed")}
           </span>
         </div>
         <div className="flex items-center gap-1.5 text-[11px] text-white/35">
@@ -363,7 +397,7 @@ export function CompetitionListClient({
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
     const byTab = allCompetitions.filter((c) => {
-      if (activeTab === "open" && !active.some((a) => a.id === c.id)) return false;
+      if (activeTab === "open" && (!active.some((a) => a.id === c.id) || isVoting(c))) return false;
       if (activeTab === "voting" && !isVoting(c)) return false;
       if (activeTab === "upcoming" && !upcoming.some((u) => u.id === c.id)) return false;
       if (activeTab === "closed" && !closed.some((cl) => cl.id === c.id)) return false;
@@ -436,7 +470,7 @@ export function CompetitionListClient({
         <div className="flex gap-1">
           {[
             { key: "all", label: t("competition.allCompetitions"), count: allCompetitions.length },
-            { key: "open", label: t("competition.nowOpen"), count: active.length },
+            { key: "open", label: t("competition.nowOpen"), count: active.filter((a) => !isVoting(a)).length },
             { key: "voting", label: t("competition.statusVoting", "투표중"), count: votingCount },
             { key: "upcoming", label: t("competition.upcoming"), count: upcoming.length },
             { key: "closed", label: t("competition.past"), count: closed.length },

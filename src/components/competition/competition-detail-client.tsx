@@ -188,9 +188,10 @@ export function CompetitionDetailClient({
   const rules = rulesText ? rulesText.split("\n").filter(Boolean) : [];
 
   const d = dDay(competition.deadline);
-  const isOpen = ["Open", "접수중", "In Review", "Voting"].includes(competition.status);
+  const isVoting = ["Voting", "투표중"].includes(competition.status);
+  const isOpen = !isVoting && ["Open", "접수중", "In Review"].includes(competition.status);
   const isUpcoming = ["Upcoming", "예정"].includes(competition.status);
-  const isClosed = !isOpen && !isUpcoming;
+  const isClosed = !isOpen && !isUpcoming && !isVoting;
 
   const bannerImage = competition.banner_url || competition.thumbnail_url || null;
   const concept = getText(competition.concept_ko, competition.concept_en, competition.concept_ja, competition.concept ?? "") || null;
@@ -333,6 +334,20 @@ export function CompetitionDetailClient({
                 >
                   <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
                   {t("competition.detail.acceptingSubmissions")}
+                </span>
+              )}
+              {isVoting && (
+                <span
+                  className="inline-flex w-fit items-center gap-2 rounded-full px-4 py-1.5 text-[11px] font-bold uppercase tracking-[0.15em]"
+                  style={{
+                    background: "rgba(127,119,221,0.18)",
+                    border: "1px solid rgba(127,119,221,0.4)",
+                    color: "#AFA9EC",
+                    boxShadow: "0 0 12px rgba(127,119,221,0.35)",
+                  }}
+                >
+                  <span className="h-1.5 w-1.5 rounded-full bg-[#7F77DD] animate-pulse" />
+                  {t("competition.statusVoting", "투표중")}
                 </span>
               )}
               {isUpcoming && (
