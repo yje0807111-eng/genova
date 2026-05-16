@@ -2,19 +2,20 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { Trophy } from "lucide-react";
 import type { Video } from "@/lib/types";
 import { useI18n } from "@/components/genova/language-provider";
-import { VideoCardFromVideo } from "@/components/genova/video-card";
+import { videoToCardProps } from "@/components/genova/video-card";
 import { MAIN_GENRE_KEYS, MAIN_GENRE_LABELS, normalizeToMainGenre } from "@/lib/constants/genres";
 
 type GenreChip = "all" | (typeof MAIN_GENRE_KEYS)[number];
 type Sort = "latest" | "popular";
 
 // 모바일 전용 홈 — 데스크톱의 탭/캐러셀/필름레일 복합 UI 대신
-// "시청 진입 최단화" 세로 피드. md:hidden 으로 분기(데스크톱은 기존 유지).
+// "시청 진입 최단화" 1열 세로 피드(풀폭 가로 카드). md:hidden 분기.
 export function HomeMobileFeed({ videosFromDb }: { videosFromDb: Video[] }) {
-  const { t } = useI18n();
+  const { t, locale, setLocale } = useI18n();
   const [genre, setGenre] = useState<GenreChip>("all");
   const [sort, setSort] = useState<Sort>("latest");
 
@@ -59,7 +60,7 @@ export function HomeMobileFeed({ videosFromDb }: { videosFromDb: Video[] }) {
       (e) => {
         if (e[0].isIntersecting) void loadMore();
       },
-      { rootMargin: "600px" },
+      { rootMargin: "800px" },
     );
     obs.observe(el);
     return () => obs.disconnect();
@@ -79,9 +80,34 @@ export function HomeMobileFeed({ videosFromDb }: { videosFromDb: Video[] }) {
     ...MAIN_GENRE_KEYS.map((k) => ({ key: k, label: MAIN_GENRE_LABELS[k] })),
   ];
 
+  const langs: { code: "en" | "ko" | "ja"; label: string }[] = [
+    { code: "en", label: "EN" },
+    { code: "ko", label: "KO" },
+    { code: "ja", label: "JA" },
+  ];
+
   return (
     <div className="md:hidden">
-      {/* 공모전 진입 스트립 — 모바일은 시청·공모전 시청 중심 */}
+      {/* 상단 바 — 언어 선택 */}
+      <div className="flex items-center justify-end px-4 pt-3">
+        <div className="flex gap-1 rounded-full border border-white/[0.08] bg-white/[0.03] p-1">
+          {langs.map((l) => (
+            <button
+              key={l.code}
+              type="button"
+              onClick={() => setLocale(l.code)}
+              className={
+                "rounded-full px-3 py-1 text-[11px] font-bold transition-colors " +
+                (locale === l.code ? "bg-white text-[#0a0a0a]" : "text-white/55")
+              }
+            >
+              {l.label}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* 공모전 진입 스트립 */}
       <Link
         href="/competition"
         className="mx-4 mt-3 flex items-center justify-between gap-3 rounded-2xl border border-white/[0.08] bg-white/[0.03] px-4 py-3"
@@ -97,7 +123,7 @@ export function HomeMobileFeed({ videosFromDb }: { videosFromDb: Video[] }) {
         </span>
       </Link>
 
-      {/* 장르 칩 — 가로 스크롤 (줄바꿈으로 세로 점유 안 함) */}
+      {/* 장르 칩 — 가로 스크롤 */}
       <div className="mt-4 flex gap-2 overflow-x-auto px-4 pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
         {chips.map((c) => (
           <button
@@ -135,11 +161,45 @@ export function HomeMobileFeed({ videosFromDb }: { videosFromDb: Video[] }) {
         ))}
       </div>
 
-      {/* 세로 피드 — 2열 */}
-      <div className="grid grid-cols-2 gap-3 px-4 pb-10 pt-4">
-        {filtered.map((v) => (
-          <VideoCardFromVideo key={v.id} video={v} />
-        ))}
+      {/* 1열 세로 피드 — 풀폭 가로 카드 */}
+      <div className="flex flex-col gap-5 px-4 pb-10 pt-4">
+        {filtered.map((v) => {
+          const cp = videoToCardProps(v, locale);
+          return (
+            <Link key={v.id} href={`/watch/${v.id}`} className="block">
+              <div className="relative aspect-video w-full overflow-hidden rounded-xl border border-white/[0.06]">
+                <Image
+                  src={cp.thumbnail}
+                  alt=""
+                  fill
+                  sizes="100vw"
+                  className="object-cover"
+                />
+                {cp.duration ? (
+                  <span className="absolute bottom-2 right-2 rounded bg-black/70 px-1.5 py-0.5 text-[11px] font-semibold text-white">
+                    {cp.duration}
+                  </span>
+                ) : null}
+              </div>
+              <div className="mt-2 flex items-start gap-2.5">
+                {cp.avatar ? (
+                  <span className="relative mt-0.5 h-8 w-8 shrink-0 overflow-hidden rounded-full">
+                    <Image src={cp.avatar} alt="" fill sizes="32px" className="object-cover" />
+                  </span>
+                ) : null}
+                <div className="min-w-0 flex-1">
+                  <h3 className="line-clamp-2 text-[15px] font-bold leading-snug text-white">
+                    {cp.title}
+                  </h3>
+                  <p className="mt-1 text-[12px] text-white/45">
+                    {cp.creator}
+                    {cp.views ? ` · ${cp.views}` : ""}
+                  </p>
+                </div>
+              </div>
+            </Link>
+          );
+        })}
       </div>
 
       {filtered.length === 0 ? (
