@@ -286,6 +286,10 @@ export function HomePageClient(props: HomePageClientProps) {
 
         <ScrollReveal delay={0.11} className="relative z-0">
          <div className="min-h-[800px]">
+          <div
+            key={`${activeMainTab}:${activeSubGenre}:${activeSort}`}
+            className="section-swap"
+          >
           {/* F4: Films Beta 2 rails (Series / Award Winners / Continue
               Watching).  Only on the default Films landing view —
               hidden as soon as the user narrows via sub-genre filter
@@ -319,6 +323,7 @@ export function HomePageClient(props: HomePageClientProps) {
               </p>
             </div>
           )}
+          </div>
          </div>
         </ScrollReveal>
 

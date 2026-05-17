@@ -624,6 +624,27 @@ body {
   .landing-marquee { animation: none; }
 }
 
+/* section-swap — 홈 필터(추천/필름 탭·서브 칩·정렬) 전환 시
+   그리드 콘텐츠가 부드럽게 페이드+업+미세 스케일로 교체.
+   key 변경으로 remount될 때 1회 재생. */
+@keyframes sectionSwap {
+  from {
+    opacity: 0;
+    transform: translateY(12px) scale(0.985);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+.section-swap {
+  animation: sectionSwap 0.42s cubic-bezier(0.22, 1, 0.36, 1) both;
+  will-change: opacity, transform;
+}
+@media (prefers-reduced-motion: reduce) {
+  .section-swap { animation: none; }
+}
+
 /* ============================================================
    Phase 2.3 — Composite utility classes
    Layered as @layer components: utilities take precedence on conflict.
