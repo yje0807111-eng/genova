@@ -192,7 +192,7 @@ export function UploadVideoFormSimple({
 
       <form
         onSubmit={handleSubmit}
-        className="mx-auto w-full max-w-[720px] space-y-8 px-6 py-12"
+        className="mx-auto w-full max-w-[720px] space-y-6 px-6 py-2"
         onKeyDown={(e) => {
           if (e.key === "Enter" && (e.target as HTMLElement).tagName === "INPUT") {
             e.preventDefault();
