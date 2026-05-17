@@ -54,6 +54,12 @@ export function UploadVideoFormSimple({
   const [isSeriesMode, setIsSeriesMode] = useState(false);
   const [seriesName, setSeriesName] = useState("");
   const [episodeNumber, setEpisodeNumber] = useState<number>(1);
+  // 내 프로필에 이미 올라간 시리즈 목록 (드롭다운 선택용).
+  const [mySeries, setMySeries] = useState<
+    { name: string; lastEpisode: number }[]
+  >([]);
+  // "" = 새 시리즈 직접 입력 / 그 외 = 기존 시리즈명 선택.
+  const [seriesChoice, setSeriesChoice] = useState<string>("");
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -68,6 +74,37 @@ export function UploadVideoFormSimple({
     Boolean(videoFile) &&
     !isSubmitting &&
     (!isSeriesMode || Boolean(seriesName.trim()));
+
+  // 내 기존 시리즈 목록 1회 로드 (드롭다운 + 에피소드 자동채움).
+  useEffect(() => {
+    let cancelled = false;
+    fetch("/api/my-series")
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d) => {
+        if (cancelled) return;
+        if (Array.isArray(d?.series)) setMySeries(d.series);
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  // 드롭다운 선택 → 기존 시리즈면 이름 고정 + 에피소드 자동(마지막+1),
+  // "새 시리즈"면 입력 초기화.
+  const handleSeriesChoice = (val: string) => {
+    setSeriesChoice(val);
+    if (!val) {
+      setSeriesName("");
+      setEpisodeNumber(1);
+      return;
+    }
+    const s = mySeries.find((x) => x.name === val);
+    if (s) {
+      setSeriesName(s.name);
+      setEpisodeNumber(s.lastEpisode + 1);
+    }
+  };
 
   useEffect(() => {
     const handleDragOver = (e: DragEvent) => {
@@ -514,16 +551,18 @@ export function UploadVideoFormSimple({
                 </div>
                 <button
                   type="button"
+                  role="switch"
+                  aria-checked={isSeriesMode}
                   onClick={() => setIsSeriesMode((prev) => !prev)}
                   className={cn(
-                    "relative h-6 w-11 shrink-0 rounded-full transition",
+                    "relative h-6 w-11 shrink-0 rounded-full transition-colors",
                     isSeriesMode ? "bg-[#534AB7]" : "bg-white/[0.08]",
                   )}
                 >
                   <span
                     className={cn(
-                      "absolute top-0.5 h-5 w-5 rounded-full bg-white transition-transform",
-                      isSeriesMode ? "translate-x-5" : "translate-x-0.5",
+                      "absolute left-0.5 top-1/2 h-5 w-5 -translate-y-1/2 rounded-full bg-white shadow-sm transition-transform",
+                      isSeriesMode ? "translate-x-5" : "translate-x-0",
                     )}
                   />
                 </button>
@@ -531,24 +570,70 @@ export function UploadVideoFormSimple({
 
               {isSeriesMode && (
                 <>
-                  <div>
-                    <label className="mb-2 block text-[12px] font-bold uppercase tracking-[0.18em] text-white/70">
-                      {t("upload.series.name", "시리즈 이름")} <span className="text-red-400">*</span>
-                    </label>
-                    <input
-                      type="text"
-                      value={seriesName}
-                      onChange={(e) => setSeriesName(e.target.value)}
-                      maxLength={100}
-                      placeholder={t("upload.series.namePlaceholder", "예: Mars Diary")}
-                      className="w-full rounded-xl border border-white/[0.08] bg-white/[0.02] px-4 py-3 text-[14px] text-white placeholder:text-white/30 outline-none transition focus:border-[#7F77DD]/40 focus:bg-white/[0.04]"
-                    />
-                  </div>
+                  {mySeries.length > 0 && (
+                    <div>
+                      <label className="mb-2 block text-[12px] font-bold uppercase tracking-[0.18em] text-white/70">
+                        {t("upload.series.pick", "시리즈 선택")}
+                      </label>
+                      <select
+                        value={seriesChoice}
+                        onChange={(e) => handleSeriesChoice(e.target.value)}
+                        className="w-full cursor-pointer rounded-xl border border-white/[0.08] bg-white/[0.02] px-4 py-3 text-[14px] text-white outline-none transition focus:border-[#7F77DD]/40 focus:bg-white/[0.04]"
+                      >
+                        <option value="">
+                          {t("upload.series.newSeries", "+ 새 시리즈 만들기")}
+                        </option>
+                        {mySeries.map((s) => (
+                          <option key={s.name} value={s.name}>
+                            {s.name} (
+                            {t("upload.series.lastEp", "최신 EP {n}").replace(
+                              "{n}",
+                              String(s.lastEpisode),
+                            )}
+                            )
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  )}
+
+                  {seriesChoice ? (
+                    <div>
+                      <label className="mb-2 block text-[12px] font-bold uppercase tracking-[0.18em] text-white/70">
+                        {t("upload.series.name", "시리즈 이름")}
+                      </label>
+                      <div className="rounded-xl border border-[#7F77DD]/25 bg-[#7F77DD]/[0.08] px-4 py-3 text-[14px] font-bold text-[#C7C2F0]">
+                        {seriesName}
+                      </div>
+                    </div>
+                  ) : (
+                    <div>
+                      <label className="mb-2 block text-[12px] font-bold uppercase tracking-[0.18em] text-white/70">
+                        {t("upload.series.name", "시리즈 이름")} <span className="text-red-400">*</span>
+                      </label>
+                      <input
+                        type="text"
+                        value={seriesName}
+                        onChange={(e) => setSeriesName(e.target.value)}
+                        maxLength={100}
+                        placeholder={t("upload.series.namePlaceholder", "예: Mars Diary")}
+                        className="w-full rounded-xl border border-white/[0.08] bg-white/[0.02] px-4 py-3 text-[14px] text-white placeholder:text-white/30 outline-none transition focus:border-[#7F77DD]/40 focus:bg-white/[0.04]"
+                      />
+                    </div>
+                  )}
 
                   <div>
                     <label className="mb-2 block text-[12px] font-bold uppercase tracking-[0.18em] text-white/70">
                       {t("upload.series.episode", "에피소드 번호")} <span className="text-red-400">*</span>
                     </label>
+                    {seriesChoice ? (
+                      <p className="mb-2 text-[11px] text-[#AFA9EC]/75">
+                        {t(
+                          "upload.series.autoEp",
+                          "선택한 시리즈의 다음 화로 자동 설정됐어요. 필요하면 바꿀 수 있어요.",
+                        )}
+                      </p>
+                    ) : null}
                     <div className="flex items-center gap-2">
                       <button
                         type="button"
