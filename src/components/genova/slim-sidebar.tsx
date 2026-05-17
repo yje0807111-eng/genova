@@ -26,6 +26,7 @@ type NotificationRow = {
   isRead: boolean;
   href: string | null;
   createdAt: string | null;
+  metadata: Record<string, unknown> | null;
 };
 
 const TOP_NAV: {
@@ -184,6 +185,7 @@ export function SlimSidebar({ onOpenChat, unreadMessageCount = 0 }: SlimSidebarP
               isRead: Boolean(n.is_read),
               href: (n.href as string | null) ?? null,
               createdAt: (n.created_at as string | null) ?? null,
+              metadata: (n.metadata as Record<string, unknown> | null) ?? null,
             })),
           );
           const unread = (notifs ?? []).filter((n) => !n.is_read).length;
@@ -255,6 +257,7 @@ export function SlimSidebar({ onOpenChat, unreadMessageCount = 0 }: SlimSidebarP
             is_read: boolean;
             href: string | null;
             created_at: string | null;
+            metadata: Record<string, unknown> | null;
           };
           setNotifications((prev) => [
             {
@@ -265,6 +268,7 @@ export function SlimSidebar({ onOpenChat, unreadMessageCount = 0 }: SlimSidebarP
               isRead: n.is_read,
               href: n.href,
               createdAt: n.created_at,
+              metadata: n.metadata ?? null,
             },
             ...prev,
           ]);
