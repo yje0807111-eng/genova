@@ -6,7 +6,7 @@ import { cn } from "@/lib/utils/cn";
 import { useI18n } from "@/components/genova/language-provider";
 
 export type MainTab = "recommended" | "films";
-export type SubGenre = "all" | "film" | "animation" | "music" | "art" | "daily" | "trending" | "awards";
+export type SubGenre = "all" | "film" | "animation" | "music" | "art" | "daily" | "series" | "trending" | "awards" | "entries";
 export type SortKey = "latest" | "liked" | "viewed";
 
 export interface HomeTabNavProps {
@@ -34,6 +34,7 @@ const subGenreFilmsKeys: Record<string, string> = {
   music: "homeTab.subGenre.music",
   art: "homeTab.subGenre.art",
   daily: "homeTab.subGenre.daily",
+  series: "homeTab.subGenre.series",
 };
 
 const subGenreRecKeys: Record<string, string> = {
@@ -42,6 +43,7 @@ const subGenreRecKeys: Record<string, string> = {
   new: "homeTab.subRec.new",
   popular: "homeTab.subRec.popular",
   awards: "homeTab.subRec.awards",
+  entries: "homeTab.subRec.entries",
 };
 
 export function HomeTabNav({
@@ -78,9 +80,9 @@ export function HomeTabNav({
   const subOptions = useMemo((): SubGenre[] => {
     switch (activeMainTab) {
       case "recommended":
-        return ["all", "trending", "awards"];
+        return ["all", "trending", "awards", "entries"];
       case "films":
-        return ["all", "film", "animation", "music", "art", "daily"];
+        return ["all", "series", "film", "animation", "music", "art", "daily"];
       default:
         return [];
     }

@@ -19,6 +19,7 @@ import type { GenreFilter } from "@/lib/genova-genre";
 import { HomeTabNav } from "@/components/genova/home-tab-nav";
 import type { MainTab, SubGenre, SortKey } from "@/components/genova/home-tab-nav";
 import { AwardsGallery } from "@/components/genova/awards-gallery";
+import { HomeSeriesSection } from "@/components/genova/home-series-section";
 import { HomeMobileFeed } from "@/components/genova/home-mobile-feed";
 
 type HeroAwardVideos = {
@@ -233,6 +234,8 @@ export function HomePageClient(props: HomePageClientProps) {
         result = base.sort((a, b) => (b.likeCount ?? 0) - (a.likeCount ?? 0));
       } else if (activeSubGenre === "awards") {
         result = base.filter((v) => v.isFinalist || v.award);
+      } else if (activeSubGenre === "entries") {
+        result = base.filter((v) => v.purpose === "competition");
       } else {
         result = base.sort((a, b) => (b.likeCount ?? 0) - (a.likeCount ?? 0));
       }
@@ -300,7 +303,11 @@ export function HomePageClient(props: HomePageClientProps) {
             filmsRailsSlot && (
               <div className="mb-10">{filmsRailsSlot}</div>
             )}
-          {activeSubGenre === "awards" && activeMainTab === "recommended" ? (
+          {activeMainTab === "films" &&
+          activeSubGenre === "series" &&
+          !searchQuery.trim() ? (
+            <HomeSeriesSection videos={videos} />
+          ) : activeSubGenre === "awards" && activeMainTab === "recommended" ? (
             <AwardsGallery
               heroAwardVideos={heroAwardVideos ?? { grandPrize: null, excellence: null, merit: null, audience: null }}
               competitionTitle={competition?.title
