@@ -65,6 +65,7 @@ export function SlimSidebar({ onOpenChat, unreadMessageCount = 0 }: SlimSidebarP
   const [notifUnread, setNotifUnread] = useState(0);
   const [showNotifications, setShowNotifications] = useState(false);
   const [showLang, setShowLang] = useState(false);
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
   const [notifications, setNotifications] = useState<NotificationRow[]>([]);
   // 사이드바 응모권 칸 — 이번 달 발급/사용한 응모권 수(0→5 채워짐).
   // 프로필/업로드의 LotteryCounter 와 동일하게 used 기준으로 통일.
@@ -90,17 +91,12 @@ export function SlimSidebar({ onOpenChat, unreadMessageCount = 0 }: SlimSidebarP
     return d.toLocaleDateString(undefined, { month: "numeric", day: "numeric" });
   };
 
-  const onLogout = async () => {
-    if (
-      !window.confirm(
-        t("sidebar.logoutConfirm", "정말 로그아웃 하시겠어요?"),
-      )
-    )
-      return;
+  const performLogout = async () => {
     const supabase = getBrowserSupabaseClient();
     if (!supabase) return;
     await supabase.auth.signOut();
     try { sessionStorage.removeItem("genova:isAdmin"); } catch {}
+    setShowLogoutConfirm(false);
     router.refresh();
     router.push("/");
   };
@@ -544,7 +540,7 @@ export function SlimSidebar({ onOpenChat, unreadMessageCount = 0 }: SlimSidebarP
       {showNotifications ? (
         <div
           ref={notifPanelRef}
-          className="fixed left-[84px] top-[60px] z-[100] hidden w-[320px] overflow-hidden rounded-2xl border border-white/[0.06] bg-[#0a0a0a] shadow-2xl md:block"
+          className="fixed bottom-4 left-[84px] z-[100] hidden w-[320px] overflow-hidden rounded-2xl border border-white/[0.06] bg-[#0a0a0a] shadow-2xl md:block"
         >
           <div className="flex items-center justify-between border-b border-white/[0.06] px-4 py-3">
             <div className="flex items-center gap-2">
@@ -748,7 +744,7 @@ export function SlimSidebar({ onOpenChat, unreadMessageCount = 0 }: SlimSidebarP
                 type="button"
                 onClick={() => {
                   setShowLang(false);
-                  void onLogout();
+                  setShowLogoutConfirm(true);
                 }}
                 className="flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2 text-[12px] font-semibold text-white/55 transition hover:bg-red-500/[0.08] hover:text-red-300"
               >
@@ -765,6 +761,73 @@ export function SlimSidebar({ onOpenChat, unreadMessageCount = 0 }: SlimSidebarP
                 {t("auth.signIn", "Sign in")}
               </Link>
             )}
+          </div>
+        </div>
+      ) : null}
+
+      {showLogoutConfirm ? (
+        <div
+          className="fixed inset-0 z-[200] flex items-center justify-center p-4"
+          role="dialog"
+          aria-modal="true"
+          onClick={() => setShowLogoutConfirm(false)}
+        >
+          <div
+            className="absolute inset-0 bg-black/65 backdrop-blur-sm"
+            aria-hidden
+          />
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className="relative w-full max-w-[360px] overflow-hidden rounded-2xl border border-[#7F77DD]/20 p-6 text-center"
+            style={{
+              background:
+                "linear-gradient(160deg, rgba(20,16,40,0.96) 0%, rgba(10,10,10,0.98) 100%)",
+              boxShadow:
+                "0 24px 60px rgba(0,0,0,0.55), inset 0 1px 0 rgba(127,119,221,0.16)",
+            }}
+          >
+            <div
+              className="pointer-events-none absolute -top-16 left-1/2 h-32 w-48 -translate-x-1/2 rounded-full opacity-70"
+              style={{
+                background:
+                  "radial-gradient(circle, rgba(83,74,183,0.28) 0%, transparent 70%)",
+                filter: "blur(28px)",
+              }}
+              aria-hidden
+            />
+            <div
+              className="relative mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full border border-[#7F77DD]/25"
+              style={{ background: "rgba(83,74,183,0.14)" }}
+            >
+              <LogOut className="h-5 w-5 text-[#AFA9EC]" aria-hidden />
+            </div>
+            <h2 className="relative text-[16px] font-bold text-white">
+              {t("sidebar.logout", "Logout")}
+            </h2>
+            <p className="relative mt-2 text-[13px] leading-relaxed text-white/55">
+              {t("sidebar.logoutConfirm", "정말 로그아웃 하시겠어요?")}
+            </p>
+            <div className="relative mt-6 flex gap-2.5">
+              <button
+                type="button"
+                onClick={() => setShowLogoutConfirm(false)}
+                className="flex-1 rounded-full border border-white/[0.1] bg-white/[0.04] py-2.5 text-[13px] font-semibold text-white/70 backdrop-blur-md transition hover:border-white/20 hover:text-white"
+              >
+                {t("common.cancel", "Cancel")}
+              </button>
+              <button
+                type="button"
+                onClick={() => void performLogout()}
+                className="flex-1 rounded-full py-2.5 text-[13px] font-bold text-white transition-all duration-200 hover:brightness-110"
+                style={{
+                  background:
+                    "linear-gradient(135deg, #ef4444 0%, #dc2626 100%)",
+                  boxShadow: "0 4px 16px rgba(220,38,38,0.35)",
+                }}
+              >
+                {t("sidebar.logout", "Logout")}
+              </button>
+            </div>
           </div>
         </div>
       ) : null}
