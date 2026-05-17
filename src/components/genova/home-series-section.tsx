@@ -4,6 +4,7 @@ import { useMemo } from "react";
 import { Film } from "lucide-react";
 import { useI18n } from "@/components/genova/language-provider";
 import { HoverPreviewCard } from "@/components/genova/hover-preview-card";
+import type { SortKey } from "@/components/genova/home-tab-nav";
 import type { Video } from "@/lib/types";
 
 /**
@@ -11,7 +12,13 @@ import type { Video } from "@/lib/types";
  * renders one panel per series (horizontal episode scroll), so users
  * can browse series-by-series. Mirrors the profile Series panel tone.
  */
-export function HomeSeriesSection({ videos }: { videos: Video[] }) {
+export function HomeSeriesSection({
+  videos,
+  sort,
+}: {
+  videos: Video[];
+  sort: SortKey;
+}) {
   const { t } = useI18n();
 
   const groups = useMemo(() => {
@@ -22,15 +29,35 @@ export function HomeSeriesSection({ videos }: { videos: Video[] }) {
       if (!map.has(name)) map.set(name, []);
       map.get(name)!.push(v);
     }
-    return Array.from(map.entries())
-      .map(([name, eps]) => ({
-        name,
-        episodes: eps.sort(
-          (a, b) => (a.episodeNumber ?? 0) - (b.episodeNumber ?? 0),
-        ),
-      }))
-      .sort((a, b) => a.name.localeCompare(b.name));
-  }, [videos]);
+    const built = Array.from(map.entries()).map(([name, eps]) => {
+      const episodes = [...eps].sort(
+        (a, b) => (a.episodeNumber ?? 0) - (b.episodeNumber ?? 0),
+      );
+      // 시리즈 단위 집계 — 필터(좋아요/조회수)는 에피소드 총합,
+      // 최신순은 가장 최근 에피소드 기준.
+      const totalViews = episodes.reduce(
+        (s, v) => s + (v.viewCount ?? 0),
+        0,
+      );
+      const totalLikes = episodes.reduce(
+        (s, v) => s + (v.likeCount ?? 0),
+        0,
+      );
+      const latestAt = episodes.reduce(
+        (m, v) => Math.max(m, new Date(v.createdAt).getTime() || 0),
+        0,
+      );
+      return { name, episodes, totalViews, totalLikes, latestAt };
+    });
+
+    built.sort((a, b) => {
+      if (sort === "viewed") return b.totalViews - a.totalViews;
+      if (sort === "liked") return b.totalLikes - a.totalLikes;
+      if (sort === "latest") return b.latestAt - a.latestAt;
+      return a.name.localeCompare(b.name);
+    });
+    return built;
+  }, [videos, sort]);
 
   if (groups.length === 0) {
     return (

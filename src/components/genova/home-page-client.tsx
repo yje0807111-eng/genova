@@ -306,7 +306,7 @@ export function HomePageClient(props: HomePageClientProps) {
           {activeMainTab === "films" &&
           activeSubGenre === "series" &&
           !searchQuery.trim() ? (
-            <HomeSeriesSection videos={videos} />
+            <HomeSeriesSection videos={videos} sort={activeSort} />
           ) : activeSubGenre === "awards" && activeMainTab === "recommended" ? (
             <AwardsGallery
               heroAwardVideos={heroAwardVideos ?? { grandPrize: null, excellence: null, merit: null, audience: null }}
