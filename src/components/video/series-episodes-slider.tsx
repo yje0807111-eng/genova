@@ -148,7 +148,7 @@ export function SeriesEpisodesSlider({
       <div className="group/rail relative">
         <div
           ref={railRef}
-          className="hide-scrollbar flex gap-2.5 overflow-x-auto scroll-smooth pb-1"
+          className="hide-scrollbar -mx-1.5 flex gap-2.5 overflow-x-auto scroll-smooth px-1.5 py-2"
         >
           {episodes.map((ep) => {
             const isCurrent = ep.id === currentVideoId;
@@ -350,9 +350,17 @@ export function SeriesEpisodesSlider({
                       className={cn(
                         "group flex gap-4 rounded-xl p-3 transition",
                         isCurrent
-                          ? "bg-[#534AB7]/[0.12] ring-1 ring-[#9D95F0]/45"
+                          ? "ring-1 ring-[#7F77DD]/30"
                           : "bg-white/[0.025] hover:bg-white/[0.05]",
                       )}
+                      style={
+                        isCurrent
+                          ? {
+                              background:
+                                "linear-gradient(135deg, #211b3a 0%, #14111d 70%)",
+                            }
+                          : undefined
+                      }
                     >
                       <div className="relative aspect-video w-40 shrink-0 overflow-hidden rounded-lg bg-black/40">
                         <Image
