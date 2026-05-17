@@ -21,7 +21,7 @@ import { SiteFooter } from "@/components/site-shell";
 function LayoutChrome({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const isBareShellPage =
-    pathname === "/auth" || pathname === "/login" || pathname === "/landing";
+    pathname === "/auth" || pathname === "/landing";
   const [chatOpen, setChatOpen] = useState(false);
   const [chatTarget, setChatTarget] = useState<{ userId: string; displayName: string; avatarUrl?: string } | null>(null);
   const [unreadMessageCount, setUnreadMessageCount] = useState(0);
