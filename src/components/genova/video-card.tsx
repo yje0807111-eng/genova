@@ -128,11 +128,6 @@ export function videoToCardProps(video: Video, locale: Locale = "en"): VideoCard
   };
 }
 
-export function VideoCardFromVideo({ video }: { video: Video }) {
-  const { locale } = useI18n();
-  return <VideoCard {...videoToCardProps(video, locale)} />;
-}
-
 export function VideoCard({
   id,
   title,
