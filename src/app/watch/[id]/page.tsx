@@ -287,6 +287,7 @@ export default async function WatchDetailPage({
           sameGenreVideos={sameGenreVideos}
           trendingVideos={trendingVideos}
           currentVideoId={video.id}
+          currentSeriesName={showSeries ? (video.seriesName ?? null) : null}
         />
       </div>
     </div>

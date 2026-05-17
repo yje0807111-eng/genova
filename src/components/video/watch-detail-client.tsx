@@ -73,30 +73,31 @@ export function WatchRecommendationsSections({
   sameGenreVideos,
   trendingVideos,
   currentVideoId,
+  currentSeriesName,
 }: {
   sameGenreVideos: Video[];
   trendingVideos: Video[];
   currentVideoId?: string;
+  /** 시리즈 시청 중이면 같은 시리즈 영상은 추천에서 제외(위 시리즈
+   *  레일과 중복 방지). */
+  currentSeriesName?: string | null;
 }) {
   const { t } = useI18n();
 
   const combinedRecommendations = useMemo(() => {
+    const sameSeries = currentSeriesName?.trim() || null;
     const seen = new Set<string>();
     const result: Video[] = [];
-    for (const v of sameGenreVideos) {
-      if (!seen.has(v.id) && v.id !== currentVideoId) {
-        result.push(v);
-        seen.add(v.id);
-      }
-    }
-    for (const v of trendingVideos) {
-      if (!seen.has(v.id) && v.id !== currentVideoId) {
-        result.push(v);
-        seen.add(v.id);
-      }
-    }
+    const consider = (v: Video) => {
+      if (seen.has(v.id) || v.id === currentVideoId) return;
+      if (sameSeries && (v.seriesName?.trim() || null) === sameSeries) return;
+      result.push(v);
+      seen.add(v.id);
+    };
+    for (const v of sameGenreVideos) consider(v);
+    for (const v of trendingVideos) consider(v);
     return result.slice(0, 20);
-  }, [sameGenreVideos, trendingVideos, currentVideoId]);
+  }, [sameGenreVideos, trendingVideos, currentVideoId, currentSeriesName]);
 
   if (combinedRecommendations.length === 0) return null;
 
