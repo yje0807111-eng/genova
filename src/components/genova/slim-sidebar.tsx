@@ -12,6 +12,7 @@ import { cn } from "@/lib/utils/cn";
 import { useUploadModal } from "@/components/upload/upload-modal-context";
 import { useLotteryGuideModal } from "@/components/lottery/lottery-guide-modal";
 import { getNotificationLabel } from "@/lib/notifications-i18n";
+import { useExitAnimation } from "@/lib/hooks/use-exit-animation";
 
 export interface SlimSidebarProps {
   onOpenChat: () => void;
@@ -66,6 +67,9 @@ export function SlimSidebar({ onOpenChat, unreadMessageCount = 0 }: SlimSidebarP
   const [showNotifications, setShowNotifications] = useState(false);
   const [showLang, setShowLang] = useState(false);
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
+  const notifAnim = useExitAnimation(showNotifications, 180);
+  const moreAnim = useExitAnimation(showLang, 180);
+  const logoutAnim = useExitAnimation(showLogoutConfirm, 200);
   const [notifications, setNotifications] = useState<NotificationRow[]>([]);
   // 사이드바 응모권 칸 — 이번 달 발급/사용한 응모권 수(0→5 채워짐).
   // 프로필/업로드의 LotteryCounter 와 동일하게 used 기준으로 통일.
@@ -537,10 +541,10 @@ export function SlimSidebar({ onOpenChat, unreadMessageCount = 0 }: SlimSidebarP
         </div>
       </aside>
 
-      {showNotifications ? (
+      {notifAnim.render ? (
         <div
           ref={notifPanelRef}
-          className="anim-pop fixed bottom-4 left-[84px] z-[100] hidden w-[320px] origin-bottom-left overflow-hidden rounded-2xl border border-white/[0.06] bg-[#0a0a0a] shadow-2xl md:block"
+          className={`${notifAnim.closing ? "anim-pop-out" : "anim-pop"} fixed bottom-4 left-[84px] z-[100] hidden w-[320px] origin-bottom-left overflow-hidden rounded-2xl border border-white/[0.06] bg-[#0a0a0a] shadow-2xl md:block`}
         >
           <div className="flex items-center justify-between border-b border-white/[0.06] px-4 py-3">
             <div className="flex items-center gap-2">
@@ -708,11 +712,11 @@ export function SlimSidebar({ onOpenChat, unreadMessageCount = 0 }: SlimSidebarP
         </div>
       ) : null}
 
-      {showLang ? (
+      {moreAnim.render ? (
         <div
           ref={langPanelRef}
           role="menu"
-          className="anim-pop fixed bottom-[56px] left-[84px] z-[100] hidden origin-bottom-left md:block"
+          className={`${moreAnim.closing ? "anim-pop-out" : "anim-pop"} fixed bottom-[56px] left-[84px] z-[100] hidden origin-bottom-left md:block`}
         >
           <div className="w-[184px] overflow-hidden rounded-2xl border border-white/[0.08] bg-[#0a0a0a]/95 p-1.5 shadow-2xl backdrop-blur-xl">
             <p className="px-2 pb-1 pt-1.5 text-[10px] font-semibold uppercase tracking-[0.14em] text-white/35">
@@ -765,7 +769,7 @@ export function SlimSidebar({ onOpenChat, unreadMessageCount = 0 }: SlimSidebarP
         </div>
       ) : null}
 
-      {showLogoutConfirm ? (
+      {logoutAnim.render ? (
         <div
           className="fixed inset-0 z-[200] flex items-center justify-center p-4"
           role="dialog"
@@ -773,12 +777,12 @@ export function SlimSidebar({ onOpenChat, unreadMessageCount = 0 }: SlimSidebarP
           onClick={() => setShowLogoutConfirm(false)}
         >
           <div
-            className="anim-scrim absolute inset-0 bg-black/65 backdrop-blur-sm"
+            className={`${logoutAnim.closing ? "anim-scrim-out" : "anim-scrim"} absolute inset-0 bg-black/65 backdrop-blur-sm`}
             aria-hidden
           />
           <div
             onClick={(e) => e.stopPropagation()}
-            className="anim-modal relative w-full max-w-[360px] overflow-hidden rounded-2xl border border-[#7F77DD]/20 p-6 text-center"
+            className={`${logoutAnim.closing ? "anim-modal-out" : "anim-modal"} relative w-full max-w-[360px] overflow-hidden rounded-2xl border border-[#7F77DD]/20 p-6 text-center`}
             style={{
               background:
                 "linear-gradient(160deg, rgba(20,16,40,0.96) 0%, rgba(10,10,10,0.98) 100%)",

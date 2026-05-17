@@ -31,7 +31,19 @@ export function UploadLotteryBadge() {
     };
   }, []);
 
-  if (used === null) return null;
+  // 로딩 중에도 동일 높이의 자리표시자를 렌더해 폼이 뒤늦게
+  // 밀려나는 레이아웃 점프를 방지.
+  if (used === null) {
+    return (
+      <div
+        className="mb-4 flex animate-pulse items-center gap-2 rounded-lg border border-white/[0.06] bg-white/[0.02] px-3 py-2 text-[12px]"
+        aria-hidden
+      >
+        <Ticket className="h-3.5 w-3.5 text-white/15" />
+        <span className="h-3 w-28 rounded bg-white/[0.06]" />
+      </div>
+    );
+  }
   const depleted = used >= 5;
 
   return (

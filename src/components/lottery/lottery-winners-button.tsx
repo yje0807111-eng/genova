@@ -1,9 +1,11 @@
 "use client";
 
 import { useState } from "react";
+import { createPortal } from "react-dom";
 import Link from "next/link";
 import { Gift, X } from "lucide-react";
 import { useI18n } from "@/components/genova/language-provider";
+import { useExitAnimation } from "@/lib/hooks/use-exit-animation";
 import {
   getCurrentMonthWinners,
   type PublicMonthlyWinner,
@@ -14,6 +16,7 @@ import {
 export function LotteryWinnersButton() {
   const { t } = useI18n();
   const [open, setOpen] = useState(false);
+  const { render, closing } = useExitAnimation(open, 200);
   const [loading, setLoading] = useState(false);
   const [loaded, setLoaded] = useState(false);
   const [monthKey, setMonthKey] = useState("");
@@ -46,13 +49,14 @@ export function LotteryWinnersButton() {
         {t("lottery.winnersButton", "응모권 당첨자")}
       </button>
 
-      {open ? (
+      {render && typeof window !== "undefined"
+        ? createPortal(
         <div
-          className="anim-scrim fixed inset-0 z-[120] flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm"
+          className={`${closing ? "anim-scrim-out" : "anim-scrim"} fixed inset-0 z-[120] flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm`}
           onClick={() => setOpen(false)}
         >
           <div
-            className="anim-modal relative w-full max-w-md rounded-2xl border border-white/[0.08] bg-[#0a0a0a] p-6"
+            className={`${closing ? "anim-modal-out" : "anim-modal"} relative w-full max-w-md rounded-2xl border border-white/[0.08] bg-[#0a0a0a] p-6`}
             onClick={(e) => e.stopPropagation()}
           >
             <button
@@ -128,8 +132,10 @@ export function LotteryWinnersButton() {
               )}
             </p>
           </div>
-        </div>
-      ) : null}
+        </div>,
+            document.body,
+          )
+        : null}
     </>
   );
 }

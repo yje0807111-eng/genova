@@ -646,8 +646,26 @@ body {
 .anim-scrim { animation: scrimIn 0.2s ease-out both; }
 .anim-modal { animation: modalIn 0.32s cubic-bezier(0.22, 1, 0.36, 1) both; }
 .anim-pop   { animation: popIn 0.22s cubic-bezier(0.22, 1, 0.36, 1) both; }
+
+@keyframes scrimOut {
+  from { opacity: 1; }
+  to   { opacity: 0; }
+}
+@keyframes modalOut {
+  from { opacity: 1; transform: translateY(0) scale(1); }
+  to   { opacity: 0; transform: translateY(8px) scale(0.96); }
+}
+@keyframes popOut {
+  from { opacity: 1; transform: translateY(0) scale(1); }
+  to   { opacity: 0; transform: translateY(4px) scale(0.98); }
+}
+.anim-scrim-out { animation: scrimOut 0.18s ease-in both; }
+.anim-modal-out { animation: modalOut 0.2s ease-in both; }
+.anim-pop-out   { animation: popOut 0.16s ease-in both; }
+
 @media (prefers-reduced-motion: reduce) {
-  .anim-scrim, .anim-modal, .anim-pop { animation: none; }
+  .anim-scrim, .anim-modal, .anim-pop,
+  .anim-scrim-out, .anim-modal-out, .anim-pop-out { animation: none; }
 }
 
 /* section-swap — 홈 필터(추천/필름 탭·서브 칩·정렬) 전환 시
