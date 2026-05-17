@@ -179,9 +179,13 @@ export function GenovaProfileClient({
     return base;
   }, [isOwner]);
 
-  useEffect(() => {
+  // Reset to page 1 whenever tab/sort changes — documented
+  // "store previous value, adjust during render" pattern.
+  const [prevPageKey, setPrevPageKey] = useState({ activeTab, sortBy });
+  if (prevPageKey.activeTab !== activeTab || prevPageKey.sortBy !== sortBy) {
+    setPrevPageKey({ activeTab, sortBy });
     setCurrentPage(1);
-  }, [activeTab, sortBy]);
+  }
 
   useEffect(() => {
     window.dispatchEvent(new CustomEvent("profile-owner-status", { detail: isOwner }));
@@ -198,7 +202,13 @@ export function GenovaProfileClient({
     });
   }, []);
 
-  useEffect(() => setSelectedVideoIds([]), [bulkAction]);
+  // Clear selection whenever the bulk-action mode changes —
+  // documented "store previous value, adjust during render" pattern.
+  const [prevBulkAction, setPrevBulkAction] = useState(bulkAction);
+  if (prevBulkAction !== bulkAction) {
+    setPrevBulkAction(bulkAction);
+    setSelectedVideoIds([]);
+  }
 
   const sortedVideos = useMemo(() => {
     const sourceList =
@@ -230,9 +240,13 @@ export function GenovaProfileClient({
     return arr;
   }, [activeTab, sortBy, bulkAction, editMode, localWorks, localCompetitionVideos, savedVideos]);
 
-  useEffect(() => {
+  // Re-sync local competition videos when the server set changes —
+  // documented "store previous value, adjust during render" pattern.
+  const [prevCompetitionVideos, setPrevCompetitionVideos] = useState(competitionVideos);
+  if (prevCompetitionVideos !== competitionVideos) {
+    setPrevCompetitionVideos(competitionVideos);
     setLocalCompetitionVideos(competitionVideos);
-  }, [competitionVideos]);
+  }
 
   const displayVideos = useMemo(() => {
     const totalPages = Math.ceil(sortedVideos.length / VIDEOS_PER_PAGE);

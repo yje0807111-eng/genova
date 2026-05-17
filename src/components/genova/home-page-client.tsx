@@ -88,11 +88,16 @@ export function HomePageClient(props: HomePageClientProps) {
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const loadMoreRef = useRef<HTMLDivElement | null>(null);
 
-  useEffect(() => {
+  // Re-seed feed/pagination when the server sends a new video set —
+  // documented "store previous value, adjust during render" pattern
+  // (replaces a setState-in-effect; identical [videosFromDb] trigger).
+  const [prevVideosSource, setPrevVideosSource] = useState(videosFromDb);
+  if (prevVideosSource !== videosFromDb) {
+    setPrevVideosSource(videosFromDb);
     setAllVideos(videosFromDb);
     setPage(0);
     setHasMore(videosFromDb.length === 50);
-  }, [videosFromDb]);
+  }
 
   const loadMore = useCallback(async () => {
     if (!hasMore || isLoadingMore) return;
