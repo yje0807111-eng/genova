@@ -228,7 +228,11 @@ export default async function WatchDetailPage({
               <MuxPlayer
                 playbackId={video.muxPlaybackId}
                 title={video.title}
-                nextVideoId={related[0]?.id ?? null}
+                nextVideoId={
+                  showSeries && seriesNav.nextId
+                    ? seriesNav.nextId
+                    : (related[0]?.id ?? null)
+                }
                 userId={user?.id ?? null}
                 videoId={video.id}
                 initialProgressSeconds={progress?.progressSeconds ?? 0}

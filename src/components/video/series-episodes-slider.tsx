@@ -160,17 +160,9 @@ export function SeriesEpisodesSlider({
                 className={cn(
                   "group/card relative aspect-video w-[180px] shrink-0 overflow-hidden rounded-lg transition-all duration-200",
                   isCurrent
-                    ? "ring-1 ring-[#9D95F0]/70"
+                    ? "ring-1 ring-[#9D95F0]/55"
                     : "ring-1 ring-white/[0.05] hover:-translate-y-0.5 hover:ring-white/20",
                 )}
-                style={
-                  isCurrent
-                    ? {
-                        boxShadow:
-                          "0 0 0 1px rgba(157,149,240,0.5), 0 8px 26px -8px rgba(127,119,221,0.55)",
-                      }
-                    : undefined
-                }
               >
                 <Image
                   src={
