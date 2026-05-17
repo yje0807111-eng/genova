@@ -70,6 +70,17 @@ export function LotteryManagement({
       return next;
     });
 
+  const [collapsedAuditMonths, setCollapsedAuditMonths] = useState<
+    Set<string>
+  >(new Set());
+  const toggleAuditMonth = (mk: string) =>
+    setCollapsedAuditMonths((prev) => {
+      const next = new Set(prev);
+      if (next.has(mk)) next.delete(mk);
+      else next.add(mk);
+      return next;
+    });
+
   const refresh = () => router.refresh();
 
   const copy = (text: string, key: string) => {
@@ -210,6 +221,14 @@ export function LotteryManagement({
   const monthGroups = Object.entries(
     filtered.reduce<Record<string, LotteryWinnerWorkRow[]>>((acc, w) => {
       (acc[w.drawMonthKey] ??= []).push(w);
+      return acc;
+    }, {}),
+  ).sort(([a], [b]) => b.localeCompare(a));
+
+  // 추첨 이력도 동일하게 월별 그룹화(최신 월 우선).
+  const auditGroups = Object.entries(
+    auditLog.reduce<Record<string, LotteryAuditRow[]>>((acc, r) => {
+      (acc[r.drawMonthKey] ??= []).push(r);
       return acc;
     }, {}),
   ).sort(([a], [b]) => b.localeCompare(a));
@@ -529,32 +548,66 @@ export function LotteryManagement({
         {auditLog.length === 0 ? (
           <p className="py-6 text-center text-[12px] text-white/35">이력 없음</p>
         ) : (
-          <div className="space-y-1.5">
-            {auditLog.map((r) => (
-              <div
-                key={r.id}
-                className="flex flex-wrap items-center gap-x-3 gap-y-1 rounded-lg border border-white/[0.06] px-3 py-1.5 text-[11px] text-white/55"
-              >
-                <span className="font-bold text-[#AFA9EC]">{r.drawMonthKey}</span>
-                <span>{fmtKST(r.drawnAt)}</span>
-                {r.isRedraw ? (
-                  <span className="rounded bg-amber-500/15 px-1.5 py-0.5 text-amber-300">
-                    재추첨 · {winnerNo(r.drawMonthKey, r.redrawPrizeTier ?? 0)}
+          <div className="space-y-4">
+            {auditGroups.map(([mk, logs]) => (
+              <div key={mk}>
+                <button
+                  type="button"
+                  onClick={() => toggleAuditMonth(mk)}
+                  className="mb-2 flex w-full items-center gap-2 border-b border-white/[0.06] pb-1.5 text-left transition hover:border-white/15"
+                >
+                  <span
+                    className={cn(
+                      "inline-block text-[10px] text-white/40 transition-transform",
+                      !collapsedAuditMonths.has(mk) && "rotate-90",
+                    )}
+                  >
+                    ▶
                   </span>
-                ) : (
-                  <span className="rounded bg-white/[0.06] px-1.5 py-0.5">
-                    최초 추첨
+                  <h4 className="text-[12px] font-black tabular-nums text-[#AFA9EC]">
+                    {mk}
+                  </h4>
+                  <span className="text-[11px] text-white/35">
+                    {logs.length}건
                   </span>
+                  <span className="ml-auto text-[10px] text-white/30">
+                    재추첨 {logs.filter((l) => l.isRedraw).length} / 최초{" "}
+                    {logs.filter((l) => !l.isRedraw).length}
+                  </span>
+                </button>
+                {collapsedAuditMonths.has(mk) ? null : (
+                  <div className="space-y-1.5">
+                    {logs.map((r) => (
+                      <div
+                        key={r.id}
+                        className="flex flex-wrap items-center gap-x-3 gap-y-1 rounded-lg border border-white/[0.06] px-3 py-1.5 text-[11px] text-white/55"
+                      >
+                        <span>{fmtKST(r.drawnAt)}</span>
+                        {r.isRedraw ? (
+                          <span className="rounded bg-amber-500/15 px-1.5 py-0.5 text-amber-300">
+                            재추첨 · {winnerNo(r.drawMonthKey, r.redrawPrizeTier ?? 0)}
+                          </span>
+                        ) : (
+                          <span className="rounded bg-white/[0.06] px-1.5 py-0.5">
+                            최초 추첨
+                          </span>
+                        )}
+                        <span>
+                          응모 {r.eligibleEntryCount} · 참여{" "}
+                          {r.eligibleUserCount}
+                        </span>
+                        <span className="font-mono text-white/30">
+                          seed {r.seedValue.slice(0, 10)}…
+                        </span>
+                        {r.redrawReason ? (
+                          <span className="text-white/40">
+                            · {r.redrawReason}
+                          </span>
+                        ) : null}
+                      </div>
+                    ))}
+                  </div>
                 )}
-                <span>
-                  응모 {r.eligibleEntryCount} · 참여 {r.eligibleUserCount}
-                </span>
-                <span className="font-mono text-white/30">
-                  seed {r.seedValue.slice(0, 10)}…
-                </span>
-                {r.redrawReason ? (
-                  <span className="text-white/40">· {r.redrawReason}</span>
-                ) : null}
               </div>
             ))}
           </div>
