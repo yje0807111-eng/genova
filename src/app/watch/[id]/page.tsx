@@ -1,14 +1,12 @@
+import { Suspense } from "react";
 import type { Metadata } from "next";
 import { after } from "next/server";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { WatchMoreMenu } from "@/components/video/watch-more-menu";
 import { ShareButton } from "@/components/video/share-modal";
-import {
-  WatchDescriptionInner,
-  WatchRecommendationsSections,
-} from "@/components/video/watch-detail-client";
-import { mapVideo } from "@/lib/mappers";
+import { WatchDescriptionInner } from "@/components/video/watch-detail-client";
+import { WatchRecommendations } from "@/components/video/watch-recommendations";
 import { hrefForVideoCreator } from "@/lib/creator-links";
 import { fetchCommentsForVideo } from "@/lib/queries/comments-queries";
 import { attachEngagementToVideos } from "@/lib/queries/engagement-queries";
@@ -18,7 +16,6 @@ import {
   fetchRelatedVideos,
   fetchSeriesEpisodesForVideo,
   fetchVideoById,
-  mergeVideoRows,
   type SeriesEpisodesNav,
 } from "@/lib/queries";
 import { fetchFollowCounts, fetchIsFollowing, fetchPublicProfileById } from "@/lib/queries/profile-queries";
@@ -96,21 +93,41 @@ export default async function WatchDetailPage({
   // the highest-traffic dynamic page.  Each helper creates its own
   // request-cached server supabase client internally — no shared
   // handle needed.
+  // 단일 병렬 배치 — 2차 의존(시리즈/댓글/추천 등)은 user 가 아닌
+  // 이미 resolve 된 video 만 필요하므로 1차와 합쳐 직렬 라운드트립
+  // 한 단계를 제거.  user 가 필요한 isFollowing 만 userPromise 에
+  // 체이닝해 같은 배치 안에서 동시 실행.
   const supabase = await createServerSupabaseClient();
+  const uploaderId = video.uploadedBy;
+  const userPromise = supabase
+    ? supabase.auth.getUser()
+    : Promise.resolve({ data: { user: null } });
   const [
     userResult,
     engagementResult,
     progress,
     cookieStore,
     rawRelated,
+    creatorResult,
+    seriesNavRaw,
+    comments,
+    uploaderProfile,
+    isFollowing,
   ] = await Promise.all([
-    supabase
-      ? supabase.auth.getUser()
-      : Promise.resolve({ data: { user: null } }),
+    userPromise,
     attachEngagementToVideos([video]),
     getVideoProgress(video.id),
     cookies(),
     fetchRelatedVideos(video.id, 20),
+    video.creatorId ? fetchCreatorById(video.creatorId) : Promise.resolve(null),
+    fetchSeriesEpisodesForVideo(video),
+    fetchCommentsForVideo(video.id),
+    uploaderId ? fetchPublicProfileById(uploaderId) : Promise.resolve(null),
+    uploaderId
+      ? userPromise.then((r) =>
+          fetchIsFollowing(r.data?.user?.id, uploaderId),
+        )
+      : Promise.resolve(false),
   ]);
 
   const user = userResult.data?.user ?? null;
@@ -131,70 +148,8 @@ export default async function WatchDetailPage({
 
   related = related.slice(0, 8);
 
-  // Second parallel block: detail-page dependencies that need the
-  // resolved user / video.
-  const [
-    creatorResult,
-    seriesNavRaw,
-    comments,
-    uploaderProfile,
-    isFollowing,
-    sameGenreRes,
-    trendingRes,
-  ] = await Promise.all([
-    video.creatorId ? fetchCreatorById(video.creatorId) : Promise.resolve(null),
-    fetchSeriesEpisodesForVideo(video),
-    fetchCommentsForVideo(video.id),
-    video.uploadedBy ? fetchPublicProfileById(video.uploadedBy) : Promise.resolve(null),
-    video.uploadedBy ? fetchIsFollowing(user?.id, video.uploadedBy) : Promise.resolve(false),
-    supabase
-      ? supabase
-          .from("videos")
-          .select("*, creators(*)")
-          .eq("visibility", "public")
-          .eq("genre", video.genre)
-          .neq("id", video.id)
-          .order("view_count", { ascending: false })
-          .limit(12)
-      : Promise.resolve({ data: [] as unknown[] }),
-    supabase
-      ? supabase
-          .from("videos")
-          .select("*, creators(*)")
-          .eq("visibility", "public")
-          .neq("id", video.id)
-          .order("view_count", { ascending: false })
-          .limit(24)
-      : Promise.resolve({ data: [] as unknown[] }),
-  ]);
   const creator = creatorResult;
   const seriesNav: SeriesEpisodesNav = seriesNavRaw;
-  // 업로더 프로필명(uploaderDisplayName)을 채우려면 public_profiles
-  // 를 merge 해야 함 — 추천 카드에 작성자 이름 표시(홈 카드와 동일).
-  // 두 목록을 합쳐 한 번만 merge — public_profiles/creators 라운드
-  // 트립을 4회→2회로 절반.
-  const sameGenreRows = (sameGenreRes.data ?? []) as Parameters<
-    typeof mapVideo
-  >[0][];
-  const trendingRows = (trendingRes.data ?? []) as Parameters<
-    typeof mapVideo
-  >[0][];
-  const unionById = new Map<string, Parameters<typeof mapVideo>[0]>();
-  for (const r of [...sameGenreRows, ...trendingRows]) {
-    if (!unionById.has(r.id)) unionById.set(r.id, r);
-  }
-  const merged = await mergeVideoRows([...unionById.values()]);
-  const mergedById = new Map(merged.map((r) => [r.id, r]));
-
-  const sameGenreVideos = sameGenreRows.map((r) =>
-    mapVideo(mergedById.get(r.id) ?? r),
-  );
-  const sameGenreIds = new Set(sameGenreVideos.map((v) => v.id));
-  const trendingVideos = trendingRows
-    .map((r) => mapVideo(mergedById.get(r.id) ?? r))
-    .filter((v) => !sameGenreIds.has(v.id))
-    .slice(0, 12);
-
   const displaySeriesNav = seriesNav;
 
   const showSeries = seriesNav.episodes.length > 0;
@@ -288,14 +243,16 @@ export default async function WatchDetailPage({
         isFollowingCreator={isFollowing}
       />
 
-      {/* 모바일에선 숨김 — 시청 페이지 과밀 완화 */}
+      {/* 모바일에선 숨김 — 시청 페이지 과밀 완화.  Suspense 로
+          스트리밍: 추천 fetch/merge 가 플레이어 렌더를 막지 않음. */}
       <div className="hidden md:block">
-        <WatchRecommendationsSections
-          sameGenreVideos={sameGenreVideos}
-          trendingVideos={trendingVideos}
-          currentVideoId={video.id}
-          currentSeriesName={showSeries ? (video.seriesName ?? null) : null}
-        />
+        <Suspense fallback={null}>
+          <WatchRecommendations
+            videoId={video.id}
+            genre={video.genre}
+            currentSeriesName={showSeries ? (video.seriesName ?? null) : null}
+          />
+        </Suspense>
       </div>
     </div>
   );
