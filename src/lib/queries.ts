@@ -447,7 +447,7 @@ export async function fetchVideosByCreator(creatorId: string): Promise<Video[]> 
   return data.map((row) => mapVideo(row));
 }
 
-/** 같은 업로더·같은 시리즈명·`genre=series`인 에피소드 목록 및 이전/다음 ID */
+/** 같은 업로더·같은 시리즈명 에피소드 목록 및 이전/다음 ID */
 export type SeriesEpisodesNav = {
   seriesTitle: string;
   episodes: Video[];
@@ -458,7 +458,9 @@ export type SeriesEpisodesNav = {
 
 export async function fetchSeriesEpisodesForVideo(video: Video): Promise<SeriesEpisodesNav> {
   const name = video.seriesName?.trim();
-  if (video.genre !== "series" || !name || !video.uploadedBy) {
+  // 시리즈는 장르와 독립된 토글 → series_name 유무로만 판단
+  // (과거 genre==='series' 게이트는 그런 장르가 없어 무력했음).
+  if (!name || !video.uploadedBy) {
     return { seriesTitle: "", episodes: [], prevId: null, nextId: null, seasons: [] };
   }
 
@@ -470,7 +472,6 @@ export async function fetchSeriesEpisodesForVideo(video: Video): Promise<SeriesE
     // `*` includes `view_count` and `runtime` (watch page series episode cards).
     .select("*, creators(*)")
     .eq("uploaded_by", video.uploadedBy)
-    .eq("genre", "series")
     .eq("series_name", name)
     .not("episode_number", "is", null)
     .order("episode_number", { ascending: true });

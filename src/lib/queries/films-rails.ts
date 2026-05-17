@@ -21,7 +21,9 @@ import type { Video } from "@/lib/types";
  * the lowest episode_number for each series so the user lands on
  * episode 1 by default, then sort series alphabetically by name.
  *
- * Series mode = `videos.genre = 'series' AND series_name IS NOT NULL`.
+ * Series mode = `series_name IS NOT NULL` (장르와 독립된 토글).
+ * 과거엔 genre='series' 도 요구했으나 그런 장르가 없어 신규
+ * 업로드 시리즈가 레일에 안 잡히던 문제로 조건을 완화.
  */
 export async function fetchSeriesRail(limit = 12): Promise<Video[]> {
   const supabase = await createServerSupabaseClient();
@@ -31,7 +33,6 @@ export async function fetchSeriesRail(limit = 12): Promise<Video[]> {
     .from("videos")
     .select("*")
     .eq("visibility", "public")
-    .eq("genre", "series")
     .not("series_name", "is", null)
     .order("series_name", { ascending: true })
     .order("episode_number", { ascending: true, nullsFirst: false })

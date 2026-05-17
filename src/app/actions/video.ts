@@ -111,8 +111,15 @@ export async function createVideoAction(form: {
 
   const purpose = form.purpose;
   const competitionId = purpose === "competition" ? form.submittedCompetitionId : null;
-  const seriesName = form.genre === "series" && form.seriesName?.trim() ? form.seriesName.trim() : null;
-  const episodeNumber = form.genre === "series" && form.episodeNumber ? form.episodeNumber : null;
+  // 시리즈는 장르와 독립된 토글(폼이 isSeriesMode 일 때만 값 전달).
+  // 과거엔 genre === "series" 로 게이트했으나 그런 장르가 없어
+  // 시리즈가 저장되지 않던 버그 → seriesName 유무로만 판단.
+  const seriesName = form.seriesName?.trim() ? form.seriesName.trim() : null;
+  const episodeNumber = seriesName
+    ? form.episodeNumber && form.episodeNumber >= 1
+      ? form.episodeNumber
+      : 1
+    : null;
 
   const finalThumbnailUrl = form.thumbnailUrl
     || (muxPlaybackId ? `https://image.mux.com/${muxPlaybackId}/thumbnail.jpg?width=1280&time=2` : "");
@@ -349,14 +356,16 @@ export async function updateVideoAction(
   if (normalizedTags.length > MAX_VIDEO_TAGS) {
     return { ok: false, message: `You can add up to ${MAX_VIDEO_TAGS} tags.` };
   }
-  if (form.genre === "series") {
-    if (!form.seriesName?.trim()) return { ok: false, message: "Please enter a series name." };
+  // 시리즈 모드 = 폼이 seriesName 을 non-null 로 전달(장르 무관).
+  const wantsSeries = form.seriesName !== null && form.seriesName !== undefined;
+  if (wantsSeries) {
+    if (!form.seriesName!.trim()) return { ok: false, message: "Please enter a series name." };
     if (!form.episodeNumber || form.episodeNumber < 1) return { ok: false, message: "Please enter an episode number." };
   }
 
   const runtime = `${Math.round(form.runtimeMinutes)} min`;
-  const seriesName = form.genre === "series" ? form.seriesName!.trim() : null;
-  const episodeNumber = form.genre === "series" ? form.episodeNumber! : null;
+  const seriesName = wantsSeries ? form.seriesName!.trim() : null;
+  const episodeNumber = wantsSeries ? form.episodeNumber! : null;
 
   const { data: row, error: fetchErr } = await supabase
     .from("videos")
