@@ -35,8 +35,23 @@ export function LotteryManagement({
   const router = useRouter();
   const [pending, start] = useTransition();
   const [filter, setFilter] = useState<string>(initialWinnerFilter ?? "all");
+  const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [copied, setCopied] = useState<string | null>(null);
 
   const refresh = () => router.refresh();
+
+  const copy = (text: string, key: string) => {
+    void navigator.clipboard?.writeText(text).then(() => {
+      setCopied(key);
+      setTimeout(() => setCopied((c) => (c === key ? null : c)), 1500);
+    });
+  };
+
+  // YY.M.tier 지명 번호 (claim 페이지와 동일 표기).
+  const winnerNo = (monthKey: string, tier: number) => {
+    const [y, m] = (monthKey ?? "").split("-");
+    return y && m ? `${y.slice(2)}.${parseInt(m, 10)}.${tier}` : String(tier);
+  };
 
   const onDraw = () => {
     if (
@@ -76,16 +91,26 @@ export function LotteryManagement({
   };
 
   const onVerify = (winnerId: string) => {
-    const notes = prompt("검수 메모 (선택)")?.trim() || undefined;
+    if (
+      !confirm(
+        "제출된 지급 계정 정보(법적 이름·국가·결제수단·계정 이메일)를 모두 확인했습니까?\n확인 시 '검수 완료' 상태가 되어 지급 단계로 넘어갑니다.",
+      )
+    )
+      return;
+    const notes =
+      prompt("내부 메모 (선택 — 특이사항이 있으면 기록, 없으면 비워두세요)")?.trim() ||
+      undefined;
     start(async () => {
       const res = await markWinnerInfoVerifiedAction({ winnerId, notes });
-      onMessage(res.ok ? "정보 확인 완료" : `확인 실패: ${res.message}`);
+      onMessage(res.ok ? "검수 완료 처리됨" : `검수 실패: ${res.message}`);
       if (res.ok) refresh();
     });
   };
 
   const onPay = (winnerId: string) => {
-    const ref = prompt("지급 참조(거래 ID 등, 필수)")?.trim();
+    const ref = prompt(
+      "실제 송금을 완료한 뒤, 거래 참조번호(PayPal/Wise/Payoneer 거래 ID 등)를 입력하세요. (필수)",
+    )?.trim();
     if (!ref) return;
     start(async () => {
       const res = await markWinnerInfoPaidAction({
@@ -239,72 +264,187 @@ export function LotteryManagement({
           <p className="py-6 text-center text-[12px] text-white/35">당첨자 없음</p>
         ) : (
           <div className="space-y-2">
-            {filtered.map((w) => (
-              <div
-                key={w.winnerId}
-                className="flex flex-wrap items-center gap-x-4 gap-y-1 rounded-lg border border-white/[0.06] bg-white/[0.02] px-3 py-2 text-[12px]"
-              >
-                <span className="font-bold text-[#AFA9EC]">{w.drawMonthKey}</span>
-                <span className="font-bold text-white">{w.prizeTier}위</span>
-                <span className="text-white/70">
-                  {w.userDisplayName ?? w.userId.slice(0, 8)}
-                </span>
-                <span className="tabular-nums text-[#F5D182]">
-                  ${w.prizeAmountUsd}
-                </span>
-                <span className="rounded bg-white/[0.06] px-1.5 py-0.5 text-[10px] text-white/55">
-                  {statusLabel(w.claimStatus)}
-                </span>
-                {w.info ? (
-                  <span className="text-white/40">
-                    {w.info.legalName} · {w.info.paymentMethod} ·{" "}
-                    {w.info.paymentEmail}
-                  </span>
-                ) : null}
-                <span className="ml-auto flex gap-1.5">
+            {filtered.map((w) => {
+              const open = expandedId === w.winnerId;
+              const dday = Math.ceil(
+                (new Date(w.infoDeadline).getTime() - Date.now()) / 86_400_000,
+              );
+              return (
+                <div
+                  key={w.winnerId}
+                  className={cn(
+                    "overflow-hidden rounded-xl border bg-white/[0.02] transition",
+                    open
+                      ? "border-[#7F77DD]/30"
+                      : "border-white/[0.07]",
+                  )}
+                >
+                  {/* 헤더 — 클릭하면 상세 펼침 */}
                   <button
                     type="button"
-                    onClick={() => onResend(w.winnerId)}
-                    disabled={pending}
-                    className="rounded-md border border-white/15 px-2 py-1 text-[11px] text-white/60 hover:text-white"
+                    onClick={() =>
+                      setExpandedId(open ? null : w.winnerId)
+                    }
+                    className="flex w-full flex-wrap items-center gap-x-3 gap-y-1.5 px-3.5 py-3 text-left text-[12px] transition hover:bg-white/[0.015]"
                   >
-                    재발송
+                    <span className="rounded-md bg-[#534AB7]/15 px-2 py-0.5 text-[11px] font-bold tabular-nums text-[#AFA9EC]">
+                      {winnerNo(w.drawMonthKey, w.prizeTier)}
+                    </span>
+                    <span className="font-semibold text-white">
+                      {w.userDisplayName ?? w.userId.slice(0, 8)}
+                    </span>
+                    <span className="font-bold tabular-nums text-[#F5D182]">
+                      ${w.prizeAmountUsd}
+                    </span>
+                    <StatusPill status={w.claimStatus} label={statusLabel(w.claimStatus)} />
+                    {w.info ? (
+                      <span className="rounded bg-emerald-500/12 px-1.5 py-0.5 text-[10px] font-semibold text-emerald-300/85">
+                        정보 제출됨
+                      </span>
+                    ) : (
+                      <span className="rounded bg-amber-500/12 px-1.5 py-0.5 text-[10px] font-semibold text-amber-300/85">
+                        미제출 · {dday >= 0 ? `D-${dday}` : `마감 +${-dday}일`}
+                      </span>
+                    )}
+                    <span className="ml-auto flex items-center gap-1.5 text-white/40">
+                      <span className="text-[11px]">
+                        {open ? "접기" : "정보 보기"}
+                      </span>
+                      <span
+                        className={cn(
+                          "inline-block text-[10px] transition-transform",
+                          open && "rotate-180",
+                        )}
+                      >
+                        ▾
+                      </span>
+                    </span>
                   </button>
-                  {w.claimStatus === "submitted" ? (
-                    <button
-                      type="button"
-                      onClick={() => onVerify(w.winnerId)}
-                      disabled={pending}
-                      className="rounded-md border border-white/15 px-2 py-1 text-[11px] text-white/70 hover:text-white"
-                    >
-                      정보 확인
-                    </button>
+
+                  {open ? (
+                    <div className="space-y-3.5 border-t border-white/[0.06] px-3.5 py-3.5">
+                      {w.info ? (
+                        <div className="grid grid-cols-1 gap-x-6 gap-y-2.5 sm:grid-cols-2">
+                          <InfoField label="법적 이름 (지급 계정과 일치)" value={w.info.legalName} />
+                          <InfoField label="국가" value={w.info.country} />
+                          <InfoField
+                            label="결제 수단"
+                            value={
+                              w.info.paymentMethod +
+                              (w.info.paymentCurrency
+                                ? ` · ${w.info.paymentCurrency}`
+                                : "")
+                            }
+                          />
+                          <InfoField
+                            label="결제 계정 이메일"
+                            value={w.info.paymentEmail}
+                            onCopy={() =>
+                              copy(w.info!.paymentEmail, `${w.winnerId}:email`)
+                            }
+                            copied={copied === `${w.winnerId}:email`}
+                          />
+                          {w.info.contactExtra ? (
+                            <InfoField label="추가 연락처" value={w.info.contactExtra} />
+                          ) : null}
+                          <InfoField
+                            label="제출 일시"
+                            value={new Date(w.info.submittedAt).toLocaleString("ko-KR")}
+                          />
+                          {w.info.adminVerified ? (
+                            <InfoField
+                              label="검수"
+                              value={`완료 · ${
+                                w.info.adminVerifiedAt
+                                  ? new Date(w.info.adminVerifiedAt).toLocaleString("ko-KR")
+                                  : ""
+                              }`}
+                            />
+                          ) : null}
+                          {w.info.adminNotes ? (
+                            <InfoField label="내부 메모" value={w.info.adminNotes} />
+                          ) : null}
+                          {w.info.paidAt ? (
+                            <InfoField
+                              label="지급"
+                              value={`완료 · ${new Date(w.info.paidAt).toLocaleString("ko-KR")}${
+                                w.info.paymentReference
+                                  ? ` · ${w.info.paymentReference}`
+                                  : ""
+                              }`}
+                            />
+                          ) : null}
+                        </div>
+                      ) : (
+                        <p className="rounded-lg border border-amber-400/20 bg-amber-500/[0.06] px-3 py-2.5 text-[12px] leading-relaxed text-amber-200/85">
+                          당첨자가 아직 지급 정보를 제출하지 않았습니다. 제출 마감{" "}
+                          <b className="text-amber-100">
+                            {new Date(w.infoDeadline).toLocaleDateString("ko-KR")}
+                          </b>{" "}
+                          ({dday >= 0 ? `D-${dday}` : `마감 ${-dday}일 경과`}). 마감 후
+                          미제출 시 자동 만료됩니다. 알림이 안 갔다면 아래 “재발송”.
+                        </p>
+                      )}
+
+                      {/* 처리 액션 + 가이드 */}
+                      <div className="space-y-2 border-t border-white/[0.05] pt-3">
+                        <div className="flex flex-wrap items-center gap-2">
+                          {w.claimStatus === "submitted" ? (
+                            <button
+                              type="button"
+                              onClick={() => onVerify(w.winnerId)}
+                              disabled={pending}
+                              className="rounded-lg bg-gradient-to-br from-[#6B5FD4] to-[#534AB7] px-3.5 py-2 text-[12px] font-bold text-white shadow-[0_2px_10px_rgba(83,74,183,0.35)] transition hover:brightness-110 disabled:opacity-50"
+                            >
+                              검수 완료 →
+                            </button>
+                          ) : null}
+                          {w.claimStatus === "confirmed" ? (
+                            <button
+                              type="button"
+                              onClick={() => onPay(w.winnerId)}
+                              disabled={pending}
+                              className="rounded-lg bg-gradient-to-br from-emerald-500 to-emerald-600 px-3.5 py-2 text-[12px] font-bold text-white shadow-[0_2px_10px_rgba(16,185,129,0.3)] transition hover:brightness-110 disabled:opacity-50"
+                            >
+                              지급 완료 처리 →
+                            </button>
+                          ) : null}
+                          <button
+                            type="button"
+                            onClick={() => onResend(w.winnerId)}
+                            disabled={pending}
+                            className="rounded-lg border border-white/15 px-3 py-2 text-[12px] font-semibold text-white/65 transition hover:text-white"
+                          >
+                            알림·이메일 재발송
+                          </button>
+                          {["pending", "submitted", "expired"].includes(
+                            w.claimStatus,
+                          ) ? (
+                            <button
+                              type="button"
+                              onClick={() => onRedraw(w.prizeTier)}
+                              disabled={pending}
+                              className="ml-auto rounded-lg border border-red-400/20 px-3 py-2 text-[12px] font-semibold text-red-300/70 transition hover:border-red-400/40 hover:text-red-300"
+                            >
+                              이 자리 재추첨
+                            </button>
+                          ) : null}
+                        </div>
+                        <p className="text-[11px] leading-relaxed text-white/35">
+                          {w.claimStatus === "submitted"
+                            ? "① 위 지급 계정 정보(이름·국가·결제수단·이메일)를 검토 → ‘검수 완료’를 누르면 지급 단계로 넘어갑니다."
+                            : w.claimStatus === "confirmed"
+                              ? "② 실제로 송금을 보낸 뒤 ‘지급 완료 처리’를 누르고 거래 참조번호를 입력하세요."
+                              : w.claimStatus === "paid"
+                                ? "지급까지 완료된 건입니다. 추가 조치가 필요 없습니다."
+                                : "미제출 상태입니다. 마감 전이면 재발송으로 안내, 마감/만료 시 ‘이 자리 재추첨’으로 다른 당첨자를 뽑을 수 있습니다."}
+                        </p>
+                      </div>
+                    </div>
                   ) : null}
-                  {w.claimStatus === "confirmed" ? (
-                    <button
-                      type="button"
-                      onClick={() => onPay(w.winnerId)}
-                      disabled={pending}
-                      className="rounded-md border border-emerald-400/30 px-2 py-1 text-[11px] text-emerald-300 hover:text-emerald-200"
-                    >
-                      지급 완료
-                    </button>
-                  ) : null}
-                  {["pending", "submitted", "expired"].includes(
-                    w.claimStatus,
-                  ) ? (
-                    <button
-                      type="button"
-                      onClick={() => onRedraw(w.prizeTier)}
-                      disabled={pending}
-                      className="rounded-md border border-white/10 px-2 py-1 text-[11px] text-white/45 hover:text-red-300"
-                    >
-                      재추첨
-                    </button>
-                  ) : null}
-                </span>
-              </div>
-            ))}
+                </div>
+              );
+            })}
           </div>
         )}
       </section>
@@ -349,5 +489,62 @@ export function LotteryManagement({
         )}
       </section>
     </div>
+  );
+}
+
+function InfoField({
+  label,
+  value,
+  onCopy,
+  copied,
+}: {
+  label: string;
+  value: string;
+  onCopy?: () => void;
+  copied?: boolean;
+}) {
+  return (
+    <div className="min-w-0">
+      <p className="text-[10px] font-semibold uppercase tracking-[0.12em] text-white/35">
+        {label}
+      </p>
+      <div className="mt-0.5 flex items-center gap-2">
+        <p className="min-w-0 break-all text-[13px] font-medium text-white/85">
+          {value || "—"}
+        </p>
+        {onCopy ? (
+          <button
+            type="button"
+            onClick={onCopy}
+            className="shrink-0 rounded border border-white/10 px-1.5 py-0.5 text-[10px] font-semibold text-white/45 transition hover:text-white"
+          >
+            {copied ? "복사됨" : "복사"}
+          </button>
+        ) : null}
+      </div>
+    </div>
+  );
+}
+
+function StatusPill({ status, label }: { status: string; label: string }) {
+  const tone =
+    status === "paid"
+      ? "bg-emerald-500/15 text-emerald-300"
+      : status === "confirmed"
+        ? "bg-[#7F77DD]/15 text-[#AFA9EC]"
+        : status === "submitted"
+          ? "bg-sky-500/15 text-sky-300"
+          : status === "expired" || status === "invalidated"
+            ? "bg-red-500/12 text-red-300/80"
+            : "bg-white/[0.06] text-white/55";
+  return (
+    <span
+      className={cn(
+        "rounded px-1.5 py-0.5 text-[10px] font-bold",
+        tone,
+      )}
+    >
+      {label}
+    </span>
   );
 }
