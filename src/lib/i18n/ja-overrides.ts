@@ -827,6 +827,7 @@ export const jaOverrides: Record<string, string> = {
   "upload.errImageSize": "ファイルサイズは最大6MBです。",
 
   "watch.descriptionFallback": "創造性とテクノロジーの境界を探るAI生成映像です。最新のAIツールで仕上げられた作品です。",
+  "watch.detailsEmpty": "詳細情報はありません。",
   "watch.moreInGenre": "{genre}をもっと見る",
   "watch.forYouTitle": "おすすめ",
   "watch.forYouSubtitle": "視聴履歴に基づくおすすめ",

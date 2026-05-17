@@ -1377,6 +1377,7 @@ const en: Messages = {
   "upload.errImageSize": "Maximum file size is 6MB.",
 
   "watch.descriptionFallback": "An AI-generated film exploring the boundaries of creativity and technology. Created using cutting-edge AI tools to bring this unique vision to life.",
+  "watch.detailsEmpty": "No details provided.",
   "watch.moreInGenre": "More in {genre}",
   "watch.moreInGenreLead": "More in",
   "watch.forYouTitle": "For You",

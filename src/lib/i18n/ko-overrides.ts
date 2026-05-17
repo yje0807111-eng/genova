@@ -851,6 +851,7 @@ export const koOverrides: Record<string, string> = {
   "upload.errImageSize": "파일 크기는 최대 6MB입니다.",
 
   "watch.descriptionFallback": "창의성과 기술의 경계를 탐구하는 AI 생성 영상입니다. 최신 AI 도구로 완성된 작품입니다.",
+  "watch.detailsEmpty": "등록된 상세 정보가 없습니다.",
   "watch.moreInGenre": "{genre} 더보기",
   "watch.forYouTitle": "추천",
   "watch.forYouSubtitle": "시청 기반 추천",

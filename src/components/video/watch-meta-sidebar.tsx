@@ -142,13 +142,13 @@ export function WatchMetaSidebar({
         </div>
 
         {/* Creator row */}
-        <div className="flex items-center justify-between gap-3 rounded-lg bg-white/[0.02] p-2.5">
+        <div className="flex items-center justify-between gap-3 rounded-lg bg-white/[0.02] p-2">
           <Link
             href={creatorHref ?? "#"}
-            className="group flex min-w-0 items-center gap-2.5"
+            className="group flex min-w-0 items-center gap-2"
           >
-            <div className="h-9 w-9 shrink-0 overflow-hidden rounded-full bg-white/[0.06] ring-1 ring-white/[0.08]">
-              <Image src={creatorAvatarUrl || "/default-avatar.png"} alt={creatorName} width={36} height={36} className="h-full w-full object-cover" />
+            <div className="h-8 w-8 shrink-0 overflow-hidden rounded-full bg-white/[0.06] ring-1 ring-white/[0.08]">
+              <Image src={creatorAvatarUrl || "/default-avatar.png"} alt={creatorName} width={32} height={32} className="h-full w-full object-cover" />
             </div>
             <div className="min-w-0">
               <p className="line-clamp-1 text-[13px] font-bold text-white transition group-hover:text-[#AFA9EC]">
@@ -173,17 +173,17 @@ export function WatchMetaSidebar({
         {/* Engagement + actions — 풀폭 균등 액션 바 (좋아요·저장이
             동일 너비로 늘어나고, 공유·더보기는 우측 고정). 기존의
             왼쪽 정렬 축소 클러스터 구조 폐기. */}
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-1.5 [&_button]:!gap-1 [&_button]:!rounded-md [&_button]:!px-2 [&_button]:!py-1 [&_button]:!text-[12px] [&_button_svg]:!h-3.5 [&_button_svg]:!w-3.5">
           <VideoEngagementBar
             videoId={videoId}
             likeCount={video.likeCount ?? 0}
             likedByMe={video.likedByMe ?? false}
             saveCount={video.saveCount ?? 0}
             savedByMe={video.savedByMe ?? false}
-            className="min-w-0 flex-1 [&>button]:flex-1 [&>button]:justify-center"
+            className="min-w-0"
           />
           {playerActions && (
-            <div className="flex shrink-0 items-center gap-2">
+            <div className="flex shrink-0 items-center gap-1.5">
               {playerActions}
             </div>
           )}

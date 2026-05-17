@@ -18,11 +18,24 @@ export function WatchDescriptionInner({
   aiTools: string[];
 }) {
   const { t } = useI18n();
-  const text = description?.trim() ? description.trim() : t("watch.descriptionFallback");
+  const text = description?.trim() || "";
+  const isEmpty = !text && tags.length === 0 && aiTools.length === 0;
+
+  if (isEmpty) {
+    return (
+      <p className="text-[13px] text-white/30">
+        {t("watch.detailsEmpty", "No details provided.")}
+      </p>
+    );
+  }
 
   return (
     <>
-      <p className="text-sm leading-relaxed text-white/70 whitespace-pre-wrap">{text}</p>
+      {text ? (
+        <p className="text-sm leading-relaxed text-white/70 whitespace-pre-wrap">
+          {text}
+        </p>
+      ) : null}
       {tags.length > 0 ? (
         <div className="flex flex-wrap gap-1.5">
           {tags.map((tag) => (
