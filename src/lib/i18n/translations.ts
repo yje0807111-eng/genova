@@ -1667,6 +1667,8 @@ const en: Messages = {
 
   // Phase 5: winner claim flow
   "claim.title": "Claim your prize",
+  "claim.eyebrow": "Genova Lottery",
+  "claim.tierBadge": "Tier {tier}",
   "claim.subtitle": "Tier {tier} · ${amount} USD",
   "claim.deadline": "Submit by {date}",
   "claim.daysLeft": "{n} day(s) left",

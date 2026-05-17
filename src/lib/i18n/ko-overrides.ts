@@ -123,6 +123,8 @@ export const koOverrides: Record<string, string> = {
 
   // Phase 5: 당첨자 정보 제출 페이지
   "claim.title": "상품 수령 정보 제출",
+  "claim.eyebrow": "Genova 응모권 추첨",
+  "claim.tierBadge": "{tier}등",
   "claim.subtitle": "{tier}등 · ${amount} USD",
   "claim.deadline": "{date}까지 제출",
   "claim.daysLeft": "{n}일 남음",

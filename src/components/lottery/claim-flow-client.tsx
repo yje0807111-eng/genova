@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import { Check } from "lucide-react";
 import {
   requestWinnerEmailCodeAction,
   submitWinnerInfoAction,
@@ -101,9 +102,11 @@ export function ClaimFlowClient({ token }: { token: string }) {
   // Each step's UI in turn.  Active step is rendered with full color;
   // completed steps are dimmed; future steps are collapsed.
   return (
-    <div className="space-y-4">
+    <div className="space-y-3">
+      <StepIndicator step={step} />
       {/* Step 1 — request */}
       <StepCard
+        n={1}
         active={step === "request"}
         done={step !== "request"}
         title={t("claim.step1.title", "Step 1 — Verify your email")}
@@ -119,7 +122,7 @@ export function ClaimFlowClient({ token }: { token: string }) {
             type="button"
             onClick={onRequestCode}
             disabled={requestPending}
-            className="mt-4 inline-flex items-center gap-2 rounded-xl bg-[#534AB7] px-5 py-2.5 text-[13px] font-bold text-white transition hover:bg-[#6B5FD4] disabled:opacity-60"
+            className="mt-4 inline-flex items-center gap-2 rounded-xl bg-gradient-to-br from-[#6B5FD4] via-[#534AB7] to-[#3F36A3] shadow-[0_2px_12px_rgba(83,74,183,0.35)] px-5 py-2.5 text-[13px] font-bold text-white transition hover:brightness-110 disabled:opacity-60"
           >
             {requestPending
               ? t("claim.step1.sending", "Sending…")
@@ -138,6 +141,7 @@ export function ClaimFlowClient({ token }: { token: string }) {
       {/* Step 2 — verify */}
       {step === "verify" || step === "form" || step === "done" ? (
         <StepCard
+          n={2}
           active={step === "verify"}
           done={step === "form" || step === "done"}
           title={t("claim.step2.title", "Step 2 — Enter the code")}
@@ -165,7 +169,7 @@ export function ClaimFlowClient({ token }: { token: string }) {
                 disabled={
                   step !== "verify" || verifyPending || codeInput.length !== 6
                 }
-                className="rounded-lg bg-[#534AB7] px-5 py-2 text-[13px] font-bold text-white transition hover:bg-[#6B5FD4] disabled:opacity-60"
+                className="rounded-lg bg-gradient-to-br from-[#6B5FD4] via-[#534AB7] to-[#3F36A3] shadow-[0_2px_12px_rgba(83,74,183,0.35)] px-5 py-2 text-[13px] font-bold text-white transition hover:brightness-110 disabled:opacity-60"
               >
                 {verifyPending
                   ? t("claim.step2.verifying", "Verifying…")
@@ -192,6 +196,7 @@ export function ClaimFlowClient({ token }: { token: string }) {
       {/* Step 3 — form */}
       {step === "form" || step === "done" ? (
         <StepCard
+          n={3}
           active={step === "form"}
           done={step === "done"}
           title={t("claim.step3.title", "Step 3 — Submit your info")}
@@ -295,7 +300,7 @@ export function ClaimFlowClient({ token }: { token: string }) {
               <button
                 type="submit"
                 disabled={submitPending || !consented}
-                className="mt-2 rounded-xl bg-[#534AB7] px-5 py-2.5 text-[13px] font-bold text-white transition hover:bg-[#6B5FD4] disabled:opacity-60"
+                className="mt-2 rounded-xl bg-gradient-to-br from-[#6B5FD4] via-[#534AB7] to-[#3F36A3] shadow-[0_2px_12px_rgba(83,74,183,0.35)] px-5 py-2.5 text-[13px] font-bold text-white transition hover:brightness-110 disabled:opacity-60"
               >
                 {submitPending
                   ? t("claim.step3.submitting", "Submitting…")
@@ -310,12 +315,37 @@ export function ClaimFlowClient({ token }: { token: string }) {
   );
 }
 
+const STEP_ORDER: Step[] = ["request", "verify", "form", "done"];
+
+function StepIndicator({ step }: { step: Step }) {
+  const idx = STEP_ORDER.indexOf(step); // 0..3
+  return (
+    <div className="flex items-center gap-2 px-1 pb-1">
+      {[0, 1, 2].map((i) => (
+        <span
+          key={i}
+          className={cn(
+            "h-1 flex-1 rounded-full transition-all duration-500",
+            i < idx
+              ? "bg-emerald-400/70"
+              : i === idx
+                ? "bg-gradient-to-r from-[#7F77DD] to-[#534AB7]"
+                : "bg-white/[0.08]",
+          )}
+        />
+      ))}
+    </div>
+  );
+}
+
 function StepCard({
+  n,
   active,
   done,
   title,
   children,
 }: {
+  n: number;
   active: boolean;
   done: boolean;
   title: string;
@@ -324,18 +354,51 @@ function StepCard({
   return (
     <section
       className={cn(
-        "rounded-xl border px-5 py-4 transition",
+        "rounded-2xl border px-5 py-4 backdrop-blur-sm transition-all duration-300",
         active
-          ? "border-[#7F77DD]/40 bg-white/[0.03]"
+          ? "border-[#7F77DD]/30"
           : done
-          ? "border-white/[0.08] bg-white/[0.01] opacity-60"
-          : "border-white/[0.05] bg-white/[0.005] opacity-40",
+            ? "border-white/[0.07] opacity-70"
+            : "border-white/[0.05] opacity-45",
       )}
+      style={
+        active
+          ? {
+              background:
+                "linear-gradient(160deg, rgba(127,119,221,0.08) 0%, rgba(10,10,10,0.4) 100%)",
+              boxShadow:
+                "0 8px 28px rgba(0,0,0,0.3), inset 0 1px 0 rgba(127,119,221,0.14)",
+            }
+          : { background: "rgba(255,255,255,0.015)" }
+      }
     >
-      <h2 className="mb-2 text-[14px] font-bold tracking-tight text-white">
-        {title}
-      </h2>
-      {children}
+      <div className="mb-3 flex items-center gap-2.5">
+        <span
+          className={cn(
+            "flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-[12px] font-black transition",
+            done
+              ? "bg-emerald-500/20 text-emerald-300"
+              : active
+                ? "text-white"
+                : "bg-white/[0.05] text-white/40",
+          )}
+          style={
+            active && !done
+              ? {
+                  background:
+                    "linear-gradient(135deg, #6B5FD4 0%, #534AB7 100%)",
+                  boxShadow: "0 2px 10px rgba(83,74,183,0.4)",
+                }
+              : undefined
+          }
+        >
+          {done ? <Check className="h-3.5 w-3.5" /> : n}
+        </span>
+        <h2 className="text-[14px] font-bold tracking-tight text-white">
+          {title}
+        </h2>
+      </div>
+      <div className="pl-[38px]">{children}</div>
     </section>
   );
 }
