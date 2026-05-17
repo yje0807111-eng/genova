@@ -367,51 +367,47 @@ export function SlimSidebar({ onOpenChat, unreadMessageCount = 0 }: SlimSidebarP
         <div className="flex w-full flex-col items-center gap-3">
           <div className="my-2 h-px w-6 bg-white/[0.05]" aria-hidden />
 
-          {/* 응모권 추첨 이벤트 — 클릭 시 안내 모달.  잔여 수는
-              알림 배지가 아니라 라벨 아래 정적 카운트로 표기해
-              "미확인 알림" 으로 오인되지 않게 한다. */}
-          <button
-            type="button"
-            onClick={openLotteryGuide}
-            className="flex min-h-12 w-12 flex-col items-center justify-center gap-0.5 rounded-xl py-1 text-white/35 transition-colors hover:bg-white/[0.04] hover:text-white/80"
-            aria-label={t("lottery.guideLink", "응모권 추첨 안내")}
-          >
-            <Ticket className="h-5 w-5 shrink-0" aria-hidden />
-            <span className="max-w-[64px] whitespace-nowrap text-center text-[9px] font-semibold uppercase tracking-wider">
-              {t("nav.lottery", "응모권")}
-            </span>
-            {lotteryUsed !== null ? (
-              <span className="text-[9px] font-bold tabular-nums text-[#AFA9EC]/80">
-                {lotteryUsed}
-                <span className="font-normal text-white/30">/5</span>
-              </span>
-            ) : null}
-          </button>
+          {/* 응모권 + 알림 — 보조 요소라 한 줄에 반반 컴팩트.
+              응모권 잔여 수 / 미확인 알림 배지는 미니 인디케이터로 유지. */}
+          <div className="flex w-full items-center justify-center gap-1.5">
+            <button
+              type="button"
+              onClick={openLotteryGuide}
+              className="relative flex h-9 w-9 items-center justify-center rounded-lg text-white/35 transition-colors hover:bg-white/[0.04] hover:text-white/80"
+              aria-label={t("lottery.guideLink", "응모권 추첨 안내")}
+              title={t("nav.lottery", "응모권")}
+            >
+              <Ticket className="h-[18px] w-[18px] shrink-0" aria-hidden />
+              {lotteryUsed !== null ? (
+                <span className="absolute -bottom-0.5 -right-0.5 rounded-full bg-[#0a0a0a] px-0.5 text-[8px] font-bold tabular-nums leading-tight text-[#AFA9EC]/85">
+                  {lotteryUsed}
+                </span>
+              ) : null}
+            </button>
 
-          <button
-            ref={notifBtnRef}
-            type="button"
-            onClick={openNotifications}
-            className={cn(
-              "relative flex h-12 w-12 flex-col items-center justify-center gap-0.5 rounded-xl text-white/35 transition-colors hover:bg-white/[0.04] hover:text-white/80",
-              showNotifications && "bg-white/[0.04] text-white/80",
-            )}
-            aria-label={t("notifications.title")}
-            aria-expanded={showNotifications}
-          >
-            <Bell className="h-5 w-5 shrink-0" aria-hidden />
-            <span className="max-w-[64px] whitespace-nowrap text-center text-[9px] font-semibold uppercase tracking-wider">
-              {t("sidebar.notifications", "Alerts")}
-            </span>
-            {userId && notifUnread > 0 && !showNotifications ? (
-              <span
-                className="absolute right-0.5 top-1 flex h-4 min-w-4 items-center justify-center rounded-full px-0.5 text-[9px] font-bold text-white"
-                style={{ background: "#534AB7" }}
-              >
-                {notifUnread > 9 ? "9+" : notifUnread}
-              </span>
-            ) : null}
-          </button>
+            <button
+              ref={notifBtnRef}
+              type="button"
+              onClick={openNotifications}
+              className={cn(
+                "relative flex h-9 w-9 items-center justify-center rounded-lg text-white/35 transition-colors hover:bg-white/[0.04] hover:text-white/80",
+                showNotifications && "bg-white/[0.04] text-white/80",
+              )}
+              aria-label={t("notifications.title")}
+              aria-expanded={showNotifications}
+              title={t("sidebar.notifications", "Alerts")}
+            >
+              <Bell className="h-[18px] w-[18px] shrink-0" aria-hidden />
+              {userId && notifUnread > 0 && !showNotifications ? (
+                <span
+                  className="absolute -right-1 -top-1 flex h-3.5 min-w-3.5 items-center justify-center rounded-full px-0.5 text-[8px] font-bold text-white"
+                  style={{ background: "#534AB7" }}
+                >
+                  {notifUnread > 9 ? "9+" : notifUnread}
+                </span>
+              ) : null}
+            </button>
+          </div>
 
           <button
             type="button"
@@ -513,52 +509,51 @@ export function SlimSidebar({ onOpenChat, unreadMessageCount = 0 }: SlimSidebarP
             </Link>
           )}
 
-          <button
-            ref={langBtnRef}
-            type="button"
-            onClick={() => {
-              setShowNotifications(false);
-              setShowLang((v) => !v);
-            }}
-            className={cn(
-              "flex h-12 w-12 flex-col items-center justify-center gap-0.5 rounded-xl text-white/35 transition-colors hover:bg-white/[0.04] hover:text-white/80",
-              showLang && "bg-white/[0.04] text-white/80",
-            )}
-            aria-label={t("sidebar.language")}
-            aria-expanded={showLang}
-          >
-            <Globe className="h-5 w-5 shrink-0" aria-hidden />
-            <span className="max-w-[64px] whitespace-nowrap text-center text-[9px] font-semibold uppercase tracking-wider">
-              {t("sidebar.language")}
-            </span>
-          </button>
-
           <div className="my-1 h-px w-6 bg-white/[0.05]" aria-hidden />
 
-          {userId === undefined ? null : userId ? (
+          {/* 언어 + 로그아웃/로그인 — 사용 빈도 낮아 한 줄 반반 컴팩트. */}
+          <div className="flex w-full items-center justify-center gap-1.5">
             <button
+              ref={langBtnRef}
               type="button"
-              onClick={() => void onLogout()}
-              className="flex h-12 w-12 flex-col items-center justify-center gap-0.5 rounded-xl text-white/35 transition-colors hover:bg-red-500/[0.08] hover:text-red-300"
-              aria-label={t("sidebar.logout", "Logout")}
+              onClick={() => {
+                setShowNotifications(false);
+                setShowLang((v) => !v);
+              }}
+              className={cn(
+                "flex h-9 w-9 items-center justify-center rounded-lg text-white/35 transition-colors hover:bg-white/[0.04] hover:text-white/80",
+                showLang && "bg-white/[0.04] text-white/80",
+              )}
+              aria-label={t("sidebar.language")}
+              aria-expanded={showLang}
+              title={t("sidebar.language")}
             >
-              <LogOut className="h-5 w-5 shrink-0" aria-hidden />
-              <span className="max-w-[64px] whitespace-nowrap text-center text-[9px] font-semibold uppercase tracking-wider">
-                {t("sidebar.logout", "Logout")}
-              </span>
+              <Globe className="h-[18px] w-[18px] shrink-0" aria-hidden />
             </button>
-          ) : (
-            <Link
-              href="/auth"
-              className="flex h-12 w-12 flex-col items-center justify-center gap-0.5 rounded-xl text-white/35 transition-colors hover:bg-white/[0.04] hover:text-[#C7C2F0]"
-              aria-label={t("auth.signIn", "Sign in")}
-            >
-              <LogIn className="h-5 w-5 shrink-0" aria-hidden />
-              <span className="max-w-[64px] whitespace-nowrap text-center text-[9px] font-semibold uppercase tracking-wider">
-                {t("auth.signIn", "Sign in")}
-              </span>
-            </Link>
-          )}
+
+            {userId === undefined ? (
+              <span className="h-9 w-9" aria-hidden />
+            ) : userId ? (
+              <button
+                type="button"
+                onClick={() => void onLogout()}
+                className="flex h-9 w-9 items-center justify-center rounded-lg text-white/35 transition-colors hover:bg-red-500/[0.08] hover:text-red-300"
+                aria-label={t("sidebar.logout", "Logout")}
+                title={t("sidebar.logout", "Logout")}
+              >
+                <LogOut className="h-[18px] w-[18px] shrink-0" aria-hidden />
+              </button>
+            ) : (
+              <Link
+                href="/auth"
+                className="flex h-9 w-9 items-center justify-center rounded-lg text-white/35 transition-colors hover:bg-white/[0.04] hover:text-[#C7C2F0]"
+                aria-label={t("auth.signIn", "Sign in")}
+                title={t("auth.signIn", "Sign in")}
+              >
+                <LogIn className="h-[18px] w-[18px] shrink-0" aria-hidden />
+              </Link>
+            )}
+          </div>
         </div>
       </aside>
 
