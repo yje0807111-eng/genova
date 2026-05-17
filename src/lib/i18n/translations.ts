@@ -837,6 +837,7 @@ const en: Messages = {
   "editVideo.thumbnailHint": "Click to upload",
   "editVideo.title": "Title",
   "editVideo.genre": "Genre",
+  "editVideo.subGenre": "Sub-genre",
   "editVideo.genreLocked": "Locked",
   "editVideo.purposeLocked": "Locked",
   "editVideo.visibility": "Visibility",

@@ -1197,6 +1197,7 @@ export const jaOverrides: Record<string, string> = {
   "editVideo.thumbnailHint": "クリックしてアップロード",
   "editVideo.title": "タイトル",
   "editVideo.genre": "ジャンル",
+  "editVideo.subGenre": "サブジャンル",
   "editVideo.genreLocked": "変更不可",
   "editVideo.purposeLocked": "変更不可",
   "editVideo.visibility": "公開範囲",

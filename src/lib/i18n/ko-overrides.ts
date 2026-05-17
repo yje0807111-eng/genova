@@ -1220,6 +1220,7 @@ export const koOverrides: Record<string, string> = {
   "editVideo.thumbnailHint": "클릭하여 업로드",
   "editVideo.title": "제목",
   "editVideo.genre": "장르",
+  "editVideo.subGenre": "서브장르",
   "editVideo.genreLocked": "변경 불가",
   "editVideo.purposeLocked": "변경 불가",
   "editVideo.visibility": "공개 범위",
