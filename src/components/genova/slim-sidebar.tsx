@@ -287,14 +287,10 @@ export function SlimSidebar({ onOpenChat, unreadMessageCount = 0 }: SlimSidebarP
         <div className="flex w-full flex-col items-center">
           <Link
             href="/"
-            className="mb-6 flex h-10 w-10 items-center justify-center rounded-xl text-lg font-black text-[#EEEDFE] transition-transform hover:scale-110"
-            style={{
-              background: "linear-gradient(135deg, #534AB7 0%, #7B6FE8 55%, #26215C 100%)",
-              boxShadow: "inset 0 1px 0 var(--border-white-12), 0 4px 16px rgba(83,74,183,0.35)",
-            }}
+            className="mb-6 flex h-16 w-16 items-center justify-center transition-transform hover:scale-110"
             aria-label="Genova"
           >
-            G
+            <img src="/genova-logo.png" alt="Genova" className="h-[64px] w-[64px] object-contain mt-2" />
           </Link>
 
           <nav className="mt-8 flex w-full flex-col items-center gap-5" aria-label="Main">

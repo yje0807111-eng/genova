@@ -40,7 +40,7 @@ export default async function ClaimPage({
   // whether the token was malformed vs nonexistent.
   if (!snapshot) {
     return (
-      <main className="mx-auto flex min-h-[60vh] max-w-[640px] flex-col items-center justify-center px-6 py-12 text-center text-white">
+      <main className="mx-auto flex min-h-[100svh] max-w-[640px] flex-col items-center justify-center px-6 py-16 text-center text-white">
         <h1 className="text-[22px] font-black tracking-tight">
           {t("claim.invalidToken", "This claim link is invalid or no longer active")}
         </h1>
@@ -75,7 +75,7 @@ export default async function ClaimPage({
   const alreadySubmitted = snapshot.claimStatus !== "pending" && !isExpired;
 
   return (
-    <main className="mx-auto max-w-[640px] px-6 py-10 text-white">
+    <main className="mx-auto flex min-h-[100svh] w-full max-w-[640px] flex-col justify-center px-6 py-16 text-white">
       <header className="mb-8 text-center">
         <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-[#AFA9EC]">
           🏆 Genova Lottery
