@@ -50,7 +50,7 @@ export function HomeCompetitionBanner({ competition, stats }: Props) {
       <div
         className="pointer-events-none absolute inset-0"
         style={{
-          backgroundImage: "url('/hero-bg.png')",
+          backgroundImage: "url('/hero-bg.jpg')",
           backgroundSize: "cover",
           backgroundPosition: "70% 30%",
           opacity: 0.5,
