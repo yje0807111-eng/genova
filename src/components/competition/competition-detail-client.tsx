@@ -292,7 +292,7 @@ export function CompetitionDetailClient({
             className="absolute inset-0 flex items-center justify-center"
             style={{ background: "linear-gradient(135deg, rgba(83,74,183,0.20) 0%, #0a0a0a 70%)" }}
           >
-            <Image src="/genova-logo.png" alt="Genova" width={96} height={96} className="h-24 w-24 object-contain opacity-20" />
+            <img src="/genova-logo.png" alt="Genova" className="h-28 w-28 object-contain opacity-20" />
             <div className="pointer-events-none absolute inset-0 overflow-hidden">
               <div
                 className="absolute -right-32 top-1/2 h-[140%] w-[60%] -translate-y-1/2 rounded-full opacity-40 blur-3xl"
@@ -653,7 +653,7 @@ export function CompetitionDetailClient({
       </div>
 
       {/* ── Tab Content ──────────────────────────── */}
-      <div className="relative z-10 mx-auto min-h-[58vh] max-w-[1400px] space-y-20 px-4 py-12 md:px-8">
+      <div className="relative z-10 mx-auto min-h-[58vh] max-w-[1920px] space-y-20 px-4 py-12 md:px-8 lg:px-12">
 
         {/* 개요 */}
         <section id="overview" className={cn(section === "overview" ? "block" : "hidden")}>
@@ -1511,7 +1511,7 @@ export function CompetitionDetailClient({
                   <span className="h-[2px] w-8 rounded-full bg-gradient-to-r from-[#7F77DD] to-transparent" />
                 </div>
 
-                <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
+                <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
                   {featuredVideos.map((video) => (
                     <div key={`featured-${video.id}`} className="relative">
                       <HoverPreviewCard video={competitionRowToAppVideo(video)} />
@@ -1616,7 +1616,7 @@ export function CompetitionDetailClient({
                   )}
                 </div>
               ) : viewMode === "grid" ? (
-                <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
+                <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
                   {sortedVideos.map((video, idx) => (
                     <div key={video.id} className="relative">
                       <HoverPreviewCard video={competitionRowToAppVideo(video)} />
