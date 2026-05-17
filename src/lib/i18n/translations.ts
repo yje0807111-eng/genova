@@ -1679,7 +1679,6 @@ const en: Messages = {
   "meta.title.feed": "Feed",
   "meta.title.competition": "Competition",
   "meta.title.upload": "Upload",
-  "meta.title.search": "Search",
   "meta.title.profile": "Profile",
   "meta.title.settings": "Settings",
   "meta.title.watch": "Watch",

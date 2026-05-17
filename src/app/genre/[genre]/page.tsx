@@ -89,7 +89,7 @@ export default async function GenreExplorePage({
         />
         <div className="relative mx-auto max-w-[1600px] px-6 pt-12 pb-10 sm:px-10">
           <Link
-            href="/search"
+            href="/"
             className="group mb-6 inline-flex items-center gap-2 text-[12px] font-semibold uppercase tracking-[0.15em] text-white/35 transition hover:text-white"
           >
             <span className="transition-transform group-hover:-translate-x-1">←</span>

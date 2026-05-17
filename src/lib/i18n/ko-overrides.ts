@@ -169,7 +169,6 @@ export const koOverrides: Record<string, string> = {
   "meta.title.feed": "피드",
   "meta.title.competition": "공모전",
   "meta.title.upload": "업로드",
-  "meta.title.search": "검색",
   "meta.title.profile": "프로필",
   "meta.title.settings": "설정",
   "meta.title.watch": "시청",

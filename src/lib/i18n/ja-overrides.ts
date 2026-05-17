@@ -169,7 +169,6 @@ export const jaOverrides: Record<string, string> = {
   "meta.title.feed": "フィード",
   "meta.title.competition": "コンペ",
   "meta.title.upload": "アップロード",
-  "meta.title.search": "検索",
   "meta.title.profile": "プロフィール",
   "meta.title.settings": "設定",
   "meta.title.watch": "視聴",
