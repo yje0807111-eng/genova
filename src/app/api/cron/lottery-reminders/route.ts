@@ -30,7 +30,7 @@ type RemindersResult = { d3: number; d1: number; errors: number };
 type WinnerRow = {
   id: string;
   user_id: string;
-  competition_id: string;
+  draw_month_key: string;
   prize_amount_usd: number;
   claim_token: string;
   info_deadline: string;
@@ -101,7 +101,7 @@ async function dispatchWave(
   const { data: rows, error } = await supabase
     .from("competition_winners")
     .select(
-      "id, user_id, competition_id, prize_amount_usd, claim_token, info_deadline",
+      "id, user_id, draw_month_key, prize_amount_usd, claim_token, info_deadline",
     )
     .eq("claim_status", "pending")
     .gte("info_deadline", cfg.gteDeadline)
@@ -116,16 +116,6 @@ async function dispatchWave(
 
   const winners = rows as WinnerRow[];
 
-  // Competition titles in one batch.
-  const compIds = [...new Set(winners.map((w) => w.competition_id))];
-  const { data: comps } = await supabase
-    .from("competitions")
-    .select("id, title")
-    .in("id", compIds);
-  const titleByCompId = new Map(
-    (comps ?? []).map((c) => [c.id as string, (c.title as string) ?? "competition"]),
-  );
-
   const siteUrl =
     process.env.NEXT_PUBLIC_SITE_URL ?? "https://genova-silk.vercel.app";
 
@@ -134,8 +124,7 @@ async function dispatchWave(
 
   for (const w of winners) {
     const claimUrl = `${siteUrl}/winners/claim/${w.claim_token}`;
-    const competitionTitle =
-      titleByCompId.get(w.competition_id) ?? "competition";
+    const competitionTitle = `Genova ${w.draw_month_key}`;
 
     // In-app notification — same href shape as the initial winner
     // notification.  Different `type` so the UI can theme it.

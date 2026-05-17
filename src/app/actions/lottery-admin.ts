@@ -1,11 +1,9 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import type { SupabaseClient } from "@supabase/supabase-js";
-import { sendWinnerNotificationEmail } from "@/lib/email";
-import { createNotification } from "@/lib/notifications";
 import { requireAdminWithService } from "@/lib/auth/admin-actions";
 import { logAdminAction } from "@/lib/audit";
+import { dispatchWinnerNotifications } from "@/lib/lottery-notify";
 
 /**
  * Phase 6-A: admin server actions for the entry-lottery system.
@@ -315,141 +313,6 @@ export async function revokeEntryTicketAction(input: {
 
   revalidatePath("/admin");
   return { ok: true };
-}
-
-/* -----------------------------------------------------------------
- * Internal helper: winner notification dispatch.
- * ---------------------------------------------------------------*/
-
-/**
- * Looks up freshly-drawn (or freshly-redrawn) winners for a
- * competition — identified by `notified_at IS NULL` — and dispatches
- * the in-app notification + email pair for each.  Marks
- * `notified_at = now()` after each successful row so re-running is
- * idempotent.
- *
- * Best-effort throughout: per-winner failures are logged but don't
- * abort the loop, and the function as a whole never throws to the
- * caller (a successful draw should not be "rolled back" because of
- * a transient Resend / notifications issue — the cron / admin can
- * recover by re-issuing manually).
- */
-/** H2-D.6 result shape — surfaced to admin UI so failed notifications
- *  aren't silently swallowed. */
-type NotificationDispatchResult = {
-  attempted: number;
-  notifFailed: number;
-  emailFailed: number;
-};
-
-async function dispatchWinnerNotifications(
-  service: SupabaseClient,
-  monthKey: string,
-): Promise<NotificationDispatchResult> {
-  const siteUrl =
-    process.env.NEXT_PUBLIC_SITE_URL ?? "https://genova-silk.vercel.app";
-
-  // Pull undelivered winners for this draw month + the recipient's
-  // email (auth.users via service-role; public_profiles has no email).
-  const { data: winners, error } = await service
-    .from("competition_winners")
-    .select(
-      "id, user_id, prize_tier, prize_amount_usd, claim_token, info_deadline, claim_status",
-    )
-    .eq("draw_month_key", monthKey)
-    .is("notified_at", null)
-    .neq("claim_status", "invalidated");
-
-  if (error) {
-    console.error("[lottery-admin] notify lookup failed", error);
-    return { attempted: 0, notifFailed: 0, emailFailed: 0 };
-  }
-  if (!winners || winners.length === 0) {
-    return { attempted: 0, notifFailed: 0, emailFailed: 0 };
-  }
-
-  // Global monthly lottery — not tied to a competition.
-  const competitionTitle = `Genova ${monthKey}`;
-
-  // Resolve emails for all winner user_ids in one shot via the
-  // auth admin API (service-role only).
-  const emailByUserId = new Map<string, string>();
-  for (const w of winners) {
-    try {
-      const { data: u } = await service.auth.admin.getUserById(
-        w.user_id as string,
-      );
-      const email = u?.user?.email ?? null;
-      if (email) emailByUserId.set(w.user_id as string, email);
-    } catch (e) {
-      console.error("[lottery-admin] getUserById failed", w.user_id, e);
-    }
-  }
-
-  // Dispatch.  H2-D.6: count failures per channel.
-  let notifFailed = 0;
-  let emailFailed = 0;
-  for (const w of winners) {
-    const winnerId = w.id as string;
-    const userId = w.user_id as string;
-    const token = w.claim_token as string;
-    const claimUrl = `${siteUrl}/winners/claim/${token}`;
-
-    // In-app notification.  href carries the claim URL — same
-    // security model as the email (RLS clips notifications to own
-    // user, transit is HTTPS, the token IS the auth).
-    const notifResult = await createNotification({
-      userId,
-      actorId: null,
-      type: "lottery_winner",
-      title: "🎉 You won the Genova lottery",
-      body: `Tier ${w.prize_tier} · $${w.prize_amount_usd} USD — claim within 1 month.`,
-      href: `/winners/claim/${token}`,
-      entityType: "competition_winner",
-      entityId: winnerId,
-      // F1: structured fields for the locale-aware body in
-      // notifications-i18n.ts.  claim_token intentionally OMITTED —
-      // CLAUDE.md security policy (#7): the token is URL-only and
-      // must not appear in logs or row metadata.  The href already
-      // carries it.
-      metadata: { prize_tier: w.prize_tier, prize_amount_usd: w.prize_amount_usd },
-    });
-    if (notifResult.error) {
-      notifFailed += 1;
-      console.error("[lottery-admin] notif insert failed", winnerId, notifResult.error);
-    }
-
-    // Email (skipped silently if RESEND_API_KEY isn't configured).
-    const email = emailByUserId.get(userId);
-    if (email) {
-      try {
-        const sent = await sendWinnerNotificationEmail({
-          to: email,
-          competitionTitle,
-          prizeTier: w.prize_tier as number,
-          prizeAmountUsd: w.prize_amount_usd as number,
-          claimUrl,
-          deadlineIso: w.info_deadline as string,
-        });
-        if (sent === false) emailFailed += 1;
-      } catch (e) {
-        emailFailed += 1;
-        console.error("[lottery-admin] email send failed", winnerId, e);
-      }
-    }
-
-    // Mark dispatched so a follow-up trigger (or this fn re-running)
-    // doesn't double-send.
-    const { error: stampErr } = await service
-      .from("competition_winners")
-      .update({ notified_at: new Date().toISOString() })
-      .eq("id", winnerId);
-    if (stampErr) {
-      console.error("[lottery-admin] notified_at update failed", winnerId, stampErr);
-    }
-  }
-
-  return { attempted: winners.length, notifFailed, emailFailed };
 }
 
 /* -----------------------------------------------------------------
