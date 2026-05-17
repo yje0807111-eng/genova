@@ -129,6 +129,8 @@ export async function updateCompetitionAction(
     concept_en?: string;
     concept_ja?: string;
     start_date?: string;
+    review_date?: string;
+    ceremony_date?: string;
     prize_grand?: string;
     prize_excellence?: string;
     prize_merit?: string;
@@ -238,6 +240,8 @@ export async function updateCompetitionAction(
       concept_en: form.concept_en?.trim() || null,
       concept_ja: form.concept_ja?.trim() || null,
       start_date: form.start_date || null,
+      review_date: form.review_date || null,
+      ceremony_date: form.ceremony_date || null,
       prize_grand: form.prize_grand?.trim() || null,
       prize_excellence: form.prize_excellence?.trim() || null,
       prize_merit: form.prize_merit?.trim() || null,

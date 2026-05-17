@@ -32,6 +32,8 @@ export type EditCompetitionFormState = {
   status: string;
   deadline: string;
   voteEnd: string;
+  review_date: string;
+  ceremony_date: string;
   prize_info_ko: string;
   prize_info_en: string;
   prize_info_ja: string;

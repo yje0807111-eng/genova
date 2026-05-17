@@ -46,6 +46,8 @@ export function EditCompetitionForm({ competition }: { competition: any }) {
     status: competition.status ?? "Open",
     deadline: competition.deadline ?? "",
     voteEnd: competition.vote_end ?? "",
+    review_date: competition.review_date ?? "",
+    ceremony_date: competition.ceremony_date ?? "",
     prize_info_ko: competition.prize_info_ko ?? competition.prize_info ?? "",
     prize_info_en: competition.prize_info_en ?? "",
     prize_info_ja: competition.prize_info_ja ?? "",
@@ -618,6 +620,42 @@ export function EditCompetitionForm({ competition }: { competition: any }) {
                         </div>
                         <Preview iso={form.voteEnd} />
                         {voteBad && <Warn msg={t("adminCompEdit.warnVoteBeforeDeadline", "Voting deadline is earlier than submission deadline")} />}
+                      </div>
+                      <div>
+                        <label className={adminTokens.inputLabel}>{t("adminCompEdit.reviewDate", "심사 날짜")}</label>
+                        <input
+                          type="datetime-local"
+                          value={isoToLocal(form.review_date)}
+                          onChange={(e) => setForm((p) => ({ ...p, review_date: localToIso(e.target.value) }))}
+                          className={inp}
+                        />
+                        <div className="mt-1.5 flex flex-wrap gap-1">
+                          <button type="button" className={chip} onClick={() => setForm((p) => ({ ...p, review_date: shiftIso(p.deadline, 3) }))}>
+                            {t("adminCompEdit.chipDeadlinePlus3d", "Deadline+3d")}
+                          </button>
+                          <button type="button" className={chip} onClick={() => setForm((p) => ({ ...p, review_date: shiftIso(p.deadline, 7) }))}>
+                            {t("adminCompEdit.chipPlus1w", "+1w")}
+                          </button>
+                        </div>
+                        <Preview iso={form.review_date} />
+                      </div>
+                      <div>
+                        <label className={adminTokens.inputLabel}>{t("adminCompEdit.ceremonyDate", "시상식 날짜")}</label>
+                        <input
+                          type="datetime-local"
+                          value={isoToLocal(form.ceremony_date)}
+                          onChange={(e) => setForm((p) => ({ ...p, ceremony_date: localToIso(e.target.value) }))}
+                          className={inp}
+                        />
+                        <div className="mt-1.5 flex flex-wrap gap-1">
+                          <button type="button" className={chip} onClick={() => setForm((p) => ({ ...p, ceremony_date: shiftIso(p.voteEnd, 3) }))}>
+                            {t("adminCompEdit.chipVotePlus3d", "Vote+3d")}
+                          </button>
+                          <button type="button" className={chip} onClick={() => setForm((p) => ({ ...p, ceremony_date: shiftIso(p.voteEnd, 7) }))}>
+                            {t("adminCompEdit.chipPlus1w", "+1w")}
+                          </button>
+                        </div>
+                        <Preview iso={form.ceremony_date} />
                       </div>
                     </div>
                   );

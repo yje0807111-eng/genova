@@ -28,6 +28,9 @@ type Competition = {
   status: string;
   deadline: string;
   vote_end: string;
+  start_date?: string | null;
+  review_date?: string | null;
+  ceremony_date?: string | null;
   prize_info: string;
   prize_info_ko?: string | null;
   prize_info_en?: string | null;
@@ -212,6 +215,15 @@ export function CompetitionDetailClient({
 
   const deadlineLabel = new Date(competition.deadline).toLocaleDateString(dateLocale, { year: "numeric", month: "long", day: "numeric" });
   const voteEndLabel = new Date(competition.vote_end).toLocaleDateString(dateLocale, { year: "numeric", month: "long", day: "numeric" });
+  const fmtDateLabel = (v?: string | null): string | null => {
+    if (!v) return null;
+    const d = new Date(v);
+    if (Number.isNaN(d.getTime())) return null;
+    return d.toLocaleDateString(dateLocale, { year: "numeric", month: "long", day: "numeric" });
+  };
+  const startLabel = fmtDateLabel(competition.start_date);
+  const reviewLabel = fmtDateLabel(competition.review_date);
+  const ceremonyLabel = fmtDateLabel(competition.ceremony_date);
 
   const prizeItems = [
     { label: t("films.mockAwardGrand"), value: competition.prize_grand, icon: "🥇", glowColor: "rgba(255,215,0,0.3)", borderColor: "rgba(255,215,0,0.25)", bgColor: "rgba(255,215,0,0.06)" },
@@ -1060,11 +1072,11 @@ export function CompetitionDetailClient({
 
               {(() => {
                 const stages = [
-                  { label: t("competition.detail.stageOpen"), date: null, done: true, active: false },
+                  { label: t("competition.detail.stageOpen"), date: startLabel, done: true, active: false },
                   { label: t("competition.detail.stageClose"), date: deadlineLabel, done: isClosed, active: isOpen },
-                  { label: t("competition.detail.stageReview"), date: null, done: false, active: false },
+                  { label: t("competition.detail.stageReview"), date: reviewLabel, done: false, active: false },
                   { label: t("competition.detail.stageVoteEnd"), date: voteEndLabel, done: false, active: false },
-                  { label: t("competition.detail.stageCeremony"), date: null, done: false, active: false },
+                  { label: t("competition.detail.stageCeremony"), date: ceremonyLabel, done: false, active: false },
                 ];
                 const activeIdx = stages.findIndex((s) => s.active);
                 const lastDoneIdx = stages.map((s) => s.done).lastIndexOf(true);
