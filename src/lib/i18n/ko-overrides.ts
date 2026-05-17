@@ -51,6 +51,7 @@ export const koOverrides: Record<string, string> = {
   "sidebar.notifications": "알림",
   "sidebar.language": "언어",
   "sidebar.logout": "로그아웃",
+  "sidebar.logoutConfirm": "정말 로그아웃 하시겠어요?",
   "landing.feat1Title": "AI 영화 스트리밍",
   "landing.feat1Desc": "전 세계 크리에이터의 AI 생성 영화를 한곳에서 감상하세요.",
   "landing.feat2Title": "상금 공모전",

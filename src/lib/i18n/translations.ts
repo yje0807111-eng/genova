@@ -27,6 +27,7 @@ const en: Messages = {
   "sidebar.notifications": "Alerts",
   "sidebar.language": "Language",
   "sidebar.logout": "Logout",
+  "sidebar.logoutConfirm": "Are you sure you want to log out?",
   "landing.feat1Title": "AI Film Streaming",
   "landing.feat1Desc": "Watch AI-generated films from creators worldwide, all in one place.",
   "landing.feat2Title": "Prize Competitions",

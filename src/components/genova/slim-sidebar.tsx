@@ -90,6 +90,12 @@ export function SlimSidebar({ onOpenChat, unreadMessageCount = 0 }: SlimSidebarP
   };
 
   const onLogout = async () => {
+    if (
+      !window.confirm(
+        t("sidebar.logoutConfirm", "정말 로그아웃 하시겠어요?"),
+      )
+    )
+      return;
     const supabase = getBrowserSupabaseClient();
     if (!supabase) return;
     await supabase.auth.signOut();

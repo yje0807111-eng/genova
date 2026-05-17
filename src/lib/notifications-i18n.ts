@@ -112,9 +112,9 @@ export function getNotificationLabel(
               .replace("{amount}", String(amount))
           : null;
       return {
-        title: notification.title?.trim()
-          ? notification.title
-          : t("notif.lotteryWinner.title", "🎉 You won the Genova lottery"),
+        // Always localize — the stored DB title is hardcoded English
+        // from the dispatch step, so preferring it broke i18n.
+        title: t("notif.lotteryWinner.title", "🎉 You won the Genova lottery"),
         body: bodyFromMeta ?? notification.body ?? "",
       };
     }
@@ -128,9 +128,7 @@ export function getNotificationLabel(
               .replace("{days}", String(daysLeft))
           : null;
       return {
-        title: notification.title?.trim()
-          ? notification.title
-          : t("notif.lotteryReminder.title", "⏰ Claim deadline approaching"),
+        title: t("notif.lotteryReminder.title", "⏰ Claim deadline approaching"),
         body: bodyFromMeta ?? notification.body ?? "",
       };
     }

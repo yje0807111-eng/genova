@@ -51,6 +51,7 @@ export const jaOverrides: Record<string, string> = {
   "sidebar.notifications": "通知",
   "sidebar.language": "言語",
   "sidebar.logout": "ログアウト",
+  "sidebar.logoutConfirm": "本当にログアウトしますか？",
   "landing.feat1Title": "AI映画ストリーミング",
   "landing.feat1Desc": "世界中のクリエイターが手がけたAI生成映画を一か所で視聴できます。",
   "landing.feat2Title": "賞金コンペティション",
