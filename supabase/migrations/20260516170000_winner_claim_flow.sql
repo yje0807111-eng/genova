@@ -109,7 +109,7 @@ begin
   -- mean "no longer valid").
   update public.winner_email_verifications
   set consumed_at = now()
-  where winner_id = v_winner.id
+  where winner_email_verifications.winner_id = v_winner.id
     and consumed_at is null;
 
   -- 6 random digits, left-padded so leading zeros stay.
