@@ -149,6 +149,7 @@ const en: Messages = {
   "profile.noSeriesYet": "No series yet.",
   "profile.noFilmsInSeriesYet": "No films in this series yet.",
   "common.cancel": "Cancel",
+  "common.more": "More",
   "genre.bucketFilm": "Film",
   "genre.bucketMusic": "Music",
   "genre.bucketDaily": "Daily",

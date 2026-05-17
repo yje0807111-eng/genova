@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import type { LucideIcon } from "lucide-react";
-import { Bell, Globe, Home, LogIn, LogOut, MessageCircle, Shield, Ticket, Trophy, Upload, User, X } from "lucide-react";
+import { Bell, Home, LogIn, LogOut, MessageCircle, MoreHorizontal, Shield, Ticket, Trophy, Upload, User, X } from "lucide-react";
 import { markAllNotificationsReadAction } from "@/app/actions/notifications";
 import { useI18n } from "@/components/genova/language-provider";
 import { getBrowserSupabaseClient } from "@/lib/supabase/browser";
@@ -469,91 +469,65 @@ export function SlimSidebar({ onOpenChat, unreadMessageCount = 0 }: SlimSidebarP
 
           <div className="my-1 h-px w-6 bg-white/[0.05]" aria-hidden />
 
-          {/* 응모권 + 알림 — 보조 요소라 하단에 한 줄 반반 컴팩트.
-              응모권 잔여 수 / 미확인 알림 배지는 미니 인디케이터로 유지. */}
-          <div className="flex w-full items-center justify-center gap-1.5">
-            <button
-              type="button"
-              onClick={openLotteryGuide}
-              className="relative flex h-9 w-9 items-center justify-center rounded-lg text-white/35 transition-colors hover:bg-white/[0.04] hover:text-white/80"
-              aria-label={t("lottery.guideLink", "응모권 추첨 안내")}
-              title={t("nav.lottery", "응모권")}
-            >
-              <Ticket className="h-[18px] w-[18px] shrink-0" aria-hidden />
-              {lotteryUsed !== null ? (
-                <span className="absolute -bottom-0.5 -right-0.5 rounded-full bg-[#0a0a0a] px-0.5 text-[8px] font-bold tabular-nums leading-tight text-[#AFA9EC]/85">
-                  {lotteryUsed}
-                </span>
-              ) : null}
-            </button>
+          {/* 응모권 — 잔여 수 코너 인디케이터 유지 */}
+          <button
+            type="button"
+            onClick={openLotteryGuide}
+            className="relative flex h-10 w-10 items-center justify-center rounded-xl text-white/35 transition-colors hover:bg-white/[0.04] hover:text-white/80"
+            aria-label={t("lottery.guideLink", "응모권 추첨 안내")}
+            title={t("nav.lottery", "응모권")}
+          >
+            <Ticket className="h-[19px] w-[19px] shrink-0" aria-hidden />
+            {lotteryUsed !== null ? (
+              <span className="absolute -bottom-0.5 -right-0.5 rounded-full bg-[#0a0a0a] px-0.5 text-[8px] font-bold tabular-nums leading-tight text-[#AFA9EC]/85">
+                {lotteryUsed}
+              </span>
+            ) : null}
+          </button>
 
-            <button
-              ref={notifBtnRef}
-              type="button"
-              onClick={openNotifications}
-              className={cn(
-                "relative flex h-9 w-9 items-center justify-center rounded-lg text-white/35 transition-colors hover:bg-white/[0.04] hover:text-white/80",
-                showNotifications && "bg-white/[0.04] text-white/80",
-              )}
-              aria-label={t("notifications.title")}
-              aria-expanded={showNotifications}
-              title={t("sidebar.notifications", "Alerts")}
-            >
-              <Bell className="h-[18px] w-[18px] shrink-0" aria-hidden />
-              {userId && notifUnread > 0 && !showNotifications ? (
-                <span
-                  className="absolute -right-1 -top-1 flex h-3.5 min-w-3.5 items-center justify-center rounded-full px-0.5 text-[8px] font-bold text-white"
-                  style={{ background: "#534AB7" }}
-                >
-                  {notifUnread > 9 ? "9+" : notifUnread}
-                </span>
-              ) : null}
-            </button>
-          </div>
-
-          {/* 언어 + 로그아웃/로그인 — 사용 빈도 가장 낮아 더 작게. */}
-          <div className="flex w-full items-center justify-center gap-1.5">
-            <button
-              ref={langBtnRef}
-              type="button"
-              onClick={() => {
-                setShowNotifications(false);
-                setShowLang((v) => !v);
-              }}
-              className={cn(
-                "flex h-7 w-7 items-center justify-center rounded-md text-white/30 transition-colors hover:bg-white/[0.04] hover:text-white/70",
-                showLang && "bg-white/[0.04] text-white/70",
-              )}
-              aria-label={t("sidebar.language")}
-              aria-expanded={showLang}
-              title={t("sidebar.language")}
-            >
-              <Globe className="h-[14px] w-[14px] shrink-0" aria-hidden />
-            </button>
-
-            {userId === undefined ? (
-              <span className="h-7 w-7" aria-hidden />
-            ) : userId ? (
-              <button
-                type="button"
-                onClick={() => void onLogout()}
-                className="flex h-7 w-7 items-center justify-center rounded-md text-white/30 transition-colors hover:bg-red-500/[0.08] hover:text-red-300"
-                aria-label={t("sidebar.logout", "Logout")}
-                title={t("sidebar.logout", "Logout")}
-              >
-                <LogOut className="h-[14px] w-[14px] shrink-0" aria-hidden />
-              </button>
-            ) : (
-              <Link
-                href="/auth"
-                className="flex h-7 w-7 items-center justify-center rounded-md text-white/30 transition-colors hover:bg-white/[0.04] hover:text-[#C7C2F0]"
-                aria-label={t("auth.signIn", "Sign in")}
-                title={t("auth.signIn", "Sign in")}
-              >
-                <LogIn className="h-[14px] w-[14px] shrink-0" aria-hidden />
-              </Link>
+          {/* 알림 — 배지 가시성 위해 노출 유지 */}
+          <button
+            ref={notifBtnRef}
+            type="button"
+            onClick={openNotifications}
+            className={cn(
+              "relative flex h-10 w-10 items-center justify-center rounded-xl text-white/35 transition-colors hover:bg-white/[0.04] hover:text-white/80",
+              showNotifications && "bg-white/[0.04] text-white/80",
             )}
-          </div>
+            aria-label={t("notifications.title")}
+            aria-expanded={showNotifications}
+            title={t("sidebar.notifications", "Alerts")}
+          >
+            <Bell className="h-[19px] w-[19px] shrink-0" aria-hidden />
+            {userId && notifUnread > 0 && !showNotifications ? (
+              <span
+                className="absolute -right-0.5 -top-0.5 flex h-3.5 min-w-3.5 items-center justify-center rounded-full px-0.5 text-[8px] font-bold text-white"
+                style={{ background: "#534AB7" }}
+              >
+                {notifUnread > 9 ? "9+" : notifUnread}
+              </span>
+            ) : null}
+          </button>
+
+          {/* 더보기 — 언어 설정 / 로그아웃 (사용 빈도 낮아 메뉴로 접음) */}
+          <button
+            ref={langBtnRef}
+            type="button"
+            onClick={() => {
+              setShowNotifications(false);
+              setShowLang((v) => !v);
+            }}
+            className={cn(
+              "flex h-10 w-10 items-center justify-center rounded-xl text-white/35 transition-colors hover:bg-white/[0.04] hover:text-white/80",
+              showLang && "bg-white/[0.04] text-white/80",
+            )}
+            aria-haspopup="menu"
+            aria-expanded={showLang}
+            aria-label={t("common.more", "더보기")}
+            title={t("common.more", "더보기")}
+          >
+            <MoreHorizontal className="h-[19px] w-[19px] shrink-0" aria-hidden />
+          </button>
         </div>
       </aside>
 
@@ -731,25 +705,56 @@ export function SlimSidebar({ onOpenChat, unreadMessageCount = 0 }: SlimSidebarP
       {showLang ? (
         <div
           ref={langPanelRef}
-          className="fixed bottom-[60px] left-[84px] z-[100] hidden md:block"
+          role="menu"
+          className="fixed bottom-[56px] left-[84px] z-[100] hidden md:block"
         >
-          <div className="flex gap-1 rounded-2xl border border-white/[0.08] bg-white/[0.02] p-2 backdrop-blur-md">
-            {(["en", "ko", "ja"] as const).map((lang) => (
+          <div className="w-[184px] overflow-hidden rounded-2xl border border-white/[0.08] bg-[#0a0a0a]/95 p-1.5 shadow-2xl backdrop-blur-xl">
+            <p className="px-2 pb-1 pt-1.5 text-[10px] font-semibold uppercase tracking-[0.14em] text-white/35">
+              {t("sidebar.language")}
+            </p>
+            <div className="flex gap-1 px-1 pb-1.5">
+              {(["en", "ko", "ja"] as const).map((lang) => (
+                <button
+                  key={lang}
+                  type="button"
+                  onClick={() => {
+                    setLocale(lang);
+                    setShowLang(false);
+                  }}
+                  className={cn(
+                    "h-8 flex-1 rounded-lg text-[11px] font-bold transition",
+                    locale === lang
+                      ? "bg-gradient-to-br from-[#7F77DD]/25 to-[#534AB7]/15 text-[#C7C2F0] ring-1 ring-inset ring-[#7F77DD]/30"
+                      : "text-white/40 hover:bg-white/[0.04] hover:text-white/75",
+                  )}
+                >
+                  {lang === "en" ? "EN" : lang === "ko" ? "KO" : "JA"}
+                </button>
+              ))}
+            </div>
+            <div className="my-1 h-px bg-white/[0.06]" aria-hidden />
+            {userId === undefined ? null : userId ? (
               <button
-                key={lang}
                 type="button"
                 onClick={() => {
-                  setLocale(lang);
                   setShowLang(false);
+                  void onLogout();
                 }}
-                className={cn(
-                  "h-8 rounded-full px-3 text-[11px] font-semibold transition",
-                  locale === lang ? "bg-white/10 text-white" : "text-white/35 hover:text-white/70",
-                )}
+                className="flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2 text-[12px] font-semibold text-white/55 transition hover:bg-red-500/[0.08] hover:text-red-300"
               >
-                {lang === "en" ? "EN" : lang === "ko" ? "KO" : "JA"}
+                <LogOut className="h-4 w-4 shrink-0" aria-hidden />
+                {t("sidebar.logout", "Logout")}
               </button>
-            ))}
+            ) : (
+              <Link
+                href="/auth"
+                onClick={() => setShowLang(false)}
+                className="flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2 text-[12px] font-semibold text-white/55 transition hover:bg-white/[0.05] hover:text-[#C7C2F0]"
+              >
+                <LogIn className="h-4 w-4 shrink-0" aria-hidden />
+                {t("auth.signIn", "Sign in")}
+              </Link>
+            )}
           </div>
         </div>
       ) : null}

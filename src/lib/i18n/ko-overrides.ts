@@ -20,6 +20,7 @@ export const koOverrides: Record<string, string> = {
   "common.toggleMenu": "메뉴 열기",
   "common.close": "닫기",
   "common.cancel": "취소",
+  "common.more": "더보기",
 
   "auth.signIn": "로그인",
   "auth.signUp": "회원가입",

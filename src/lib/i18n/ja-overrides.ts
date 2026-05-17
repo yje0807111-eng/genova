@@ -20,6 +20,7 @@ export const jaOverrides: Record<string, string> = {
   "common.toggleMenu": "メニューを開く",
   "common.close": "閉じる",
   "common.cancel": "キャンセル",
+  "common.more": "もっと見る",
 
   "auth.signIn": "ログイン",
   "auth.signUp": "新規登録",
