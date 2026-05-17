@@ -1,10 +1,13 @@
 "use client";
 
 import Link from "next/link";
+import { useState } from "react";
 import { useI18n } from "@/components/genova/language-provider";
+import { LegalModal } from "@/components/legal/legal-modal";
 
 export function SiteFooter() {
   const { t } = useI18n();
+  const [legal, setLegal] = useState<"terms" | "privacy" | null>(null);
 
   return (
     <footer className="border-t border-white/[0.05] px-6 py-6 sm:px-8">
@@ -16,8 +19,8 @@ export function SiteFooter() {
           <Link href="/competition" className="text-white/45 transition hover:text-white/80">{t("nav.competition", "Competition")}</Link>
           <Link href="/business" className="text-white/45 transition hover:text-white/80">{t("nav.business", "공모전 열기")}</Link>
           <Link href="/lottery" className="text-white/45 transition hover:text-white/80">{t("footer.lottery", "응모권 추첨")}</Link>
-          <Link href="/terms" className="text-white/45 transition hover:text-white/80">{t("footer.terms", "Terms of Service")}</Link>
-          <Link href="/privacy" className="text-white/45 transition hover:text-white/80">{t("footer.privacy", "Privacy Policy")}</Link>
+          <button type="button" onClick={() => setLegal("terms")} className="text-white/45 transition hover:text-white/80">{t("footer.terms", "Terms of Service")}</button>
+          <button type="button" onClick={() => setLegal("privacy")} className="text-white/45 transition hover:text-white/80">{t("footer.privacy", "Privacy Policy")}</button>
         </div>
 
         <div className="flex items-center gap-4 text-[11px] text-white/30">
@@ -43,6 +46,7 @@ export function SiteFooter() {
           </div>
         </div>
       </div>
+      <LegalModal kind={legal} onClose={() => setLegal(null)} />
     </footer>
   );
 }

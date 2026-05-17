@@ -103,7 +103,8 @@ const PRIVACY: Record<"en" | "ko" | "ja", Doc> = {
   },
 };
 
-export function LegalPage({ kind }: { kind: "terms" | "privacy" }) {
+/** Shared presentational body — used by the full page and the modal. */
+export function LegalBody({ kind }: { kind: "terms" | "privacy" }) {
   const { locale } = useI18n();
   const loc = (["en", "ko", "ja"] as const).includes(locale as "en" | "ko" | "ja")
     ? (locale as "en" | "ko" | "ja")
@@ -111,18 +112,18 @@ export function LegalPage({ kind }: { kind: "terms" | "privacy" }) {
   const doc = (kind === "terms" ? TERMS : PRIVACY)[loc];
 
   return (
-    <main className="mx-auto min-h-[100svh] w-full max-w-[760px] px-6 py-16 text-white">
+    <>
       <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-[#AFA9EC]">
         Genova
       </p>
-      <h1 className="mt-2 text-[28px] font-black tracking-tight md:text-[34px]">
+      <h1 className="mt-2 text-[24px] font-black tracking-tight md:text-[30px]">
         {doc.title}
       </h1>
       <p className="mt-2 text-[12px] text-white/40">{doc.updated}</p>
-      <p className="mt-6 text-[14px] leading-relaxed text-white/65">
+      <p className="mt-5 text-[14px] leading-relaxed text-white/65">
         {doc.intro}
       </p>
-      <div className="mt-8 space-y-6">
+      <div className="mt-7 space-y-5">
         {doc.sections.map((s) => (
           <section key={s.h}>
             <h2 className="text-[15px] font-bold text-white">{s.h}</h2>
@@ -132,6 +133,14 @@ export function LegalPage({ kind }: { kind: "terms" | "privacy" }) {
           </section>
         ))}
       </div>
+    </>
+  );
+}
+
+export function LegalPage({ kind }: { kind: "terms" | "privacy" }) {
+  return (
+    <main className="mx-auto min-h-[100svh] w-full max-w-[760px] px-6 py-16 text-white">
+      <LegalBody kind={kind} />
     </main>
   );
 }
