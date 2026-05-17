@@ -597,7 +597,7 @@ export function CompetitionDetailClient({
           상시 노출 → 전환 동선 단축 (Kickstarter/영화제 랜딩 문법). */}
       <div data-tab-content className="sticky top-0 z-40 border-b border-white/[0.07] bg-[rgba(10,10,10,0.96)] backdrop-blur-lg">
         <div className="mx-auto flex max-w-[1400px] items-center justify-between gap-4 px-4 md:px-8">
-          <div className="flex flex-1 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+          <div className="flex flex-1 items-center overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
             {[
               { id: "overview", label: t("competition.detail.tabOverview") },
               { id: "judging", label: t("competition.detail.tabJudging") },
