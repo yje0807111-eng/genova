@@ -18,6 +18,15 @@ export async function sendWinnerCodeEmail(input: {
   expiresAt: string; // ISO timestamp
 }): Promise<boolean> {
   if (!resend) {
+    // Dev convenience: with no Resend key, print the code to the
+    // server console so the claim flow is testable locally.  Never
+    // active in production (would leak the verification code).
+    if (process.env.NODE_ENV !== "production") {
+      console.warn(
+        `\n[DEV] RESEND_API_KEY not set — winner verification code for ${input.to}: ${input.code}\n(expires ${input.expiresAt})\n`,
+      );
+      return true;
+    }
     console.warn("RESEND_API_KEY not set, skipping winner code email");
     return false;
   }
