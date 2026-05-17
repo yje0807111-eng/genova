@@ -73,7 +73,11 @@ export async function dispatchWinnerNotifications(
       entityType: "competition_winner",
       entityId: winnerId,
       // claim_token intentionally OMITTED per CLAUDE.md #7 — href only.
-      metadata: { prize_tier: w.prize_tier, prize_amount_usd: w.prize_amount_usd },
+      metadata: {
+        prize_tier: w.prize_tier,
+        prize_amount_usd: w.prize_amount_usd,
+        draw_month_key: monthKey,
+      },
     });
     if (notifResult.error) {
       notifFailed += 1;

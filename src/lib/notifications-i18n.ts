@@ -105,9 +105,14 @@ export function getNotificationLabel(
       // is NOT in metadata (security policy) — only in the href.
       const tier = (meta.prize_tier as number | string | undefined) ?? "";
       const amount = (meta.prize_amount_usd as number | string | undefined) ?? "";
+      const monthKey = (meta.draw_month_key as string | undefined) ?? "";
+      const [my, mm] = monthKey.split("-");
+      const winnerNo =
+        my && mm ? `${my.slice(2)}.${parseInt(mm, 10)}.${tier}` : String(tier);
       const bodyFromMeta =
         tier !== "" && amount !== ""
-          ? t("notif.lotteryWinner.body", `Tier ${tier} · $${amount}`)
+          ? t("notif.lotteryWinner.body", `No. ${winnerNo} · $${amount}`)
+              .replace("{no}", winnerNo)
               .replace("{tier}", String(tier))
               .replace("{amount}", String(amount))
           : null;

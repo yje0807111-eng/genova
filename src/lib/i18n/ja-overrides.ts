@@ -1991,7 +1991,7 @@ export const jaOverrides: Record<string, string> = {
   "notif.trophy.competitionBody": "{title}で{award}を受賞",
   "notif.trophy.weeklyBody": "{genre} 週間{rank}位",
   "notif.lotteryWinner.title": "🎉 Genova 抽選当選",
-  "notif.lotteryWinner.body": "{tier}等 · ${amount}",
+  "notif.lotteryWinner.body": "当選番号 {no} · ${amount}",
   "notif.lotteryReminder.title": "⏰ 情報提出締切間近",
   "notif.lotteryReminder.body": "${amount} 残り{days}日",
 

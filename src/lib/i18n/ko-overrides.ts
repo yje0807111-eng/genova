@@ -1995,7 +1995,7 @@ export const koOverrides: Record<string, string> = {
   "notif.trophy.competitionBody": "{title}에서 {award} 수상",
   "notif.trophy.weeklyBody": "{genre} 주간 {rank}위",
   "notif.lotteryWinner.title": "🎉 Genova 추첨 당첨",
-  "notif.lotteryWinner.body": "{tier}등 · ${amount}",
+  "notif.lotteryWinner.body": "당첨번호 {no} · ${amount}",
   "notif.lotteryReminder.title": "⏰ 정보 제출 마감 임박",
   "notif.lotteryReminder.body": "${amount} 상금 · {days}일 남음",
 

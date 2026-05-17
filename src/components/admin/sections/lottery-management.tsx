@@ -467,7 +467,7 @@ export function LotteryManagement({
                 <span>{new Date(r.drawnAt).toLocaleString("ko-KR")}</span>
                 {r.isRedraw ? (
                   <span className="rounded bg-amber-500/15 px-1.5 py-0.5 text-amber-300">
-                    재추첨 {r.redrawPrizeTier}위
+                    재추첨 · {winnerNo(r.drawMonthKey, r.redrawPrizeTier ?? 0)}
                   </span>
                 ) : (
                   <span className="rounded bg-white/[0.06] px-1.5 py-0.5">

@@ -1838,7 +1838,7 @@ const en: Messages = {
   "notif.trophy.competitionBody": "Won {award} in {title}",
   "notif.trophy.weeklyBody": "{genre} weekly rank {rank}",
   "notif.lotteryWinner.title": "🎉 You won the Genova lottery",
-  "notif.lotteryWinner.body": "Tier {tier} · ${amount}",
+  "notif.lotteryWinner.body": "No. {no} · ${amount}",
   "notif.lotteryReminder.title": "⏰ Claim deadline approaching",
   "notif.lotteryReminder.body": "${amount} prize · {days} days left",
 
