@@ -3,7 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { LotteryGuideInfoButton } from "@/components/lottery/lottery-guide-info-button";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useI18n } from "@/components/genova/language-provider";
 import { intlDateLocale } from "@/lib/i18n/browser-locale";
 import { formatPrizeWithConversion } from "@/lib/utils/format-prize";

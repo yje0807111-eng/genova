@@ -16,31 +16,6 @@ export const metadata: Metadata = {
   },
 };
 
-function parsePrizeToUSD(prizeInfo: string): number {
-  if (!prizeInfo) return 0;
-  // USD
-  const usdMatch = prizeInfo.match(/\$([0-9,]+)/);
-  if (usdMatch) return parseInt(usdMatch[1].replace(/,/g, ""));
-  // KRW (만원) → USD @ ~1350 KRW/USD
-  const wonMatch = prizeInfo.match(/([0-9,]+)만원/);
-  if (wonMatch) {
-    const krw = parseInt(wonMatch[1].replace(/,/g, "")) * 10000;
-    return Math.round(krw / 1350);
-  }
-  // KRW (원)
-  const krwMatch = prizeInfo.match(/([0-9,]+)원/);
-  if (krwMatch) {
-    const krw = parseInt(krwMatch[1].replace(/,/g, ""));
-    return Math.round(krw / 1350);
-  }
-  // KRW (₩)
-  const wonSymbolMatch = prizeInfo.match(/₩([0-9,]+)/);
-  if (wonSymbolMatch) {
-    const krw = parseInt(wonSymbolMatch[1].replace(/,/g, ""));
-    return Math.round(krw / 1350);
-  }
-  return 0;
-}
 
 export default async function CompetitionPage() {
   const supabase = await createServerSupabaseClient();
@@ -53,11 +28,6 @@ export default async function CompetitionPage() {
   const closed = competitions.filter(
     (c) => !["Open", "접수중", "결선 진행중", "In Review", "Voting", "Upcoming", "예정"].includes(c.status),
   );
-
-  // Total prize pool: non-ended competitions only, normalized to USD
-  const totalPrizeUSD = competitions
-    .filter((c) => !["Closed", "종료", "마감"].includes(c.status))
-    .reduce((sum, c) => sum + parsePrizeToUSD(c.prize_info), 0);
 
   // Per-competition participant counts (unique uploaded_by)
   const participantCountMap: Record<string, number> = {};

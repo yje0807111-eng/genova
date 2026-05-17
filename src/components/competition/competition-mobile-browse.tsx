@@ -12,9 +12,6 @@ import { formatPrizeWithConversion } from "@/lib/utils/format-prize";
 
 type Comp = any;
 
-function intlLocale(l: string) {
-  return l === "ko" ? "ko-KR" : l === "ja" ? "ja-JP" : "en-US";
-}
 function dDay(deadline: string): number {
   return Math.max(
     0,
