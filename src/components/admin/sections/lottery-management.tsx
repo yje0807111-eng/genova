@@ -17,6 +17,27 @@ import type {
   LotteryAuditRow,
 } from "@/lib/queries/lottery-admin-queries";
 
+// 하이드레이션 안전 날짜 포맷터.  toLocaleString 은 서버(전체 ICU)
+// vs 브라우저의 로케일 데이터·타임존이 달라 "오후"/"PM" 같은
+// SSR 불일치를 유발한다.  KST 고정 + 숫자 전용(en-CA, 24h)으로
+// 서버·클라이언트 출력이 항상 동일하게 한다.
+function fmtKST(iso: string, withTime = true): string {
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return iso ?? "";
+  const parts = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Asia/Seoul",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    ...(withTime
+      ? { hour: "2-digit", minute: "2-digit", hour12: false }
+      : {}),
+  }).formatToParts(d);
+  const g = (t: string) => parts.find((x) => x.type === t)?.value ?? "";
+  const date = `${g("year")}.${g("month")}.${g("day")}`;
+  return withTime ? `${date} ${g("hour")}:${g("minute")}` : date;
+}
+
 // 글로벌 월간 응모권 추첨 관리 (공모전 무관). 핵심만: 이번 달 풀
 // 현황 / 추첨 / 당첨자 큐(정보확인·지급·재추첨) / CSV / 이력.
 export function LotteryManagement({
@@ -349,14 +370,14 @@ export function LotteryManagement({
                           ) : null}
                           <InfoField
                             label="제출 일시"
-                            value={new Date(w.info.submittedAt).toLocaleString("ko-KR")}
+                            value={fmtKST(w.info.submittedAt)}
                           />
                           {w.info.adminVerified ? (
                             <InfoField
                               label="검수"
                               value={`완료 · ${
                                 w.info.adminVerifiedAt
-                                  ? new Date(w.info.adminVerifiedAt).toLocaleString("ko-KR")
+                                  ? fmtKST(w.info.adminVerifiedAt)
                                   : ""
                               }`}
                             />
@@ -367,7 +388,7 @@ export function LotteryManagement({
                           {w.info.paidAt ? (
                             <InfoField
                               label="지급"
-                              value={`완료 · ${new Date(w.info.paidAt).toLocaleString("ko-KR")}${
+                              value={`완료 · ${fmtKST(w.info.paidAt)}${
                                 w.info.paymentReference
                                   ? ` · ${w.info.paymentReference}`
                                   : ""
@@ -379,7 +400,7 @@ export function LotteryManagement({
                         <p className="rounded-lg border border-amber-400/20 bg-amber-500/[0.06] px-3 py-2.5 text-[12px] leading-relaxed text-amber-200/85">
                           당첨자가 아직 지급 정보를 제출하지 않았습니다. 제출 마감{" "}
                           <b className="text-amber-100">
-                            {new Date(w.infoDeadline).toLocaleDateString("ko-KR")}
+                            {fmtKST(w.infoDeadline, false)}
                           </b>{" "}
                           ({dday >= 0 ? `D-${dday}` : `마감 ${-dday}일 경과`}). 마감 후
                           미제출 시 자동 만료됩니다. 알림이 안 갔다면 아래 “재발송”.
@@ -464,7 +485,7 @@ export function LotteryManagement({
                 className="flex flex-wrap items-center gap-x-3 gap-y-1 rounded-lg border border-white/[0.06] px-3 py-1.5 text-[11px] text-white/55"
               >
                 <span className="font-bold text-[#AFA9EC]">{r.drawMonthKey}</span>
-                <span>{new Date(r.drawnAt).toLocaleString("ko-KR")}</span>
+                <span>{fmtKST(r.drawnAt)}</span>
                 {r.isRedraw ? (
                   <span className="rounded bg-amber-500/15 px-1.5 py-0.5 text-amber-300">
                     재추첨 · {winnerNo(r.drawMonthKey, r.redrawPrizeTier ?? 0)}
