@@ -77,7 +77,17 @@ export async function dispatchWinnerNotifications(
     });
     if (notifResult.error) {
       notifFailed += 1;
-      console.error("[lottery-notify] notif insert failed", winnerId, notifResult.error);
+      const e = notifResult.error as {
+        message?: string;
+        code?: string;
+        details?: string;
+        hint?: string;
+      };
+      console.error(
+        `[lottery-notify] notif insert failed ${winnerId} ` +
+          `code=${e.code ?? "?"} msg=${e.message ?? "?"} ` +
+          `details=${e.details ?? "?"} hint=${e.hint ?? "?"}`,
+      );
     }
 
     const email = emailByUserId.get(userId);
