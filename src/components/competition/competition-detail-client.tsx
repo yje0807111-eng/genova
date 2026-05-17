@@ -11,6 +11,7 @@ import { cn } from "@/lib/utils/cn";
 import { HoverPreviewCard } from "@/components/genova/hover-preview-card";
 import { useUploadModal } from "@/components/upload/upload-modal-context";
 import type { Video as AppVideo } from "@/lib/types";
+import type { JudgingRound, JudgingEvaluatorType } from "@/components/admin/edit-competition/types";
 import { Trophy, ChevronLeft, Upload, Star, Grid, List, Award, Medal, ArrowRight } from "lucide-react";
 
 function isVideoUrl(url: string): boolean {
@@ -49,6 +50,7 @@ type Competition = {
   judging_process_ko?: string | null;
   judging_process_en?: string | null;
   judging_process_ja?: string | null;
+  judging_rounds?: JudgingRound[] | null;
   submission_guidelines?: string | null;
   submission_guidelines_ko?: string | null;
   submission_guidelines_en?: string | null;
@@ -1289,6 +1291,57 @@ export function CompetitionDetailClient({
                   {(() => {
                     const stepWord =
                       locale === "ko" ? "단계" : locale === "ja" ? "ステップ" : "STEP";
+
+                    // 구조화 심사 차시(judging_rounds) 우선 — 차시별
+                    // 심사 주체(운영진/심사위원/시청자 투표) 비율 막대.
+                    const rounds = Array.isArray(competition.judging_rounds)
+                      ? competition.judging_rounds
+                      : [];
+                    if (rounds.length > 0) {
+                      const evalLabel = (tp: JudgingEvaluatorType) =>
+                        tp === "staff"
+                          ? t("judging.eval.staff", "운영진")
+                          : tp === "jury"
+                            ? t("judging.eval.jury", "심사위원")
+                            : t("judging.eval.audience", "시청자 투표");
+                      return rounds.map((r, i) => {
+                        const rtitle =
+                          getText(r.title_ko, r.title_en, r.title_ja, "") ||
+                          `${stepWord} ${String(i + 1).padStart(2, "0")}`;
+                        return (
+                          <div
+                            key={`round-${i}`}
+                            className="space-y-3 rounded-xl border border-white/10 bg-[#0a0a0a]/40 p-5 backdrop-blur-xl"
+                          >
+                            <p className="text-[10px] uppercase tracking-[0.2em] text-[#7F77DD]">
+                              {stepWord} {String(i + 1).padStart(2, "0")}
+                            </p>
+                            <p className="text-base font-bold text-white">{rtitle}</p>
+                            <div className="space-y-2">
+                              {r.evaluators.map((ev, ei) => (
+                                <div key={ei}>
+                                  <div className="mb-1 flex items-center justify-between text-xs text-white/65">
+                                    <span>{evalLabel(ev.type)}</span>
+                                    <span className="font-mono text-white/45">{ev.percent}%</span>
+                                  </div>
+                                  <div className="h-1.5 rounded-full bg-white/10">
+                                    <div
+                                      className="h-full rounded-full"
+                                      style={{
+                                        width: `${Math.max(0, Math.min(100, Number(ev.percent) || 0))}%`,
+                                        background:
+                                          "linear-gradient(to right, rgba(127,119,221,0.9), rgba(175,169,236,0.75))",
+                                      }}
+                                    />
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        );
+                      });
+                    }
+
                     const customProcess = getText(
                       competition.judging_process_ko,
                       competition.judging_process_en,

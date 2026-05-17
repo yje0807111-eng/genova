@@ -1,3 +1,19 @@
+export type JudgingEvaluatorType = "staff" | "jury" | "audience";
+
+export type JudgingEvaluator = {
+  type: JudgingEvaluatorType;
+  percent: number;
+};
+
+export type JudgingRound = {
+  title_ko: string;
+  title_en: string;
+  title_ja: string;
+  evaluators: JudgingEvaluator[];
+};
+
+export const JUDGING_EVALUATOR_TYPES: JudgingEvaluatorType[] = ["staff", "jury", "audience"];
+
 export type EditCompetitionFormState = {
   title_ko: string;
   title_en: string;
@@ -27,6 +43,7 @@ export type EditCompetitionFormState = {
   judging_process_ko: string;
   judging_process_en: string;
   judging_process_ja: string;
+  judging_rounds: JudgingRound[];
   submission_guidelines_ko: string;
   submission_guidelines_en: string;
   submission_guidelines_ja: string;
