@@ -115,15 +115,15 @@ export function SeriesEpisodesSlider({
 
   return (
     <section
-      className="mt-4 rounded-2xl p-4 sm:p-5"
+      className="mt-4 rounded-2xl p-3.5 sm:p-4"
       style={{
         background:
           "linear-gradient(180deg, rgba(255,255,255,0.045) 0%, rgba(255,255,255,0.012) 100%)",
       }}
     >
       {/* Header */}
-      <div className="mb-4 flex items-center gap-3">
-        <AccentBar className="h-8" />
+      <div className="mb-3 flex items-center gap-3">
+        <AccentBar className="h-7" />
         <div className="min-w-0 flex-1">
           <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-[#AFA9EC]">
             {t("series.sectionLabel", "Series")}
@@ -148,7 +148,7 @@ export function SeriesEpisodesSlider({
       <div className="group/rail relative">
         <div
           ref={railRef}
-          className="hide-scrollbar flex gap-3 overflow-x-auto scroll-smooth pb-1"
+          className="hide-scrollbar flex gap-2.5 overflow-x-auto scroll-smooth pb-1"
         >
           {episodes.map((ep) => {
             const isCurrent = ep.id === currentVideoId;
@@ -158,59 +158,83 @@ export function SeriesEpisodesSlider({
                 href={`/watch/${ep.id}`}
                 aria-current={isCurrent ? "true" : undefined}
                 className={cn(
-                  "group/card relative w-[230px] shrink-0 overflow-hidden rounded-xl transition-all duration-200",
+                  "group/card relative aspect-video w-[180px] shrink-0 overflow-hidden rounded-lg transition-all duration-200",
                   isCurrent
-                    ? "ring-2 ring-[#7F77DD]"
-                    : "ring-1 ring-white/[0.04] hover:-translate-y-1 hover:ring-white/15",
+                    ? "ring-1 ring-[#9D95F0]/70"
+                    : "ring-1 ring-white/[0.05] hover:-translate-y-0.5 hover:ring-white/20",
                 )}
+                style={
+                  isCurrent
+                    ? {
+                        boxShadow:
+                          "0 0 0 1px rgba(157,149,240,0.5), 0 8px 26px -8px rgba(127,119,221,0.55)",
+                      }
+                    : undefined
+                }
               >
-                <div className="relative aspect-video overflow-hidden bg-black/40">
-                  <Image
-                    src={
-                      ep.thumbnailUrl ||
-                      `https://picsum.photos/seed/${ep.id}/400/225`
-                    }
-                    alt=""
-                    fill
-                    sizes="230px"
-                    className="object-cover transition duration-500 group-hover/card:scale-105"
-                  />
-                  <div
-                    className="absolute inset-0"
-                    style={{
-                      background:
-                        "linear-gradient(to top, rgba(10,10,10,0.85) 0%, rgba(10,10,10,0.15) 45%, transparent 100%)",
-                    }}
-                  />
-                  <span
-                    className="absolute left-2 top-2 rounded-md bg-[#534AB7] px-2 py-0.5 text-[10px] font-black uppercase tracking-wider text-white ring-1 ring-white/20"
-                    style={{ boxShadow: "0 2px 10px rgba(0,0,0,0.55)" }}
-                  >
-                    {epLabel(ep.episodeNumber)}
-                  </span>
-                  {ep.runtime ? (
-                    <span className="absolute bottom-2 right-2 rounded bg-black/70 px-1.5 py-0.5 text-[10px] font-bold text-white backdrop-blur-sm">
-                      {formatRuntime(ep.runtime)}
-                    </span>
-                  ) : null}
-                  {isCurrent ? (
-                    <span className="absolute bottom-2 left-2 inline-flex items-center gap-1 rounded-md bg-[#7F77DD] px-1.5 py-0.5 text-[10px] font-bold text-white">
-                      <Play className="h-2.5 w-2.5 fill-white" />
-                      {t("series.nowPlaying", "Now Playing")}
-                    </span>
-                  ) : (
-                    <span className="absolute inset-0 flex items-center justify-center opacity-0 transition-opacity duration-200 group-hover/card:opacity-100">
-                      <span className="flex h-10 w-10 items-center justify-center rounded-full bg-black/55 ring-1 ring-white/25 backdrop-blur-sm">
-                        <Play className="h-4 w-4 fill-white text-white" />
-                      </span>
-                    </span>
+                <Image
+                  src={
+                    ep.thumbnailUrl ||
+                    `https://picsum.photos/seed/${ep.id}/400/225`
+                  }
+                  alt=""
+                  fill
+                  sizes="180px"
+                  className="object-cover transition duration-500 group-hover/card:scale-105"
+                />
+                <div
+                  className="absolute inset-0"
+                  style={{
+                    background:
+                      "linear-gradient(to top, rgba(8,8,12,0.92) 0%, rgba(8,8,12,0.35) 40%, transparent 70%)",
+                  }}
+                />
+
+                {/* EP / 재생중 — 글래스 톤으로 통일 */}
+                <span
+                  className={cn(
+                    "absolute left-2 top-2 inline-flex items-center gap-1.5 rounded-full px-2 py-0.5 text-[10px] font-semibold backdrop-blur-md ring-1",
+                    isCurrent
+                      ? "bg-[#534AB7]/55 text-white ring-white/15"
+                      : "bg-black/40 text-white/90 ring-white/10",
                   )}
-                </div>
-                <div className="bg-[#0b0b14] px-3 py-2.5">
-                  <p className="line-clamp-1 text-[12.5px] font-bold text-white">
+                >
+                  <span
+                    className={cn(
+                      "h-1.5 w-1.5 rounded-full",
+                      isCurrent && "animate-pulse",
+                    )}
+                    style={{
+                      background: "#9D95F0",
+                      boxShadow: "0 0 6px rgba(157,149,240,0.85)",
+                    }}
+                    aria-hidden
+                  />
+                  {isCurrent
+                    ? t("series.nowPlaying", "Now Playing")
+                    : epLabel(ep.episodeNumber)}
+                </span>
+
+                {ep.runtime ? (
+                  <span className="absolute right-2 top-2 rounded bg-black/55 px-1.5 py-0.5 text-[9.5px] font-bold tabular-nums text-white/85 backdrop-blur-sm">
+                    {formatRuntime(ep.runtime)}
+                  </span>
+                ) : null}
+
+                {!isCurrent ? (
+                  <span className="absolute inset-0 flex items-center justify-center opacity-0 transition-opacity duration-200 group-hover/card:opacity-100">
+                    <span className="flex h-9 w-9 items-center justify-center rounded-full bg-black/55 ring-1 ring-white/25 backdrop-blur-sm">
+                      <Play className="h-3.5 w-3.5 fill-white text-white" />
+                    </span>
+                  </span>
+                ) : null}
+
+                {/* 텍스트 — 썸네일 위 오버레이로 간결하게 */}
+                <div className="absolute inset-x-0 bottom-0 px-2.5 pb-2">
+                  <p className="line-clamp-1 text-[12px] font-bold text-white">
                     {ep.title}
                   </p>
-                  <p className="mt-0.5 text-[11px] text-white/35">
+                  <p className="mt-0.5 text-[10px] tabular-nums text-white/45">
                     {formatViewCountShort(ep.viewCount ?? 0)}{" "}
                     {t("feed.views", "views")}
                   </p>
@@ -326,7 +350,7 @@ export function SeriesEpisodesSlider({
                       className={cn(
                         "group flex gap-4 rounded-xl p-3 transition",
                         isCurrent
-                          ? "bg-[#534AB7]/[0.16] ring-1 ring-[#7F77DD]/50"
+                          ? "bg-[#534AB7]/[0.12] ring-1 ring-[#9D95F0]/45"
                           : "bg-white/[0.025] hover:bg-white/[0.05]",
                       )}
                     >
@@ -359,8 +383,15 @@ export function SeriesEpisodesSlider({
                             {epLabel(ep.episodeNumber)}
                           </span>
                           {isCurrent ? (
-                            <span className="inline-flex items-center gap-1 rounded-full bg-[#7F77DD] px-2 py-0.5 text-[9px] font-bold text-white">
-                              <Play className="h-2 w-2 fill-white" />
+                            <span className="inline-flex items-center gap-1.5 rounded-full bg-black/40 px-2 py-0.5 text-[9px] font-semibold text-white/90 backdrop-blur-md ring-1 ring-white/10">
+                              <span
+                                className="h-1 w-1 animate-pulse rounded-full"
+                                style={{
+                                  background: "#9D95F0",
+                                  boxShadow: "0 0 6px rgba(157,149,240,0.85)",
+                                }}
+                                aria-hidden
+                              />
                               {t("series.nowPlaying", "Now Playing")}
                             </span>
                           ) : null}
