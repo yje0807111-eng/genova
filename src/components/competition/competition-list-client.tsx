@@ -114,7 +114,7 @@ function CompetitionCard({ c, participantCount }: { c: Competition; participantC
   return (
     <Link
       href={`/competition/${c.id}`}
-      className="group relative flex transform-gpu flex-col overflow-hidden rounded-xl border border-white/[0.10] bg-[#0e0e14] shadow-[0_2px_12px_rgba(0,0,0,0.4)] transition-all duration-200 hover:-translate-y-0.5 hover:border-[rgba(127,119,221,0.5)] hover:shadow-[0_10px_30px_rgba(83,74,183,0.28)]"
+      className="group relative flex flex-col overflow-hidden rounded-xl border border-white/[0.10] bg-[#0e0e14] shadow-[0_2px_12px_rgba(0,0,0,0.4)] transition-[transform,border-color,box-shadow] duration-200 hover:-translate-y-0.5 hover:border-[rgba(127,119,221,0.5)] hover:shadow-[0_10px_30px_rgba(83,74,183,0.28)]"
     >
       <div className="relative aspect-video w-full overflow-hidden">
         {thumb ? (
