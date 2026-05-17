@@ -113,6 +113,65 @@ export default async function AdminHealthPage() {
     }
   }
 
+  // 6. NOTIFY_TO_EMAIL — 문의/제보·비즈니스 문의 알림 수신 주소
+  rows.push({
+    label: "NOTIFY_TO_EMAIL",
+    status: process.env.NOTIFY_TO_EMAIL ? "ok" : "warn",
+    detail: process.env.NOTIFY_TO_EMAIL
+      ? process.env.NOTIFY_TO_EMAIL
+      : "미설정 — 문의/제보·비즈니스 문의 알림 메일 미발송 (DB엔 저장됨, 패널에서 확인 가능)",
+  });
+
+  // 7. operator_messages 테이블 (문의/제보 채널)
+  if (service) {
+    const total = await service
+      .from("operator_messages")
+      .select("id", { count: "exact", head: true });
+    if (total.error) {
+      rows.push({
+        label: "operator_messages",
+        status: "fail",
+        detail: `테이블 접근 실패 — 마이그레이션 미적용 가능: ${total.error.message}`,
+      });
+    } else {
+      const open = await service
+        .from("operator_messages")
+        .select("id", { count: "exact", head: true })
+        .eq("status", "open");
+      rows.push({
+        label: "operator_messages",
+        status: (open.count ?? 0) > 0 ? "warn" : "ok",
+        detail: `총 ${total.count ?? 0}건 · 미처리(open) ${
+          open.count ?? 0
+        }건${(open.count ?? 0) > 0 ? " — 어드민에서 확인 필요" : ""}`,
+      });
+    }
+  }
+
+  // 8. 조회수 RPC + per-user 캡 컬럼
+  if (service) {
+    const rpc = await service.rpc("increment_video_view_count", {
+      p_video_id: "__healthcheck_no_match__",
+    });
+    rows.push({
+      label: "increment_video_view_count RPC",
+      status: rpc.error ? "warn" : "ok",
+      detail: rpc.error
+        ? `미적용 — service-role 폴백으로 동작하나 RPC 권장: ${rpc.error.message}`
+        : "정상 (조회수 증가 RPC)",
+    });
+    const cap = await service
+      .from("watch_history")
+      .select("view_count_increments", { count: "exact", head: true });
+    rows.push({
+      label: "watch_history.view_count_increments",
+      status: cap.error ? "fail" : "ok",
+      detail: cap.error
+        ? `컬럼 없음 — 계정당 3회 조회수 캡이 적용 안 됨: ${cap.error.message}`
+        : "정상 (조회수 3회 캡 적용)",
+    });
+  }
+
   const tone = {
     ok: "border-emerald-400/25 bg-emerald-500/[0.07] text-emerald-300",
     warn: "border-amber-400/25 bg-amber-500/[0.07] text-amber-300",
