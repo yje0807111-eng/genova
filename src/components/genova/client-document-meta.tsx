@@ -13,7 +13,6 @@ function segmentTitle(pathname: string, t: (k: string, fb?: string) => string): 
   if (pathname === "/upload" || pathname.startsWith("/upload/"))
     return t("meta.title.upload", "Upload");
   if (pathname === "/search") return t("meta.title.search", "Search");
-  if (pathname === "/credits") return t("meta.title.credits", "Credits");
   if (pathname.startsWith("/watch/")) return t("meta.title.watch", "Watch");
   if (pathname.startsWith("/profile/")) {
     if (pathname.includes("/settings")) return t("meta.title.settings", "Settings");
