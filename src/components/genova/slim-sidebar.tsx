@@ -716,7 +716,7 @@ export function SlimSidebar({ onOpenChat, unreadMessageCount = 0 }: SlimSidebarP
         <div
           ref={langPanelRef}
           role="menu"
-          className={`${moreAnim.closing ? "anim-pop-out" : "anim-pop"} fixed bottom-[56px] left-[84px] z-[100] hidden origin-bottom-left md:block`}
+          className={`${moreAnim.closing ? "anim-pop-out" : "anim-pop"} fixed bottom-3 left-[84px] z-[100] hidden origin-bottom-left md:block`}
         >
           <div className="w-[184px] overflow-hidden rounded-2xl border border-white/[0.08] bg-[#0a0a0a]/95 p-1.5 shadow-2xl backdrop-blur-xl">
             <p className="px-2 pb-1 pt-1.5 text-[10px] font-semibold uppercase tracking-[0.14em] text-white/35">
