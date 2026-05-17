@@ -240,11 +240,9 @@ export default async function WatchDetailPage({
           </div>
         }
         belowPlayerSlot={
-          <>
-            <ShareButton title={video.title} videoId={video.id} thumbnailUrl={video.thumbnailUrl} />
-            <WatchMoreMenu videoId={video.id} />
-          </>
+          <ShareButton title={video.title} videoId={video.id} thumbnailUrl={video.thumbnailUrl} />
         }
+        moreSlot={<WatchMoreMenu videoId={video.id} />}
         descriptionInner={
           <WatchDescriptionInner description={rawDescription} tags={displayTags} aiTools={displayAiTools} />
         }

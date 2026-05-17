@@ -8,6 +8,7 @@ import type { Video, VideoComment } from "@/lib/types";
 export function WatchDesktopFlexRow({
   playerSlot,
   belowPlayerSlot,
+  moreSlot,
   descriptionInner,
   leftAfterDescription,
   upNextSlot,
@@ -28,6 +29,7 @@ export function WatchDesktopFlexRow({
 }: {
   playerSlot: ReactNode;
   belowPlayerSlot?: ReactNode;
+  moreSlot?: ReactNode;
   descriptionInner: ReactNode;
   leftAfterDescription: ReactNode;
   // Pre-rendered "Up next" rail — server component (B.2-5) composed by the
@@ -84,6 +86,7 @@ export function WatchDesktopFlexRow({
               initialComments={initialComments}
               isVideoOwner={isVideoOwner}
               playerActions={belowPlayerSlot}
+              moreAction={moreSlot}
               seriesEpisodes={seriesEpisodes}
             />
           </div>

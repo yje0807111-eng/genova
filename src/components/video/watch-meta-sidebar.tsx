@@ -10,7 +10,8 @@ import {
 } from "@/components/comments/video-comments-section";
 import { useI18n } from "@/components/genova/language-provider";
 import { FollowButton } from "@/components/profile/follow-button";
-import { VideoEngagementBar } from "@/components/video/video-engagement-bar";
+import { VideoLikeButton } from "@/components/video/video-like-button";
+import { VideoSaveButton } from "@/components/video/video-save-button";
 import { SeriesEpisodesList } from "@/components/video/series-episodes-list";
 import type { Video, VideoComment } from "@/lib/types";
 import { cn } from "@/lib/utils/cn";
@@ -31,6 +32,8 @@ interface Props {
   initialComments: VideoComment[];
   isVideoOwner?: boolean;
   playerActions?: ReactNode;
+  /** 우측 구석 더보기(신고) 버튼. */
+  moreAction?: ReactNode;
   /** 시리즈 시청 중이면 회차 목록 (사이드바 '회차' 탭). */
   seriesEpisodes?: Video[];
 }
@@ -87,6 +90,7 @@ export function WatchMetaSidebar({
   initialComments,
   isVideoOwner,
   playerActions,
+  moreAction,
   seriesEpisodes,
 }: Props) {
   const hasSeries = (seriesEpisodes?.length ?? 0) > 1;
@@ -173,18 +177,25 @@ export function WatchMetaSidebar({
         {/* Engagement + actions — 풀폭 균등 액션 바 (좋아요·저장이
             동일 너비로 늘어나고, 공유·더보기는 우측 고정). 기존의
             왼쪽 정렬 축소 클러스터 구조 폐기. */}
-        <div className="flex flex-wrap items-center gap-1.5 [&_button]:!gap-1 [&_button]:!rounded-md [&_button]:!px-2 [&_button]:!py-1 [&_button]:!text-[12px] [&_button_svg]:!h-3.5 [&_button_svg]:!w-3.5">
-          <VideoEngagementBar
-            videoId={videoId}
-            likeCount={video.likeCount ?? 0}
-            likedByMe={video.likedByMe ?? false}
-            saveCount={video.saveCount ?? 0}
-            savedByMe={video.savedByMe ?? false}
-            className="min-w-0"
-          />
-          {playerActions && (
-            <div className="flex shrink-0 items-center gap-1.5">
-              {playerActions}
+        <div className="flex items-center gap-1.5">
+          {/* 좋아요·저장·공유 — 동일 크기(flex-1, 가운데 정렬) */}
+          <div className="flex min-w-0 flex-1 items-center gap-1.5 [&>button]:!h-9 [&>button]:!flex-1 [&>button]:!justify-center [&>button]:!gap-1 [&>button]:!rounded-md [&>button]:!px-2 [&>button]:!text-[12px] [&>button>svg]:!h-3.5 [&>button>svg]:!w-3.5">
+            <VideoLikeButton
+              videoId={videoId}
+              initialCount={video.likeCount ?? 0}
+              initialLiked={video.likedByMe ?? false}
+            />
+            <VideoSaveButton
+              videoId={videoId}
+              initialSaved={video.savedByMe ?? false}
+              initialCount={video.saveCount ?? 0}
+            />
+            {playerActions}
+          </div>
+          {/* 더보기 — 우측 구석 고정, 동일 톤 */}
+          {moreAction && (
+            <div className="shrink-0 [&_button]:!h-9 [&_button]:!w-9 [&_button>svg]:!h-3.5 [&_button>svg]:!w-3.5">
+              {moreAction}
             </div>
           )}
         </div>
