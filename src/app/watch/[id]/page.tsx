@@ -3,7 +3,6 @@ import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { WatchMoreMenu } from "@/components/video/watch-more-menu";
 import { ShareButton } from "@/components/video/share-modal";
-import { SeriesEpisodesSlider } from "@/components/video/series-episodes-slider";
 import {
   WatchDescriptionInner,
   WatchRecommendationsSections,
@@ -249,16 +248,8 @@ export default async function WatchDetailPage({
         descriptionInner={
           <WatchDescriptionInner description={rawDescription} tags={displayTags} aiTools={displayAiTools} />
         }
-        leftAfterDescription={
-          showSeries ? (
-            <SeriesEpisodesSlider
-              episodes={displaySeriesNav.episodes}
-              currentVideoId={video.id}
-              seriesTitle={displaySeriesNav.seriesTitle}
-              seasons={displaySeriesNav.seasons}
-            />
-          ) : null
-        }
+        leftAfterDescription={null}
+        seriesEpisodes={showSeries ? displaySeriesNav.episodes : undefined}
         upNextSlot={
           /* Server-rendered: B.2-5 canary — UpNextMiniRail is async and
              reads locale via getServerLocale; composed here as a slot

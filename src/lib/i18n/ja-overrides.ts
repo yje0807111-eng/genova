@@ -839,6 +839,7 @@ export const jaOverrides: Record<string, string> = {
   "watch.follow": "フォロー",
   "watch.views": "回視聴",
   "watch.tab.details": "詳細情報",
+  "watch.tab.episodes": "エピソード",
   "watch.tab.comments": "コメント",
   "watch.recommendations": "おすすめ動画",
   "watch.recommend.eyebrow": "もっと見る",

@@ -24,6 +24,7 @@ export function WatchDesktopFlexRow({
   creatorVideoCount,
   creatorFollowerCount,
   isFollowingCreator,
+  seriesEpisodes,
 }: {
   playerSlot: ReactNode;
   belowPlayerSlot?: ReactNode;
@@ -47,6 +48,7 @@ export function WatchDesktopFlexRow({
   creatorVideoCount: number;
   creatorFollowerCount: number;
   isFollowingCreator: boolean;
+  seriesEpisodes?: Video[];
 }) {
   useEffect(() => {
     void fetch("/api/watch-cookie", {
@@ -82,6 +84,7 @@ export function WatchDesktopFlexRow({
               initialComments={initialComments}
               isVideoOwner={isVideoOwner}
               playerActions={belowPlayerSlot}
+              seriesEpisodes={seriesEpisodes}
             />
           </div>
         </aside>

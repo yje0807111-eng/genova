@@ -1390,6 +1390,7 @@ const en: Messages = {
   "watch.follow": "Follow",
   "watch.views": "views",
   "watch.tab.details": "Details",
+  "watch.tab.episodes": "Episodes",
   "watch.tab.comments": "Comments",
   "watch.recommendations": "Recommendations",
   "watch.recommend.eyebrow": "MORE TO WATCH",

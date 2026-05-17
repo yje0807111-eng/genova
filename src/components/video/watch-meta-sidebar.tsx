@@ -11,6 +11,7 @@ import {
 import { useI18n } from "@/components/genova/language-provider";
 import { FollowButton } from "@/components/profile/follow-button";
 import { VideoEngagementBar } from "@/components/video/video-engagement-bar";
+import { SeriesEpisodesList } from "@/components/video/series-episodes-list";
 import type { Video, VideoComment } from "@/lib/types";
 import { cn } from "@/lib/utils/cn";
 
@@ -30,6 +31,8 @@ interface Props {
   initialComments: VideoComment[];
   isVideoOwner?: boolean;
   playerActions?: ReactNode;
+  /** 시리즈 시청 중이면 회차 목록 (사이드바 '회차' 탭). */
+  seriesEpisodes?: Video[];
 }
 
 function formatDate(
@@ -84,10 +87,12 @@ export function WatchMetaSidebar({
   initialComments,
   isVideoOwner,
   playerActions,
+  seriesEpisodes,
 }: Props) {
-  const [activeTab, setActiveTab] = useState<"comments" | "details">(
-    "comments",
-  );
+  const hasSeries = (seriesEpisodes?.length ?? 0) > 1;
+  const [activeTab, setActiveTab] = useState<
+    "episodes" | "comments" | "details"
+  >(hasSeries ? "episodes" : "comments");
   const { t } = useI18n();
   const [autoplay, setAutoplay] = useState(false);
 
@@ -187,7 +192,10 @@ export function WatchMetaSidebar({
 
       {/* Tab bar */}
       <div className="flex shrink-0 items-center border-b border-white/10 pr-2">
-        {(["comments", "details"] as const).map((tab) => (
+        {(hasSeries
+          ? (["episodes", "comments", "details"] as const)
+          : (["comments", "details"] as const)
+        ).map((tab) => (
           <button
             key={tab}
             type="button"
@@ -199,9 +207,11 @@ export function WatchMetaSidebar({
                 : "text-white/45 hover:text-white/80",
             )}
           >
-            {tab === "comments"
-              ? `${t("watch.tab.comments", "Comments")} (${commentCount})`
-              : t("watch.tab.details", "Details")}
+            {tab === "episodes"
+              ? `${t("watch.tab.episodes", "Episodes")} (${seriesEpisodes?.length ?? 0})`
+              : tab === "comments"
+                ? `${t("watch.tab.comments", "Comments")} (${commentCount})`
+                : t("watch.tab.details", "Details")}
           </button>
         ))}
 
@@ -229,7 +239,14 @@ export function WatchMetaSidebar({
         className="max-h-[65vh] min-h-0 flex-1 overflow-y-auto overscroll-contain md:max-h-none"
         onWheel={(e) => e.stopPropagation()}
       >
-        {activeTab === "comments" ? (
+        {activeTab === "episodes" && seriesEpisodes ? (
+          <div className="px-3 py-3">
+            <SeriesEpisodesList
+              episodes={seriesEpisodes}
+              currentVideoId={videoId}
+            />
+          </div>
+        ) : activeTab === "comments" ? (
           <div className="px-4 py-3">
             <VideoCommentsSection
               videoId={videoId}
