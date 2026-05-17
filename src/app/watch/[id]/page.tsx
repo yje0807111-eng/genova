@@ -216,7 +216,7 @@ export default async function WatchDetailPage({
   const displayComments = comments;
 
   return (
-    <div className="mx-auto max-w-[2200px] px-3 py-6 text-white md:px-5 2xl:px-6">
+    <div className="mx-auto max-w-[2200px] py-6 pl-5 pr-3 text-white md:pl-10 md:pr-5 2xl:pl-12 2xl:pr-6">
       {/* Top row: main + unified sidebar (Up Next + tabs + comments) */}
       <WatchDesktopFlexRow
         playerSlot={
