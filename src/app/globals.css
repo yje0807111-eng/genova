@@ -629,41 +629,45 @@ body {
    부드럽게 떠오르도록.  컨테이너는 아주 옅은 페이드만, 실제
    모션은 카드 단위로 분산해 자연스러운 흐름을 만든다.
    scale 제거(점프 느낌 제거), opacity+미세 상승만 사용. */
+/* 컨테이너: 잠깐 비었다가(로딩 호흡) 천천히 차오르는 페이드.
+   0 → 살짝 머무름 → 1.  여유로운 ease 로 새 영상이 준비되는
+   느낌을 준다. */
 .section-swap {
-  animation: sectionFade 0.22s ease-out both;
+  animation: sectionFade 0.62s cubic-bezier(0.33, 0, 0.2, 1) both;
 }
 @keyframes sectionFade {
-  from { opacity: 0.55; }
-  to   { opacity: 1; }
+  0%   { opacity: 0; }
+  28%  { opacity: 0; }   /* 비어 있는 "로딩" 호흡 구간 */
+  100% { opacity: 1; }
 }
 
 @keyframes sectionCardIn {
   from {
     opacity: 0;
-    transform: translateY(14px);
+    transform: translateY(16px);
   }
   to {
     opacity: 1;
     transform: translateY(0);
   }
 }
+/* 카드별 순차 등장 — 컨테이너 호흡(약 170ms) 이후부터
+   앞 카드부터 차례로 사뿐히 떠오른다. */
 .section-swap-grid > * {
-  animation: sectionCardIn 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation: sectionCardIn 0.62s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
-/* 앞 카드부터 차례로 — 너무 길어지지 않게 12개까지만 증가,
-   이후는 균일한 짧은 지연으로 캡. */
-.section-swap-grid > *:nth-child(1)  { animation-delay: 0ms; }
-.section-swap-grid > *:nth-child(2)  { animation-delay: 34ms; }
-.section-swap-grid > *:nth-child(3)  { animation-delay: 68ms; }
-.section-swap-grid > *:nth-child(4)  { animation-delay: 102ms; }
-.section-swap-grid > *:nth-child(5)  { animation-delay: 136ms; }
-.section-swap-grid > *:nth-child(6)  { animation-delay: 170ms; }
-.section-swap-grid > *:nth-child(7)  { animation-delay: 200ms; }
-.section-swap-grid > *:nth-child(8)  { animation-delay: 226ms; }
-.section-swap-grid > *:nth-child(9)  { animation-delay: 248ms; }
-.section-swap-grid > *:nth-child(10) { animation-delay: 266ms; }
-.section-swap-grid > *:nth-child(11) { animation-delay: 280ms; }
-.section-swap-grid > *:nth-child(n+12) { animation-delay: 300ms; }
+.section-swap-grid > *:nth-child(1)  { animation-delay: 170ms; }
+.section-swap-grid > *:nth-child(2)  { animation-delay: 210ms; }
+.section-swap-grid > *:nth-child(3)  { animation-delay: 250ms; }
+.section-swap-grid > *:nth-child(4)  { animation-delay: 290ms; }
+.section-swap-grid > *:nth-child(5)  { animation-delay: 330ms; }
+.section-swap-grid > *:nth-child(6)  { animation-delay: 368ms; }
+.section-swap-grid > *:nth-child(7)  { animation-delay: 402ms; }
+.section-swap-grid > *:nth-child(8)  { animation-delay: 432ms; }
+.section-swap-grid > *:nth-child(9)  { animation-delay: 458ms; }
+.section-swap-grid > *:nth-child(10) { animation-delay: 480ms; }
+.section-swap-grid > *:nth-child(11) { animation-delay: 498ms; }
+.section-swap-grid > *:nth-child(n+12) { animation-delay: 520ms; }
 @media (prefers-reduced-motion: reduce) {
   .section-swap,
   .section-swap-grid > * { animation: none; }
