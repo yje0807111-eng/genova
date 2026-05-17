@@ -1337,18 +1337,58 @@ export function CompetitionDetailClient({
                               {stepWord} {String(i + 1).padStart(2, "0")}
                             </p>
                             <p className="text-base font-bold text-white">{rtitle}</p>
-                            <div className="flex flex-wrap gap-2">
-                              {r.evaluators.map((ev, ei) => (
-                                <span
-                                  key={ei}
-                                  className="inline-flex items-center gap-2 rounded-lg border border-white/10 bg-white/[0.04] px-3 py-1.5"
-                                >
-                                  <span className="text-[13px] text-white/70">{evalLabel(ev.type)}</span>
-                                  <span className="text-[14px] font-bold tabular-nums text-[#AFA9EC]">
-                                    {ev.percent}%
-                                  </span>
-                                </span>
-                              ))}
+                            <div className="flex flex-wrap gap-5 pt-1">
+                              {r.evaluators.map((ev, ei) => {
+                                const pct = Math.max(
+                                  0,
+                                  Math.min(100, Number(ev.percent) || 0),
+                                );
+                                const R = 26;
+                                const C = 2 * Math.PI * R;
+                                return (
+                                  <div
+                                    key={ei}
+                                    className="flex flex-col items-center gap-1.5"
+                                  >
+                                    <div className="relative h-[64px] w-[64px]">
+                                      <svg
+                                        viewBox="0 0 64 64"
+                                        className="h-full w-full -rotate-90"
+                                      >
+                                        <circle
+                                          cx="32"
+                                          cy="32"
+                                          r={R}
+                                          fill="none"
+                                          stroke="rgba(255,255,255,0.08)"
+                                          strokeWidth="6"
+                                        />
+                                        <circle
+                                          cx="32"
+                                          cy="32"
+                                          r={R}
+                                          fill="none"
+                                          stroke="#7F77DD"
+                                          strokeWidth="6"
+                                          strokeLinecap="round"
+                                          strokeDasharray={C}
+                                          strokeDashoffset={C * (1 - pct / 100)}
+                                          style={{
+                                            transition:
+                                              "stroke-dashoffset 0.6s cubic-bezier(0.22,1,0.36,1)",
+                                          }}
+                                        />
+                                      </svg>
+                                      <span className="absolute inset-0 flex items-center justify-center text-[13px] font-bold tabular-nums text-[#AFA9EC]">
+                                        {pct}%
+                                      </span>
+                                    </div>
+                                    <span className="text-[12px] font-medium text-white/65">
+                                      {evalLabel(ev.type)}
+                                    </span>
+                                  </div>
+                                );
+                              })}
                             </div>
                           </div>
                         );
