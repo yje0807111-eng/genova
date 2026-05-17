@@ -130,7 +130,7 @@ function CompetitionCard({ c, participantCount }: { c: Competition; participantC
             className="flex h-full w-full items-center justify-center"
             style={{ background: "linear-gradient(135deg, rgba(127,119,221,0.20) 0%, #0a0a0a 70%)" }}
           >
-            <Image src="/genova-logo.png" alt="Genova" width={88} height={88} className="h-16 w-16 object-contain opacity-[0.12]" />
+            <img src="/genova-logo.png" alt="Genova" className="h-20 w-20 object-contain opacity-[0.12]" />
           </div>
         )}
         <div
@@ -287,7 +287,7 @@ function CompetitionTableRow({ c, idx, participantCount }: { c: Competition; idx
             className="flex h-full w-full items-center justify-center"
             style={{ background: "linear-gradient(135deg, rgba(127,119,221,0.20) 0%, #0a0a0a 70%)" }}
           >
-            <Image src="/genova-logo.png" alt="Genova" width={48} height={48} className="h-9 w-9 object-contain opacity-[0.15]" />
+            <img src="/genova-logo.png" alt="Genova" className="h-11 w-11 object-contain opacity-[0.15]" />
           </div>
         )}
         {!isClosed && (

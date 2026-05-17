@@ -1,6 +1,5 @@
 "use client";
 
-import Image from "next/image";
 import Link from "next/link";
 import { useI18n } from "@/components/genova/language-provider";
 import { AuthForm } from "@/components/auth-form";
@@ -48,7 +47,7 @@ export default function AuthPage() {
 
       <div className="relative z-10 mb-10 flex flex-col items-center">
         <Link href="/" className="mb-4 flex items-center gap-3">
-          <Image src="/genova-logo.png" alt="Genova" width={40} height={40} className="h-10 w-10" />
+          <img src="/genova-logo.png" alt="Genova" className="h-10 w-10 object-contain" />
           <span className="text-3xl font-black tracking-tight text-white">Genova</span>
         </Link>
         <p className="text-[14px] text-white/50">The Home of AI Filmmakers</p>
