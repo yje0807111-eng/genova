@@ -11,13 +11,21 @@ import { createServiceSupabaseClient } from "@/lib/supabase/service";
  * - 핵심 증가: `increment_video_view_count` RPC → 실패 시
  *   service-role 직접 업데이트(RLS 우회).
  */
-export async function incrementVideoViewCount(videoId: string): Promise<boolean> {
+export async function incrementVideoViewCount(
+  videoId: string,
+  opts?: { uploaderId?: string | null },
+): Promise<boolean> {
   const supabase = await createServerSupabaseClient();
   if (!supabase) return false;
 
   const {
     data: { user },
   } = await supabase.auth.getUser();
+
+  // 업로더 본인 조회는 조회수에서 제외(일반 플랫폼 방식).
+  if (user && opts?.uploaderId && user.id === opts.uploaderId) {
+    return false;
+  }
 
   const service = createServiceSupabaseClient();
 

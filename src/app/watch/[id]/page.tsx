@@ -84,7 +84,7 @@ export default async function WatchDetailPage({
   // 조회수 증가는 렌더를 막지 않게 응답 후로 지연(after).  내부에
   // 여러 RLS 우회 라운드트립이 있어 TTFB 를 크게 늘리던 원인.
   after(() => {
-    void incrementVideoViewCount(id);
+    void incrementVideoViewCount(id, { uploaderId: video?.uploadedBy ?? null });
   });
 
   // Parallelize the post-resolve I/O block.  All six are independent

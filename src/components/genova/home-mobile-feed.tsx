@@ -10,7 +10,7 @@ import { videoToCardProps } from "@/components/genova/video-card";
 import { MAIN_GENRE_KEYS, MAIN_GENRE_LABELS, normalizeToMainGenre } from "@/lib/constants/genres";
 import { ScrollReveal } from "@/components/scroll-reveal";
 
-type GenreChip = "all" | (typeof MAIN_GENRE_KEYS)[number];
+type GenreChip = "all" | "series" | "entries" | (typeof MAIN_GENRE_KEYS)[number];
 type Sort = "latest" | "popular";
 
 // 모바일 전용 홈 — 데스크톱의 탭/캐러셀/필름레일 복합 UI 대신
@@ -74,26 +74,127 @@ export function HomeMobileFeed({ videosFromDb }: { videosFromDb: Video[] }) {
   }, [hasMore, loadMore]);
 
   const q = query.trim().toLowerCase();
+  const matchesGenre = (v: Video) =>
+    genre === "all"
+      ? true
+      : genre === "entries"
+        ? v.purpose === "competition"
+        : genre === "series"
+          ? Boolean(v.seriesName)
+          : normalizeToMainGenre(v.genre) === genre;
+  const matchesSearch = (v: Video) =>
+    q
+      ? `${v.title ?? ""} ${v.creatorName ?? v.uploaderDisplayName ?? ""} ${v.seriesName ?? ""}`
+          .toLowerCase()
+          .includes(q)
+      : true;
+  const sortFn = (a: Video, b: Video) =>
+    sort === "popular"
+      ? (b.viewCount ?? 0) - (a.viewCount ?? 0)
+      : new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+
   const filtered = videos
-    .filter((v) => (genre === "all" ? true : normalizeToMainGenre(v.genre) === genre))
-    .filter((v) =>
-      q
-        ? `${v.title ?? ""} ${v.creatorName ?? v.uploaderDisplayName ?? ""}`
-            .toLowerCase()
-            .includes(q)
-        : true,
-    )
+    .filter(matchesGenre)
+    .filter(matchesSearch)
     .slice()
-    .sort((a, b) =>
-      sort === "popular"
-        ? (b.viewCount ?? 0) - (a.viewCount ?? 0)
-        : new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
-    );
+    .sort(sortFn);
+
+  // 시리즈 모드: seriesName 기준 그룹핑 + 합산 정렬(데스크톱과 동일).
+  const seriesGroups =
+    genre === "series"
+      ? Array.from(
+          filtered
+            .reduce((m, v) => {
+              const key = v.seriesName!.trim();
+              if (!m.has(key)) m.set(key, []);
+              m.get(key)!.push(v);
+              return m;
+            }, new Map<string, Video[]>())
+            .entries(),
+        )
+          .map(([name, eps]) => {
+            const episodes = [...eps].sort(
+              (a, b) => (a.episodeNumber ?? 0) - (b.episodeNumber ?? 0),
+            );
+            const totalViews = episodes.reduce(
+              (s, v) => s + (v.viewCount ?? 0),
+              0,
+            );
+            const latestAt = episodes.reduce(
+              (mx, v) => Math.max(mx, new Date(v.createdAt).getTime() || 0),
+              0,
+            );
+            return { name, episodes, totalViews, latestAt };
+          })
+          .sort((a, b) =>
+            sort === "popular"
+              ? b.totalViews - a.totalViews
+              : b.latestAt - a.latestAt,
+          )
+      : [];
 
   const chips: { key: GenreChip; label: string }[] = [
     { key: "all", label: t("home.filterAll", "All") },
+    { key: "series", label: t("homeTab.subGenre.series", "Series") },
+    { key: "entries", label: t("homeTab.subRec.entries", "Entries") },
     ...MAIN_GENRE_KEYS.map((k) => ({ key: k, label: MAIN_GENRE_LABELS[k] })),
   ];
+
+  const renderCard = (v: Video, i: number) => {
+    const cp = videoToCardProps(v, locale);
+    const tag = v.seriesName
+      ? { label: t("series.sectionLabel", "Series"), series: true }
+      : v.purpose === "competition"
+        ? { label: t("profile.submission", "Submission"), series: false }
+        : null;
+    return (
+      <ScrollReveal key={v.id} delay={Math.min(i, 6) * 0.05}>
+        <Link href={`/watch/${v.id}`} className="block">
+          <div className="relative aspect-video w-full overflow-hidden rounded-xl border border-white/[0.06]">
+            <Image src={cp.thumbnail} alt="" fill sizes="100vw" className="object-cover" />
+            {tag ? (
+              <span className="absolute left-2 top-2 inline-flex items-center gap-1.5 rounded-full bg-black/35 px-2.5 py-1 text-[10.5px] font-semibold text-white/90 backdrop-blur-md ring-1 ring-white/10">
+                <span
+                  className="h-1.5 w-1.5 rounded-full"
+                  style={{
+                    background: tag.series ? "#9D95F0" : "#F5C451",
+                    boxShadow: `0 0 6px ${
+                      tag.series
+                        ? "rgba(157,149,240,0.8)"
+                        : "rgba(245,196,81,0.8)"
+                    }`,
+                  }}
+                  aria-hidden
+                />
+                {tag.label}
+              </span>
+            ) : null}
+            {cp.duration ? (
+              <span className="absolute bottom-2 right-2 rounded bg-black/70 px-1.5 py-0.5 text-[11px] font-semibold text-white">
+                {cp.duration}
+              </span>
+            ) : null}
+          </div>
+          <div className="mt-2 flex items-start gap-2.5">
+            {cp.avatar ? (
+              <span className="relative mt-0.5 h-8 w-8 shrink-0 overflow-hidden rounded-full">
+                <Image src={cp.avatar} alt="" fill sizes="32px" className="object-cover" />
+              </span>
+            ) : null}
+            <div className="min-w-0 flex-1">
+              <h3 className="line-clamp-2 text-[15px] font-bold leading-snug text-white">
+                {cp.title}
+              </h3>
+              <p className="mt-1 text-[12px] text-white/45">
+                {cp.creator}
+                {cp.views ? ` · ${cp.views}` : ""}
+              </p>
+            </div>
+          </div>
+        </Link>
+      </ScrollReveal>
+    );
+  };
 
   return (
     <div className="overflow-x-hidden md:hidden">
@@ -158,74 +259,47 @@ export function HomeMobileFeed({ videosFromDb }: { videosFromDb: Video[] }) {
         ))}
       </div>
 
-      {/* 1열 세로 피드 — 풀폭 가로 카드 */}
-      <div className="flex flex-col gap-5 px-4 pb-10 pt-4">
-        {filtered.map((v, i) => {
-          const cp = videoToCardProps(v, locale);
-          const tag = v.seriesName
-            ? { label: t("series.sectionLabel", "Series"), series: true }
-            : v.purpose === "competition"
-              ? { label: t("profile.submission", "Submission"), series: false }
-              : null;
-          return (
-            <ScrollReveal key={v.id} delay={Math.min(i, 6) * 0.05}>
-            <Link href={`/watch/${v.id}`} className="block">
-              <div className="relative aspect-video w-full overflow-hidden rounded-xl border border-white/[0.06]">
-                <Image
-                  src={cp.thumbnail}
-                  alt=""
-                  fill
-                  sizes="100vw"
-                  className="object-cover"
+      {/* 시리즈 모드: 시리즈별 섹션 / 그 외: 1열 세로 피드 */}
+      {genre === "series" ? (
+        <div className="flex flex-col gap-7 px-4 pb-10 pt-4">
+          {seriesGroups.map((g) => (
+            <section key={g.name}>
+              <div className="mb-3 flex items-center gap-2.5">
+                <span
+                  className="h-5 w-1 shrink-0 rounded-full"
+                  style={{
+                    background:
+                      "linear-gradient(180deg, #7F77DD 0%, #534AB7 100%)",
+                  }}
+                  aria-hidden
                 />
-                {tag ? (
-                  <span className="absolute left-2 top-2 inline-flex items-center gap-1.5 rounded-full bg-black/35 px-2.5 py-1 text-[10.5px] font-semibold text-white/90 backdrop-blur-md ring-1 ring-white/10">
-                    <span
-                      className="h-1.5 w-1.5 rounded-full"
-                      style={{
-                        background: tag.series ? "#9D95F0" : "#F5C451",
-                        boxShadow: `0 0 6px ${
-                          tag.series
-                            ? "rgba(157,149,240,0.8)"
-                            : "rgba(245,196,81,0.8)"
-                        }`,
-                      }}
-                      aria-hidden
-                    />
-                    {tag.label}
-                  </span>
-                ) : null}
-                {cp.duration ? (
-                  <span className="absolute bottom-2 right-2 rounded bg-black/70 px-1.5 py-0.5 text-[11px] font-semibold text-white">
-                    {cp.duration}
-                  </span>
-                ) : null}
+                <h3 className="min-w-0 flex-1 truncate text-[15px] font-bold text-white">
+                  {g.name}
+                </h3>
+                <span className="shrink-0 rounded-full bg-white/[0.05] px-2 py-0.5 text-[10px] font-semibold tabular-nums text-white/45">
+                  {t("profile.episodesTotal", "{n} episodes").replace(
+                    "{n}",
+                    String(g.episodes.length),
+                  )}
+                </span>
               </div>
-              <div className="mt-2 flex items-start gap-2.5">
-                {cp.avatar ? (
-                  <span className="relative mt-0.5 h-8 w-8 shrink-0 overflow-hidden rounded-full">
-                    <Image src={cp.avatar} alt="" fill sizes="32px" className="object-cover" />
-                  </span>
-                ) : null}
-                <div className="min-w-0 flex-1">
-                  <h3 className="line-clamp-2 text-[15px] font-bold leading-snug text-white">
-                    {cp.title}
-                  </h3>
-                  <p className="mt-1 text-[12px] text-white/45">
-                    {cp.creator}
-                    {cp.views ? ` · ${cp.views}` : ""}
-                  </p>
-                </div>
+              <div className="flex flex-col gap-4">
+                {g.episodes.map((v, i) => renderCard(v, i))}
               </div>
-            </Link>
-            </ScrollReveal>
-          );
-        })}
-      </div>
+            </section>
+          ))}
+        </div>
+      ) : (
+        <div className="flex flex-col gap-5 px-4 pb-10 pt-4">
+          {filtered.map((v, i) => renderCard(v, i))}
+        </div>
+      )}
 
-      {filtered.length === 0 ? (
+      {(genre === "series" ? seriesGroups.length === 0 : filtered.length === 0) ? (
         <p className="px-4 pb-12 text-center text-[13px] text-white/35">
-          {t("home.emptyState", "No videos yet")}
+          {genre === "series"
+            ? t("home.series.empty", "No series yet.")
+            : t("home.emptyState", "No videos yet")}
         </p>
       ) : null}
 
