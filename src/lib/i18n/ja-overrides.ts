@@ -837,6 +837,7 @@ export const jaOverrides: Record<string, string> = {
   "watch.trendingSubtitle": "プラットフォームで人気の動画",
   "watch.works": "作品",
   "watch.followers": "フォロワー",
+  "watch.creator": "クリエイター",
   "watch.follow": "フォロー",
   "watch.views": "回視聴",
   "watch.tab.details": "詳細情報",

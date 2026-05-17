@@ -145,33 +145,66 @@ export function WatchMetaSidebar({
           </div>
         </div>
 
-        {/* Creator row */}
-        <div className="flex items-center justify-between gap-3 rounded-lg bg-white/[0.02] p-2">
-          <Link
-            href={creatorHref ?? "#"}
-            className="group flex min-w-0 items-center gap-2"
-          >
-            <div className="h-8 w-8 shrink-0 overflow-hidden rounded-full bg-white/[0.06] ring-1 ring-white/[0.08]">
-              <Image src={creatorAvatarUrl || "/default-avatar.png"} alt={creatorName} width={32} height={32} className="h-full w-full object-cover" />
-            </div>
-            <div className="min-w-0">
-              <p className="line-clamp-1 text-[13px] font-bold text-white transition group-hover:text-[#AFA9EC]">
-                {creatorName}
-              </p>
-              <p className="text-[10px] text-white/45">
-                {creatorVideoCount} {t("watch.works", "작품")} · {creatorFollowerCount.toLocaleString()} {t("watch.followers", "팔로워")}
-              </p>
-            </div>
-          </Link>
+        {/* Creator card — 아바타·이름·팔로우 + 작품/팔로워 스탯 타일 */}
+        <div
+          className="rounded-xl border border-white/[0.06] p-3"
+          style={{
+            background:
+              "linear-gradient(150deg, rgba(127,119,221,0.07) 0%, rgba(255,255,255,0.015) 55%)",
+          }}
+        >
+          <div className="flex items-center gap-3">
+            <Link
+              href={creatorHref ?? "#"}
+              className="group flex min-w-0 flex-1 items-center gap-2.5"
+            >
+              <div className="h-11 w-11 shrink-0 overflow-hidden rounded-full bg-white/[0.06] ring-1 ring-white/[0.10]">
+                <Image
+                  src={creatorAvatarUrl || "/default-avatar.png"}
+                  alt={creatorName}
+                  width={44}
+                  height={44}
+                  className="h-full w-full object-cover"
+                />
+              </div>
+              <div className="min-w-0">
+                <p className="line-clamp-1 text-[14px] font-bold text-white transition group-hover:text-[#AFA9EC]">
+                  {creatorName}
+                </p>
+                <p className="mt-0.5 text-[11px] text-white/40">
+                  {t("watch.creator", "Creator")}
+                </p>
+              </div>
+            </Link>
 
-          {currentUserId && currentUserId !== creatorId && (
-            <div className="shrink-0">
-              <FollowButton
-                targetUserId={creatorId}
-                initialFollowing={isFollowingCreator}
-              />
+            {currentUserId && currentUserId !== creatorId && (
+              <div className="shrink-0">
+                <FollowButton
+                  targetUserId={creatorId}
+                  initialFollowing={isFollowingCreator}
+                />
+              </div>
+            )}
+          </div>
+
+          <div className="mt-3 grid grid-cols-2 gap-2">
+            <div className="rounded-lg bg-white/[0.03] px-3 py-2 text-center">
+              <p className="text-[16px] font-black tabular-nums leading-none text-white">
+                {creatorVideoCount.toLocaleString()}
+              </p>
+              <p className="mt-1 text-[10px] font-semibold uppercase tracking-[0.12em] text-white/40">
+                {t("watch.works", "작품")}
+              </p>
             </div>
-          )}
+            <div className="rounded-lg bg-white/[0.03] px-3 py-2 text-center">
+              <p className="text-[16px] font-black tabular-nums leading-none text-white">
+                {creatorFollowerCount.toLocaleString()}
+              </p>
+              <p className="mt-1 text-[10px] font-semibold uppercase tracking-[0.12em] text-white/40">
+                {t("watch.followers", "팔로워")}
+              </p>
+            </div>
+          </div>
         </div>
 
         {/* Engagement + actions — 풀폭 균등 액션 바 (좋아요·저장이

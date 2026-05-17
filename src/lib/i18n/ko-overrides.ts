@@ -861,6 +861,7 @@ export const koOverrides: Record<string, string> = {
   "watch.trendingSubtitle": "플랫폼 인기 영상",
   "watch.works": "작품",
   "watch.followers": "팔로워",
+  "watch.creator": "크리에이터",
   "watch.follow": "팔로우",
   "watch.views": "회 시청",
   "watch.tab.details": "상세 정보",

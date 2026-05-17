@@ -1388,6 +1388,7 @@ const en: Messages = {
   "watch.trendingSubtitle": "Popular across Genova",
   "watch.works": "Works",
   "watch.followers": "Followers",
+  "watch.creator": "Creator",
   "watch.follow": "Follow",
   "watch.views": "views",
   "watch.tab.details": "Details",
