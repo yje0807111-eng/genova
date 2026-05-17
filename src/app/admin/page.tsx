@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 import { fetchBusinessInquiries } from "@/app/actions/business-inquiries";
+import { fetchOperatorMessages } from "@/app/actions/operator-messages";
 import type { VideoReportItem } from "@/app/actions/reports";
 import { AdminDashboard } from "@/components/admin/admin-dashboard";
 import { isAdminEmail } from "@/lib/auth/admin";
@@ -87,7 +88,10 @@ export default async function AdminPage() {
     timestampSec: r.timestamp_sec,
     status: r.status,
   }));
-  const inquiries = await fetchBusinessInquiries();
+  const [inquiries, operatorMessages] = await Promise.all([
+    fetchBusinessInquiries(),
+    fetchOperatorMessages(),
+  ]);
 
   // Phase 6-B/C: lottery panel data.  Service-role bypass on the
   // dashboard's read path is consistent with how reports +
@@ -111,6 +115,7 @@ export default async function AdminPage() {
         videos={videos}
         reports={reports}
         inquiries={inquiries}
+        operatorMessages={operatorMessages}
         lotterySummary={lotterySummary}
         lotteryWinners={lotteryWinners}
         lotteryAudit={lotteryAudit}

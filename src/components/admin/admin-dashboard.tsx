@@ -13,10 +13,12 @@ import {
   ChevronRight,
   AlertTriangle,
   Activity,
+  Inbox,
 } from "lucide-react";
 import Link from "next/link";
 import { type VideoReportItem } from "@/app/actions/reports";
 import type { BusinessInquiryItem } from "@/app/actions/business-inquiries";
+import type { OperatorMessageItem } from "@/app/actions/operator-messages";
 import { AdminHero } from "@/components/admin/sections/admin-hero";
 import { SiteSettings } from "@/components/admin/sections/site-settings";
 import { ReportManagement } from "@/components/admin/sections/report-management";
@@ -24,6 +26,7 @@ import { TrophyManagement } from "@/components/admin/sections/trophy-management"
 import { CompetitionCreate } from "@/components/admin/sections/competition-create";
 import { CompetitionManage } from "@/components/admin/sections/competition-manage";
 import { BusinessInquiryManagement } from "./sections/business-inquiry-management";
+import { OperatorMessageManagement } from "@/components/admin/sections/operator-message-management";
 import { LotteryManagement } from "@/components/admin/sections/lottery-management";
 import { VideoManage } from "@/components/admin/sections/video-manage";
 import { adminTokens } from "@/lib/admin-styles";
@@ -56,6 +59,7 @@ type AdminView =
   | "reports"
   | "lottery"
   | "business"
+  | "messages"
   | "settings";
 
 const VALID_VIEWS: AdminView[] = [
@@ -65,6 +69,7 @@ const VALID_VIEWS: AdminView[] = [
   "reports",
   "lottery",
   "business",
+  "messages",
   "settings",
 ];
 
@@ -96,6 +101,7 @@ const VIEW_LABEL_KEY: Record<
   reports: { key: "adminDash.reports", en: "Report Management" },
   lottery: { key: "adminDash.lottery", en: "Entry Tickets" },
   business: { key: "adminDash.business", en: "Business Inquiries" },
+  messages: { key: "adminDash.messages", en: "Operator Messages" },
   settings: { key: "adminDash.settings", en: "Site Settings" },
 };
 
@@ -130,6 +136,7 @@ function AdminDashboardInner({
   videos,
   reports,
   inquiries,
+  operatorMessages,
   lotterySummary,
   lotteryWinners,
   lotteryAudit,
@@ -138,6 +145,7 @@ function AdminDashboardInner({
   videos: Video[];
   reports: VideoReportItem[];
   inquiries: BusinessInquiryItem[];
+  operatorMessages: OperatorMessageItem[];
   lotterySummary: LotteryMonthlySummary | null;
   lotteryWinners: LotteryWinnerWorkRow[];
   lotteryAudit: LotteryAuditRow[];
@@ -180,6 +188,9 @@ function AdminDashboardInner({
 
   const openReportCount = reports.filter((r) => r.status === "open").length;
   const newInquiryCount = inquiries.filter((i) => i.status === "new").length;
+  const openMessageCount = operatorMessages.filter(
+    (m) => m.status === "open",
+  ).length;
   // 미처리 응모권 = submitted(검수 대기) + confirmed(지급 대기)
   const verifyQueueCount = lotteryWinners.filter(
     (w) => w.claimStatus === "submitted",
@@ -243,6 +254,7 @@ function AdminDashboardInner({
       { label: t("adminDash.payQueue", "Awaiting payout"), count: payQueueCount, view: "lottery", focus: "confirmed" },
       { label: t("adminDash.staleReports", "Reports stale 3+ days"), count: staleReportCount, view: "reports", focus: "open" },
       { label: t("adminDash.newInquiries", "New business inquiries"), count: newInquiryCount, view: "business", focus: "new" },
+      { label: t("adminDash.newMessages", "New operator messages"), count: openMessageCount, view: "messages", focus: "open" },
     ] satisfies {
       label: string;
       count: number;
@@ -309,6 +321,14 @@ function AdminDashboardInner({
       stat: newInquiryCount,
       statSuffix: t("adminDash.suffixNew", "new"),
       alert: newInquiryCount > 0,
+    },
+    {
+      view: "messages",
+      label: t("adminDash.messages", "Operator Messages"),
+      icon: <Inbox className="h-5 w-5" />,
+      stat: openMessageCount,
+      statSuffix: t("adminDash.suffixNew", "new"),
+      alert: openMessageCount > 0,
     },
     {
       view: "settings",
@@ -534,6 +554,15 @@ function AdminDashboardInner({
               />
             ) : null}
 
+            {view === "messages" ? (
+              <OperatorMessageManagement
+                key={focus ?? "all"}
+                messages={operatorMessages}
+                onMessage={setMessage}
+                initialStatusFilter={focus}
+              />
+            ) : null}
+
             {view === "settings" ? (
               <SiteSettings
                 competitions={localCompetitions}
@@ -565,6 +594,7 @@ export function AdminDashboard(props: {
   videos: Video[];
   reports: VideoReportItem[];
   inquiries: BusinessInquiryItem[];
+  operatorMessages: OperatorMessageItem[];
   lotterySummary: LotteryMonthlySummary | null;
   lotteryWinners: LotteryWinnerWorkRow[];
   lotteryAudit: LotteryAuditRow[];

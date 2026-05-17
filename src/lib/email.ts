@@ -133,6 +133,72 @@ export async function sendBusinessInquiryNotification(input: {
 }
 
 /**
+ * User → operator contact / issue report notification.
+ *
+ * Fired (fire-and-forget) from `submitOperatorMessageAction`. Goes to
+ * NOTIFY_TO_EMAIL like the business-inquiry notification. Missing
+ * config is a silent no-op (the row is already persisted; admin can
+ * still triage it in the panel).
+ */
+export async function sendOperatorMessageNotification(input: {
+  category: "bug" | "suggestion" | "error" | "other";
+  message: string;
+  email?: string | null;
+  pageUrl?: string | null;
+}) {
+  if (!resend) {
+    console.warn("RESEND_API_KEY not set, skipping operator message email");
+    return;
+  }
+  const from = process.env.NOTIFY_FROM_EMAIL ?? "onboarding@resend.dev";
+  const to = process.env.NOTIFY_TO_EMAIL;
+  if (!to) {
+    console.warn("NOTIFY_TO_EMAIL not set, skipping operator message email");
+    return;
+  }
+
+  const categoryLabel =
+    input.category === "bug"
+      ? "버그 신고"
+      : input.category === "suggestion"
+        ? "개선 제안"
+        : input.category === "error"
+          ? "오류 제보"
+          : "기타 문의";
+  const escape = (s: string) =>
+    s
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/\n/g, "<br>");
+
+  const subject = `[Genova] ${categoryLabel} — 운영자 메시지`;
+  const html = `
+    <div style="font-family: -apple-system, sans-serif; max-width: 600px; margin: 0 auto; padding: 24px; background: #0a0a0a; color: #fff;">
+      <div style="border-left: 3px solid #7F77DD; padding-left: 16px; margin-bottom: 24px;">
+        <p style="margin: 0; font-size: 11px; color: #AFA9EC; text-transform: uppercase; letter-spacing: 0.2em; font-weight: 700;">Operator Message</p>
+        <h1 style="margin: 4px 0 0; font-size: 22px;">${categoryLabel}</h1>
+      </div>
+      <table style="width: 100%; border-collapse: collapse;">
+        <tr><td style="padding: 8px 0; color: #888; width: 100px;">분류</td><td style="padding: 8px 0;">${categoryLabel}</td></tr>
+        ${input.email ? `<tr><td style="padding: 8px 0; color: #888;">회신 이메일</td><td style="padding: 8px 0;"><a href="mailto:${escape(input.email)}" style="color: #AFA9EC;">${escape(input.email)}</a></td></tr>` : ""}
+        ${input.pageUrl ? `<tr><td style="padding: 8px 0; color: #888;">페이지</td><td style="padding: 8px 0; color:#aaa;">${escape(input.pageUrl)}</td></tr>` : ""}
+      </table>
+      <div style="margin-top: 24px;"><p style="color: #888; font-size: 12px; margin: 0 0 8px;">내용</p><p style="margin: 0; line-height: 1.6;">${escape(input.message)}</p></div>
+      <div style="margin-top: 32px; padding-top: 16px; border-top: 1px solid #222;">
+        <a href="${process.env.NEXT_PUBLIC_SITE_URL ?? ""}/admin?tab=messages" style="display: inline-block; background: linear-gradient(135deg, #534AB7 0%, #7B6FE8 100%); color: #fff; padding: 10px 20px; border-radius: 999px; text-decoration: none; font-weight: 700; font-size: 13px;">어드민에서 보기 →</a>
+      </div>
+    </div>
+  `;
+
+  try {
+    await resend.emails.send({ from, to, subject, html });
+  } catch (error) {
+    console.error("Operator message email send failed:", error);
+  }
+}
+
+/**
  * A1-2: lottery winner announcement email.
  *
  * Fires from `triggerCompetitionDrawAction` (and
