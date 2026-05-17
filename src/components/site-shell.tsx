@@ -16,8 +16,8 @@ export function SiteFooter() {
           <Link href="/competition" className="text-white/45 transition hover:text-white/80">{t("nav.competition", "Competition")}</Link>
           <Link href="/business" className="text-white/45 transition hover:text-white/80">{t("nav.business", "공모전 열기")}</Link>
           <Link href="/lottery" className="text-white/45 transition hover:text-white/80">{t("footer.lottery", "응모권 추첨")}</Link>
-          <Link href="#" className="text-white/45 transition hover:text-white/80">{t("footer.terms", "Terms of Service")}</Link>
-          <Link href="#" className="text-white/45 transition hover:text-white/80">{t("footer.privacy", "Privacy Policy")}</Link>
+          <Link href="/terms" className="text-white/45 transition hover:text-white/80">{t("footer.terms", "Terms of Service")}</Link>
+          <Link href="/privacy" className="text-white/45 transition hover:text-white/80">{t("footer.privacy", "Privacy Policy")}</Link>
         </div>
 
         <div className="flex items-center gap-4 text-[11px] text-white/30">
