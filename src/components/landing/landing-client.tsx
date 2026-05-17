@@ -71,6 +71,7 @@ export function LandingClient({
       <nav className="fixed inset-x-0 top-0 z-50 border-b border-white/[0.06] bg-[#0a0a0a]/70 backdrop-blur-xl">
         <div className="mx-auto flex max-w-[1280px] items-center justify-between px-4 py-3 sm:px-8">
           <Link href="/landing" className="flex items-center gap-2">
+            <img src="/genova-logo.png" alt="Genova" className="h-10 w-10 object-contain" />
             <span className="text-[18px] font-black tracking-tight">Genova</span>
             <span className="rounded-full border border-[#7F77DD]/30 bg-[#534AB7]/15 px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider text-[#AFA9EC]">
               Beta
@@ -98,6 +99,17 @@ export function LandingClient({
             >
               {t("landing.navEnter", "둘러보기")}
             </Link>
+            <button
+              type="button"
+              onClick={() => {
+                document.cookie =
+                  "genova_landing=1; max-age=31536000; path=/; samesite=lax";
+                window.location.href = "/";
+              }}
+              className="hidden px-3 py-1.5 text-[12px] font-semibold text-white/40 transition hover:text-white sm:block"
+            >
+              {t("landing.dontShowAgain", "다시 보지 않기")}
+            </button>
             <Link
               href="/auth"
               className="rounded-full bg-white px-4 py-1.5 text-[12px] font-bold text-[#0a0a0a] transition hover:bg-white/90"
