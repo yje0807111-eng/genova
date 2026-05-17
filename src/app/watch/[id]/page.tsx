@@ -17,6 +17,7 @@ import {
   fetchRelatedVideos,
   fetchSeriesEpisodesForVideo,
   fetchVideoById,
+  mergeVideoRows,
   type SeriesEpisodesNav,
 } from "@/lib/queries";
 import { fetchFollowCounts, fetchIsFollowing, fetchPublicProfileById } from "@/lib/queries/profile-queries";
@@ -166,12 +167,16 @@ export default async function WatchDetailPage({
   ]);
   const creator = creatorResult;
   const seriesNav: SeriesEpisodesNav = seriesNavRaw;
-  const sameGenreRaw = sameGenreRes.data;
-  const trendingRaw = trendingRes.data;
+  // 업로더 프로필명(uploaderDisplayName)을 채우려면 public_profiles
+  // 를 merge 해야 함 — 추천 카드에 작성자 이름 표시(홈 카드와 동일).
+  const [sameGenreMerged, trendingMerged] = await Promise.all([
+    mergeVideoRows((sameGenreRes.data ?? []) as Parameters<typeof mapVideo>[0][]),
+    mergeVideoRows((trendingRes.data ?? []) as Parameters<typeof mapVideo>[0][]),
+  ]);
 
-  const sameGenreVideos = (sameGenreRaw ?? []).map((v) => mapVideo(v));
+  const sameGenreVideos = sameGenreMerged.map((v) => mapVideo(v));
   const sameGenreIds = new Set(sameGenreVideos.map((v) => v.id));
-  const trendingVideos = (trendingRaw ?? [])
+  const trendingVideos = trendingMerged
     .map((v) => mapVideo(v))
     .filter((v) => !sameGenreIds.has(v.id))
     .slice(0, 12);

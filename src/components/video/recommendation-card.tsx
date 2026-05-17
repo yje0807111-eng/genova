@@ -9,6 +9,8 @@ import type { Video } from "@/lib/types";
 export function RecommendationCard({ item }: { item: Video }) {
   const { t } = useI18n();
   const [isHovered, setIsHovered] = useState(false);
+  const creatorName =
+    item.creatorName?.trim() || item.uploaderDisplayName?.trim() || "";
   const tag = item.seriesName
     ? { label: t("series.sectionLabel", "Series"), kind: "series" as const }
     : item.purpose === "competition"
@@ -56,7 +58,7 @@ export function RecommendationCard({ item }: { item: Video }) {
         <div className="absolute inset-x-0 bottom-0 p-3">
           <p className="line-clamp-1 text-[13px] font-bold text-white">{item.title}</p>
           <div className="mt-1 flex items-center gap-2 text-[11px] text-white/55">
-            {item.creatorName && <span className="line-clamp-1">{item.creatorName}</span>}
+            {creatorName && <span className="line-clamp-1">{creatorName}</span>}
             {item.runtime && (
               <>
                 <span className="text-white/20">·</span>
