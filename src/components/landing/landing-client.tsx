@@ -10,10 +10,16 @@ import { cn } from "@/lib/utils/cn";
 type FeaturedCompetition = {
   id: string;
   title: string;
+  titleEn?: string | null;
+  titleKo?: string | null;
+  titleJa?: string | null;
   genre?: string | null;
   sponsor?: string | null;
   thumbnailUrl?: string | null;
   prizeInfo?: string | null;
+  prizeInfoEn?: string | null;
+  prizeInfoKo?: string | null;
+  prizeInfoJa?: string | null;
   deadline?: string | null;
 };
 
@@ -32,6 +38,15 @@ export function LandingClient({
 }) {
   const { locale, setLocale, t } = useI18n();
   const dateLocale = locale === "ja" ? "ja-JP" : locale === "en" ? "en-US" : "ko-KR";
+
+  // DB 다국어 컬럼(_en/_ko/_ja) 중 현재 로케일 값을 고르고,
+  // 비면 기본 컬럼으로 폴백.
+  const pickLocalized = (
+    base?: string | null,
+    en?: string | null,
+    ko?: string | null,
+    ja?: string | null,
+  ) => (locale === "ko" ? ko : locale === "ja" ? ja : en) || base || null;
 
   const fmtDate = (d?: string | null) => {
     if (!d) return null;
@@ -311,6 +326,15 @@ export function LandingClient({
             <div className="grid gap-4 md:grid-cols-2">
               {featuredCompetitions.map((c, i) => {
                 const deadline = fmtDate(c.deadline);
+                const cTitle =
+                  pickLocalized(c.title, c.titleEn, c.titleKo, c.titleJa) ??
+                  c.title;
+                const cPrize = pickLocalized(
+                  c.prizeInfo,
+                  c.prizeInfoEn,
+                  c.prizeInfoKo,
+                  c.prizeInfoJa,
+                );
                 return (
                   <ScrollReveal key={c.id} delay={0.1 + i * 0.08}>
                     <Link
@@ -321,7 +345,7 @@ export function LandingClient({
                         {c.thumbnailUrl ? (
                           <Image
                             src={c.thumbnailUrl}
-                            alt={c.title}
+                            alt={cTitle}
                             fill
                             sizes="(max-width:768px) 100vw, 50vw"
                             className="object-cover transition-transform duration-500 group-hover:scale-[1.04]"
@@ -342,10 +366,10 @@ export function LandingClient({
                               {c.sponsor}
                             </p>
                           )}
-                          <h3 className="line-clamp-1 text-[19px] font-black text-white">{c.title}</h3>
+                          <h3 className="line-clamp-1 text-[19px] font-black text-white">{cTitle}</h3>
                           <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-[12px]">
-                            {c.prizeInfo && (
-                              <span className="font-bold tabular-nums text-[#F5D182]">{c.prizeInfo}</span>
+                            {cPrize && (
+                              <span className="font-bold tabular-nums text-[#F5D182]">{cPrize}</span>
                             )}
                             {deadline && <span className="text-white/45">~ {deadline}</span>}
                           </div>

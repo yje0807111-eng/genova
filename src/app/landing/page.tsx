@@ -30,10 +30,16 @@ export default async function LandingPage() {
       featuredCompetitions={featuredCompetitions.map((c) => ({
         id: c.id,
         title: c.title,
+        titleEn: c.titleEn ?? null,
+        titleKo: c.titleKo ?? null,
+        titleJa: c.titleJa ?? null,
         genre: c.genre ?? null,
         sponsor: c.sponsor ?? null,
         thumbnailUrl: c.thumbnailUrl ?? null,
         prizeInfo: c.prizeInfo ?? null,
+        prizeInfoEn: c.prizeInfoEn ?? null,
+        prizeInfoKo: c.prizeInfoKo ?? null,
+        prizeInfoJa: c.prizeInfoJa ?? null,
         deadline: c.deadline ?? null,
       }))}
     />
