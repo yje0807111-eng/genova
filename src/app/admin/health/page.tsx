@@ -1,4 +1,6 @@
 import type { Metadata } from "next";
+import Link from "next/link";
+import { ArrowLeft } from "lucide-react";
 import { redirect } from "next/navigation";
 import { isAdminEmail } from "@/lib/auth/admin";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
@@ -181,6 +183,13 @@ export default async function AdminHealthPage() {
 
   return (
     <main className="mx-auto w-full max-w-[860px] px-6 py-10 text-white">
+      <Link
+        href="/admin"
+        className="mb-5 inline-flex items-center gap-1.5 rounded-lg border border-white/[0.1] bg-white/[0.03] px-3 py-1.5 text-[13px] font-semibold text-white/70 transition hover:border-white/20 hover:text-white"
+      >
+        <ArrowLeft className="h-4 w-4" />
+        관리자 페이지
+      </Link>
       <h1 className="text-[22px] font-black tracking-tight">시스템 점검</h1>
       <p className="mt-1.5 text-[13px] text-white/45">
         핵심 환경변수·연동·이번 달 응모권 운영 상태. 실시간 조회(요청 시점).
