@@ -34,21 +34,35 @@ export function ProfileSeriesView({ videos }: { videos: Video[] }) {
   }
 
   return (
-    <div className="mt-4 space-y-9">
+    <div className="mt-4 space-y-5">
       {groups.map(([seriesTitle, episodes]) => (
-        <div key={seriesTitle}>
-          <div className="mb-3.5 flex items-baseline gap-2">
+        <section
+          key={seriesTitle}
+          className="rounded-2xl border border-white/[0.07] bg-white/[0.015] p-4 transition-colors hover:border-[#7F77DD]/25 sm:p-5"
+          style={{
+            boxShadow: "inset 0 1px 0 rgba(127,119,221,0.06)",
+          }}
+        >
+          <div className="mb-4 flex items-center gap-3">
+            <span
+              className="h-7 w-1 shrink-0 rounded-full"
+              style={{
+                background:
+                  "linear-gradient(180deg, #7F77DD 0%, #534AB7 100%)",
+              }}
+              aria-hidden
+            />
             <h3 className="text-lg font-bold tracking-tight text-white">
               {seriesTitle}
             </h3>
-            <span className="text-[12px] font-medium tabular-nums text-white/35">
+            <span className="rounded-full bg-white/[0.05] px-2.5 py-1 text-[11px] font-semibold tabular-nums text-white/45">
               {t("profile.episodesTotal", "{n} episodes").replace(
                 "{n}",
                 String(episodes.length),
               )}
             </span>
           </div>
-          <div className="hide-scrollbar flex gap-4 overflow-x-auto pb-2">
+          <div className="hide-scrollbar flex gap-4 overflow-x-auto pb-1">
             {episodes
               .sort((a, b) => (a.episodeNumber ?? 0) - (b.episodeNumber ?? 0))
               .map((video) => (
@@ -61,7 +75,7 @@ export function ProfileSeriesView({ videos }: { videos: Video[] }) {
                 </div>
               ))}
           </div>
-        </div>
+        </section>
       ))}
     </div>
   );
