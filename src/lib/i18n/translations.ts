@@ -26,6 +26,7 @@ const en: Messages = {
   "sidebar.competition": "Contest",
   "sidebar.notifications": "Alerts",
   "sidebar.language": "Language",
+  "sidebar.logout": "Logout",
   "profile.followers": "Followers",
   "profile.works": "Works",
   "profile.awards": "Awards",

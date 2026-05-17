@@ -49,6 +49,7 @@ export const jaOverrides: Record<string, string> = {
   "sidebar.competition": "コンペ",
   "sidebar.notifications": "通知",
   "sidebar.language": "言語",
+  "sidebar.logout": "ログアウト",
 
   "meta.brand": "Genova",
   "meta.defaultDescription": "AI映画クリエイターのためのプラットフォーム",

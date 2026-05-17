@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import type { LucideIcon } from "lucide-react";
-import { Bell, Globe, Home, MessageCircle, Shield, Ticket, Trophy, Upload, User, X } from "lucide-react";
+import { Bell, Globe, Home, LogIn, LogOut, MessageCircle, Shield, Ticket, Trophy, Upload, User, X } from "lucide-react";
 import { markAllNotificationsReadAction } from "@/app/actions/notifications";
 import { useI18n } from "@/components/genova/language-provider";
 import { getBrowserSupabaseClient } from "@/lib/supabase/browser";
@@ -87,6 +87,15 @@ export function SlimSidebar({ onOpenChat, unreadMessageCount = 0 }: SlimSidebarP
     const days = Math.floor(hours / 24);
     if (days < 7) return t("notifications.timeAgo", "{n} ago").replace("{n}", `${days}d`);
     return d.toLocaleDateString(undefined, { month: "numeric", day: "numeric" });
+  };
+
+  const onLogout = async () => {
+    const supabase = getBrowserSupabaseClient();
+    if (!supabase) return;
+    await supabase.auth.signOut();
+    try { sessionStorage.removeItem("genova:isAdmin"); } catch {}
+    router.refresh();
+    router.push("/");
   };
 
   useEffect(() => {
@@ -287,10 +296,10 @@ export function SlimSidebar({ onOpenChat, unreadMessageCount = 0 }: SlimSidebarP
         <div className="flex w-full flex-col items-center">
           <Link
             href="/"
-            className="mb-6 flex h-16 w-16 items-center justify-center transition-transform hover:scale-110"
+            className="mb-6 flex h-14 w-14 items-center justify-center transition-transform hover:scale-110"
             aria-label="Genova"
           >
-            <img src="/genova-logo.png" alt="Genova" className="h-[64px] w-[64px] object-contain mt-2" />
+            <img src="/genova-logo.png" alt="Genova" className="h-[52px] w-[52px] object-contain mt-2" />
           </Link>
 
           <nav className="mt-8 flex w-full flex-col items-center gap-5" aria-label="Main">
@@ -523,6 +532,33 @@ export function SlimSidebar({ onOpenChat, unreadMessageCount = 0 }: SlimSidebarP
               {t("sidebar.language")}
             </span>
           </button>
+
+          <div className="my-1 h-px w-6 bg-white/[0.05]" aria-hidden />
+
+          {userId === undefined ? null : userId ? (
+            <button
+              type="button"
+              onClick={() => void onLogout()}
+              className="flex h-12 w-12 flex-col items-center justify-center gap-0.5 rounded-xl text-white/35 transition-colors hover:bg-red-500/[0.08] hover:text-red-300"
+              aria-label={t("sidebar.logout", "Logout")}
+            >
+              <LogOut className="h-5 w-5 shrink-0" aria-hidden />
+              <span className="max-w-[64px] whitespace-nowrap text-center text-[9px] font-semibold uppercase tracking-wider">
+                {t("sidebar.logout", "Logout")}
+              </span>
+            </button>
+          ) : (
+            <Link
+              href="/auth"
+              className="flex h-12 w-12 flex-col items-center justify-center gap-0.5 rounded-xl text-white/35 transition-colors hover:bg-white/[0.04] hover:text-[#C7C2F0]"
+              aria-label={t("auth.signIn", "Sign in")}
+            >
+              <LogIn className="h-5 w-5 shrink-0" aria-hidden />
+              <span className="max-w-[64px] whitespace-nowrap text-center text-[9px] font-semibold uppercase tracking-wider">
+                {t("auth.signIn", "Sign in")}
+              </span>
+            </Link>
+          )}
         </div>
       </aside>
 

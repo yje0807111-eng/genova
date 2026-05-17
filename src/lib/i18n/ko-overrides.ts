@@ -49,6 +49,7 @@ export const koOverrides: Record<string, string> = {
   "sidebar.competition": "공모전",
   "sidebar.notifications": "알림",
   "sidebar.language": "언어",
+  "sidebar.logout": "로그아웃",
 
   "meta.brand": "Genova",
   "meta.defaultDescription": "AI 영화인을 위한 플랫폼",
