@@ -162,6 +162,11 @@ export function HomeMobileFeed({ videosFromDb }: { videosFromDb: Video[] }) {
       <div className="flex flex-col gap-5 px-4 pb-10 pt-4">
         {filtered.map((v, i) => {
           const cp = videoToCardProps(v, locale);
+          const tag = v.seriesName
+            ? { label: t("series.sectionLabel", "Series"), series: true }
+            : v.purpose === "competition"
+              ? { label: t("profile.submission", "Submission"), series: false }
+              : null;
           return (
             <ScrollReveal key={v.id} delay={Math.min(i, 6) * 0.05}>
             <Link href={`/watch/${v.id}`} className="block">
@@ -173,6 +178,23 @@ export function HomeMobileFeed({ videosFromDb }: { videosFromDb: Video[] }) {
                   sizes="100vw"
                   className="object-cover"
                 />
+                {tag ? (
+                  <span className="absolute left-2 top-2 inline-flex items-center gap-1.5 rounded-full bg-black/35 px-2.5 py-1 text-[10.5px] font-semibold text-white/90 backdrop-blur-md ring-1 ring-white/10">
+                    <span
+                      className="h-1.5 w-1.5 rounded-full"
+                      style={{
+                        background: tag.series ? "#9D95F0" : "#F5C451",
+                        boxShadow: `0 0 6px ${
+                          tag.series
+                            ? "rgba(157,149,240,0.8)"
+                            : "rgba(245,196,81,0.8)"
+                        }`,
+                      }}
+                      aria-hidden
+                    />
+                    {tag.label}
+                  </span>
+                ) : null}
                 {cp.duration ? (
                   <span className="absolute bottom-2 right-2 rounded bg-black/70 px-1.5 py-0.5 text-[11px] font-semibold text-white">
                     {cp.duration}
