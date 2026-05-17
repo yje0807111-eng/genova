@@ -1,5 +1,6 @@
 import path from "node:path";
 import type { NextConfig } from "next";
+import { withSentryConfig } from "@sentry/nextjs";
 
 const remotePatterns: NonNullable<NonNullable<NextConfig["images"]>["remotePatterns"]> = [
   { protocol: "https", hostname: "images.unsplash.com", pathname: "/**" },
@@ -34,4 +35,11 @@ const nextConfig: NextConfig = {
   },
 };
 
-export default nextConfig;
+// Sentry build wrapper. Source-map upload only runs when
+// SENTRY_AUTH_TOKEN is present; absent ⇒ silently skipped, build
+// unaffected. Runtime SDK stays inert without NEXT_PUBLIC_SENTRY_DSN.
+export default withSentryConfig(nextConfig, {
+  silent: true,
+  disableLogger: true,
+  widenClientFileUpload: false,
+});
