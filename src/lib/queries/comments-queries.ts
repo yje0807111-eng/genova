@@ -42,7 +42,7 @@ export async function fetchCommentsForVideo(videoId: string): Promise<VideoComme
     .in("id", userIds);
   const profMap = new Map((profs ?? []).map((p) => [p.id as string, p]));
 
-  const flat = (rows as { id: string; user_id: string; video_id: string; parent_id: string | null; content: string; created_at: string }[]).map(
+  const flat = (rows as { id: string; user_id: string; video_id: string; parent_id: string | null; content: string; created_at: string; is_pinned?: boolean | null; pin_order?: number | null }[]).map(
     (row) => {
       const pr = profMap.get(row.user_id);
       return {
@@ -51,8 +51,8 @@ export async function fetchCommentsForVideo(videoId: string): Promise<VideoComme
         videoId: row.video_id,
         parentId: row.parent_id,
         content: row.content,
-        isPinned: (row as any).is_pinned ?? false,
-        pinOrder: (row as any).pin_order ?? null,
+        isPinned: row.is_pinned ?? false,
+        pinOrder: row.pin_order ?? null,
         createdAt: row.created_at,
         displayName: pr?.display_name ?? null,
         avatarUrl: pr?.avatar_url ?? null,

@@ -10,7 +10,24 @@ import { formatPrizeWithConversion } from "@/lib/utils/format-prize";
 // 캐러셀 + 밀집 툴바 대신: 피처 1카드 + 상태 칩 + 세로 리스트.
 // md:hidden 분기(데스크톱은 기존 FeaturedHeroCarousel+List 유지).
 
-type Comp = any;
+type Comp = {
+  id: string;
+  title: string;
+  title_en?: string | null;
+  title_ko?: string | null;
+  title_ja?: string | null;
+  status: string;
+  deadline: string;
+  prize_info: string;
+  prize_info_en?: string | null;
+  prize_info_ko?: string | null;
+  prize_info_ja?: string | null;
+  is_featured?: boolean | null;
+  thumbnail_url?: string | null;
+  base_currency?: string | null;
+  exchange_rate_usd_krw?: number | null;
+  exchange_rate_usd_jpy?: number | null;
+};
 
 function dDay(deadline: string): number {
   return Math.max(
