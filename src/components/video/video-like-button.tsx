@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useEffect, useState, useTransition } from "react";
+import { useState, useTransition } from "react";
 import { toggleLikeAction } from "@/app/actions/engagement";
 import { useI18n } from "@/components/genova/language-provider";
 
@@ -23,10 +23,19 @@ export function VideoLikeButton({ videoId, initialCount, initialLiked, compact, 
   const [liked, setLiked] = useState(initialLiked);
   const [pending, startTransition] = useTransition();
 
-  useEffect(() => {
+  // Reset local (optimistic) state when the source props change — the
+  // documented "store previous value, adjust during render" pattern
+  // (replaces a setState-in-effect; no post-paint flicker).
+  const [prevKey, setPrevKey] = useState({ videoId, initialCount, initialLiked });
+  if (
+    prevKey.videoId !== videoId ||
+    prevKey.initialCount !== initialCount ||
+    prevKey.initialLiked !== initialLiked
+  ) {
+    setPrevKey({ videoId, initialCount, initialLiked });
     setCount(initialCount);
     setLiked(initialLiked);
-  }, [videoId, initialCount, initialLiked]);
+  }
 
   const onClick = (e: React.MouseEvent) => {
     e.preventDefault();

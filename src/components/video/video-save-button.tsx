@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useEffect, useState, useTransition } from "react";
+import { useState, useTransition } from "react";
 import { toggleSaveAction } from "@/app/actions/engagement";
 import { useI18n } from "@/components/genova/language-provider";
 
@@ -20,10 +20,19 @@ export function VideoSaveButton({ videoId, initialSaved, initialCount, className
   const [count, setCount] = useState(initialCount ?? 0);
   const [pending, startTransition] = useTransition();
 
-  useEffect(() => {
+  // Reset local (optimistic) state when the source props change — the
+  // documented "store previous value, adjust during render" pattern
+  // (replaces a setState-in-effect; no post-paint flicker).
+  const [prevKey, setPrevKey] = useState({ videoId, initialSaved, initialCount });
+  if (
+    prevKey.videoId !== videoId ||
+    prevKey.initialSaved !== initialSaved ||
+    prevKey.initialCount !== initialCount
+  ) {
+    setPrevKey({ videoId, initialSaved, initialCount });
     setSaved(initialSaved);
     setCount(initialCount ?? 0);
-  }, [videoId, initialSaved, initialCount]);
+  }
 
   const onClick = (e: React.MouseEvent) => {
     e.preventDefault();
