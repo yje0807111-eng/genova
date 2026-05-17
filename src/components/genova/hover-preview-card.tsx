@@ -54,14 +54,18 @@ export function HoverPreviewCard({ video }: { video: Video }) {
           style={{ background: "var(--gradient-card-overlay)" }}
         />
         {tag ? (
-          <span
-            className={
-              tag.kind === "series"
-                ? "absolute left-2.5 top-2.5 rounded-md bg-[#534AB7] px-2 py-0.5 text-[10px] font-black uppercase tracking-wider text-white ring-1 ring-white/20"
-                : "absolute left-2.5 top-2.5 rounded-md bg-amber-400/90 px-2 py-0.5 text-[10px] font-black uppercase tracking-wider text-black ring-1 ring-amber-200/40"
-            }
-            style={{ boxShadow: "0 2px 10px rgba(0,0,0,0.45)" }}
-          >
+          <span className="absolute left-2.5 top-2.5 inline-flex items-center gap-1.5 rounded-full bg-black/35 px-2.5 py-1 text-[10.5px] font-semibold text-white/90 backdrop-blur-md ring-1 ring-white/10">
+            <span
+              className="h-1.5 w-1.5 rounded-full"
+              style={{
+                background:
+                  tag.kind === "series" ? "#9D95F0" : "#F5C451",
+                boxShadow: `0 0 6px ${
+                  tag.kind === "series" ? "rgba(157,149,240,0.8)" : "rgba(245,196,81,0.8)"
+                }`,
+              }}
+              aria-hidden
+            />
             {tag.label}
           </span>
         ) : null}
