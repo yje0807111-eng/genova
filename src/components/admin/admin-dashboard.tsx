@@ -12,7 +12,9 @@ import {
   Settings as SettingsIcon,
   ChevronRight,
   AlertTriangle,
+  Activity,
 } from "lucide-react";
+import Link from "next/link";
 import { type VideoReportItem } from "@/app/actions/reports";
 import type { BusinessInquiryItem } from "@/app/actions/business-inquiries";
 import { AdminHero } from "@/components/admin/sections/admin-hero";
@@ -407,6 +409,32 @@ function AdminDashboardInner({
                 </div>
               </button>
             ))}
+
+            <Link
+              href="/admin/health"
+              className={cn(
+                adminTokens.card,
+                "group flex flex-col items-start gap-3 text-left transition hover:border-white/20",
+              )}
+            >
+              <div className="flex w-full items-center justify-between">
+                <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-white/[0.05] text-white/70 transition group-hover:text-white">
+                  <Activity className="h-4 w-4" />
+                </span>
+                <ChevronRight className="h-4 w-4 text-white/20 transition group-hover:translate-x-0.5 group-hover:text-white/45" />
+              </div>
+              <div>
+                <p className="text-[14px] font-bold text-white">
+                  {t("adminDash.systemHealth", "시스템 점검")}
+                </p>
+                <p className="mt-0.5 text-[12px] text-white/45">
+                  {t(
+                    "adminDash.systemHealthSub",
+                    "환경변수·연동·응모권 상태",
+                  )}
+                </p>
+              </div>
+            </Link>
           </div>
         </>
       ) : (

@@ -1194,6 +1194,8 @@ const en: Messages = {
   "adminDash.compSubClosing": "{active} active · {closing} closing soon",
   "adminDash.compSubActive": "{active} active",
   "adminDash.todaysWork": "Today's tasks",
+  "adminDash.systemHealth": "System Health",
+  "adminDash.systemHealthSub": "Env · integrations · lottery status",
   "adminDash.noTasks": "No tasks to handle. 👍",
   "adminDash.backToDashboard": "Dashboard",
   "adminDash.createCompetition": "Create New Competition",

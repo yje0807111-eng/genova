@@ -1618,6 +1618,8 @@ export const koOverrides: Record<string, string> = {
   "adminDash.compSubClosing": "진행 {active} · 마감임박 {closing}",
   "adminDash.compSubActive": "진행 중 {active}",
   "adminDash.todaysWork": "오늘의 작업",
+  "adminDash.systemHealth": "시스템 점검",
+  "adminDash.systemHealthSub": "환경변수·연동·응모권 상태",
   "adminDash.noTasks": "처리할 작업이 없습니다. 👍",
   "adminDash.backToDashboard": "대시보드",
   "adminDash.createCompetition": "새 공모전 생성",

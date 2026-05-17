@@ -1595,6 +1595,8 @@ export const jaOverrides: Record<string, string> = {
   "adminDash.compSubClosing": "進行中 {active} · 締切間近 {closing}",
   "adminDash.compSubActive": "進行中 {active}",
   "adminDash.todaysWork": "本日の作業",
+  "adminDash.systemHealth": "システム点検",
+  "adminDash.systemHealthSub": "環境変数・連携・抽選状態",
   "adminDash.noTasks": "処理する作業はありません。👍",
   "adminDash.backToDashboard": "ダッシュボード",
   "adminDash.createCompetition": "新しいコンテストを作成",
