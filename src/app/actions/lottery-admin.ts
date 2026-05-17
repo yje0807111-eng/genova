@@ -151,6 +151,65 @@ export async function redrawMonthlySlotAction(input: {
 }
 
 /* -----------------------------------------------------------------
+ * 2b. Re-send winner notification + email for a single winner.
+ *
+ * dispatchWinnerNotifications() only processes rows where
+ * notified_at IS NULL (idempotency), so a winner whose initial
+ * dispatch failed stays stuck once notified_at was stamped.  This
+ * clears notified_at for the one winner, then re-runs the dispatch
+ * for that draw month.  Surfaces the same failure counts so the
+ * admin can see whether the retry actually delivered.
+ * ---------------------------------------------------------------*/
+
+export async function resendWinnerNotificationAction(input: {
+  winnerId: string;
+}): Promise<
+  AdminResult & { notifFailed?: number; emailFailed?: number; attempted?: number }
+> {
+  const auth = await requireAdminWithService();
+  if ("error" in auth) return { ok: false, message: auth.error };
+
+  const { data: winner, error: lookupErr } = await auth.service
+    .from("competition_winners")
+    .select("id, draw_month_key, claim_status")
+    .eq("id", input.winnerId)
+    .maybeSingle();
+  if (lookupErr) return { ok: false, message: lookupErr.message };
+  if (!winner) return { ok: false, message: "Winner not found" };
+  if (winner.claim_status === "invalidated")
+    return { ok: false, message: "Winner is invalidated" };
+
+  const { error: clearErr } = await auth.service
+    .from("competition_winners")
+    .update({ notified_at: null })
+    .eq("id", input.winnerId);
+  if (clearErr) return { ok: false, message: clearErr.message };
+
+  const dispatch = await dispatchWinnerNotifications(
+    auth.service,
+    winner.draw_month_key as string,
+  );
+
+  await logAdminAction(auth.service, auth.user, "lottery.resendWinnerNotif", {
+    type: "winner",
+    id: input.winnerId,
+    detail: {
+      drawMonthKey: winner.draw_month_key,
+      notifFailed: dispatch.notifFailed,
+      emailFailed: dispatch.emailFailed,
+    },
+  });
+
+  revalidatePath("/admin");
+  return {
+    ok: true,
+    attempted: dispatch.attempted,
+    notifFailed: dispatch.notifFailed,
+    emailFailed: dispatch.emailFailed,
+  };
+}
+
+/* -----------------------------------------------------------------
  * 3. Mark winner_info as admin-verified (claim_status pending /
  *    submitted → confirmed).
  * ---------------------------------------------------------------*/

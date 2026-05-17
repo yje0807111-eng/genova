@@ -7,6 +7,7 @@ import {
   redrawMonthlySlotAction,
   markWinnerInfoVerifiedAction,
   markWinnerInfoPaidAction,
+  resendWinnerNotificationAction,
   exportLotteryWinnersCsvAction,
 } from "@/app/actions/lottery-admin";
 import { cn } from "@/lib/utils/cn";
@@ -93,6 +94,26 @@ export function LotteryManagement({
       });
       onMessage(res.ok ? "지급 완료 처리됨" : `지급 처리 실패: ${res.message}`);
       if (res.ok) refresh();
+    });
+  };
+
+  const onResend = (winnerId: string) => {
+    if (!confirm("이 당첨자에게 알림·이메일을 다시 보낼까요?")) return;
+    start(async () => {
+      const res = await resendWinnerNotificationAction({ winnerId });
+      if (res.ok) {
+        const warn: string[] = [];
+        if (res.notifFailed) warn.push(`알림 ${res.notifFailed}건 실패`);
+        if (res.emailFailed) warn.push(`이메일 ${res.emailFailed}건 실패`);
+        onMessage(
+          warn.length
+            ? `재발송 시도 — ${warn.join(", ")}`
+            : "재발송 완료 (알림·이메일 발송됨)",
+        );
+        refresh();
+      } else {
+        onMessage(`재발송 실패: ${res.message}`);
+      }
     });
   };
 
@@ -241,6 +262,14 @@ export function LotteryManagement({
                   </span>
                 ) : null}
                 <span className="ml-auto flex gap-1.5">
+                  <button
+                    type="button"
+                    onClick={() => onResend(w.winnerId)}
+                    disabled={pending}
+                    className="rounded-md border border-white/15 px-2 py-1 text-[11px] text-white/60 hover:text-white"
+                  >
+                    재발송
+                  </button>
                   {w.claimStatus === "submitted" ? (
                     <button
                       type="button"
