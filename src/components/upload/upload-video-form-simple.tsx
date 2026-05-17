@@ -575,25 +575,36 @@ export function UploadVideoFormSimple({
                       <label className="mb-2 block text-[12px] font-bold uppercase tracking-[0.18em] text-white/70">
                         {t("upload.series.pick", "시리즈 선택")}
                       </label>
-                      <select
-                        value={seriesChoice}
-                        onChange={(e) => handleSeriesChoice(e.target.value)}
-                        className="w-full cursor-pointer rounded-xl border border-white/[0.08] bg-white/[0.02] px-4 py-3 text-[14px] text-white outline-none transition focus:border-[#7F77DD]/40 focus:bg-white/[0.04]"
-                      >
-                        <option value="">
-                          {t("upload.series.newSeries", "+ 새 시리즈 만들기")}
-                        </option>
-                        {mySeries.map((s) => (
-                          <option key={s.name} value={s.name}>
-                            {s.name} (
-                            {t("upload.series.lastEp", "최신 EP {n}").replace(
-                              "{n}",
-                              String(s.lastEpisode),
-                            )}
-                            )
+                      <div className="relative">
+                        <select
+                          value={seriesChoice}
+                          onChange={(e) => handleSeriesChoice(e.target.value)}
+                          style={{ colorScheme: "dark" }}
+                          className="w-full cursor-pointer appearance-none rounded-xl border border-white/[0.08] bg-white/[0.02] py-3 pl-4 pr-10 text-[14px] text-white outline-none transition hover:bg-white/[0.04] focus:border-[#7F77DD]/40 focus:bg-white/[0.04]"
+                        >
+                          <option
+                            value=""
+                            style={{ background: "#141019", color: "#fff" }}
+                          >
+                            {t("upload.series.newSeries", "+ 새 시리즈 만들기")}
                           </option>
-                        ))}
-                      </select>
+                          {mySeries.map((s) => (
+                            <option
+                              key={s.name}
+                              value={s.name}
+                              style={{ background: "#141019", color: "#fff" }}
+                            >
+                              {s.name} (
+                              {t("upload.series.lastEp", "최신 EP {n}").replace(
+                                "{n}",
+                                String(s.lastEpisode),
+                              )}
+                              )
+                            </option>
+                          ))}
+                        </select>
+                        <ChevronDown className="pointer-events-none absolute right-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-white/40" />
+                      </div>
                     </div>
                   )}
 
