@@ -315,40 +315,6 @@ function extractMatchingTags(videos: Video[], q: string, limit = 12): string[] {
   return out;
 }
 
-function relatedTagsFromPool(allTags: string[], q: string, limit = 10): string[] {
-  const s = q.trim().toLowerCase();
-  const seen = new Set<string>();
-  const out: string[] = [];
-  for (const tag of allTags) {
-    const tt = tag.trim();
-    if (!tt) continue;
-    if (seen.has(tt.toLowerCase())) continue;
-    if (!s || tt.toLowerCase().includes(s) || s.length >= 2 && [...s].some((ch) => tt.toLowerCase().includes(ch))) {
-      seen.add(tt.toLowerCase());
-      out.push(tt);
-    }
-    if (out.length >= limit) break;
-  }
-  return out;
-}
-
-/** 인기 영상 풀에서 태그 수집 (연관 태그 후보) */
-async function fetchPopularTagsSample(limitTags = 80): Promise<string[]> {
-  const vids = await fetchTrendingVideosByLikes(80);
-  const seen = new Set<string>();
-  const out: string[] = [];
-  for (const v of vids) {
-    for (const t of v.tags ?? []) {
-      const x = (t ?? "").trim();
-      if (!x || seen.has(x.toLowerCase())) continue;
-      seen.add(x.toLowerCase());
-      out.push(x);
-      if (out.length >= limitTags) return out;
-    }
-  }
-  return out;
-}
-
 export async function searchVideosFull(
   q: string,
   limit = 48,
@@ -411,39 +377,6 @@ export async function searchProfilesFull(q: string, limit = 24): Promise<SearchP
   }));
   const fc = await attachFollowerCounts(profiles.map((p) => p.id));
   return profiles.map((p) => ({ ...p, followerCount: fc.get(p.id) ?? 0 }));
-}
-
-export async function runFullSearch(
-  q: string,
-  videoLimit = 48,
-  profileLimit = 24,
-  sort: SearchSortMode = "relevance",
-): Promise<FullSearchResult> {
-  const term = normalizeSearchTerm(q);
-  if (!term) {
-    return { videos: [], profiles: [], matchingTags: [], genreMatch: null };
-  }
-  const [videos, profiles] = await Promise.all([
-    searchVideosFull(term, videoLimit, sort),
-    searchProfilesFull(term, profileLimit),
-  ]);
-  const matchingTags = extractMatchingTags(videos, term, 16);
-  const genreMatch = resolveGenreMatchFromQuery(term);
-  return { videos, profiles, matchingTags, genreMatch };
-}
-
-export async function getRelatedTagSuggestions(q: string): Promise<string[]> {
-  const pool = await fetchPopularTagsSample(100);
-  return relatedTagsFromPool(pool, q, 10);
-}
-
-export async function getFallbackRecommendations(): Promise<{ videos: Video[]; genreSuggestions: SearchGenreMatch[] }> {
-  const videos = await fetchTrendingVideosByLikes(8);
-  const genreSuggestions = (["short_film", "documentary", "animation"] as MainGenreKey[]).map((slug) => ({
-    slug,
-    label: MAIN_GENRE_LABELS[slug],
-  }));
-  return { videos, genreSuggestions };
 }
 
 /** 자동완성 전용(제한 개수) */

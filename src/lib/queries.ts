@@ -101,14 +101,6 @@ export async function fetchOriginalVideos(): Promise<Video[]> {
   return mergedRows.map((row) => mapVideo(row));
 }
 
-export async function fetchCreators(): Promise<Creator[]> {
-  const supabase = await createServerSupabaseClient();
-  if (!supabase) return [];
-  const { data, error } = await supabase.from("creators").select("*").order("name", { ascending: true });
-  if (error || !data) return [];
-  return data.map((row) => mapCreator(row));
-}
-
 export async function fetchCurrentCompetition(): Promise<Competition | null> {
   const supabase = await createServerSupabaseClient();
   if (!supabase) return null;
@@ -347,26 +339,6 @@ export async function fetchRelatedVideos(excludeId: string, limit = 8): Promise<
   return merged.map((row) => mapVideo(row));
 }
 
-/** Same genre as current video, public, excluding id; ordered by view_count desc (watch page “For You”). */
-export async function fetchForYouSameGenreVideos(excludeId: string, genre: string, limit = 8): Promise<Video[]> {
-  const supabase = await createServerSupabaseClient();
-  if (!supabase) return [];
-  const { data, error } = await supabase
-    .from("videos")
-    .select("*, creators(*)")
-    .eq("visibility", "public")
-    .eq("genre", genre)
-    .neq("id", excludeId)
-    .order("view_count", { ascending: false })
-    .limit(limit);
-  if (error || !data) {
-    console.error("[fetchForYouSameGenreVideos] fetch failed", { message: error?.message, code: error?.code });
-    return [];
-  }
-  const merged = await mergeVideoRows(data as Parameters<typeof mapVideo>[0][]);
-  return merged.map((row) => mapVideo(row));
-}
-
 /** 팔로우한 크리에이터의 공개 영상 (최신순). */
 export async function fetchFollowingVideos(userId: string | null, limit = 8): Promise<Video[]> {
   if (!userId) return [];
@@ -473,57 +445,6 @@ export async function fetchVideosByCreator(creatorId: string): Promise<Video[]> 
     .order("created_at", { ascending: false });
   if (error || !data) return [];
   return data.map((row) => mapVideo(row));
-}
-
-export async function fetchFinalistVideos(): Promise<Video[]> {
-  const supabase = await createServerSupabaseClient();
-  if (!supabase) return [];
-  const { data, error } = await supabase
-    .from("videos")
-    .select("*")
-    .eq("is_finalist", true)
-    .eq("visibility", "public")
-    .order("created_at", { ascending: false });
-  if (error || !data) {
-    console.error("[fetchFinalistVideos] videos fetch failed", { message: error?.message, code: error?.code });
-    return [];
-  }
-  const merged = await mergeVideoRows(data as Parameters<typeof mapVideo>[0][]);
-  return merged.map((row) => mapVideo(row));
-}
-
-export async function fetchAwardedVideos(): Promise<Video[]> {
-  const supabase = await createServerSupabaseClient();
-  if (!supabase) return [];
-  const { data, error } = await supabase
-    .from("videos")
-    .select("*")
-    .not("award", "is", null)
-    .eq("visibility", "public")
-    .order("created_at", { ascending: false });
-  if (error || !data) {
-    console.error("[fetchAwardedVideos] videos fetch failed", { message: error?.message, code: error?.code });
-    return [];
-  }
-  const merged = await mergeVideoRows(data as Parameters<typeof mapVideo>[0][]);
-  return merged.map((row) => mapVideo(row));
-}
-
-/** 로그인 사용자가 해당 공모전에서 이미 투표한 video_id 집합 */
-export async function fetchCurrentUserVoteVideoIds(competitionId: string): Promise<Set<string>> {
-  const supabase = await createServerSupabaseClient();
-  if (!supabase) return new Set();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) return new Set();
-  const { data, error } = await supabase
-    .from("votes")
-    .select("video_id")
-    .eq("competition_id", competitionId)
-    .eq("user_id", user.id);
-  if (error || !data) return new Set();
-  return new Set(data.map((x) => x.video_id));
 }
 
 /** 같은 업로더·같은 시리즈명·`genre=series`인 에피소드 목록 및 이전/다음 ID */

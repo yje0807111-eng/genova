@@ -1,20 +1,6 @@
 import type { VideoComment } from "@/lib/types";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 
-/** Comment row counts per video (for feeds). */
-export async function fetchCommentCountsForVideoIds(videoIds: string[]): Promise<Record<string, number>> {
-  if (videoIds.length === 0) return {};
-  const supabase = await createServerSupabaseClient();
-  if (!supabase) return {};
-  const { data, error } = await supabase.from("comments").select("video_id").in("video_id", videoIds);
-  if (error || !data) return {};
-  const counts: Record<string, number> = {};
-  for (const row of data as { video_id: string }[]) {
-    counts[row.video_id] = (counts[row.video_id] ?? 0) + 1;
-  }
-  return counts;
-}
-
 export async function fetchCommentsForVideo(videoId: string): Promise<VideoComment[]> {
   const supabase = await createServerSupabaseClient();
   if (!supabase) return [];

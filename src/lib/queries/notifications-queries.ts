@@ -51,18 +51,3 @@ export async function fetchMyNotifications(limit = 30): Promise<AppNotification[
     metadata: (r.metadata as Record<string, unknown> | null) ?? null,
   }));
 }
-
-export async function fetchMyUnreadCount(): Promise<number> {
-  const supabase = await createServerSupabaseClient();
-  if (!supabase) return 0;
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) return 0;
-  const { count } = await supabase
-    .from("notifications")
-    .select("id", { count: "exact", head: true })
-    .eq("user_id", user.id)
-    .eq("is_read", false);
-  return count ?? 0;
-}
