@@ -115,9 +115,6 @@ type CompetitionDetailProps = {
   featuredVideos: Video[];
   /** Phase 4-B: total eligible lottery entries for this competition. */
   entryCount?: number;
-  /** Phase 4-B: at least one live (non-invalidated) winner row exists →
-   *  show the "winners announced" banner linking to /results. */
-  winnersAnnounced?: boolean;
 };
 
 function competitionRowToAppVideo(video: Video): AppVideo {
@@ -166,7 +163,6 @@ export function CompetitionDetailClient({
   videos,
   featuredVideos,
   entryCount = 0,
-  winnersAnnounced = false,
 }: CompetitionDetailProps) {
   const { t, locale } = useI18n();
   const { open: openUploadModal } = useUploadModal();
@@ -256,28 +252,6 @@ export function CompetitionDetailClient({
         }}
         aria-hidden
       />
-
-      {/* Phase 4-B: winners-announced banner.  Renders only once
-          the admin has triggered a draw.  Links to the dedicated
-          results page where the 5 winner cards live. */}
-      {winnersAnnounced ? (
-        <Link
-          href={`/competition/${competition.id}/results`}
-          className="group/banner relative z-30 mx-4 mb-4 mt-20 flex items-center justify-between gap-4 rounded-2xl border border-amber-400/30 bg-gradient-to-r from-amber-500/15 via-amber-500/10 to-transparent px-5 py-3 backdrop-blur-md transition hover:border-amber-400/50 sm:mx-6 md:mx-8 lg:mx-12"
-        >
-          <div className="flex items-center gap-3 min-w-0">
-            <span className="rounded-full bg-amber-400/20 px-2 py-0.5 text-[10px] font-bold uppercase tracking-[0.18em] text-amber-200">
-              🏆 {t("lottery.results.bannerTitle", "Winners announced")}
-            </span>
-            <span className="truncate text-[13px] font-semibold text-amber-100/90">
-              {t("lottery.results.bannerCta", "See the winners →")}
-            </span>
-          </div>
-          <span className="shrink-0 text-[12px] font-bold text-amber-200/80 transition-transform group-hover/banner:translate-x-0.5">
-            →
-          </span>
-        </Link>
-      ) : null}
 
       {/* ── Hero ─────────────────────────────────── */}
       <div

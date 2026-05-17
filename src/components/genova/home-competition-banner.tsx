@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { ArrowRight, PlayCircle, Calendar, Users } from "lucide-react";
 import { useI18n } from "@/components/genova/language-provider";
+import { LotteryWinnersButton } from "@/components/lottery/lottery-winners-button";
 
 type HeroCompetition = {
   title?: string | null;
@@ -97,7 +98,7 @@ export function HomeCompetitionBanner({ competition, stats }: Props) {
 
           <div className="inline-flex w-fit items-center gap-2 rounded-full border border-emerald-400/25 bg-emerald-500/5 px-3 py-1 text-[10px] font-bold uppercase tracking-[0.2em] text-emerald-300/90 backdrop-blur-md">
             <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
-            {localizedCompTitle ?? t("home.hero.eyebrow", "AI FILMS CONTEST · NOW LIVE")}
+            {localizedCompTitle ?? t("home.hero.eyebrow", "AI FILM CONTEST · NOW LIVE")}
           </div>
 
           <div>
@@ -105,16 +106,19 @@ export function HomeCompetitionBanner({ competition, stats }: Props) {
               className="text-[32px] font-black leading-[1.05] tracking-[-0.03em] text-white whitespace-nowrap sm:text-[38px] md:text-[46px] lg:text-[52px] xl:text-[56px]"
               style={{ textShadow: "0 2px 16px rgba(0,0,0,0.6)" }}
             >
-              {t("home.hero.titlePart1", "영상으로 보여주는")}{" "}
+              {t("home.hero.titlePart1", "Showcasing the")}{" "}
               <span className="bg-gradient-to-r from-[#AFA9EC] via-[#7F77DD] to-[#534AB7] bg-clip-text text-transparent">
-                {t("home.hero.titlePart2", "AI의 가능성")}
+                {t("home.hero.titlePart2", "possibilities of AI")}
               </span>
             </h1>
             <p
               className="mt-4 max-w-[640px] text-[14px] leading-relaxed text-white/65 md:text-[15px] lg:text-[16px]"
               style={{ textShadow: "0 1px 8px rgba(0,0,0,0.5)" }}
             >
-              {t("home.hero.subtitle", "전 세계 AI 크리에이터들이 작품을 겨루는 영화 공모전 플랫폼")}
+              {t(
+                "home.hero.subtitle",
+                "A film competition platform where AI creators worldwide compete with their work",
+              )}
             </p>
           </div>
 
@@ -123,30 +127,31 @@ export function HomeCompetitionBanner({ competition, stats }: Props) {
               href="/competition"
               className="group inline-flex items-center gap-1.5 rounded-full bg-white px-5 py-2.5 text-[13px] font-bold text-[#0a0a0a] transition hover:bg-white/90"
             >
-              {t("home.hero.cta.primary", "공모전 참여하기")}
+              {t("home.hero.cta.primary", "Join the competition")}
               <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" />
             </Link>
+            <LotteryWinnersButton />
           </div>
 
           <div className="grid max-w-[680px] grid-cols-3 gap-3 pt-4 sm:gap-3.5">
             <StatCard
               label={t("home.hero.stat.activeLabel", "NOW LIVE")}
               value={stats.activeCount.toLocaleString()}
-              description={t("home.hero.stat.activeDesc", "공모전 진행 중")}
+              description={t("home.hero.stat.activeDesc", "competitions live")}
               accent="purple"
               icon="pulse"
             />
             <StatCard
               label={t("home.hero.stat.prizeLabel", "TOTAL PRIZE")}
               value={`$${stats.totalPrizeUSD.toLocaleString()}`}
-              description={t("home.hero.stat.prizeDesc", "총 상금")}
+              description={t("home.hero.stat.prizeDesc", "total prize")}
               accent="gold"
               icon="star"
             />
             <StatCard
               label={t("home.hero.stat.creatorsLabel", "JOINED")}
               value={stats.participantCount.toLocaleString()}
-              description={t("home.hero.stat.creatorsDesc", "명이 참여 중")}
+              description={t("home.hero.stat.creatorsDesc", "creators joined")}
               accent="emerald"
               icon="dot"
             />

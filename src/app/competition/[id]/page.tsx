@@ -5,10 +5,7 @@ import { mergeVideoRows } from "@/lib/queries";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { CompetitionDetailClient } from "@/components/competition/competition-detail-client";
 import { getServerLocale } from "@/lib/i18n/server";
-import {
-  fetchMonthlyPoolCount,
-  fetchCompetitionWinners,
-} from "@/lib/queries/lottery-queries";
+import { fetchMonthlyPoolCount } from "@/lib/queries/lottery-queries";
 
 export const dynamic = "force-dynamic";
 
@@ -121,13 +118,12 @@ export default async function CompetitionDetailPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const [competition, videos, featuredVideos, poolCount, winners] =
+  const [competition, videos, featuredVideos, poolCount] =
     await Promise.all([
       fetchCompetitionById(id),
       fetchCompetitionVideos(id),
       fetchFeaturedVideos(id),
       fetchMonthlyPoolCount(),
-      fetchCompetitionWinners(id),
     ]);
   if (!competition) notFound();
 
@@ -137,7 +133,6 @@ export default async function CompetitionDetailPage({
       videos={videos}
       featuredVideos={featuredVideos}
       entryCount={poolCount}
-      winnersAnnounced={winners.length > 0}
     />
   );
 }

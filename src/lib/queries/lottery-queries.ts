@@ -6,37 +6,6 @@ import { createServerSupabaseClient } from "@/lib/supabase/server";
 // anonymous / authenticated callers see the same data.
 // ===================================================================
 
-/** Aggregate counts for the "총 응모 수: N" badge on competition pages. */
-export type CompetitionEntryCounts = {
-  /** Number of `competition_entries` rows still flagged eligible. */
-  eligibleCount: number;
-  /** Number of distinct tickets entered.  Same as eligibleCount under
-   *  current logic (UNIQUE constraint), kept for forward compat. */
-  ticketCount: number;
-};
-
-/**
- * Reads the public_competition_entry_counts aggregate view.
- * Returns zero-counts when the view has no row (no entries yet).
- */
-export async function fetchCompetitionEntryCounts(
-  competitionId: string,
-): Promise<CompetitionEntryCounts> {
-  const supabase = await createServerSupabaseClient();
-  if (!supabase) return { eligibleCount: 0, ticketCount: 0 };
-
-  const { data } = await supabase
-    .from("public_competition_entry_counts")
-    .select("eligible_count, ticket_count")
-    .eq("competition_id", competitionId)
-    .maybeSingle();
-
-  return {
-    eligibleCount: (data?.eligible_count as number | undefined) ?? 0,
-    ticketCount: (data?.ticket_count as number | undefined) ?? 0,
-  };
-}
-
 /**
  * Global count of entry tickets issued in the current KST month.
  * Reads the owner-runs `public_monthly_pool_count` view (single row).
@@ -51,52 +20,6 @@ export async function fetchMonthlyPoolCount(): Promise<number> {
     .select("ticket_count")
     .maybeSingle();
   return (data?.ticket_count as number | undefined) ?? 0;
-}
-
-/** Single drawn winner row as returned by the public_competition_winners view. */
-export type LotteryWinner = {
-  id: string;
-  competitionId: string;
-  userId: string;
-  entryId: string;
-  prizeTier: number;
-  prizeAmountUsd: number;
-  drawnAt: string;
-  claimStatus: string;
-  ticketId: string | null;
-  videoId: string | null;
-};
-
-/**
- * Reads all live (non-invalidated) winners for a competition, ordered
- * by prize_tier ascending so the results page renders 1→5 naturally.
- */
-export async function fetchCompetitionWinners(
-  competitionId: string,
-): Promise<LotteryWinner[]> {
-  const supabase = await createServerSupabaseClient();
-  if (!supabase) return [];
-
-  const { data, error } = await supabase
-    .from("public_competition_winners")
-    .select("*")
-    .eq("competition_id", competitionId)
-    .order("prize_tier", { ascending: true });
-
-  if (error || !data) return [];
-
-  return data.map((row: Record<string, unknown>) => ({
-    id: row.id as string,
-    competitionId: row.competition_id as string,
-    userId: row.user_id as string,
-    entryId: row.entry_id as string,
-    prizeTier: row.prize_tier as number,
-    prizeAmountUsd: row.prize_amount_usd as number,
-    drawnAt: row.drawn_at as string,
-    claimStatus: row.claim_status as string,
-    ticketId: (row.ticket_id as string | null) ?? null,
-    videoId: (row.video_id as string | null) ?? null,
-  }));
 }
 
 // ===================================================================
@@ -150,53 +73,6 @@ export async function fetchMonthlyWinners(
     claimStatus: row.claim_status as string,
     videoId: (row.video_id as string | null) ?? null,
   }));
-}
-
-/** Single drawing event from the audit log. */
-export type DrawingLog = {
-  id: string;
-  competitionId: string;
-  drawnAt: string;
-  seedValue: string;
-  eligibleEntryCount: number;
-  eligibleUserCount: number;
-  isRedraw: boolean;
-  redrawOf: string | null;
-  redrawPrizeTier: number | null;
-};
-
-/**
- * Latest non-redraw drawing event for a competition.  Used as the
- * "추첨 일시" line on the results page.  Returns null when no draw
- * has happened yet.
- */
-export async function fetchLatestDrawingLog(
-  competitionId: string,
-): Promise<DrawingLog | null> {
-  const supabase = await createServerSupabaseClient();
-  if (!supabase) return null;
-
-  const { data, error } = await supabase
-    .from("drawing_logs")
-    .select("*")
-    .eq("competition_id", competitionId)
-    .eq("is_redraw", false)
-    .order("drawn_at", { ascending: false })
-    .limit(1)
-    .maybeSingle();
-
-  if (error || !data) return null;
-  return {
-    id: data.id as string,
-    competitionId: data.competition_id as string,
-    drawnAt: data.drawn_at as string,
-    seedValue: data.seed_value as string,
-    eligibleEntryCount: data.eligible_entry_count as number,
-    eligibleUserCount: data.eligible_user_count as number,
-    isRedraw: data.is_redraw as boolean,
-    redrawOf: (data.redraw_of as string | null) ?? null,
-    redrawPrizeTier: (data.redraw_prize_tier as number | null) ?? null,
-  };
 }
 
 /**
