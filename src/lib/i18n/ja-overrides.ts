@@ -1851,6 +1851,7 @@ export const jaOverrides: Record<string, string> = {
   "genrePage.emptyTitle": "条件に一致する作品がありません",
   "genrePage.emptyHint": "別の並び順をお試しください",
   "profile.episodesTotal": "{n}話",
+  "profile.episodesUnit": "話",
   "profile.seriesEmptyHint": "シリーズはまだありません。シリーズ名を付けて動画をアップロードすると、ここにまとめられます。",
   "profile.tabCompetition": "コンテスト",
   "profile.tabSaved": "保存済み",

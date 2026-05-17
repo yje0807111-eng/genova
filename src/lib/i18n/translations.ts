@@ -1845,6 +1845,7 @@ const en: Messages = {
   "profile.tabSaved": "Saved",
   "profile.seriesEmptyHint": "No series yet. Upload videos with a series name to group them here.",
   "profile.episodesTotal": "{n} episodes",
+  "profile.episodesUnit": "episodes",
   "profile.viewsSuffix": "views",
 
   "search.tabAll": "All",

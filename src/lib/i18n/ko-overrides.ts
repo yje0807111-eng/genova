@@ -349,6 +349,7 @@ export const koOverrides: Record<string, string> = {
   "profile.tabSaved": "저장",
   "profile.seriesEmptyHint": "아직 시리즈가 없습니다. 시리즈명을 넣어 업로드하면 여기에 모아서 볼 수 있어요.",
   "profile.episodesTotal": "에피소드 {n}개",
+  "profile.episodesUnit": "에피소드",
   "profile.viewsSuffix": "조회",
   "profile.avatarOnlyImages": "이미지 파일만 업로드할 수 있습니다.",
   "profile.avatarMaxSize": "4MB 이하의 이미지를 선택해 주세요.",
