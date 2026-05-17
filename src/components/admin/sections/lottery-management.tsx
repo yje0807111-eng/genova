@@ -195,6 +195,14 @@ export function LotteryManagement({
     filter === "all" ? true : w.claimStatus === filter,
   );
 
+  // 추첨 월(draw_month_key)별로 묶어 섹션 단위 관리. 최신 월 먼저.
+  const monthGroups = Object.entries(
+    filtered.reduce<Record<string, LotteryWinnerWorkRow[]>>((acc, w) => {
+      (acc[w.drawMonthKey] ??= []).push(w);
+      return acc;
+    }, {}),
+  ).sort(([a], [b]) => b.localeCompare(a));
+
   const stat = (label: string, value: string | number) => (
     <div className="rounded-lg border border-white/10 bg-white/[0.03] px-3 py-2">
       <p className="text-[10px] uppercase tracking-wider text-white/40">{label}</p>
@@ -284,9 +292,24 @@ export function LotteryManagement({
         {filtered.length === 0 ? (
           <p className="py-6 text-center text-[12px] text-white/35">당첨자 없음</p>
         ) : (
-          <div className="space-y-2">
-            {filtered.map((w) => {
-              const open = expandedId === w.winnerId;
+          <div className="space-y-5">
+            {monthGroups.map(([mk, rows]) => (
+              <div key={mk}>
+                <div className="mb-2 flex items-center gap-2 border-b border-white/[0.06] pb-1.5">
+                  <h4 className="text-[12px] font-black tabular-nums text-[#AFA9EC]">
+                    {mk}
+                  </h4>
+                  <span className="text-[11px] text-white/35">
+                    당첨자 {rows.length}명
+                  </span>
+                  <span className="ml-auto text-[10px] text-white/30">
+                    제출 {rows.filter((r) => r.info).length} / 미제출{" "}
+                    {rows.filter((r) => !r.info).length}
+                  </span>
+                </div>
+                <div className="space-y-2">
+                  {rows.map((w) => {
+                    const open = expandedId === w.winnerId;
               const dday = Math.ceil(
                 (new Date(w.infoDeadline).getTime() - Date.now()) / 86_400_000,
               );
@@ -465,7 +488,10 @@ export function LotteryManagement({
                   ) : null}
                 </div>
               );
-            })}
+                  })}
+                </div>
+              </div>
+            ))}
           </div>
         )}
       </section>
