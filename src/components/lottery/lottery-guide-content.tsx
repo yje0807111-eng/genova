@@ -34,7 +34,7 @@ export const LOTTERY_GUIDE_CONTENT: Record<Locale, LotteryContent> = {
     eyebrow: "Genova 응모권 추첨",
     title: "영상을 올리면, 매월 추첨에 자동 참여됩니다",
     subtitle:
-      "조건을 충족한 영상을 업로드하면 진행 중인 모든 공모전에 자동으로 응모권이 등록됩니다. 매월 공정한 무작위 추첨으로 당첨자에게 상금을 드립니다.",
+      "조건을 충족한 영상을 업로드하면 응모권이 발급됩니다. 특정 공모전 응모가 아니라, 매월 전체 응모권 풀에서 공정한 무작위 추첨으로 당첨자에게 상금을 드립니다.",
     stepsTitle: "어떻게 진행되나요",
     steps: [
       {
@@ -44,13 +44,13 @@ export const LOTTERY_GUIDE_CONTENT: Record<Locale, LotteryContent> = {
       },
       {
         icon: "ticket",
-        title: "2 · 자동 응모",
-        desc: "업로드 즉시 진행 중인 모든 공모전에 응모권이 등록됩니다. 매월 최대 5장까지 받을 수 있습니다.",
+        title: "2 · 응모권 발급",
+        desc: "업로드 즉시 응모권 1장이 발급되어 이번 달 전체 추첨 풀에 들어갑니다. 매월 최대 5장까지 받을 수 있습니다.",
       },
       {
         icon: "gift",
         title: "3 · 매월 추첨 · 당첨",
-        desc: "공모전마다 5명을 추첨해 1인당 $100 USD를 드립니다. 당첨 시 알림과 이메일이 발송됩니다.",
+        desc: "매월 전체 응모권 중 5명을 추첨해 1인당 $100 USD를 드립니다. 당첨 시 알림과 이메일이 발송됩니다.",
       },
     ],
     eligTitle: "응모권 발급 조건",
@@ -67,8 +67,8 @@ export const LOTTERY_GUIDE_CONTENT: Record<Locale, LotteryContent> = {
         a: "별도 신청 없이, 조건을 충족한 영상을 업로드하면 자동으로 발급·응모됩니다.",
       },
       {
-        q: "여러 공모전에 동시에 응모되나요?",
-        a: "네. 업로드 시점에 진행 중인 모든 공모전 풀에 자동으로 들어갑니다.",
+        q: "특정 공모전에 응모하는 건가요?",
+        a: "아니요. 공모전과 무관하게, 영상을 업로드하면 응모권이 발급되어 매월 전체 풀에서 추첨됩니다.",
       },
       {
         q: "추첨은 공정한가요?",
@@ -76,7 +76,7 @@ export const LOTTERY_GUIDE_CONTENT: Record<Locale, LotteryContent> = {
       },
       {
         q: "한 사람이 여러 번 당첨될 수 있나요?",
-        a: "한 공모전에서는 1인 1상만 보장됩니다. 다른 공모전에서는 별개로 당첨될 수 있습니다.",
+        a: "매월 추첨에서 1인 1상만 보장됩니다.",
       },
       {
         q: "당첨되면 무엇을 해야 하나요?",
@@ -94,7 +94,7 @@ export const LOTTERY_GUIDE_CONTENT: Record<Locale, LotteryContent> = {
     eyebrow: "Genova entry lottery",
     title: "Upload a film, get auto-entered into the monthly draw",
     subtitle:
-      "Upload an eligible film and you're automatically entered into every running competition. Each month a fair random draw awards cash prizes to winners.",
+      "Upload an eligible film and you get an entry ticket. It's not per-competition — each month a fair random draw across the whole ticket pool awards cash prizes to winners.",
     stepsTitle: "How it works",
     steps: [
       {
@@ -104,13 +104,13 @@ export const LOTTERY_GUIDE_CONTENT: Record<Locale, LotteryContent> = {
       },
       {
         icon: "ticket",
-        title: "2 · Auto-entered",
-        desc: "An entry ticket is registered to every running competition right away — up to 5 per month.",
+        title: "2 · Ticket issued",
+        desc: "An entry ticket is issued instantly and added to this month's draw pool — up to 5 per month.",
       },
       {
         icon: "gift",
         title: "3 · Monthly draw",
-        desc: "Each competition draws 5 winners at $100 USD each. Winners get an in-app notice and an email.",
+        desc: "Each month 5 winners are drawn from the entire ticket pool at $100 USD each. Winners get an in-app notice and an email.",
       },
     ],
     eligTitle: "Ticket requirements",
@@ -127,8 +127,8 @@ export const LOTTERY_GUIDE_CONTENT: Record<Locale, LotteryContent> = {
         a: "No application needed — uploading an eligible film issues and enters a ticket automatically.",
       },
       {
-        q: "Am I entered into multiple competitions?",
-        a: "Yes. At upload time you're entered into every competition that's currently running.",
+        q: "Is this tied to a specific competition?",
+        a: "No. Regardless of competitions, uploading a film issues a ticket that goes into the monthly global pool.",
       },
       {
         q: "Is the draw fair?",
@@ -136,7 +136,7 @@ export const LOTTERY_GUIDE_CONTENT: Record<Locale, LotteryContent> = {
       },
       {
         q: "Can one person win multiple times?",
-        a: "One prize per person per competition. You can still win separately in other competitions.",
+        a: "One prize per person per monthly draw.",
       },
       {
         q: "What do I do if I win?",
@@ -154,7 +154,7 @@ export const LOTTERY_GUIDE_CONTENT: Record<Locale, LotteryContent> = {
     eyebrow: "Genova 応募券抽選",
     title: "動画を投稿すると、毎月の抽選に自動参加",
     subtitle:
-      "条件を満たす動画を投稿すると、開催中のすべてのコンペに自動で応募券が登録されます。毎月、公正な抽選で当選者に賞金をお渡しします。",
+      "条件を満たす動画を投稿すると応募券が発行されます。特定のコンペへの応募ではなく、毎月、全応募券プールから公正な抽選で当選者に賞金をお渡しします。",
     stepsTitle: "仕組み",
     steps: [
       {
@@ -164,13 +164,13 @@ export const LOTTERY_GUIDE_CONTENT: Record<Locale, LotteryContent> = {
       },
       {
         icon: "ticket",
-        title: "2 · 自動応募",
-        desc: "投稿と同時に開催中の全コンペに応募券が登録されます。毎月最大5枚まで。",
+        title: "2 · 応募券発行",
+        desc: "投稿と同時に応募券が1枚発行され、今月の抽選プールに入ります。毎月最大5枚まで。",
       },
       {
         icon: "gift",
         title: "3 · 毎月抽選",
-        desc: "コンペごとに5名を抽選し、1人あたり$100 USDをお渡しします。当選時は通知とメールが届きます。",
+        desc: "毎月、全応募券から5名を抽選し、1人あたり$100 USDをお渡しします。当選時は通知とメールが届きます。",
       },
     ],
     eligTitle: "応募券の発行条件",
@@ -187,8 +187,8 @@ export const LOTTERY_GUIDE_CONTENT: Record<Locale, LotteryContent> = {
         a: "申請不要。条件を満たす動画を投稿すると自動で発行・応募されます。",
       },
       {
-        q: "複数のコンペに同時に応募されますか？",
-        a: "はい。投稿時点で開催中の全コンペプールに自動で入ります。",
+        q: "特定のコンペへの応募ですか？",
+        a: "いいえ。コンペとは無関係に、動画を投稿すると応募券が発行され、毎月の全体プールで抽選されます。",
       },
       {
         q: "抽選は公正ですか？",
@@ -196,7 +196,7 @@ export const LOTTERY_GUIDE_CONTENT: Record<Locale, LotteryContent> = {
       },
       {
         q: "1人が複数回当選できますか？",
-        a: "1つのコンペでは1人1賞のみ。別のコンペでは別途当選できます。",
+        a: "毎月の抽選で1人1賞のみです。",
       },
       {
         q: "当選したら何をすればいいですか？",
