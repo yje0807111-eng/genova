@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { after } from "next/server";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { WatchMoreMenu } from "@/components/video/watch-more-menu";
@@ -83,6 +84,12 @@ export default async function WatchDetailPage({
     redirect("/?notice=video-removed");
   }
 
+  // 조회수 증가는 렌더를 막지 않게 응답 후로 지연(after).  내부에
+  // 여러 RLS 우회 라운드트립이 있어 TTFB 를 크게 늘리던 원인.
+  after(() => {
+    void incrementVideoViewCount(id);
+  });
+
   // Parallelize the post-resolve I/O block.  All six are independent
   // (they share no state beyond the resolved `video` and `id`) so
   // running them concurrently shaves multiple round-trips off TTFB on
@@ -91,14 +98,12 @@ export default async function WatchDetailPage({
   // handle needed.
   const supabase = await createServerSupabaseClient();
   const [
-    didIncrementView,
     userResult,
     engagementResult,
     progress,
     cookieStore,
     rawRelated,
   ] = await Promise.all([
-    incrementVideoViewCount(id),
     supabase
       ? supabase.auth.getUser()
       : Promise.resolve({ data: { user: null } }),
@@ -110,9 +115,6 @@ export default async function WatchDetailPage({
 
   const user = userResult.data?.user ?? null;
   video = engagementResult[0];
-  if (didIncrementView) {
-    video = { ...video, viewCount: (video.viewCount ?? 0) + 1 };
-  }
 
   const watchedCookie = cookieStore.get("genova_watched")?.value;
   const cookieWatched: string[] = watchedCookie ? JSON.parse(watchedCookie) : [];
@@ -169,15 +171,27 @@ export default async function WatchDetailPage({
   const seriesNav: SeriesEpisodesNav = seriesNavRaw;
   // 업로더 프로필명(uploaderDisplayName)을 채우려면 public_profiles
   // 를 merge 해야 함 — 추천 카드에 작성자 이름 표시(홈 카드와 동일).
-  const [sameGenreMerged, trendingMerged] = await Promise.all([
-    mergeVideoRows((sameGenreRes.data ?? []) as Parameters<typeof mapVideo>[0][]),
-    mergeVideoRows((trendingRes.data ?? []) as Parameters<typeof mapVideo>[0][]),
-  ]);
+  // 두 목록을 합쳐 한 번만 merge — public_profiles/creators 라운드
+  // 트립을 4회→2회로 절반.
+  const sameGenreRows = (sameGenreRes.data ?? []) as Parameters<
+    typeof mapVideo
+  >[0][];
+  const trendingRows = (trendingRes.data ?? []) as Parameters<
+    typeof mapVideo
+  >[0][];
+  const unionById = new Map<string, Parameters<typeof mapVideo>[0]>();
+  for (const r of [...sameGenreRows, ...trendingRows]) {
+    if (!unionById.has(r.id)) unionById.set(r.id, r);
+  }
+  const merged = await mergeVideoRows([...unionById.values()]);
+  const mergedById = new Map(merged.map((r) => [r.id, r]));
 
-  const sameGenreVideos = sameGenreMerged.map((v) => mapVideo(v));
+  const sameGenreVideos = sameGenreRows.map((r) =>
+    mapVideo(mergedById.get(r.id) ?? r),
+  );
   const sameGenreIds = new Set(sameGenreVideos.map((v) => v.id));
-  const trendingVideos = trendingMerged
-    .map((v) => mapVideo(v))
+  const trendingVideos = trendingRows
+    .map((r) => mapVideo(mergedById.get(r.id) ?? r))
     .filter((v) => !sameGenreIds.has(v.id))
     .slice(0, 12);
 
