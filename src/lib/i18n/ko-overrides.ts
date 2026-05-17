@@ -73,6 +73,7 @@ export const koOverrides: Record<string, string> = {
   // Phase 4: 콘테스트 페이지 응모 수 + 추첨 결과 페이지
   "lottery.entryCount": "총 응모 수: {n}",
   "lottery.entriesLabel": "응모",
+  "lottery.poolLabel": "이번 달 응모권",
   "lottery.lotteryHint": "조건을 충족한 업로드는 응모권이 발급되어 매월 전체 추첨 풀에 들어갑니다 (특정 공모전 응모 아님).",
   "lottery.results.title": "당첨자",
   "lottery.results.heading": "응모권 추첨 결과",

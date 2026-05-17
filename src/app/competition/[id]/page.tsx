@@ -6,7 +6,7 @@ import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { CompetitionDetailClient } from "@/components/competition/competition-detail-client";
 import { getServerLocale } from "@/lib/i18n/server";
 import {
-  fetchCompetitionEntryCounts,
+  fetchMonthlyPoolCount,
   fetchCompetitionWinners,
 } from "@/lib/queries/lottery-queries";
 
@@ -121,12 +121,12 @@ export default async function CompetitionDetailPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const [competition, videos, featuredVideos, entryCounts, winners] =
+  const [competition, videos, featuredVideos, poolCount, winners] =
     await Promise.all([
       fetchCompetitionById(id),
       fetchCompetitionVideos(id),
       fetchFeaturedVideos(id),
-      fetchCompetitionEntryCounts(id),
+      fetchMonthlyPoolCount(),
       fetchCompetitionWinners(id),
     ]);
   if (!competition) notFound();
@@ -136,7 +136,7 @@ export default async function CompetitionDetailPage({
       competition={competition}
       videos={videos}
       featuredVideos={featuredVideos}
-      entryCount={entryCounts.eligibleCount}
+      entryCount={poolCount}
       winnersAnnounced={winners.length > 0}
     />
   );

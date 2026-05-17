@@ -1616,6 +1616,7 @@ const en: Messages = {
   // Phase 4: competition entry-count badge + results page copy.
   "lottery.entryCount": "Total entries: {n}",
   "lottery.entriesLabel": "Entries",
+  "lottery.poolLabel": "This month's pool",
   "lottery.lotteryHint": "Every qualifying upload issues an entry ticket into the monthly global draw pool (not per-competition).",
   "lottery.results.title": "Winners",
   "lottery.results.heading": "Lottery winners",

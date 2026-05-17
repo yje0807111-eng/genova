@@ -37,6 +37,22 @@ export async function fetchCompetitionEntryCounts(
   };
 }
 
+/**
+ * Global count of entry tickets issued in the current KST month.
+ * Reads the owner-runs `public_monthly_pool_count` view (single row).
+ * 응모권은 공모전별이 아니라 전체 풀 추첨이므로 공모전 페이지의
+ * 통계는 이 값을 사용한다.
+ */
+export async function fetchMonthlyPoolCount(): Promise<number> {
+  const supabase = await createServerSupabaseClient();
+  if (!supabase) return 0;
+  const { data } = await supabase
+    .from("public_monthly_pool_count")
+    .select("ticket_count")
+    .maybeSingle();
+  return (data?.ticket_count as number | undefined) ?? 0;
+}
+
 /** Single drawn winner row as returned by the public_competition_winners view. */
 export type LotteryWinner = {
   id: string;

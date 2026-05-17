@@ -84,7 +84,7 @@ export const LOTTERY_GUIDE_CONTENT: Record<Locale, LotteryContent> = {
       },
       {
         q: "기한 내 정보를 제출하지 않으면요?",
-        a: "제출 기한이 지나면 해당 당첨은 자동으로 만료되고, 빈 자리는 재추첨될 수 있습니다.",
+        a: "제출 기한이 지나면 해당 당첨은 자동으로 만료되며, 재추첨 없이 그 기회는 사라집니다.",
       },
     ],
     ctaUpload: "영상 업로드하기",
@@ -144,7 +144,7 @@ export const LOTTERY_GUIDE_CONTENT: Record<Locale, LotteryContent> = {
       },
       {
         q: "What if I miss the deadline?",
-        a: "The win expires automatically and the slot may be redrawn.",
+        a: "The win expires automatically — there is no redraw, the opportunity is simply forfeited.",
       },
     ],
     ctaUpload: "Upload a film",
@@ -204,7 +204,7 @@ export const LOTTERY_GUIDE_CONTENT: Record<Locale, LotteryContent> = {
       },
       {
         q: "期限内に提出しないと？",
-        a: "当選は自動的に失効し、空き枠は再抽選される場合があります。",
+        a: "当選は自動的に失効し、再抽選はなく、その機会は消滅します。",
       },
     ],
     ctaUpload: "動画を投稿",

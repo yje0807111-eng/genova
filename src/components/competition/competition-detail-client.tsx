@@ -480,7 +480,7 @@ export function CompetitionDetailClient({
                 {entryCount > 0 ? (
                   <div className="flex flex-col">
                     <span className="inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-[0.18em] text-white/40">
-                      {t("lottery.entriesLabel", "Entries")}
+                      {t("lottery.poolLabel", "이번 달 응모권")}
                       <LotteryGuideInfoButton
                         ariaLabel={t("lottery.guideLink", "응모권 추첨 안내")}
                         size={12}
