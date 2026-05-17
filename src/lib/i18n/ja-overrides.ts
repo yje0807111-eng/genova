@@ -124,6 +124,7 @@ export const jaOverrides: Record<string, string> = {
   // Phase 5: 当選者情報提出ページ
   "claim.title": "賞品受取情報の提出",
   "claim.eyebrow": "Genova 抽選",
+  "claim.winnerNoLabel": "当選番号",
   "claim.tierBadge": "{tier}等",
   "claim.subtitle": "{tier}位 · ${amount} USD",
   "claim.deadline": "{date}までに提出",

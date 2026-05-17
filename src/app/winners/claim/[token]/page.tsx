@@ -90,11 +90,19 @@ export default async function ClaimPage({
 
   const urgent = !isExpired && daysLeft <= 3;
 
+  // 당첨 지명 번호: drawMonthKey(YYYY-MM) + prizeTier → "26.5.1"
+  // (YY.M.순번) — 등수가 아니라 그 달의 N번째 지명 형태로 표기.
+  const [winYear, winMonth] = (snapshot.drawMonthKey ?? "").split("-");
+  const winnerNo =
+    winYear && winMonth
+      ? `${winYear.slice(2)}.${parseInt(winMonth, 10)}.${snapshot.prizeTier}`
+      : String(snapshot.prizeTier);
+
   return (
-    <main className="relative flex min-h-[100svh] w-full justify-center overflow-hidden px-5 py-14 text-white">
+    <main className="relative flex min-h-[100svh] w-full justify-center overflow-hidden px-5 pb-16 pt-[9vh] text-white">
       <ClaimBackdrop />
 
-      <div className="relative flex w-full max-w-[600px] flex-col justify-center">
+      <div className="relative flex w-full max-w-[600px] flex-col">
         {/* Prize hero card */}
         <section
           className="anim-modal relative overflow-hidden rounded-3xl border border-[#7F77DD]/20"
@@ -140,11 +148,11 @@ export default async function ClaimPage({
               >
                 ${snapshot.prizeAmountUsd}
               </span>
-              <span className="rounded-full border border-[#7F77DD]/30 bg-[#534AB7]/15 px-3 py-1 text-[12px] font-bold text-[#AFA9EC]">
-                {t("claim.tierBadge", "Tier {tier}").replace(
-                  "{tier}",
-                  String(snapshot.prizeTier),
-                )}
+              <span className="inline-flex items-center gap-1.5 rounded-full border border-[#7F77DD]/30 bg-[#534AB7]/15 px-3 py-1 text-[12px] font-bold text-[#AFA9EC]">
+                <span className="text-[9px] font-semibold uppercase tracking-[0.16em] text-[#AFA9EC]/55">
+                  {t("claim.winnerNoLabel", "No.")}
+                </span>
+                <span className="tabular-nums">{winnerNo}</span>
               </span>
             </div>
             <div
