@@ -24,8 +24,6 @@ export type Video = {
   genre: string;
   /** Additional main genres selected by creator (first selected genre remains `genre`) */
   additionalGenres?: string[];
-  /** Sub-genre slug; optional depending on main genre */
-  subGenre: string | null;
   /** Upload purpose (portfolio vs competition) */
   purpose: VideoPurpose;
   /** Catalog creator link; null for uploads not tied to a creator row */

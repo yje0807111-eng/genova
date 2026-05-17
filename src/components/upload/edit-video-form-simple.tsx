@@ -18,13 +18,7 @@ import {
 } from "lucide-react";
 import { updateVideoAction, deleteVideoAction } from "@/app/actions/video";
 import { useI18n } from "@/components/genova/language-provider";
-import {
-  mainGenreLabel,
-  getSubGenreOptions,
-  needsSubGenre,
-  isValidSubGenre,
-  type MainGenreKey,
-} from "@/lib/constants/genres";
+import { mainGenreLabel, type MainGenreKey } from "@/lib/constants/genres";
 import { cn } from "@/lib/utils/cn";
 import { getBrowserSupabaseClient } from "@/lib/supabase/browser";
 
@@ -38,7 +32,6 @@ type VideoData = {
   mux_upload_id?: string | null;
   genre: string;
   additional_genres?: string[] | null;
-  sub_genre: string | null;
   purpose: string;
   ai_tools: string[];
   tags: string[];
@@ -72,11 +65,6 @@ export function EditVideoFormSimple({ video, userId, competitions, activeCompeti
 
   const [title, setTitle] = useState(video.title ?? "");
   const [genre, setGenre] = useState<MainGenreKey>((video.genre as MainGenreKey) ?? "film");
-  const [subGenre, setSubGenre] = useState<string | null>(
-    isValidSubGenre((video.genre as MainGenreKey) ?? "film", video.sub_genre)
-      ? video.sub_genre
-      : null,
-  );
   const [visibility, setVisibility] = useState<"public" | "private">(
     (video.visibility as "public" | "private") ?? "public",
   );
@@ -106,14 +94,10 @@ export function EditVideoFormSimple({ video, userId, competitions, activeCompeti
 
   const genreLocked = Boolean(video.genre_changed_at);
 
-  const subGenreOptions = getSubGenreOptions(genre, locale);
-  const subGenreRequired = needsSubGenre(genre);
-
   const canSave =
     Boolean(title.trim()) &&
     !isSaving &&
-    (!isSeriesMode || Boolean(seriesName.trim())) &&
-    (!subGenreRequired || isValidSubGenre(genre, subGenre));
+    (!isSeriesMode || Boolean(seriesName.trim()));
 
   const handleThumbnailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const f = e.target.files?.[0];
@@ -163,7 +147,6 @@ export function EditVideoFormSimple({ video, userId, competitions, activeCompeti
         backdropUrl: video.backdrop_url ?? null,
         genre,
         additionalGenres: (video.additional_genres ?? []) as string[],
-        subGenre,
         // `purpose` lives client-side only on edit — `updateVideoAction`
         // doesn't accept it (the DB column isn't mutated on edit).
         // It's still used locally below to gate `submittedCompetitionId`.
@@ -317,11 +300,7 @@ export function EditVideoFormSimple({ video, userId, competitions, activeCompeti
                 key={k}
                 type="button"
                 disabled={genreLocked}
-                onClick={() => {
-                  if (genreLocked) return;
-                  setGenre(k);
-                  if (!isValidSubGenre(k, subGenre)) setSubGenre(null);
-                }}
+                onClick={() => !genreLocked && setGenre(k)}
                 className={cn(
                   "rounded-full border px-4 py-2 text-[13px] font-semibold transition-all duration-200",
                   active
@@ -336,38 +315,6 @@ export function EditVideoFormSimple({ video, userId, competitions, activeCompeti
           })}
         </div>
       </div>
-
-      {/* 3b. Sub-genre */}
-      {subGenreRequired && (
-        <div>
-          <label className="mb-2 flex items-center gap-2 text-[12px] font-bold uppercase tracking-[0.18em] text-white/70">
-            <span>
-              {t("editVideo.subGenre", "Sub-genre")}{" "}
-              <span className="text-red-400">*</span>
-            </span>
-          </label>
-          <div className="flex flex-wrap gap-2">
-            {subGenreOptions.map((opt) => {
-              const active = subGenre === opt.value;
-              return (
-                <button
-                  key={opt.value}
-                  type="button"
-                  onClick={() => setSubGenre(opt.value)}
-                  className={cn(
-                    "rounded-full border px-4 py-2 text-[13px] font-semibold transition-all duration-200",
-                    active
-                      ? "border-[#7F77DD]/40 bg-gradient-to-br from-[#7F77DD]/20 to-[#534AB7]/10 text-white"
-                      : "border-white/[0.08] bg-white/[0.02] text-white/40 hover:border-white/[0.15] hover:text-white/60",
-                  )}
-                >
-                  {opt.label}
-                </button>
-              );
-            })}
-          </div>
-        </div>
-      )}
 
       {/* 4. Purpose */}
       <div>

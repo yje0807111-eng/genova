@@ -131,7 +131,6 @@ function competitionRowToAppVideo(video: Video): AppVideo {
     thumbnailUrl: video.thumbnail_url ?? "",
     muxPlaybackId: row.mux_playback_id ?? null,
     genre: video.genre ?? "film",
-    subGenre: null,
     purpose: "competition",
     creatorId: null,
     isOriginal: false,

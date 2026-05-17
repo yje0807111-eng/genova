@@ -110,7 +110,6 @@ function scoreVideo(v: Video, q: string): number {
   let score = 0;
   const title = (v.title ?? "").toLowerCase();
   const genre = (v.genre ?? "").toLowerCase();
-  const sub = (v.subGenre ?? "").toLowerCase();
   const slug = normalizeMainGenreKey(v.genre);
   if (slug && (MAIN_GENRE_LABELS[slug].toLowerCase() === s || slug === s)) {
     score += 120;
@@ -119,7 +118,6 @@ function scoreVideo(v: Video, q: string): number {
   if (title === s) score += 90;
   if (title.startsWith(s)) score += 55;
   if (title.includes(s)) score += 40;
-  if (sub.includes(s)) score += 28;
   if (v.tags.some((t) => t.toLowerCase().includes(s))) score += 35;
   if (genre.includes(s)) score += 25;
   return score;
@@ -229,7 +227,7 @@ async function collectVideoCandidates(q: string, cap = 220): Promise<Video[]> {
     supabase
       .from("videos")
       .select("*, creators(*)")
-      .or(`title.ilike.${like},genre.ilike.${like},sub_genre.ilike.${like}`)
+      .or(`title.ilike.${like},genre.ilike.${like}`)
       .order("created_at", { ascending: false })
       .limit(cap),
     supabase.from("creators").select("id").ilike("name", like).limit(40),
@@ -477,7 +475,6 @@ export type GenrePageSort = "latest" | "popular" | "award";
 
 export async function fetchVideosByGenre(
   genreSlug: string,
-  subGenre: string | null,
   sort: GenrePageSort,
 ): Promise<Video[]> {
   const key = normalizeMainGenreKey(genreSlug);
@@ -501,7 +498,7 @@ export async function fetchVideosByGenre(
   };
 
   const buildFromMock = async (): Promise<Video[]> => {
-    const raw = filterMockVideosByGenreAndSub(key, subGenre);
+    const raw = filterMockVideosByGenreAndSub(key);
     return applyMockLikeFallback(await attachEngagementToVideos(raw));
   };
 
@@ -509,12 +506,11 @@ export async function fetchVideosByGenre(
     return sortList(await buildFromMock());
   }
 
-  let query = supabase
+  const query = supabase
     .from("videos")
     .select("*")
     .eq("visibility", "public")
     .or(`genre.eq.${key},additional_genres.cs.{${key}}`);
-  if (subGenre) query = query.eq("sub_genre", subGenre);
   const { data, error } = await query.limit(500);
 
   if (error) {

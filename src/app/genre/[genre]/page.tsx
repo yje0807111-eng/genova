@@ -2,11 +2,8 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import {
   MAIN_GENRE_LABELS,
-  MAIN_GENRES_WITH_SUB,
   formatGenreDisplay,
-  getSubGenreKeysForMain,
   normalizeMainGenreKey,
-  subGenreLabel,
   type MainGenreKey,
 } from "@/lib/constants/genres";
 import { fetchVideosByGenre, type GenrePageSort } from "@/lib/queries/search-queries";
@@ -14,10 +11,9 @@ import { getServerLocale, getServerT } from "@/lib/i18n/server";
 
 export const dynamic = "force-dynamic";
 
-function buildGenreHref(genre: MainGenreKey, sub: string | null, sort: GenrePageSort): string {
+function buildGenreHref(genre: MainGenreKey, sort: GenrePageSort): string {
   const p = new URLSearchParams();
   if (sort !== "latest") p.set("sort", sort);
-  if (sub) p.set("sub", sub);
   const qs = p.toString();
   return qs ? `/genre/${genre}?${qs}` : `/genre/${genre}`;
 }
@@ -40,7 +36,7 @@ export default async function GenreExplorePage({
   searchParams,
 }: {
   params: Promise<{ genre: string }>;
-  searchParams: Promise<{ sub?: string; sort?: string }>;
+  searchParams: Promise<{ sort?: string }>;
 }) {
   const { genre: raw } = await params;
   const sp = await searchParams;
@@ -53,12 +49,7 @@ export default async function GenreExplorePage({
   const sort: GenrePageSort =
     sortRaw === "popular" ? "popular" : sortRaw === "award" ? "award" : "latest";
 
-  const subCandidate = (sp.sub ?? "").trim();
-  const showSubFilter = MAIN_GENRES_WITH_SUB.has(key);
-  const subGenreKeys = getSubGenreKeysForMain(key);
-  const subValid = subCandidate && subGenreKeys.some((k) => k === subCandidate) && showSubFilter ? subCandidate : null;
-
-  const videos = await fetchVideosByGenre(key, subValid, sort);
+  const videos = await fetchVideosByGenre(key, sort);
 
   const locale = await getServerLocale();
   const t = getServerT(locale);
@@ -124,38 +115,7 @@ export default async function GenreExplorePage({
 
       <div className="mx-auto max-w-[1600px] px-6 sm:px-10">
         {/* Sort + Sub genre filters */}
-        <div className="sticky top-0 z-10 flex flex-wrap items-center justify-between gap-4 border-b border-white/[0.05] bg-[#0a0a0a]/80 py-5 backdrop-blur-xl">
-          {showSubFilter ? (
-            <div className="flex items-center gap-7 overflow-x-auto pr-4">
-              <Link
-                href={buildGenreHref(key, null, sort)}
-                className={
-                  !subValid
-                    ? "relative whitespace-nowrap text-[13px] font-semibold text-white pb-1 after:absolute after:left-0 after:right-0 after:-bottom-[17px] after:h-[2px] after:bg-gradient-to-r after:from-white after:via-[#AFA9EC] after:to-[#7F77DD]"
-                    : "whitespace-nowrap text-[13px] font-medium text-white/35 transition hover:text-white/70"
-                }
-              >
-                {t("genrePage.subFilterAll", "All")}
-              </Link>
-              {subGenreKeys
-                .filter((k) => k !== "other")
-                .map((sk) => (
-                  <Link
-                    key={sk}
-                    href={buildGenreHref(key, sk, sort)}
-                    className={
-                      subValid === sk
-                        ? "relative whitespace-nowrap text-[13px] font-semibold text-white pb-1 after:absolute after:left-0 after:right-0 after:-bottom-[17px] after:h-[2px] after:bg-gradient-to-r after:from-white after:via-[#AFA9EC] after:to-[#7F77DD]"
-                        : "whitespace-nowrap text-[13px] font-medium text-white/35 transition hover:text-white/70"
-                    }
-                  >
-                    {subGenreLabel(sk)}
-                  </Link>
-                ))}
-            </div>
-          ) : (
-            <div />
-          )}
+        <div className="sticky top-0 z-10 flex flex-wrap items-center justify-end gap-4 border-b border-white/[0.05] bg-[#0a0a0a]/80 py-5 backdrop-blur-xl">
           <div className="flex items-center gap-1.5 text-[11px]">
             {(
               [
@@ -166,7 +126,7 @@ export default async function GenreExplorePage({
             ).map(([k, label]) => (
               <Link
                 key={k}
-                href={buildGenreHref(key, subValid, k as GenrePageSort)}
+                href={buildGenreHref(key, k as GenrePageSort)}
                 className={
                   sort === k
                     ? "rounded-full border border-[#7F77DD]/40 bg-[#534AB7]/20 px-3.5 py-1.5 font-bold text-[#AFA9EC]"
@@ -195,7 +155,7 @@ export default async function GenreExplorePage({
                 {t("genrePage.emptyTitle", "No films match these filters")}
               </p>
               <p className="mt-1.5 text-[12px] text-white/35">
-                {t("genrePage.emptyHint", "Try a different sub-genre or sort")}
+                {t("genrePage.emptyHint", "Try a different sort")}
               </p>
               <div className="mt-7 flex flex-wrap justify-center gap-2">
                 {(["film", "animation", "music", "daily", "art"] as const)
@@ -245,7 +205,7 @@ export default async function GenreExplorePage({
                       {v.title}
                     </h3>
                     <div className="mt-1 flex items-center gap-2 text-[11px] text-white/35">
-                      <span>{formatGenreDisplay(v.genre, v.subGenre)}</span>
+                      <span>{formatGenreDisplay(v.genre)}</span>
                       <span className="text-white/15">·</span>
                       <span>♥ {v.likeCount ?? 0}</span>
                     </div>

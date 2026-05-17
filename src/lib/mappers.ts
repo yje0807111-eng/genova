@@ -19,7 +19,6 @@ type VideoRow = {
   mux_upload_id?: string | null;
   genre: string;
   additional_genres?: string[] | null;
-  sub_genre?: string | null;
   purpose?: string | null;
   creator_id: string | null;
   is_original: boolean;
@@ -125,7 +124,6 @@ export function mapVideo(row: VideoRow): Video {
     muxPlaybackId: row.mux_playback_id ?? null,
     genre: row.genre,
     additionalGenres: Array.isArray(row.additional_genres) ? row.additional_genres : [],
-    subGenre: row.sub_genre ?? null,
     purpose,
     creatorId: row.creator_id,
     isOriginal: row.is_original,

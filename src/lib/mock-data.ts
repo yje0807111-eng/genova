@@ -23,7 +23,6 @@ export const MOCK_VIDEOS: Video[] = [
     title: "Neon Waves",
     thumbnailUrl: "https://images.unsplash.com/photo-1478720568477-152d9b164e26?w=1000&q=80",
     genre: "short_film",
-    subGenre: "sf",
     purpose: "personal",
     creatorId: "c1",
     isOriginal: true,
@@ -46,7 +45,6 @@ export const MOCK_VIDEOS: Video[] = [
     title: "Aurora City Chapter 1",
     thumbnailUrl: "https://images.unsplash.com/photo-1505761671935-60b3a7427bad?w=1000&q=80",
     genre: "series",
-    subGenre: "drama",
     purpose: "personal",
     creatorId: "c3",
     isOriginal: true,
@@ -69,7 +67,6 @@ export const MOCK_VIDEOS: Video[] = [
     title: "Commercial: Beyond Taste",
     thumbnailUrl: "https://images.unsplash.com/photo-1466978913421-dad2ebd01d17?w=1000&q=80",
     genre: "commercial_brand",
-    subGenre: "comedy",
     purpose: "competition",
     creatorId: "c2",
     isOriginal: false,
@@ -92,7 +89,6 @@ export const MOCK_VIDEOS: Video[] = [
     title: "Polaris MV",
     thumbnailUrl: "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=1000&q=80",
     genre: "mv",
-    subGenre: null,
     purpose: "competition",
     creatorId: "c2",
     isOriginal: false,
@@ -115,7 +111,6 @@ export const MOCK_VIDEOS: Video[] = [
     title: "Han River Documentary: Night Fishing",
     thumbnailUrl: "https://images.unsplash.com/photo-1501785888041-af3ef285b470?w=1000&q=80",
     genre: "documentary",
-    subGenre: "drama",
     purpose: "personal",
     creatorId: "c1",
     isOriginal: true,
@@ -138,7 +133,6 @@ export const MOCK_VIDEOS: Video[] = [
     title: "Paper Star Animation",
     thumbnailUrl: "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=1000&q=80",
     genre: "animation",
-    subGenre: "fantasy",
     purpose: "personal",
     creatorId: "c3",
     isOriginal: true,
@@ -161,7 +155,6 @@ export const MOCK_VIDEOS: Video[] = [
     title: "Experimental Film: Room of Noise",
     thumbnailUrl: "https://images.unsplash.com/photo-1550684848-fac1c5b4e853?w=1000&q=80",
     genre: "experimental_art",
-    subGenre: null,
     purpose: "personal",
     creatorId: "c2",
     isOriginal: true,
@@ -184,7 +177,6 @@ export const MOCK_VIDEOS: Video[] = [
     title: "Meme Collection: Survive Monday",
     thumbnailUrl: "https://images.unsplash.com/photo-1514533212735-160cac8046cb?w=1000&q=80",
     genre: "meme_humor",
-    subGenre: "comedy",
     purpose: "personal",
     creatorId: "c1",
     isOriginal: false,
@@ -243,7 +235,7 @@ export function filterMockVideosBySearch(q: string): Video[] {
   return MOCK_VIDEOS.filter((v) => {
     if (v.title.toLowerCase().includes(s)) return true;
     if (v.tags.some((t) => t.toLowerCase().includes(s))) return true;
-    if (v.genre.toLowerCase().includes(s) || (v.subGenre && v.subGenre.toLowerCase().includes(s))) return true;
+    if (v.genre.toLowerCase().includes(s)) return true;
     if (mainGenreLabel(v.genre).toLowerCase().includes(s)) return true;
     if (v.creatorName?.toLowerCase().includes(s)) return true;
     return false;
@@ -264,8 +256,6 @@ export function filterMockVideosByGenre(genreKey: MainGenreKey): Video[] {
   return MOCK_VIDEOS.filter((v) => v.genre === genreKey || (v.additionalGenres ?? []).includes(genreKey));
 }
 
-export function filterMockVideosByGenreAndSub(genreKey: MainGenreKey, subGenre: string | null): Video[] {
-  let list = filterMockVideosByGenre(genreKey);
-  if (subGenre) list = list.filter((v) => v.subGenre === subGenre);
-  return list;
+export function filterMockVideosByGenreAndSub(genreKey: MainGenreKey): Video[] {
+  return filterMockVideosByGenre(genreKey);
 }

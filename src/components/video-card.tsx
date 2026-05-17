@@ -11,7 +11,7 @@ import { VideoSaveButton } from "@/components/video/video-save-button";
 
 export function VideoCard({ video }: { video: Video }) {
   const creatorLabel = video.creatorName ?? video.uploaderDisplayName ?? "Creator";
-  const genreLine = formatGenreDisplay(video.genre, video.subGenre);
+  const genreLine = formatGenreDisplay(video.genre);
   const creatorHref = hrefForVideoCreator(video);
 
   return (

@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import Mux from "@mux/mux-node";
 import { ensureProfile } from "@/lib/queries/profile-queries";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
-import { MAIN_GENRE_KEYS, isValidSubGenre, needsSubGenre } from "@/lib/constants/genres";
+import { MAIN_GENRE_KEYS } from "@/lib/constants/genres";
 import { MAX_VIDEO_TAGS } from "@/lib/tags";
 
 export type LotteryIssuance =
@@ -47,7 +47,6 @@ export async function createVideoAction(form: {
   genre: string;
   /** Additional selected main genres (excluding primary `genre`) */
   additionalGenres?: string[];
-  subGenre: string | null;
   purpose: "personal" | "competition";
   aiTools: string[];
   tags: string[];
@@ -94,9 +93,6 @@ export async function createVideoAction(form: {
     g !== form.genre &&
     arr.indexOf(g) === i
   );
-  if (form.subGenre && needsSubGenre(form.genre) && !isValidSubGenre(form.genre, form.subGenre)) {
-    return { ok: false, message: "Please select a valid sub genre." };
-  }
   if (form.purpose === "competition" && !form.submittedCompetitionId) {
     return { ok: false, message: "Please select a competition." };
   }
@@ -138,7 +134,6 @@ export async function createVideoAction(form: {
     mux_upload_id: muxUploadId ?? null,
     genre: form.genre,
     additional_genres: additionalGenres,
-    sub_genre: form.subGenre || null,
     purpose,
     creator_id: null,
     uploaded_by: user.id,
@@ -293,7 +288,6 @@ export async function updateVideoAction(
     backdropUrl?: string | null;
     genre: string;
     additionalGenres?: string[];
-    subGenre: string | null;
     aiTools: string[];
     tags: string[];
     seriesName: string | null;
@@ -326,15 +320,6 @@ export async function updateVideoAction(
     g !== form.genre &&
     arr.indexOf(g) === i
   );
-  if (needsSubGenre(form.genre) && !form.subGenre) {
-    return { ok: false, message: "Please select a sub genre." };
-  }
-  if (needsSubGenre(form.genre) && form.subGenre && !isValidSubGenre(form.genre, form.subGenre)) {
-    return { ok: false, message: "Please select a valid sub genre." };
-  }
-  if (!needsSubGenre(form.genre) && form.subGenre) {
-    return { ok: false, message: "This genre does not support sub genre." };
-  }
   if (normalizedTags.length > MAX_VIDEO_TAGS) {
     return { ok: false, message: `You can add up to ${MAX_VIDEO_TAGS} tags.` };
   }
@@ -349,21 +334,19 @@ export async function updateVideoAction(
 
   const { data: row, error: fetchErr } = await supabase
     .from("videos")
-    .select("id, uploaded_by, genre, sub_genre, additional_genres, genre_changed_at, mux_playback_id, mux_asset_id, mux_upload_id, submitted_competition_id")
+    .select("id, uploaded_by, genre, additional_genres, genre_changed_at, mux_playback_id, mux_asset_id, mux_upload_id, submitted_competition_id")
     .eq("id", videoId)
     .maybeSingle();
   if (fetchErr) return { ok: false, message: fetchErr.message };
   if (!row || row.uploaded_by !== user.id) return { ok: false, message: "You do not have permission to edit this film." };
 
   const currentGenre = row.genre ?? null;
-  const currentSubGenre = row.sub_genre ?? null;
   const currentAdditional = Array.isArray(row.additional_genres)
     ? [...new Set(row.additional_genres)].sort()
     : [];
   const nextAdditional = [...additionalGenres].sort();
   const genreChanged =
     currentGenre !== form.genre ||
-    currentSubGenre !== (needsSubGenre(form.genre) ? form.subGenre : null) ||
     currentAdditional.length !== nextAdditional.length ||
     currentAdditional.some((value, idx) => value !== nextAdditional[idx]);
 
@@ -397,7 +380,6 @@ export async function updateVideoAction(
       ...(form.submittedCompetitionId !== undefined ? { submitted_competition_id: form.submittedCompetitionId } : {}),
       genre: form.genre,
       additional_genres: additionalGenres,
-      sub_genre: needsSubGenre(form.genre) ? form.subGenre : null,
       ...(row.genre_changed_at ? {} : (genreChanged ? { genre_changed_at: new Date().toISOString() } : {})),
       description: form.description.trim(),
       ai_tools: form.aiTools,

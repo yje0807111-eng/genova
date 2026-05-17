@@ -18,7 +18,6 @@ export interface UploadJob {
     competitionId?: string | null;
     description?: string;
     tags?: string[];
-    subGenre?: string | null;
     additionalGenres?: string[];
     isSeriesMode?: boolean;
     seriesName?: string | null;
@@ -135,7 +134,6 @@ export function UploadProvider({ children }: { children: React.ReactNode }) {
         backdropUrl: null,
         genre: job.metadata.genre,
         additionalGenres: job.metadata.additionalGenres ?? [],
-        subGenre: job.metadata.subGenre ?? null,
         purpose: job.metadata.purpose,
         aiTools: [],
         tags: job.metadata.tags ?? [],
