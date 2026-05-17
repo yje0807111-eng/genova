@@ -1317,24 +1317,17 @@ export function CompetitionDetailClient({
                               {stepWord} {String(i + 1).padStart(2, "0")}
                             </p>
                             <p className="text-base font-bold text-white">{rtitle}</p>
-                            <div className="space-y-2">
+                            <div className="flex flex-wrap gap-2">
                               {r.evaluators.map((ev, ei) => (
-                                <div key={ei}>
-                                  <div className="mb-1 flex items-center justify-between text-xs text-white/65">
-                                    <span>{evalLabel(ev.type)}</span>
-                                    <span className="font-mono text-white/45">{ev.percent}%</span>
-                                  </div>
-                                  <div className="h-1.5 rounded-full bg-white/10">
-                                    <div
-                                      className="h-full rounded-full"
-                                      style={{
-                                        width: `${Math.max(0, Math.min(100, Number(ev.percent) || 0))}%`,
-                                        background:
-                                          "linear-gradient(to right, rgba(127,119,221,0.9), rgba(175,169,236,0.75))",
-                                      }}
-                                    />
-                                  </div>
-                                </div>
+                                <span
+                                  key={ei}
+                                  className="inline-flex items-center gap-2 rounded-lg border border-white/10 bg-white/[0.04] px-3 py-1.5"
+                                >
+                                  <span className="text-[13px] text-white/70">{evalLabel(ev.type)}</span>
+                                  <span className="text-[14px] font-bold tabular-nums text-[#AFA9EC]">
+                                    {ev.percent}%
+                                  </span>
+                                </span>
                               ))}
                             </div>
                           </div>
