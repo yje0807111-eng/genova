@@ -5,7 +5,3 @@ export function hrefForVideoCreator(video: Video): string | null {
   if (video.creatorId) return `/creator/${video.creatorId}`;
   return null;
 }
-
-export function hrefForSpotlightCreator(id: string): string {
-  return `/profile/${id}`;
-}

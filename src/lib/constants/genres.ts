@@ -17,28 +17,6 @@ export const MAIN_GENRE_LABELS: Record<MainGenreKey, string> = {
   art: "Art",
 };
 
-// 각 메인 장르에 속하는 서브 장르 매핑
-export const GENRE_CATEGORY_MAP: Record<MainGenreKey, string[]> = {
-  film: [
-    "short_film", "feature", "series", "documentary",
-    "feed_drama", "feed_horror", "feed_sci_fi", "feed_action",
-    "feed_romance", "feed_comedy", "feed_thriller", "feed_cinematic_emotional",
-  ],
-  animation: ["animation"],
-  music: ["mv", "feed_soundscape"],
-  daily: [
-    "feed_daily_life", "feed_travel", "feed_food",
-    "feed_pets_animals", "feed_sports", "feed_tutorial",
-    "feed_landscape_nature", "feed_city_architecture",
-    "feed_shocking_viral", "feed_dynamic_speed",
-    "feed_funny_meme", "feed_gaming", "feed_fashion_beauty",
-  ],
-  art: [
-    "experimental_art", "feed_cyberpunk", "feed_fantasy",
-    "feed_asmr_healing", "feed_twist", "commercial_brand",
-  ],
-};
-
 import type { Locale } from "@/lib/i18n/translations";
 import { translate } from "@/lib/i18n/translations";
 
@@ -110,17 +88,8 @@ export function mainGenreLabel(key: string | null | undefined, locale?: Locale):
   return translate(locale ?? "en", slugKey, trimmed);
 }
 
-// Upload form: primary buckets only
-export const UPLOAD_GENRE_OPTIONS = MAIN_GENRE_KEYS.map((k) => ({
-  value: k,
-  label: MAIN_GENRE_LABELS[k],
-}));
-
 // Aliases for older import paths
-export const FEED_GENRE_KEYS = MAIN_GENRE_KEYS;
-export const FEED_GENRE_LABELS = MAIN_GENRE_LABELS;
 export const FILMS_GENRE_KEYS = MAIN_GENRE_KEYS;
-export const FILMS_GENRE_LABELS = MAIN_GENRE_LABELS;
 export type FeedGenreKey = MainGenreKey;
 export type FilmsGenreKey = MainGenreKey;
 
@@ -136,7 +105,3 @@ export function formatGenreDisplay(
   return mainGenreLabel(mainKey, locale);
 }
 
-export const PURPOSE_OPTIONS = [
-  { value: "personal" as const, label: "Personal Work", description: "Upload to your portfolio outside competitions." },
-  { value: "competition" as const, label: "Competition Entry", description: "Submit to an active competition." },
-];
