@@ -114,7 +114,7 @@ function CompetitionCard({ c, participantCount }: { c: Competition; participantC
   return (
     <Link
       href={`/competition/${c.id}`}
-      className="group relative flex flex-col overflow-hidden rounded-xl border border-white/[0.10] bg-[#0e0e14] shadow-[0_2px_12px_rgba(0,0,0,0.4)] transition-all duration-200 hover:-translate-y-0.5 hover:border-[rgba(127,119,221,0.5)] hover:shadow-[0_10px_30px_rgba(83,74,183,0.28)]"
+      className="group relative flex transform-gpu flex-col overflow-hidden rounded-xl border border-white/[0.10] bg-[#0e0e14] shadow-[0_2px_12px_rgba(0,0,0,0.4)] transition-all duration-200 hover:-translate-y-0.5 hover:border-[rgba(127,119,221,0.5)] hover:shadow-[0_10px_30px_rgba(83,74,183,0.28)]"
     >
       <div className="relative aspect-video w-full overflow-hidden">
         {thumb ? (
@@ -123,7 +123,7 @@ function CompetitionCard({ c, participantCount }: { c: Competition; participantC
             alt=""
             fill
             sizes="(max-width: 768px) 100vw, (max-width: 1280px) 50vw, 25vw"
-            className="object-cover transition duration-500 group-hover:scale-[1.05]"
+            className="object-cover transform-gpu transition-transform duration-200 ease-out [backface-visibility:hidden] group-hover:scale-[1.04]"
           />
         ) : (
           <div
