@@ -1,7 +1,7 @@
 "use client";
 
 import { EyeOff, ExternalLink, ShieldOff, Trash2, User } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
   deleteAllVideoReportsAction,
@@ -82,7 +82,13 @@ export function ReportManagement({
   // quickly.  Toggle re-expand for review.
   const [bodyCollapsed, setBodyCollapsed] = useState(false);
 
-  useEffect(() => setLocalReports(reports), [reports]);
+  // Re-sync local list when the server sends a new reports set —
+  // documented "store previous value, adjust during render" pattern.
+  const [prevReports, setPrevReports] = useState(reports);
+  if (prevReports !== reports) {
+    setPrevReports(reports);
+    setLocalReports(reports);
+  }
 
   const filteredReports = useMemo(() => {
     let result = [...localReports];

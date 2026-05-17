@@ -1,7 +1,7 @@
 "use client";
 
 import { Mail, Phone, Trash2 } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
   deleteBusinessInquiryAction,
@@ -60,7 +60,13 @@ export function BusinessInquiryManagement({
   // G5: free-text search across name / email / company / phone / message.
   const [search, setSearch] = useState("");
 
-  useEffect(() => setLocal(inquiries), [inquiries]);
+  // Re-sync local list when the server sends a new inquiries set —
+  // documented "store previous value, adjust during render" pattern.
+  const [prevInquiries, setPrevInquiries] = useState(inquiries);
+  if (prevInquiries !== inquiries) {
+    setPrevInquiries(inquiries);
+    setLocal(inquiries);
+  }
 
   const filtered = useMemo(() => {
     let result = [...local];
