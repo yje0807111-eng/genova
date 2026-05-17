@@ -6,6 +6,7 @@ import Link from "next/link";
 import { ArrowRight, ChevronLeft, ChevronRight, Star, Trophy, Clock } from "lucide-react";
 import { useI18n } from "@/components/genova/language-provider";
 import { useUploadModal } from "@/components/upload/upload-modal-context";
+import { formatPrizeWithConversion } from "@/lib/utils/format-prize";
 
 type Competition = {
   id: string;
@@ -23,6 +24,9 @@ type Competition = {
   prize_info_ko?: string | null;
   prize_info_en?: string | null;
   prize_info_ja?: string | null;
+  base_currency?: string | null;
+  exchange_rate_usd_krw?: number | null;
+  exchange_rate_usd_jpy?: number | null;
   sponsor: string | null;
   genre: string;
   status: string;
@@ -77,11 +81,23 @@ export function FeaturedHeroCarousel({ competitions }: Props) {
           : locale === "ja"
             ? (c.title_ja ?? c.title)
             : (c.title_en ?? c.title);
-        const prize = locale === "ko"
-          ? (c.prize_info_ko ?? c.prize_info)
-          : locale === "ja"
-            ? (c.prize_info_ja ?? c.prize_info)
-            : (c.prize_info_en ?? c.prize_info);
+        const prizeFull = formatPrizeWithConversion(
+          c.prize_info_ko,
+          c.prize_info_en,
+          c.prize_info_ja,
+          c.prize_info,
+          locale,
+          c.base_currency,
+          c.exchange_rate_usd_krw ?? 1350,
+          c.exchange_rate_usd_jpy ?? 148,
+        );
+        const prizeSplitAt = prizeFull.indexOf(" (");
+        const prize =
+          prizeSplitAt === -1 ? prizeFull : prizeFull.slice(0, prizeSplitAt);
+        const prizeConverted =
+          prizeSplitAt === -1
+            ? null
+            : prizeFull.slice(prizeSplitAt + 2).replace(/\)$/, "");
         const description = locale === "ko"
           ? (c.description_ko ?? c.description)
           : locale === "ja"
@@ -179,6 +195,11 @@ export function FeaturedHeroCarousel({ competitions }: Props) {
                     >
                       {prize}
                     </span>
+                    {prizeConverted && (
+                      <span className="text-[12px] font-semibold tabular-nums text-amber-300/55">
+                        {prizeConverted}
+                      </span>
+                    )}
                   </div>
 
                   {dDay > 0 && (
