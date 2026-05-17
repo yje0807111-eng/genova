@@ -172,6 +172,11 @@ export async function createVideoAction(form: {
       // we don't recognize falls back to the raw message so logs
       // stay diagnostic.
       const msg = lotteryErr.message ?? "";
+      console.error(
+        `[lottery-issue] issue_lottery_ticket failed (user=${user.id} video=${id}):`,
+        msg,
+        (lotteryErr as { details?: string }).details ?? "",
+      );
       const reason =
         msg.includes("monthly_limit_reached") ? "monthly_limit_reached"
         : msg.includes("not_owner") ? "not_owner"

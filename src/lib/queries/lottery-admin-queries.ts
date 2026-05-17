@@ -50,7 +50,10 @@ export async function fetchLotteryMonthlySummary(
 ): Promise<LotteryMonthlySummary> {
   const monthKey = currentMonthKey();
 
-  const [{ data: tickets }, { data: winnerRows }] = await Promise.all([
+  const [
+    { data: tickets, error: ticketsErr },
+    { data: winnerRows, error: winnersErr },
+  ] = await Promise.all([
     service
       .from("entry_tickets")
       .select("user_id")
@@ -60,6 +63,19 @@ export async function fetchLotteryMonthlySummary(
       .select("claim_status, prize_amount_usd")
       .eq("draw_month_key", monthKey),
   ]);
+
+  if (ticketsErr)
+    console.error(
+      `[lottery-summary] entry_tickets query failed (month_key=${monthKey}):`,
+      ticketsErr.message,
+      ticketsErr.details ?? "",
+    );
+  if (winnersErr)
+    console.error(
+      `[lottery-summary] competition_winners query failed (draw_month_key=${monthKey}):`,
+      winnersErr.message,
+      winnersErr.details ?? "",
+    );
 
   const poolCount = tickets?.length ?? 0;
   const poolUserCount = new Set(
