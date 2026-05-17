@@ -127,9 +127,26 @@ export function WatchMetaSidebar({
       <div className="shrink-0 space-y-4 border-b border-white/[0.06] px-4 pb-3 pt-4">
         {/* Video title (top) */}
         <div>
-          <h2 className="text-[17px] font-bold leading-tight text-white">
-            {video.title}
-          </h2>
+          <div className="flex items-start gap-2">
+            <h2 className="min-w-0 flex-1 text-[17px] font-bold leading-tight text-white">
+              {video.title}
+            </h2>
+            {video.purpose === "competition" && (
+              <span className="mt-0.5 inline-flex shrink-0 items-center gap-1.5 rounded-full bg-black/35 px-2 py-0.5 text-[10px] font-semibold text-white/90 ring-1 ring-white/10">
+                <span
+                  className="h-1.5 w-1.5 rounded-full"
+                  style={{
+                    background: "#F5C451",
+                    boxShadow: "0 0 6px rgba(245,196,81,0.8)",
+                  }}
+                  aria-hidden
+                />
+                {video.isFinalist
+                  ? t("profile.finalist", "Finalist")
+                  : t("profile.submission", "Submission")}
+              </span>
+            )}
+          </div>
           <div className="mt-2 flex flex-wrap items-center gap-x-2 gap-y-1 text-[11px] text-white/45">
             {video.genre && (
               <>
@@ -294,20 +311,7 @@ export function WatchMetaSidebar({
             />
           </div>
         ) : (
-          <div className="px-4 py-3">
-            {descriptionInner}
-
-            {video.purpose === "competition" && (
-              <div className="mt-4 rounded-xl border border-amber-400/20 bg-amber-400/[0.04] p-3">
-                <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-amber-300/70">
-                  {video.isFinalist ? "FINALIST" : "ENTRY"}
-                </p>
-                {video.award && (
-                  <p className="mt-1 text-[11px] text-amber-300">🏆 {video.award}</p>
-                )}
-              </div>
-            )}
-          </div>
+          <div className="px-4 py-3">{descriptionInner}</div>
         )}
       </div>
 

@@ -3,7 +3,6 @@
 import { useMemo } from "react";
 import Link from "next/link";
 import { useI18n } from "@/components/genova/language-provider";
-import { AiToolsCollapsible } from "@/components/video/ai-tools-collapsible";
 import { trackHashtagEvent } from "@/lib/hashtags/client-track";
 import type { Video } from "@/lib/types";
 import { RecommendationCard } from "./recommendation-card";
@@ -11,15 +10,13 @@ import { RecommendationCard } from "./recommendation-card";
 export function WatchDescriptionInner({
   description,
   tags,
-  aiTools,
 }: {
   description: string | null | undefined;
   tags: string[];
-  aiTools: string[];
 }) {
   const { t } = useI18n();
   const text = description?.trim() || "";
-  const isEmpty = !text && tags.length === 0 && aiTools.length === 0;
+  const isEmpty = !text && tags.length === 0;
 
   if (isEmpty) {
     return (
@@ -59,7 +56,6 @@ export function WatchDescriptionInner({
           ))}
         </div>
       ) : null}
-      {aiTools.length > 0 ? <AiToolsCollapsible tools={aiTools} /> : null}
     </>
   );
 }

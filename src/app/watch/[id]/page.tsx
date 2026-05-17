@@ -212,7 +212,6 @@ export default async function WatchDetailPage({
 
   const rawDescription = video.description?.trim() ? video.description.trim() : null;
   const displayTags = video.tags;
-  const displayAiTools = video.aiTools;
 
   const displayComments = comments;
 
@@ -244,7 +243,7 @@ export default async function WatchDetailPage({
         }
         moreSlot={<WatchMoreMenu videoId={video.id} />}
         descriptionInner={
-          <WatchDescriptionInner description={rawDescription} tags={displayTags} aiTools={displayAiTools} />
+          <WatchDescriptionInner description={rawDescription} tags={displayTags} />
         }
         leftAfterDescription={null}
         seriesEpisodes={showSeries ? displaySeriesNav.episodes : undefined}
