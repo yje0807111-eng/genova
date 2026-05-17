@@ -10,7 +10,6 @@ import { useI18n } from "@/components/genova/language-provider";
 import { Trophy, Upload, X, FileVideo, ChevronDown, ChevronUp, Minus, Plus, Lock } from "lucide-react";
 import { cn } from "@/lib/utils/cn";
 import { useUpload } from "@/components/upload/upload-context";
-import { toast } from "sonner";
 
 type Props = {
   userId: string;
@@ -143,7 +142,8 @@ export function UploadVideoFormSimple({
       },
     });
 
-    toast.success("업로드를 시작했습니다");
+    // 진행 상황은 우측 하단 UploadProgressWidget 이 지속적으로
+    // 보여주므로 시작/완료 toast 는 중복이라 제거.
     if (onSubmitted) {
       onSubmitted();
     } else {

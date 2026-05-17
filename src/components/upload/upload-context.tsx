@@ -162,15 +162,9 @@ export function UploadProvider({ children }: { children: React.ReactNode }) {
         videoId: result.videoId,
       });
 
-      toast.success(
-        t('uploadCtx.uploadComplete', '"{title}" upload complete').replace("{title}", job.title),
-        {
-        action: {
-          label: t("uploadCtx.viewAction", "View"),
-          onClick: () => window.location.assign(`/watch/${result.videoId}`),
-        },
-        },
-      );
+      // 업로드 시작·완료 알림은 우측 하단 UploadProgressWidget 이
+      // 진행률·완료·"보기" 링크까지 지속적으로 보여주므로 toast 로
+      // 중복 표시하지 않는다. (위젯이 없는 정보인 응모권 결과만 toast)
 
       // Phase 3-2: lottery feedback toast.  Only emit when the user
       // actually opted in (originalAttestation === true) — silent
