@@ -631,8 +631,14 @@ export function EditVideoFormSimple({ video, userId, competitions, activeCompeti
                 {t("editVideo.confirmDeleteTitle", "Delete this video?")}
               </h3>
             </div>
-            <p className="mb-5 text-[13px] text-white/55">
+            <p className="mb-3 text-[13px] text-white/55">
               {t("editVideo.confirmDeleteDesc", "This cannot be undone. All comments and likes will also be removed.")}
+            </p>
+            <p className="mb-5 rounded-xl border border-amber-400/25 bg-amber-400/[0.06] px-3 py-2.5 text-[12px] leading-relaxed text-amber-200/85">
+              {t(
+                "editVideo.confirmDeleteLottery",
+                "If this video earned an entry ticket, deleting it invalidates that ticket and removes it from the lottery draw. The monthly slot is not restored, so keep your video up to stay in the running.",
+              )}
             </p>
             <div className="flex items-center justify-end gap-2">
               <button

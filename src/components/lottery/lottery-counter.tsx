@@ -24,6 +24,7 @@ export function LotteryCounter({
 
   const used = count.total;
   const depleted = used >= 5;
+  const revoked = count.revoked;
   const resetCopy =
     count.resetInDays <= 0
       ? t("lottery.resetToday", "Resets today")
@@ -47,6 +48,17 @@ export function LotteryCounter({
           ? t("lottery.depleted", "You've used all your tickets this month")
           : resetCopy}
       </span>
+      {revoked > 0 ? (
+        <>
+          <span className="text-white/20">·</span>
+          <span className="text-amber-300/70">
+            {t(
+              "lottery.revokedNote",
+              "{n} invalidated (video deleted)",
+            ).replace("{n}", String(revoked))}
+          </span>
+        </>
+      ) : null}
       <LotteryGuideInfoButton
         ariaLabel={t("lottery.guideLink", "응모권 추첨 안내")}
         size={14}
