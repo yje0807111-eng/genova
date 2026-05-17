@@ -3,10 +3,17 @@
 import { useState } from "react";
 import Link from "next/link";
 import { Heart } from "lucide-react";
+import { useI18n } from "@/components/genova/language-provider";
 import type { Video } from "@/lib/types";
 
 export function RecommendationCard({ item }: { item: Video }) {
+  const { t } = useI18n();
   const [isHovered, setIsHovered] = useState(false);
+  const tag = item.seriesName
+    ? { label: t("series.sectionLabel", "Series"), kind: "series" as const }
+    : item.purpose === "competition"
+      ? { label: t("profile.submission", "Submission"), kind: "comp" as const }
+      : null;
 
   return (
     <Link
@@ -29,6 +36,23 @@ export function RecommendationCard({ item }: { item: Video }) {
           className="absolute inset-0"
           style={{ background: "var(--gradient-card-overlay)" }}
         />
+        {tag ? (
+          <span className="absolute left-2.5 top-2.5 inline-flex items-center gap-1.5 rounded-full bg-black/35 px-2.5 py-1 text-[10.5px] font-semibold text-white/90 backdrop-blur-md ring-1 ring-white/10">
+            <span
+              className="h-1.5 w-1.5 rounded-full"
+              style={{
+                background: tag.kind === "series" ? "#9D95F0" : "#F5C451",
+                boxShadow: `0 0 6px ${
+                  tag.kind === "series"
+                    ? "rgba(157,149,240,0.8)"
+                    : "rgba(245,196,81,0.8)"
+                }`,
+              }}
+              aria-hidden
+            />
+            {tag.label}
+          </span>
+        ) : null}
         <div className="absolute inset-x-0 bottom-0 p-3">
           <p className="line-clamp-1 text-[13px] font-bold text-white">{item.title}</p>
           <div className="mt-1 flex items-center gap-2 text-[11px] text-white/55">
