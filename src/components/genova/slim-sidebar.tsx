@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import type { LucideIcon } from "lucide-react";
-import { Bell, Home, LogIn, LogOut, MessageCircle, MoreHorizontal, Shield, Ticket, Trophy, Upload, User, X } from "lucide-react";
+import { Bell, Home, LifeBuoy, LogIn, LogOut, MessageCircle, MoreHorizontal, Shield, Ticket, Trophy, Upload, User, X } from "lucide-react";
 import { markAllNotificationsReadAction } from "@/app/actions/notifications";
 import { useI18n } from "@/components/genova/language-provider";
 import { getBrowserSupabaseClient } from "@/lib/supabase/browser";
@@ -13,6 +13,7 @@ import { useUploadModal } from "@/components/upload/upload-modal-context";
 import { useLotteryGuideModal } from "@/components/lottery/lottery-guide-modal";
 import { getNotificationLabel } from "@/lib/notifications-i18n";
 import { useExitAnimation } from "@/lib/hooks/use-exit-animation";
+import { ContactModal } from "@/components/contact/contact-modal";
 
 export interface SlimSidebarProps {
   onOpenChat: () => void;
@@ -67,6 +68,7 @@ export function SlimSidebar({ onOpenChat, unreadMessageCount = 0 }: SlimSidebarP
   const [showNotifications, setShowNotifications] = useState(false);
   const [showLang, setShowLang] = useState(false);
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
+  const [showContact, setShowContact] = useState(false);
   const notifAnim = useExitAnimation(showNotifications, 180);
   const moreAnim = useExitAnimation(showLang, 180);
   const logoutAnim = useExitAnimation(showLogoutConfirm, 200);
@@ -743,6 +745,18 @@ export function SlimSidebar({ onOpenChat, unreadMessageCount = 0 }: SlimSidebarP
               ))}
             </div>
             <div className="my-1 h-px bg-white/[0.06]" aria-hidden />
+            <button
+              type="button"
+              onClick={() => {
+                setShowLang(false);
+                setShowContact(true);
+              }}
+              className="flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2 text-[12px] font-semibold text-white/55 transition hover:bg-white/[0.05] hover:text-[#C7C2F0]"
+            >
+              <LifeBuoy className="h-4 w-4 shrink-0" aria-hidden />
+              {t("footer.contact", "Contact / Report")}
+            </button>
+            <div className="my-1 h-px bg-white/[0.06]" aria-hidden />
             {userId === undefined ? null : userId ? (
               <button
                 type="button"
@@ -768,6 +782,11 @@ export function SlimSidebar({ onOpenChat, unreadMessageCount = 0 }: SlimSidebarP
           </div>
         </div>
       ) : null}
+
+      <ContactModal
+        open={showContact}
+        onClose={() => setShowContact(false)}
+      />
 
       {logoutAnim.render ? (
         <div
