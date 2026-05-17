@@ -23,8 +23,14 @@ export async function GET() {
   const count = await fetchMyMonthlyTicketCount(user.id);
   if (!count) return NextResponse.json({ count: null });
 
-  // 사이드바는 total/remaining 만 필요 — 페이로드 최소화.
+  // 사이드바는 유효 응모권(total - revoked) 을 표시 — revoked 는
+  // 추첨에서 빠진 회수분이라 사용자에게 보이는 숫자에서 제외한다.
+  // (5장/월 한도 계산은 서버 RPC 가 여전히 total 기준 = 페널티 유지)
   return NextResponse.json({
-    count: { total: count.total, remaining: count.remaining },
+    count: {
+      total: count.total,
+      remaining: count.remaining,
+      revoked: count.revoked,
+    },
   });
 }

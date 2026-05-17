@@ -22,9 +22,13 @@ export function LotteryCounter({
   const { t } = useI18n();
   if (!count) return null;
 
-  const used = count.total;
-  const depleted = used >= 5;
   const revoked = count.revoked;
+  // 표시 숫자는 "유효" 응모권(전체 - 회수). 영상 삭제 등으로
+  // 회수된 건 추첨에서 빠졌으니 사용자 화면 숫자에선 제외.
+  const used = Math.max(0, count.total - revoked);
+  // 단, 5장/월 한도는 페널티 정책상 여전히 total 기준이라
+  // 소진 안내는 total 로 판단(회수해도 그 달 칸은 안 돌아옴).
+  const depleted = count.total >= 5;
   const resetCopy =
     count.resetInDays <= 0
       ? t("lottery.resetToday", "Resets today")

@@ -73,8 +73,9 @@ export function SlimSidebar({ onOpenChat, unreadMessageCount = 0 }: SlimSidebarP
   const moreAnim = useExitAnimation(showLang, 180);
   const logoutAnim = useExitAnimation(showLogoutConfirm, 200);
   const [notifications, setNotifications] = useState<NotificationRow[]>([]);
-  // 사이드바 응모권 칸 — 이번 달 발급/사용한 응모권 수(0→5 채워짐).
-  // 프로필/업로드의 LotteryCounter 와 동일하게 used 기준으로 통일.
+  // 사이드바 응모권 칸 — 이번 달 "유효" 응모권 수(total - revoked).
+  // 영상 삭제로 회수(revoked)된 건 제외해 추첨에 살아있는 수만 노출.
+  // 프로필/업로드의 LotteryCounter 와 동일 기준으로 통일.
   const [lotteryUsed, setLotteryUsed] = useState<number | null>(null);
 
   const notifBtnRef = useRef<HTMLButtonElement>(null);
@@ -227,7 +228,17 @@ export function SlimSidebar({ onOpenChat, unreadMessageCount = 0 }: SlimSidebarP
       .then((d) => {
         if (cancelled) return;
         const total = d?.count?.total;
-        setLotteryUsed(typeof total === "number" ? total : null);
+        const revoked = d?.count?.revoked;
+        if (typeof total !== "number") {
+          setLotteryUsed(null);
+          return;
+        }
+        // 유효 응모권 = 전체 - 회수(영상 삭제 등). 음수 방지.
+        const valid = Math.max(
+          0,
+          total - (typeof revoked === "number" ? revoked : 0),
+        );
+        setLotteryUsed(valid);
       })
       .catch(() => {});
     return () => {
