@@ -58,6 +58,17 @@ export function LotteryManagement({
   const [filter, setFilter] = useState<string>(initialWinnerFilter ?? "all");
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [copied, setCopied] = useState<string | null>(null);
+  const [collapsedMonths, setCollapsedMonths] = useState<Set<string>>(
+    new Set(),
+  );
+
+  const toggleMonth = (mk: string) =>
+    setCollapsedMonths((prev) => {
+      const next = new Set(prev);
+      if (next.has(mk)) next.delete(mk);
+      else next.add(mk);
+      return next;
+    });
 
   const refresh = () => router.refresh();
 
@@ -295,7 +306,19 @@ export function LotteryManagement({
           <div className="space-y-5">
             {monthGroups.map(([mk, rows]) => (
               <div key={mk}>
-                <div className="mb-2 flex items-center gap-2 border-b border-white/[0.06] pb-1.5">
+                <button
+                  type="button"
+                  onClick={() => toggleMonth(mk)}
+                  className="mb-2 flex w-full items-center gap-2 border-b border-white/[0.06] pb-1.5 text-left transition hover:border-white/15"
+                >
+                  <span
+                    className={cn(
+                      "inline-block text-[10px] text-white/40 transition-transform",
+                      !collapsedMonths.has(mk) && "rotate-90",
+                    )}
+                  >
+                    ▶
+                  </span>
                   <h4 className="text-[12px] font-black tabular-nums text-[#AFA9EC]">
                     {mk}
                   </h4>
@@ -306,7 +329,8 @@ export function LotteryManagement({
                     제출 {rows.filter((r) => r.info).length} / 미제출{" "}
                     {rows.filter((r) => !r.info).length}
                   </span>
-                </div>
+                </button>
+                {collapsedMonths.has(mk) ? null : (
                 <div className="space-y-2">
                   {rows.map((w) => {
                     const open = expandedId === w.winnerId;
@@ -490,6 +514,7 @@ export function LotteryManagement({
               );
                   })}
                 </div>
+                )}
               </div>
             ))}
           </div>
