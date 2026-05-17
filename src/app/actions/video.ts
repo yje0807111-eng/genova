@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import Mux from "@mux/mux-node";
 import { ensureProfile } from "@/lib/queries/profile-queries";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
+import { createServiceSupabaseClient } from "@/lib/supabase/service";
 import { MAIN_GENRE_KEYS } from "@/lib/constants/genres";
 import { MAX_VIDEO_TAGS } from "@/lib/tags";
 
@@ -267,6 +268,26 @@ export async function deleteVideoAction(videoId: string): Promise<SimpleResult> 
 
   const { error: commentsDeleteError } = await supabase.from("comments").delete().eq("video_id", videoId);
   if (commentsDeleteError) return { ok: false, message: commentsDeleteError.message };
+
+  // Revoke any lottery ticket(s) earned from this video so they leave the
+  // active monthly pool. We do this explicitly (service client, before the
+  // video row is removed) instead of relying solely on the DB
+  // `entry_tickets_video_delete_trigger`, which may not be present on every
+  // environment. Revoked tickets still count toward the monthly cap by
+  // design (anti-abuse penalty policy — see CLAUDE.md), so the user's
+  // remaining-ticket count is intentionally not restored.
+  const service = createServiceSupabaseClient();
+  if (service) {
+    await service
+      .from("entry_tickets")
+      .update({
+        status: "revoked",
+        revoked_reason: "video_deleted",
+        revoked_at: new Date().toISOString(),
+      })
+      .eq("video_id", videoId)
+      .eq("status", "active");
+  }
 
   await deleteMuxAssetIfExists(video.mux_asset_id ?? null);
 
