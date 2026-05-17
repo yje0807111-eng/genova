@@ -183,6 +183,35 @@ export function CompetitionDetailClient({
     competition.exchange_rate_usd_krw ?? 1350, competition.exchange_rate_usd_jpy ?? 148,
   );
 
+  // 개별 상금 값(예: "$5,000")의 환산 보조 표기. 현재 로케일·
+  // base_currency 가 같아 변환이 불필요하면 null (헤더 표기와 동일 규칙).
+  const usdToKrwRate = competition.exchange_rate_usd_krw ?? 1350;
+  const usdToJpyRate = competition.exchange_rate_usd_jpy ?? 148;
+  const baseCur = competition.base_currency ?? "USD";
+  const tierConverted = (value: string | null | undefined): string | null => {
+    if (!value) return null;
+    const m = value.replace(/,/g, "").match(/\d+(\.\d+)?/);
+    if (!m) return null;
+    const amt = parseFloat(m[0]);
+    if (!isFinite(amt) || amt <= 0) return null;
+    const krw = (n: number) => `₩${Math.round(n).toLocaleString()}`;
+    const usd = (n: number) => `$${Math.round(n).toLocaleString()}`;
+    const jpy = (n: number) => `¥${Math.round(n).toLocaleString()}`;
+    if (locale === "ko") {
+      if (baseCur === "USD") return `약 ${krw(amt * usdToKrwRate)}`;
+      if (baseCur === "JPY") return `약 ${krw(amt * (usdToKrwRate / usdToJpyRate))}`;
+      return null;
+    }
+    if (locale === "ja") {
+      if (baseCur === "USD") return `約 ${jpy(amt * usdToJpyRate)}`;
+      if (baseCur === "KRW") return `約 ${jpy(amt * (usdToJpyRate / usdToKrwRate))}`;
+      return null;
+    }
+    if (baseCur === "KRW") return `≈ ${usd(amt / usdToKrwRate)}`;
+    if (baseCur === "JPY") return `≈ ${usd(amt / usdToJpyRate)}`;
+    return null;
+  };
+
   const rulesText = getText(competition.rules_ko, competition.rules_en, competition.rules_ja, competition.rules ?? "");
   const rules = rulesText ? rulesText.split("\n").filter(Boolean) : [];
 
@@ -1013,6 +1042,11 @@ export function CompetitionDetailClient({
                         >
                           {tier.value ?? "—"}
                         </p>
+                        {tierConverted(tier.value) && (
+                          <p className="mt-1 text-[11px] font-semibold tabular-nums text-white/40">
+                            {tierConverted(tier.value)}
+                          </p>
+                        )}
                         {tier.suffix && (
                           <p className="mt-1.5 text-[10px] font-medium uppercase tracking-wider text-white/30">
                             {tier.suffix}
