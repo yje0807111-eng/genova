@@ -23,12 +23,25 @@ import { logAdminAction } from "@/lib/audit";
 
 export type AdminResult = { ok: true } | { ok: false; message: string };
 
+/** Current KST month key (YYYY-MM) — matches entry_tickets.month_key.
+ *  NOT exported: "use server" files may only export async functions. */
+function currentMonthKey(): string {
+  const p = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Asia/Seoul",
+    year: "numeric",
+    month: "2-digit",
+  }).formatToParts(new Date());
+  const y = p.find((x) => x.type === "year")?.value;
+  const m = p.find((x) => x.type === "month")?.value;
+  return `${y}-${m}`;
+}
+
 /* -----------------------------------------------------------------
  * 1. Trigger initial draw.
  * ---------------------------------------------------------------*/
 
-export async function triggerCompetitionDrawAction(
-  competitionId: string,
+export async function triggerMonthlyDrawAction(
+  monthKey?: string,
 ): Promise<
   AdminResult & {
     drawingLogId?: string;
@@ -40,9 +53,11 @@ export async function triggerCompetitionDrawAction(
   const auth = await requireAdminWithService();
   if ("error" in auth) return { ok: false, message: auth.error };
 
+  const mk = monthKey?.trim() || currentMonthKey();
+
   const { data, error } = await auth.service
-    .rpc("draw_competition_winners", {
-      p_competition_id: competitionId,
+    .rpc("draw_monthly_winners", {
+      p_month_key: mk,
       p_admin_id: auth.user.id,
     })
     .single<{ drawing_log_id: string; winners_count: number }>();
@@ -57,11 +72,11 @@ export async function triggerCompetitionDrawAction(
   // notified_at is still NULL).
   // H2-D.6: surface failure counts to the admin UI so silent partial
   // delivery is visible.
-  const dispatch = await dispatchWinnerNotifications(auth.service, competitionId);
+  const dispatch = await dispatchWinnerNotifications(auth.service, mk);
 
-  revalidatePath(`/competition/${competitionId}`);
-  revalidatePath(`/competition/${competitionId}/results`);
   revalidatePath("/admin");
+  revalidatePath("/");
+  revalidatePath("/winners");
   return {
     ok: true,
     drawingLogId: data.drawing_log_id,
@@ -75,8 +90,8 @@ export async function triggerCompetitionDrawAction(
  * 2. Redraw a single prize slot.
  * ---------------------------------------------------------------*/
 
-export async function redrawWinnerSlotAction(input: {
-  competitionId: string;
+export async function redrawMonthlySlotAction(input: {
+  monthKey?: string;
   prizeTier: number;
   reason: string;
 }): Promise<
@@ -93,9 +108,11 @@ export async function redrawWinnerSlotAction(input: {
   const auth = await requireAdminWithService();
   if ("error" in auth) return { ok: false, message: auth.error };
 
+  const mk = input.monthKey?.trim() || currentMonthKey();
+
   const { data, error } = await auth.service
-    .rpc("redraw_winner_slot", {
-      p_competition_id: input.competitionId,
+    .rpc("redraw_monthly_slot", {
+      p_month_key: mk,
       p_prize_tier: input.prizeTier,
       p_reason: input.reason.trim(),
       p_admin_id: auth.user.id,
@@ -110,11 +127,11 @@ export async function redrawWinnerSlotAction(input: {
   // dispatchWinnerNotifications filters on notified_at IS NULL so it
   // only hits the new row, not the prior (already-invalidated) one.
   // H2-D.6: surface failure counts.
-  const dispatch = await dispatchWinnerNotifications(auth.service, input.competitionId);
+  const dispatch = await dispatchWinnerNotifications(auth.service, mk);
 
-  await logAdminAction(auth.service, auth.user, "lottery.redrawWinnerSlot", {
-    type: "competition",
-    id: input.competitionId,
+  await logAdminAction(auth.service, auth.user, "lottery.redrawMonthlySlot", {
+    type: "lottery_draw",
+    id: mk,
     detail: {
       prizeTier: input.prizeTier,
       reason: input.reason.trim(),
@@ -123,9 +140,9 @@ export async function redrawWinnerSlotAction(input: {
     },
   });
 
-  revalidatePath(`/competition/${input.competitionId}`);
-  revalidatePath(`/competition/${input.competitionId}/results`);
   revalidatePath("/admin");
+  revalidatePath("/");
+  revalidatePath("/winners");
   return {
     ok: true,
     drawingLogId: data.drawing_log_id,
@@ -327,21 +344,19 @@ type NotificationDispatchResult = {
 
 async function dispatchWinnerNotifications(
   service: SupabaseClient,
-  competitionId: string,
+  monthKey: string,
 ): Promise<NotificationDispatchResult> {
   const siteUrl =
     process.env.NEXT_PUBLIC_SITE_URL ?? "https://genova-silk.vercel.app";
 
-  // Pull undelivered winners + the joined competition title + the
-  // recipient's email (auth.users via the public_profiles view doesn't
-  // expose email — go through the auth admin API helper indirectly
-  // by reading the JSON column on auth.users via service-role).
+  // Pull undelivered winners for this draw month + the recipient's
+  // email (auth.users via service-role; public_profiles has no email).
   const { data: winners, error } = await service
     .from("competition_winners")
     .select(
       "id, user_id, prize_tier, prize_amount_usd, claim_token, info_deadline, claim_status",
     )
-    .eq("competition_id", competitionId)
+    .eq("draw_month_key", monthKey)
     .is("notified_at", null)
     .neq("claim_status", "invalidated");
 
@@ -353,15 +368,8 @@ async function dispatchWinnerNotifications(
     return { attempted: 0, notifFailed: 0, emailFailed: 0 };
   }
 
-  // Resolve title (locale-neutral fallback — Resend body doesn't
-  // need full i18n; the in-app notification href surfaces the
-  // localized version naturally).
-  const { data: comp } = await service
-    .from("competitions")
-    .select("title")
-    .eq("id", competitionId)
-    .single();
-  const competitionTitle = (comp?.title as string | undefined) ?? "competition";
+  // Global monthly lottery — not tied to a competition.
+  const competitionTitle = `Genova ${monthKey}`;
 
   // Resolve emails for all winner user_ids in one shot via the
   // auth admin API (service-role only).
@@ -473,7 +481,7 @@ export async function exportLotteryWinnersCsvAction(): Promise<
   const { data: winners, error } = await service
     .from("competition_winners")
     .select(
-      "id, competition_id, user_id, prize_tier, prize_amount_usd, claim_status, drawn_at, info_deadline, notified_at",
+      "id, draw_month_key, user_id, prize_tier, prize_amount_usd, claim_status, drawn_at, info_deadline, notified_at",
     )
     .neq("claim_status", "invalidated")
     .order("drawn_at", { ascending: false });
@@ -484,12 +492,10 @@ export async function exportLotteryWinnersCsvAction(): Promise<
 
   const winnerIds = winners.map((w) => w.id as string);
   const userIds = [...new Set(winners.map((w) => w.user_id as string))];
-  const compIds = [...new Set(winners.map((w) => w.competition_id as string))];
 
-  const [infoRes, profileRes, compRes] = await Promise.all([
+  const [infoRes, profileRes] = await Promise.all([
     service.from("winner_info").select("*").in("winner_id", winnerIds),
     service.from("public_profiles").select("id, display_name").in("id", userIds),
-    service.from("competitions").select("id, title").in("id", compIds),
   ]);
 
   const infoMap = new Map(
@@ -497,9 +503,6 @@ export async function exportLotteryWinnersCsvAction(): Promise<
   );
   const profileMap = new Map(
     (profileRes.data ?? []).map((p) => [p.id as string, (p.display_name as string | null) ?? ""]),
-  );
-  const compMap = new Map(
-    (compRes.data ?? []).map((c) => [c.id as string, (c.title as string) ?? ""]),
   );
 
   // CSV-safe escape: wrap in quotes + double internal quotes.
@@ -512,8 +515,7 @@ export async function exportLotteryWinnersCsvAction(): Promise<
 
   const headers = [
     "winner_id",
-    "competition_title",
-    "competition_id",
+    "draw_month_key",
     "user_id",
     "display_name",
     "prize_tier",
@@ -541,8 +543,7 @@ export async function exportLotteryWinnersCsvAction(): Promise<
     const info = infoMap.get(winnerId) ?? {};
     return [
       winnerId,
-      compMap.get(w.competition_id as string) ?? "",
-      w.competition_id,
+      w.draw_month_key,
       w.user_id,
       profileMap.get(w.user_id as string) ?? "",
       w.prize_tier,

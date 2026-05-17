@@ -208,7 +208,7 @@ function mapRpcError(message: string | undefined): {
 
 export type WinnerClaimSnapshot = {
   winnerId: string;
-  competitionId: string;
+  drawMonthKey: string;
   prizeTier: number;
   prizeAmountUsd: number;
   drawnAt: string;
@@ -239,7 +239,7 @@ export async function fetchWinnerByToken(
   const { data, error } = await service
     .from("competition_winners")
     .select(
-      "id, competition_id, prize_tier, prize_amount_usd, drawn_at, info_deadline, claim_status",
+      "id, draw_month_key, prize_tier, prize_amount_usd, drawn_at, info_deadline, claim_status",
     )
     .eq("claim_token", trimmed)
     .maybeSingle();
@@ -247,7 +247,7 @@ export async function fetchWinnerByToken(
   if (error || !data) return null;
   return {
     winnerId: data.id as string,
-    competitionId: data.competition_id as string,
+    drawMonthKey: data.draw_month_key as string,
     prizeTier: data.prize_tier as number,
     prizeAmountUsd: data.prize_amount_usd as number,
     drawnAt: data.drawn_at as string,

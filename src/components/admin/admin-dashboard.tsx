@@ -27,7 +27,7 @@ import { VideoManage } from "@/components/admin/sections/video-manage";
 import { adminTokens } from "@/lib/admin-styles";
 import type {
   LotteryAuditRow,
-  LotteryCompetitionSummary,
+  LotteryMonthlySummary,
   LotteryWinnerWorkRow,
 } from "@/lib/queries/lottery-admin-queries";
 import type { Competition, Video } from "@/lib/types";
@@ -128,7 +128,7 @@ function AdminDashboardInner({
   videos,
   reports,
   inquiries,
-  lotteryCompetitions,
+  lotterySummary,
   lotteryWinners,
   lotteryAudit,
 }: {
@@ -136,7 +136,7 @@ function AdminDashboardInner({
   videos: Video[];
   reports: VideoReportItem[];
   inquiries: BusinessInquiryItem[];
-  lotteryCompetitions: LotteryCompetitionSummary[];
+  lotterySummary: LotteryMonthlySummary | null;
   lotteryWinners: LotteryWinnerWorkRow[];
   lotteryAudit: LotteryAuditRow[];
 }) {
@@ -495,10 +495,10 @@ function AdminDashboardInner({
               />
             ) : null}
 
-            {view === "lottery" ? (
+            {view === "lottery" && lotterySummary ? (
               <LotteryManagement
                 key={focus ?? "all"}
-                competitions={lotteryCompetitions}
+                summary={lotterySummary}
                 winners={lotteryWinners}
                 auditLog={lotteryAudit}
                 onMessage={setMessage}
@@ -537,7 +537,7 @@ export function AdminDashboard(props: {
   videos: Video[];
   reports: VideoReportItem[];
   inquiries: BusinessInquiryItem[];
-  lotteryCompetitions: LotteryCompetitionSummary[];
+  lotterySummary: LotteryMonthlySummary | null;
   lotteryWinners: LotteryWinnerWorkRow[];
   lotteryAudit: LotteryAuditRow[];
 }) {

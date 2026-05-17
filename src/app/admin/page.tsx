@@ -5,11 +5,11 @@ import { AdminDashboard } from "@/components/admin/admin-dashboard";
 import { isAdminEmail } from "@/lib/auth/admin";
 import { fetchVideosWithCreators } from "@/lib/queries";
 import {
-  fetchLotteryCompetitionSummaries,
+  fetchLotteryMonthlySummary,
   fetchLotteryDrawingLogs,
   fetchLotteryWinnersWorkQueue,
   type LotteryAuditRow,
-  type LotteryCompetitionSummary,
+  type LotteryMonthlySummary,
   type LotteryWinnerWorkRow,
 } from "@/lib/queries/lottery-admin-queries";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
@@ -93,12 +93,12 @@ export default async function AdminPage() {
   // dashboard's read path is consistent with how reports +
   // competitions are loaded above.  Each helper returns an empty
   // array on missing service config (already validated above).
-  let lotteryCompetitions: LotteryCompetitionSummary[] = [];
+  let lotterySummary: LotteryMonthlySummary | null = null;
   let lotteryWinners: LotteryWinnerWorkRow[] = [];
   let lotteryAudit: LotteryAuditRow[] = [];
   if (service) {
-    [lotteryCompetitions, lotteryWinners, lotteryAudit] = await Promise.all([
-      fetchLotteryCompetitionSummaries(service),
+    [lotterySummary, lotteryWinners, lotteryAudit] = await Promise.all([
+      fetchLotteryMonthlySummary(service),
       fetchLotteryWinnersWorkQueue(service),
       fetchLotteryDrawingLogs(service, 50),
     ]);
@@ -111,7 +111,7 @@ export default async function AdminPage() {
         videos={videos}
         reports={reports}
         inquiries={inquiries}
-        lotteryCompetitions={lotteryCompetitions}
+        lotterySummary={lotterySummary}
         lotteryWinners={lotteryWinners}
         lotteryAudit={lotteryAudit}
       />

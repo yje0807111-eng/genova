@@ -1,24 +1,33 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 
 /**
- * Admin-side aggregate reads for the lottery panel.  All these
- * functions assume the caller has already proven admin (via
- * `requireAdminWithService()` for actions, or the /admin route's
- * isAdminEmail check for the page loader) and is passing in the
- * service-role client.
+ * Admin-side aggregate reads for the GLOBAL MONTHLY lottery panel.
+ * 응모권은 공모전별이 아니라 매월 전체 풀에서 추첨 — 모든 집계는
+ * draw_month_key(KST YYYY-MM) 기준.
  *
- * They live in `src/lib/queries/` for parity with the rest of the
- * codebase but the read patterns are admin-specific — we surface
- * per-status winner counts + recent drawing log rows that
- * non-admin views never need.
+ * Caller must already be admin (requireAdminWithService for actions,
+ * /admin route gate for the page loader) and pass the service-role
+ * client.
  */
 
-export type LotteryCompetitionSummary = {
-  id: string;
-  title: string;
-  status: string;
-  deadline: string;
-  entryCount: number;
+/** Current KST month key (YYYY-MM) — matches entry_tickets.month_key. */
+export function currentMonthKey(): string {
+  const p = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Asia/Seoul",
+    year: "numeric",
+    month: "2-digit",
+  }).formatToParts(new Date());
+  const y = p.find((x) => x.type === "year")?.value;
+  const m = p.find((x) => x.type === "month")?.value;
+  return `${y}-${m}`;
+}
+
+export type LotteryMonthlySummary = {
+  monthKey: string;
+  /** Total tickets issued this month (whole pool). */
+  poolCount: number;
+  /** Distinct users with at least one ticket this month. */
+  poolUserCount: number;
   winnersDrawn: boolean;
   winners: {
     pending: number;
@@ -28,109 +37,78 @@ export type LotteryCompetitionSummary = {
     expired: number;
     invalidated: number;
   };
-  /** H2-A.4: total USD amount across winners with claim_status='paid'. */
   paidUsdTotal: number;
-  /** H2-A.4: total USD amount on live (non-invalidated) winners. */
   liveUsdTotal: number;
 };
 
 /**
- * Lists every competition + its entry count + winner state breakdown.
- * Two reads: one for entry counts (aggregate view), one for winners
- * (raw rows grouped client-side because the public view filters
- * invalidated rows we still want to count).
+ * Current-month pool + winner-state breakdown for the admin draw
+ * panel.  Single object (one global monthly draw).
  */
-export async function fetchLotteryCompetitionSummaries(
+export async function fetchLotteryMonthlySummary(
   service: SupabaseClient,
-): Promise<LotteryCompetitionSummary[]> {
-  const [{ data: compRows }, { data: entryRows }, { data: winnerRows }] =
-    await Promise.all([
-      service
-        .from("competitions")
-        .select("id, title, status, deadline")
-        .order("deadline", { ascending: false }),
-      service
-        .from("public_competition_entry_counts")
-        .select("competition_id, eligible_count"),
-      service
-        .from("competition_winners")
-        .select("competition_id, claim_status, prize_amount_usd"),
-    ]);
+): Promise<LotteryMonthlySummary> {
+  const monthKey = currentMonthKey();
 
-  const entryMap = new Map<string, number>();
-  for (const r of entryRows ?? []) {
-    entryMap.set(r.competition_id as string, (r.eligible_count as number) ?? 0);
-  }
+  const [{ data: tickets }, { data: winnerRows }] = await Promise.all([
+    service
+      .from("entry_tickets")
+      .select("user_id")
+      .eq("month_key", monthKey),
+    service
+      .from("competition_winners")
+      .select("claim_status, prize_amount_usd")
+      .eq("draw_month_key", monthKey),
+  ]);
 
-  // Group winners by competition_id + claim_status.  Also accumulate
-  // USD totals (H2-A.4) so the admin row can show "paid X / live Y".
-  const winnerBuckets = new Map<
-    string,
-    LotteryCompetitionSummary["winners"]
-  >();
-  const paidUsdTotals = new Map<string, number>();
-  const liveUsdTotals = new Map<string, number>();
+  const poolCount = tickets?.length ?? 0;
+  const poolUserCount = new Set(
+    (tickets ?? []).map((t) => t.user_id as string),
+  ).size;
+
+  const winners = {
+    pending: 0,
+    submitted: 0,
+    confirmed: 0,
+    paid: 0,
+    expired: 0,
+    invalidated: 0,
+  };
+  let paidUsdTotal = 0;
+  let liveUsdTotal = 0;
   for (const w of winnerRows ?? []) {
-    const cid = w.competition_id as string;
-    const status = w.claim_status as keyof LotteryCompetitionSummary["winners"];
-    const bucket = winnerBuckets.get(cid) ?? {
-      pending: 0,
-      submitted: 0,
-      confirmed: 0,
-      paid: 0,
-      expired: 0,
-      invalidated: 0,
-    };
-    if (status in bucket) bucket[status] += 1;
-    winnerBuckets.set(cid, bucket);
-
+    const status = w.claim_status as keyof typeof winners;
+    if (status in winners) winners[status] += 1;
     const amount = Number(w.prize_amount_usd ?? 0) || 0;
-    if (status === "paid") {
-      paidUsdTotals.set(cid, (paidUsdTotals.get(cid) ?? 0) + amount);
-    }
-    if (status !== "invalidated") {
-      liveUsdTotals.set(cid, (liveUsdTotals.get(cid) ?? 0) + amount);
-    }
+    if (status === "paid") paidUsdTotal += amount;
+    if (status !== "invalidated") liveUsdTotal += amount;
   }
+  const winnersDrawn =
+    winners.pending +
+      winners.submitted +
+      winners.confirmed +
+      winners.paid +
+      winners.expired >
+    0;
 
-  return (compRows ?? []).map((c) => {
-    const bucket =
-      winnerBuckets.get(c.id as string) ?? {
-        pending: 0,
-        submitted: 0,
-        confirmed: 0,
-        paid: 0,
-        expired: 0,
-        invalidated: 0,
-      };
-    const liveCount =
-      bucket.pending +
-      bucket.submitted +
-      bucket.confirmed +
-      bucket.paid +
-      bucket.expired;
-    return {
-      id: c.id as string,
-      title: c.title as string,
-      status: c.status as string,
-      deadline: c.deadline as string,
-      entryCount: entryMap.get(c.id as string) ?? 0,
-      winnersDrawn: liveCount > 0,
-      winners: bucket,
-      paidUsdTotal: paidUsdTotals.get(c.id as string) ?? 0,
-      liveUsdTotal: liveUsdTotals.get(c.id as string) ?? 0,
-    };
-  });
+  return {
+    monthKey,
+    poolCount,
+    poolUserCount,
+    winnersDrawn,
+    winners,
+    paidUsdTotal,
+    liveUsdTotal,
+  };
 }
 
 // ===================================================================
-// Winner workflow rows (Phase 6-C consumes these).
+// Winner workflow rows.
 // ===================================================================
 
 export type LotteryWinnerWorkRow = {
   winnerId: string;
-  competitionId: string;
-  competitionTitle: string;
+  drawMonthKey: string;
   userId: string;
   userDisplayName: string | null;
   userEmail: string | null;
@@ -157,13 +135,8 @@ export type LotteryWinnerWorkRow = {
 };
 
 /**
- * Pulls every winner + (optional) submitted info row in one bundle,
- * suitable for the admin workflow table.  Filters out invalidated
- * rows by default (those are visible in the audit log instead).
- *
- * Joins through public_profiles for the display name and auth.users
- * for the email — both are admin-relevant sanity checks ("does the
- * payment_email match the registered email?").
+ * Every live winner + (optional) submitted info row for the admin
+ * workflow table.  Filters invalidated (visible in audit instead).
  */
 export async function fetchLotteryWinnersWorkQueue(
   service: SupabaseClient,
@@ -171,7 +144,7 @@ export async function fetchLotteryWinnersWorkQueue(
   const { data: winners } = await service
     .from("competition_winners")
     .select(
-      "id, competition_id, user_id, prize_tier, prize_amount_usd, claim_status, drawn_at, info_deadline",
+      "id, draw_month_key, user_id, prize_tier, prize_amount_usd, claim_status, drawn_at, info_deadline",
     )
     .neq("claim_status", "invalidated")
     .order("drawn_at", { ascending: false });
@@ -180,22 +153,14 @@ export async function fetchLotteryWinnersWorkQueue(
 
   const winnerIds = winners.map((w) => w.id as string);
   const userIds = [...new Set(winners.map((w) => w.user_id as string))];
-  const compIds = [...new Set(winners.map((w) => w.competition_id as string))];
 
-  const [{ data: infos }, { data: profiles }, { data: comps }, usersRes] =
-    await Promise.all([
-      service.from("winner_info").select("*").in("winner_id", winnerIds),
-      service
-        .from("public_profiles")
-        .select("id, display_name")
-        .in("id", userIds),
-      service.from("competitions").select("id, title").in("id", compIds),
-      // auth.users not exposed via Supabase REST.  Use the admin
-      // helper instead — but that's per-user only.  Settle for null
-      // emails when admin needs to manually look up via dashboard.
-      // (We could add an admin RPC but the workload here is low.)
-      Promise.resolve({ data: [] as { id: string; email: string | null }[] }),
-    ]);
+  const [{ data: infos }, { data: profiles }] = await Promise.all([
+    service.from("winner_info").select("*").in("winner_id", winnerIds),
+    service
+      .from("public_profiles")
+      .select("id, display_name")
+      .in("id", userIds),
+  ]);
 
   const infoMap = new Map(
     (infos ?? []).map((r) => [r.winner_id as string, r]),
@@ -206,12 +171,6 @@ export async function fetchLotteryWinnersWorkQueue(
       (p.display_name as string | null) ?? null,
     ]),
   );
-  const compMap = new Map(
-    (comps ?? []).map((c) => [c.id as string, c.title as string]),
-  );
-  const emailMap = new Map(
-    (usersRes.data ?? []).map((u) => [u.id, u.email]),
-  );
 
   return winners.map((w) => {
     const info = infoMap.get(w.id as string) as
@@ -219,11 +178,10 @@ export async function fetchLotteryWinnersWorkQueue(
       | undefined;
     return {
       winnerId: w.id as string,
-      competitionId: w.competition_id as string,
-      competitionTitle: compMap.get(w.competition_id as string) ?? "(unknown)",
+      drawMonthKey: w.draw_month_key as string,
       userId: w.user_id as string,
       userDisplayName: profileMap.get(w.user_id as string) ?? null,
-      userEmail: emailMap.get(w.user_id as string) ?? null,
+      userEmail: null,
       prizeTier: w.prize_tier as number,
       prizeAmountUsd: w.prize_amount_usd as number,
       claimStatus: w.claim_status as string,
@@ -257,8 +215,7 @@ export async function fetchLotteryWinnersWorkQueue(
 
 export type LotteryAuditRow = {
   id: string;
-  competitionId: string;
-  competitionTitle: string;
+  drawMonthKey: string;
   drawnAt: string;
   drawnBy: string | null;
   seedValue: string;
@@ -276,27 +233,16 @@ export async function fetchLotteryDrawingLogs(
   const { data: rows } = await service
     .from("drawing_logs")
     .select(
-      "id, competition_id, drawn_at, drawn_by, seed_value, eligible_entry_count, eligible_user_count, is_redraw, redraw_prize_tier, redraw_reason",
+      "id, draw_month_key, drawn_at, drawn_by, seed_value, eligible_entry_count, eligible_user_count, is_redraw, redraw_prize_tier, redraw_reason",
     )
     .order("drawn_at", { ascending: false })
     .limit(limit);
 
   if (!rows || rows.length === 0) return [];
 
-  const compIds = [...new Set(rows.map((r) => r.competition_id as string))];
-  const { data: comps } = await service
-    .from("competitions")
-    .select("id, title")
-    .in("id", compIds);
-  const titleMap = new Map(
-    (comps ?? []).map((c) => [c.id as string, c.title as string]),
-  );
-
   return rows.map((r) => ({
     id: r.id as string,
-    competitionId: r.competition_id as string,
-    competitionTitle:
-      titleMap.get(r.competition_id as string) ?? "(unknown)",
+    drawMonthKey: r.draw_month_key as string,
     drawnAt: r.drawn_at as string,
     drawnBy: (r.drawn_by as string | null) ?? null,
     seedValue: r.seed_value as string,

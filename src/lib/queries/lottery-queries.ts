@@ -99,6 +99,59 @@ export async function fetchCompetitionWinners(
   }));
 }
 
+// ===================================================================
+// Global monthly winners (public_monthly_winners view).
+// ===================================================================
+
+export type MonthlyWinner = {
+  id: string;
+  drawMonthKey: string;
+  userId: string;
+  prizeTier: number;
+  prizeAmountUsd: number;
+  drawnAt: string;
+  claimStatus: string;
+  videoId: string | null;
+};
+
+/** KST current month key (YYYY-MM). */
+function kstMonthKey(): string {
+  const p = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Asia/Seoul",
+    year: "numeric",
+    month: "2-digit",
+  }).formatToParts(new Date());
+  return `${p.find((x) => x.type === "year")?.value}-${p.find((x) => x.type === "month")?.value}`;
+}
+
+/**
+ * Live (non-invalidated) winners for a draw month, ordered by tier.
+ * Defaults to the current KST month.
+ */
+export async function fetchMonthlyWinners(
+  monthKey?: string,
+): Promise<MonthlyWinner[]> {
+  const supabase = await createServerSupabaseClient();
+  if (!supabase) return [];
+  const mk = monthKey?.trim() || kstMonthKey();
+  const { data, error } = await supabase
+    .from("public_monthly_winners")
+    .select("*")
+    .eq("draw_month_key", mk)
+    .order("prize_tier", { ascending: true });
+  if (error || !data) return [];
+  return data.map((row: Record<string, unknown>) => ({
+    id: row.id as string,
+    drawMonthKey: row.draw_month_key as string,
+    userId: row.user_id as string,
+    prizeTier: row.prize_tier as number,
+    prizeAmountUsd: row.prize_amount_usd as number,
+    drawnAt: row.drawn_at as string,
+    claimStatus: row.claim_status as string,
+    videoId: (row.video_id as string | null) ?? null,
+  }));
+}
+
 /** Single drawing event from the audit log. */
 export type DrawingLog = {
   id: string;
