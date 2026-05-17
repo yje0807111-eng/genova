@@ -14,7 +14,9 @@ import { useI18n } from "@/components/genova/language-provider";
  */
 export function UploadLotteryBadge() {
   const { t } = useI18n();
-  const [used, setUsed] = useState<number | null>(null);
+  const [snap, setSnap] = useState<{ total: number; revoked: number } | null>(
+    null,
+  );
 
   useEffect(() => {
     let cancelled = false;
@@ -23,7 +25,13 @@ export function UploadLotteryBadge() {
       .then((d) => {
         if (cancelled) return;
         const total = d?.count?.total;
-        setUsed(typeof total === "number" ? total : null);
+        if (typeof total !== "number") {
+          setSnap(null);
+          return;
+        }
+        const revoked =
+          typeof d?.count?.revoked === "number" ? d.count.revoked : 0;
+        setSnap({ total, revoked });
       })
       .catch(() => {});
     return () => {
@@ -33,7 +41,7 @@ export function UploadLotteryBadge() {
 
   // 로딩 중에도 동일 높이의 자리표시자를 렌더해 폼이 뒤늦게
   // 밀려나는 레이아웃 점프를 방지.
-  if (used === null) {
+  if (snap === null) {
     return (
       <div
         className="mb-4 flex animate-pulse items-center gap-2 rounded-lg border border-white/[0.06] bg-white/[0.02] px-3 py-2 text-[12px]"
@@ -44,7 +52,12 @@ export function UploadLotteryBadge() {
       </div>
     );
   }
-  const depleted = used >= 5;
+  // 표시 = 유효 응모권(전체 - 회수) / 이번 달 받을 수 있는 총량.
+  // 회수(영상 삭제 등)된 만큼 분모도 페널티로 줄어든다(5 - 회수).
+  const valid = Math.max(0, snap.total - snap.revoked);
+  const cap = Math.max(0, 5 - snap.revoked);
+  // 소진 판단은 total 기준 — 회수해도 그 달 칸은 안 돌아옴.
+  const depleted = snap.total >= 5;
 
   return (
     <div className="anim-fade mb-4 flex items-center gap-2 rounded-lg border border-white/[0.08] bg-white/[0.02] px-3 py-2 text-[12px]">
@@ -53,9 +66,17 @@ export function UploadLotteryBadge() {
         {t("lottery.title", "이번 달 응모권")}
       </span>
       <span className="font-bold tabular-nums text-white">
-        {used}
-        <span className="font-normal text-white/40">/5</span>
+        {valid}
+        <span className="font-normal text-white/40">/{cap}</span>
       </span>
+      {snap.revoked > 0 ? (
+        <span className="text-[11px] text-amber-300/70">
+          {t("lottery.revokedNote", "{n} invalidated (video deleted)").replace(
+            "{n}",
+            String(snap.revoked),
+          )}
+        </span>
+      ) : null}
       {depleted ? (
         <span className="ml-auto text-[11px] text-amber-300/85">
           {t("lottery.depleted", "이번 달 응모권을 모두 사용했습니다")}

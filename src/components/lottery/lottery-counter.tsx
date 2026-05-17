@@ -26,6 +26,8 @@ export function LotteryCounter({
   // 표시 숫자는 "유효" 응모권(전체 - 회수). 영상 삭제 등으로
   // 회수된 건 추첨에서 빠졌으니 사용자 화면 숫자에선 제외.
   const used = Math.max(0, count.total - revoked);
+  // 분모도 페널티로 축소: 이번 달 받을 수 있는 총량 = 5 - 회수.
+  const cap = Math.max(0, 5 - revoked);
   // 단, 5장/월 한도는 페널티 정책상 여전히 total 기준이라
   // 소진 안내는 total 로 판단(회수해도 그 달 칸은 안 돌아옴).
   const depleted = count.total >= 5;
@@ -44,7 +46,7 @@ export function LotteryCounter({
       </span>
       <span className="font-bold tabular-nums text-white">
         {used}
-        <span className="font-normal text-white/40">/5</span>
+        <span className="font-normal text-white/40">/{cap}</span>
       </span>
       <span className="text-white/20">·</span>
       <span className={depleted ? "text-amber-300/85" : "text-white/40"}>
