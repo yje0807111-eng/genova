@@ -13,6 +13,62 @@ import { cn } from "@/lib/utils/cn";
 
 type Step = "request" | "verify" | "form" | "done";
 
+const SELECT_CLS =
+  "w-full appearance-none rounded-lg border border-white/[0.12] bg-white/[0.03] bg-[length:16px] bg-[right_0.75rem_center] bg-no-repeat px-3 py-2.5 pr-9 text-[13px] text-white outline-none transition focus:border-[#7F77DD]/40 [&>option]:bg-[#14112e] [&>option]:text-white " +
+  "bg-[url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22%23AFA9EC%22%20stroke-width%3D%222%22%3E%3Cpath%20d%3D%22M6%209l6%206%206-6%22%2F%3E%3C%2Fsvg%3E')]";
+
+// ISO 3166-1 alpha-2.  KR/JP/US 우선 노출, 이후 알파벳.  필요 시 확장.
+const COUNTRIES: { code: string; name: string }[] = [
+  { code: "KR", name: "대한민국 (South Korea)" },
+  { code: "JP", name: "日本 (Japan)" },
+  { code: "US", name: "United States" },
+  { code: "AR", name: "Argentina" },
+  { code: "AU", name: "Australia" },
+  { code: "AT", name: "Austria" },
+  { code: "BE", name: "Belgium" },
+  { code: "BR", name: "Brazil" },
+  { code: "CA", name: "Canada" },
+  { code: "CL", name: "Chile" },
+  { code: "CN", name: "China (中国)" },
+  { code: "CO", name: "Colombia" },
+  { code: "CZ", name: "Czechia" },
+  { code: "DK", name: "Denmark" },
+  { code: "EG", name: "Egypt" },
+  { code: "FI", name: "Finland" },
+  { code: "FR", name: "France" },
+  { code: "DE", name: "Germany" },
+  { code: "GR", name: "Greece" },
+  { code: "HK", name: "Hong Kong" },
+  { code: "HU", name: "Hungary" },
+  { code: "IN", name: "India" },
+  { code: "ID", name: "Indonesia" },
+  { code: "IE", name: "Ireland" },
+  { code: "IL", name: "Israel" },
+  { code: "IT", name: "Italy" },
+  { code: "MY", name: "Malaysia" },
+  { code: "MX", name: "Mexico" },
+  { code: "NL", name: "Netherlands" },
+  { code: "NZ", name: "New Zealand" },
+  { code: "NO", name: "Norway" },
+  { code: "PH", name: "Philippines" },
+  { code: "PL", name: "Poland" },
+  { code: "PT", name: "Portugal" },
+  { code: "RO", name: "Romania" },
+  { code: "SA", name: "Saudi Arabia" },
+  { code: "SG", name: "Singapore" },
+  { code: "ZA", name: "South Africa" },
+  { code: "ES", name: "Spain" },
+  { code: "SE", name: "Sweden" },
+  { code: "CH", name: "Switzerland" },
+  { code: "TW", name: "Taiwan (台灣)" },
+  { code: "TH", name: "Thailand" },
+  { code: "TR", name: "Türkiye" },
+  { code: "AE", name: "United Arab Emirates" },
+  { code: "GB", name: "United Kingdom" },
+  { code: "VN", name: "Vietnam" },
+  { code: "OT", name: "Other / 그 외" },
+];
+
 /**
  * Phase 5-C: the only client-state piece of the claim flow.  Owns:
  *   - which step the user is on
@@ -37,8 +93,9 @@ export function ClaimFlowClient({ token }: { token: string }) {
 
   const [legalName, setLegalName] = useState("");
   const [country, setCountry] = useState("");
-  const [contactExtra, setContactExtra] = useState("");
-  const [paymentMethod, setPaymentMethod] = useState<"paypal" | "wise">("paypal");
+  const [paymentMethod, setPaymentMethod] = useState<
+    "paypal" | "wise" | "payoneer"
+  >("paypal");
   const [paymentEmail, setPaymentEmail] = useState("");
   const [paymentCurrency, setPaymentCurrency] = useState<
     "USD" | "KRW" | "JPY"
@@ -84,7 +141,7 @@ export function ClaimFlowClient({ token }: { token: string }) {
     const payload: WinnerInfoSubmission = {
       legalName,
       country,
-      contactExtra,
+      contactExtra: "",
       paymentMethod,
       paymentEmail,
       paymentCurrency: paymentMethod === "wise" ? paymentCurrency : null,
@@ -104,20 +161,20 @@ export function ClaimFlowClient({ token }: { token: string }) {
   return (
     <div className="space-y-3">
       <StepIndicator step={step} />
-      {/* Step 1 — request */}
-      <StepCard
-        n={1}
-        active={step === "request"}
-        done={step !== "request"}
-        title={t("claim.step1.title", "Step 1 — Verify your email")}
-      >
-        <p className="text-[13px] text-white/65">
-          {t(
-            "claim.step1.desc",
-            "We'll send a 6-digit code to the email on your Genova account.",
-          )}
-        </p>
-        {step === "request" ? (
+      {/* Step 1 — request (this step only) */}
+      {step === "request" ? (
+        <StepCard
+          n={1}
+          active
+          done={false}
+          title={t("claim.step1.title", "Step 1 — Verify your email")}
+        >
+          <p className="text-[13px] text-white/65">
+            {t(
+              "claim.step1.desc",
+              "We'll send a 6-digit code to the email on your Genova account.",
+            )}
+          </p>
           <button
             type="button"
             onClick={onRequestCode}
@@ -128,22 +185,16 @@ export function ClaimFlowClient({ token }: { token: string }) {
               ? t("claim.step1.sending", "Sending…")
               : t("claim.step1.cta", "Send verification code")}
           </button>
-        ) : (
-          <p className="mt-2 text-[12px] text-emerald-300/85">
-            {t("claim.step1.sent", "Code sent. Check your inbox.")}
-          </p>
-        )}
-        {step === "request" && reason ? (
-          <ReasonHint reason={reason} t={t} />
-        ) : null}
-      </StepCard>
+          {reason ? <ReasonHint reason={reason} t={t} /> : null}
+        </StepCard>
+      ) : null}
 
-      {/* Step 2 — verify */}
-      {step === "verify" || step === "form" || step === "done" ? (
+      {/* Step 2 — verify (this step only) */}
+      {step === "verify" ? (
         <StepCard
           n={2}
-          active={step === "verify"}
-          done={step === "form" || step === "done"}
+          active
+          done={false}
           title={t("claim.step2.title", "Step 2 — Enter the code")}
         >
           <form onSubmit={onVerifyCode}>
@@ -219,34 +270,32 @@ export function ClaimFlowClient({ token }: { token: string }) {
                   className="w-full rounded-lg border border-white/[0.12] bg-white/[0.03] px-3 py-2 text-[13px] text-white outline-none focus:border-[#7F77DD]/40"
                 />
               </Field>
-              <Field label={t("claim.step3.country", "Country (ISO code, e.g. KR / US / JP)")}>
-                <input
-                  type="text"
+              <Field label={t("claim.step3.country", "Country")}>
+                <select
                   value={country}
-                  onChange={(e) => setCountry(e.target.value.toUpperCase())}
-                  maxLength={2}
+                  onChange={(e) => setCountry(e.target.value)}
                   required
-                  className="w-24 rounded-lg border border-white/[0.12] bg-white/[0.03] px-3 py-2 text-center text-[13px] uppercase tracking-[0.2em] text-white outline-none focus:border-[#7F77DD]/40"
-                />
-              </Field>
-              <Field label={t("claim.step3.contactExtra", "Backup contact (email, SNS handle, etc.)")}>
-                <input
-                  type="text"
-                  value={contactExtra}
-                  onChange={(e) => setContactExtra(e.target.value)}
-                  required
-                  className="w-full rounded-lg border border-white/[0.12] bg-white/[0.03] px-3 py-2 text-[13px] text-white outline-none focus:border-[#7F77DD]/40"
-                />
+                  className={SELECT_CLS}
+                >
+                  <option value="" disabled>
+                    {t("claim.step3.countryPlaceholder", "Select your country")}
+                  </option>
+                  {COUNTRIES.map((c) => (
+                    <option key={c.code} value={c.code}>
+                      {c.name}
+                    </option>
+                  ))}
+                </select>
               </Field>
               <Field label={t("claim.step3.paymentMethod", "Payment method")}>
-                <div className="flex gap-2">
-                  {(["paypal", "wise"] as const).map((m) => (
+                <div className="flex flex-wrap gap-2">
+                  {(["paypal", "wise", "payoneer"] as const).map((m) => (
                     <button
                       key={m}
                       type="button"
                       onClick={() => setPaymentMethod(m)}
                       className={cn(
-                        "rounded-lg border px-4 py-1.5 text-[12px] font-semibold transition",
+                        "rounded-lg border px-4 py-2 text-[12px] font-semibold transition",
                         paymentMethod === m
                           ? "border-[#7F77DD]/40 bg-[#7F77DD]/15 text-white"
                           : "border-white/[0.08] bg-white/[0.02] text-white/55 hover:text-white",
@@ -256,6 +305,12 @@ export function ClaimFlowClient({ token }: { token: string }) {
                     </button>
                   ))}
                 </div>
+                <p className="mt-2 text-[11px] leading-relaxed text-white/35">
+                  {t(
+                    "claim.step3.paymentMethodHelp",
+                    "All three support overseas payouts to Korea/Japan. PayPal/Payoneer pay in USD; Wise lets you choose the payout currency.",
+                  )}
+                </p>
               </Field>
               <Field label={t("claim.step3.paymentEmail", "Payment account email")}>
                 <input
@@ -275,11 +330,11 @@ export function ClaimFlowClient({ token }: { token: string }) {
                         e.target.value as "USD" | "KRW" | "JPY",
                       )
                     }
-                    className="rounded-lg border border-white/[0.12] bg-white/[0.03] px-3 py-2 text-[13px] text-white outline-none focus:border-[#7F77DD]/40"
+                    className={SELECT_CLS}
                   >
-                    <option value="USD">USD</option>
-                    <option value="KRW">KRW</option>
-                    <option value="JPY">JPY</option>
+                    <option value="USD">USD — US Dollar</option>
+                    <option value="KRW">KRW — 대한민국 원</option>
+                    <option value="JPY">JPY — 日本円</option>
                   </select>
                 </Field>
               ) : null}

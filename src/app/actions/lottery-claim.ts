@@ -115,7 +115,7 @@ export type WinnerInfoSubmission = {
   legalName: string;
   country: string;
   contactExtra: string;
-  paymentMethod: "paypal" | "wise";
+  paymentMethod: "paypal" | "wise" | "payoneer";
   paymentEmail: string;
   paymentCurrency: "USD" | "KRW" | "JPY" | null;
 };
@@ -132,13 +132,11 @@ export async function submitWinnerInfoAction(
   // a round-trip on obviously-bad input.
   if (!payload.legalName.trim()) return { ok: false, reason: "missing_legal_name" };
   if (!payload.country.trim()) return { ok: false, reason: "missing_country" };
-  if (!payload.contactExtra.trim())
-    return { ok: false, reason: "missing_contact_extra" };
   if (!payload.paymentEmail.trim())
     return { ok: false, reason: "missing_payment_email" };
   if (payload.paymentMethod === "wise" && !payload.paymentCurrency)
     return { ok: false, reason: "wise_currency_required" };
-  if (payload.paymentMethod === "paypal" && payload.paymentCurrency)
+  if (payload.paymentMethod !== "wise" && payload.paymentCurrency)
     return { ok: false, reason: "paypal_currency_must_be_null" };
 
   const service = createServiceSupabaseClient();

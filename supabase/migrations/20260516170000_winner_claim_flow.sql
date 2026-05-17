@@ -269,7 +269,7 @@ begin
   -- code flow must have succeeded at some point in this session.
   select id, consumed_at into v_verification
   from public.winner_email_verifications
-  where winner_id = v_winner.id
+  where winner_email_verifications.winner_id = v_winner.id
     and consumed_at is not null
     and failed_attempts < 5
   order by consumed_at desc
