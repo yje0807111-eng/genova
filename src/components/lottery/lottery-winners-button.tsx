@@ -48,11 +48,11 @@ export function LotteryWinnersButton() {
 
       {open ? (
         <div
-          className="fixed inset-0 z-[120] flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm"
+          className="anim-scrim fixed inset-0 z-[120] flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm"
           onClick={() => setOpen(false)}
         >
           <div
-            className="relative w-full max-w-md rounded-2xl border border-white/[0.08] bg-[#0a0a0a] p-6"
+            className="anim-modal relative w-full max-w-md rounded-2xl border border-white/[0.08] bg-[#0a0a0a] p-6"
             onClick={(e) => e.stopPropagation()}
           >
             <button

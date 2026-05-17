@@ -81,7 +81,7 @@ export function WatchMoreMenu({ videoId }: { videoId: string }) {
       </button>
       {open && dropdownPos ? (
         <div
-          className="fixed z-[100] min-w-[160px] rounded-xl border border-white/10 bg-[#1A1535] p-1.5 shadow-xl"
+          className="anim-pop fixed z-[100] min-w-[160px] origin-top rounded-xl border border-white/10 bg-[#1A1535] p-1.5 shadow-xl"
           style={{ top: dropdownPos.top, left: dropdownPos.left }}
         >
           <button
@@ -98,9 +98,9 @@ export function WatchMoreMenu({ videoId }: { videoId: string }) {
         </div>
       ) : null}
       {reportOpen ? (
-        <div className="fixed inset-0 z-[120] flex items-center justify-center bg-black/70 backdrop-blur-sm" onClick={() => { setReportOpen(false); setDetail(""); }}>
+        <div className="anim-scrim fixed inset-0 z-[120] flex items-center justify-center bg-black/70 backdrop-blur-sm" onClick={() => { setReportOpen(false); setDetail(""); }}>
           <div
-            className="w-full max-w-[480px] rounded-2xl border border-white/[0.08] bg-[#0a0a0a] p-6"
+            className="anim-modal w-full max-w-[480px] rounded-2xl border border-white/[0.08] bg-[#0a0a0a] p-6"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="mb-4 flex items-center gap-2">

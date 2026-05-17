@@ -42,11 +42,11 @@ export function BusinessApplyModalProvider({ children }: { children: React.React
         typeof window !== "undefined" &&
         createPortal(
           <div
-            className="fixed inset-0 z-[120] flex items-start justify-center overflow-y-auto bg-black/70 p-4 pt-[5vh] backdrop-blur-sm"
+            className="anim-scrim fixed inset-0 z-[120] flex items-start justify-center overflow-y-auto bg-black/70 p-4 pt-[5vh] backdrop-blur-sm"
             onClick={close}
           >
             <div
-              className="relative mb-[5vh] w-full max-w-2xl rounded-2xl border border-white/[0.08] bg-[#0a0a0a] p-6"
+              className="anim-modal relative mb-[5vh] w-full max-w-2xl rounded-2xl border border-white/[0.08] bg-[#0a0a0a] p-6"
               onClick={(e) => e.stopPropagation()}
             >
               <div className="mb-2 flex items-center justify-between">

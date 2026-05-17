@@ -1024,9 +1024,9 @@ export function ChatDrawer({
             </div>
           </div>
           {deleteTargetId && (
-            <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/60 backdrop-blur-sm">
+            <div className="anim-scrim fixed inset-0 z-[200] flex items-center justify-center bg-black/60 backdrop-blur-sm">
               <div
-                className="mx-4 w-full max-w-xs rounded-2xl border border-white/[0.08] p-5"
+                className="anim-modal mx-4 w-full max-w-xs rounded-2xl border border-white/[0.08] p-5"
                 style={{
                   background: "linear-gradient(135deg, rgba(26,26,26,0.99) 0%, rgba(10,10,10,1) 100%)",
                   boxShadow: "0 0 0 1px rgba(127,119,221,0.1), 0 40px 80px rgba(0,0,0,0.6)",

@@ -95,11 +95,11 @@ export function EditModalProvider({ children }: { children: React.ReactNode }) {
 
       {isOpen && typeof window !== "undefined" && createPortal(
         <div
-          className="fixed inset-0 z-[120] flex items-start justify-center overflow-y-auto bg-black/70 backdrop-blur-sm p-4 pt-[5vh]"
+          className="anim-scrim fixed inset-0 z-[120] flex items-start justify-center overflow-y-auto bg-black/70 backdrop-blur-sm p-4 pt-[5vh]"
           onClick={close}
         >
           <div
-            className="relative w-full max-w-2xl rounded-2xl border border-white/[0.08] bg-[#0a0a0a] p-6 mb-[5vh]"
+            className="anim-modal relative w-full max-w-2xl rounded-2xl border border-white/[0.08] bg-[#0a0a0a] p-6 mb-[5vh]"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="mb-5 flex items-center justify-between">

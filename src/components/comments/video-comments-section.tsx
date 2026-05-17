@@ -272,9 +272,9 @@ function CommentBlock({
 
       {/* Delete confirmation modal */}
       {showDeleteModal && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm">
+        <div className="anim-scrim fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm">
           <div
-            className="w-full max-w-sm rounded-2xl border border-white/[0.08] p-6"
+            className="anim-modal w-full max-w-sm rounded-2xl border border-white/[0.08] p-6"
             style={{
               background: "linear-gradient(135deg, rgba(20,17,50,0.99) 0%, rgba(10,8,28,1) 100%)",
               boxShadow: "0 0 0 1px rgba(127,119,221,0.1), 0 40px 80px rgba(0,0,0,0.6)",

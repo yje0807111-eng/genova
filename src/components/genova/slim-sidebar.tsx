@@ -540,7 +540,7 @@ export function SlimSidebar({ onOpenChat, unreadMessageCount = 0 }: SlimSidebarP
       {showNotifications ? (
         <div
           ref={notifPanelRef}
-          className="fixed bottom-4 left-[84px] z-[100] hidden w-[320px] overflow-hidden rounded-2xl border border-white/[0.06] bg-[#0a0a0a] shadow-2xl md:block"
+          className="anim-pop fixed bottom-4 left-[84px] z-[100] hidden w-[320px] origin-bottom-left overflow-hidden rounded-2xl border border-white/[0.06] bg-[#0a0a0a] shadow-2xl md:block"
         >
           <div className="flex items-center justify-between border-b border-white/[0.06] px-4 py-3">
             <div className="flex items-center gap-2">
@@ -712,7 +712,7 @@ export function SlimSidebar({ onOpenChat, unreadMessageCount = 0 }: SlimSidebarP
         <div
           ref={langPanelRef}
           role="menu"
-          className="fixed bottom-[56px] left-[84px] z-[100] hidden md:block"
+          className="anim-pop fixed bottom-[56px] left-[84px] z-[100] hidden origin-bottom-left md:block"
         >
           <div className="w-[184px] overflow-hidden rounded-2xl border border-white/[0.08] bg-[#0a0a0a]/95 p-1.5 shadow-2xl backdrop-blur-xl">
             <p className="px-2 pb-1 pt-1.5 text-[10px] font-semibold uppercase tracking-[0.14em] text-white/35">
@@ -773,12 +773,12 @@ export function SlimSidebar({ onOpenChat, unreadMessageCount = 0 }: SlimSidebarP
           onClick={() => setShowLogoutConfirm(false)}
         >
           <div
-            className="absolute inset-0 bg-black/65 backdrop-blur-sm"
+            className="anim-scrim absolute inset-0 bg-black/65 backdrop-blur-sm"
             aria-hidden
           />
           <div
             onClick={(e) => e.stopPropagation()}
-            className="relative w-full max-w-[360px] overflow-hidden rounded-2xl border border-[#7F77DD]/20 p-6 text-center"
+            className="anim-modal relative w-full max-w-[360px] overflow-hidden rounded-2xl border border-[#7F77DD]/20 p-6 text-center"
             style={{
               background:
                 "linear-gradient(160deg, rgba(20,16,40,0.96) 0%, rgba(10,10,10,0.98) 100%)",

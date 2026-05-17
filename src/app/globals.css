@@ -624,6 +624,32 @@ body {
   .landing-marquee { animation: none; }
 }
 
+/* ============================================================
+   팝업/모달 공통 등장 애니메이션.
+   - anim-scrim : 배경 딤(페이드 인)
+   - anim-modal : 중앙 모달(페이드 + 살짝 떠오르며 스케일 업)
+   - anim-pop   : 팝오버/드롭다운(페이드 + 작은 상승 + 스케일)
+   transform-origin 은 사용처에서 필요 시 덮어쓴다.
+   ============================================================ */
+@keyframes scrimIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+@keyframes modalIn {
+  from { opacity: 0; transform: translateY(10px) scale(0.96); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+@keyframes popIn {
+  from { opacity: 0; transform: translateY(6px) scale(0.97); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+.anim-scrim { animation: scrimIn 0.2s ease-out both; }
+.anim-modal { animation: modalIn 0.32s cubic-bezier(0.22, 1, 0.36, 1) both; }
+.anim-pop   { animation: popIn 0.22s cubic-bezier(0.22, 1, 0.36, 1) both; }
+@media (prefers-reduced-motion: reduce) {
+  .anim-scrim, .anim-modal, .anim-pop { animation: none; }
+}
+
 /* section-swap — 홈 필터(추천/필름 탭·서브 칩·정렬) 전환 시
    그리드가 한 덩어리로 깜빡이지 않고, 카드들이 순차(stagger)로
    부드럽게 떠오르도록.  컨테이너는 아주 옅은 페이드만, 실제

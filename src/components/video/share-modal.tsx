@@ -123,9 +123,9 @@ export function ShareButton({
         {t("share.share")}
       </button>
       {open ? (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4" onClick={closeModal}>
+        <div className="anim-scrim fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4" onClick={closeModal}>
           <div
-            className="w-full max-w-sm rounded-xl border border-white/[0.08] bg-[#0F0D24] p-6 shadow-2xl"
+            className="anim-modal w-full max-w-sm rounded-xl border border-white/[0.08] bg-[#0F0D24] p-6 shadow-2xl"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="mb-4 flex items-center justify-between">

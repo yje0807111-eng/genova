@@ -28,12 +28,12 @@ export function CompetitionRulesModal({ open, onClose }: Props) {
 
   return createPortal(
     <div
-      className="fixed inset-0 z-[200] flex items-start justify-center overflow-y-auto p-4 pt-[5vh]"
+      className="anim-scrim fixed inset-0 z-[200] flex items-start justify-center overflow-y-auto p-4 pt-[5vh]"
       style={{ background: "rgba(0,0,0,0.7)", backdropFilter: "blur(8px)" }}
       onClick={onClose}
     >
       <div
-        className="relative w-full max-w-2xl rounded-2xl border border-white/[0.08] bg-[#0a0a0a] p-8 mb-[5vh]"
+        className="anim-modal relative w-full max-w-2xl rounded-2xl border border-white/[0.08] bg-[#0a0a0a] p-8 mb-[5vh]"
         style={{ boxShadow: "0 24px 80px rgba(0,0,0,0.6)" }}
         onClick={(e) => e.stopPropagation()}
       >

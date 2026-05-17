@@ -156,9 +156,9 @@ export function SeriesEpisodesSlider({
       </div>
 
       {showAll ? (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4" onClick={() => setShowAll(false)}>
+        <div className="anim-scrim fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4" onClick={() => setShowAll(false)}>
           <div
-            className="flex max-h-[85vh] w-full max-w-4xl flex-col overflow-hidden rounded-2xl border border-white/10 bg-[#0F0D1E] shadow-2xl"
+            className="anim-modal flex max-h-[85vh] w-full max-w-4xl flex-col overflow-hidden rounded-2xl border border-white/10 bg-[#0F0D1E] shadow-2xl"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Modal header */}
