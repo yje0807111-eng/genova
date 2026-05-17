@@ -27,11 +27,16 @@ export function HomeMobileFeed({ videosFromDb }: { videosFromDb: Video[] }) {
   const [loading, setLoading] = useState(false);
   const sentinelRef = useRef<HTMLDivElement | null>(null);
 
-  useEffect(() => {
+  // Re-seed feed/pagination when the server sends a new video set —
+  // documented "store previous value, adjust during render" pattern
+  // (replaces a setState-in-effect; identical [videosFromDb] trigger).
+  const [prevSource, setPrevSource] = useState(videosFromDb);
+  if (prevSource !== videosFromDb) {
+    setPrevSource(videosFromDb);
     setVideos(videosFromDb);
     setPage(0);
     setHasMore(videosFromDb.length === 50);
-  }, [videosFromDb]);
+  }
 
   const loadMore = useCallback(async () => {
     if (!hasMore || loading) return;
