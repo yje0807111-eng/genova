@@ -933,6 +933,8 @@ export const koOverrides: Record<string, string> = {
   "series.seasonTab": "시즌 {n}",
   "series.nowPlaying": "재생 중",
   "series.genrePlaceholder": "드라마",
+  "series.totalEpisodes": "전 {n}화",
+  "series.viewAll": "전체 회차 보기",
 
   "comments.reply": "답글",
   "comments.post": "게시",

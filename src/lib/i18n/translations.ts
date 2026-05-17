@@ -1460,6 +1460,8 @@ const en: Messages = {
   "series.seasonTab": "Season {n}",
   "series.nowPlaying": "Now Playing",
   "series.genrePlaceholder": "Drama",
+  "series.totalEpisodes": "{n} episodes",
+  "series.viewAll": "View all",
 
   "comments.reply": "Reply",
   "comments.post": "Post",

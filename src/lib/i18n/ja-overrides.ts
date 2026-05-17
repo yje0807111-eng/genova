@@ -909,6 +909,8 @@ export const jaOverrides: Record<string, string> = {
   "series.seasonTab": "シーズン{n}",
   "series.nowPlaying": "再生中",
   "series.genrePlaceholder": "ドラマ",
+  "series.totalEpisodes": "全{n}話",
+  "series.viewAll": "すべての話",
 
   "comments.reply": "返信",
   "comments.post": "投稿",
