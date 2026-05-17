@@ -1824,6 +1824,7 @@ export const koOverrides: Record<string, string> = {
   "genre.lifestyle": "일상",
   "genre.music": "음악",
   "profile.editVideo": "영상 편집",
+  "profile.editShort": "편집",
   "profile.submission": "출품작",
   "resetPassword.confirm": "비밀번호 확인",
   "resetPassword.mismatch": "비밀번호가 일치하지 않습니다",

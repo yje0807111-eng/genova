@@ -1757,6 +1757,7 @@ export const jaOverrides: Record<string, string> = {
   "genre.lifestyle": "日常",
   "genre.music": "音楽",
   "profile.editVideo": "動画を編集",
+  "profile.editShort": "編集",
   "profile.submission": "出品作",
   "resetPassword.confirm": "パスワード確認",
   "resetPassword.mismatch": "パスワードが一致しません",

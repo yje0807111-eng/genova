@@ -205,6 +205,7 @@ const en: Messages = {
   "genre.lifestyle": "Lifestyle",
   "genre.music": "Music",
   "profile.editVideo": "Edit Video",
+  "profile.editShort": "Edit",
   "profile.submission": "Submission",
   "resetPassword.confirm": "Confirm Password",
   "resetPassword.mismatch": "Passwords do not match",

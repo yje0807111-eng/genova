@@ -90,51 +90,84 @@ export function ProfileBulkToolbar({
   };
 
   return (
-    <div className="mt-3 flex flex-wrap items-center gap-3 rounded-lg border border-border bg-card px-4 py-2.5">
-      <span className="text-xs text-muted-foreground">
+    <div
+      className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-3 rounded-2xl border border-[#7F77DD]/20 px-4 py-3 backdrop-blur-xl"
+      style={{
+        background:
+          "linear-gradient(160deg, rgba(20,16,40,0.85) 0%, rgba(10,10,10,0.92) 100%)",
+        boxShadow:
+          "0 8px 30px rgba(0,0,0,0.35), inset 0 1px 0 rgba(127,119,221,0.14)",
+      }}
+    >
+      <span className="text-[11px] font-semibold uppercase tracking-[0.14em] text-white/40">
         {t("profile.selectVideosTo", "Select videos, then:")}
       </span>
-      <button
-        type="button"
-        onClick={() => setBulkAction(bulkAction === "private" ? null : "private")}
+
+      {/* Segmented public/private control */}
+      <div
         className={cn(
-          "flex items-center gap-1.5 rounded-md border px-3 py-1 text-xs transition",
-          bulkAction === "private"
-            ? "border-primary bg-primary/20 text-primary"
-            : showBulkHint
-              ? "border-amber-400/50 text-white/70 hover:bg-white/5 hover:text-white ring-1 ring-amber-400/30"
-              : "border-border text-white/70 hover:bg-white/5 hover:text-white",
+          "flex items-center gap-1 rounded-full border p-1 transition",
+          showBulkHint
+            ? "border-amber-400/50 ring-1 ring-amber-400/25"
+            : "border-white/[0.08] bg-white/[0.03]",
         )}
       >
-        <EyeOff className="h-3 w-3" />
-        {t("profile.setPrivate", "Make private")}
-      </button>
-      <button
-        type="button"
-        onClick={() => setBulkAction(bulkAction === "public" ? null : "public")}
-        className={cn(
-          "flex items-center gap-1.5 rounded-md border px-3 py-1 text-xs transition",
-          bulkAction === "public"
-            ? "border-primary bg-primary/20 text-primary"
-            : showBulkHint
-              ? "border-amber-400/50 text-white/70 hover:bg-white/5 hover:text-white ring-1 ring-amber-400/30"
-              : "border-border text-white/70 hover:bg-white/5 hover:text-white",
-        )}
-      >
-        <Eye className="h-3 w-3" />
-        {t("profile.setPublic", "Make public")}
-      </button>
+        <button
+          type="button"
+          onClick={() => setBulkAction(bulkAction === "public" ? null : "public")}
+          className={cn(
+            "flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-[12px] font-semibold transition-all duration-200",
+            bulkAction === "public"
+              ? "text-white shadow-[0_2px_10px_rgba(83,74,183,0.4)]"
+              : "text-white/55 hover:text-white/85",
+          )}
+          style={
+            bulkAction === "public"
+              ? {
+                  background:
+                    "linear-gradient(135deg, #6B5FD4 0%, #534AB7 100%)",
+                }
+              : undefined
+          }
+        >
+          <Eye className="h-3.5 w-3.5" />
+          {t("profile.setPublic", "Make public")}
+        </button>
+        <button
+          type="button"
+          onClick={() => setBulkAction(bulkAction === "private" ? null : "private")}
+          className={cn(
+            "flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-[12px] font-semibold transition-all duration-200",
+            bulkAction === "private"
+              ? "text-white shadow-[0_2px_10px_rgba(83,74,183,0.4)]"
+              : "text-white/55 hover:text-white/85",
+          )}
+          style={
+            bulkAction === "private"
+              ? {
+                  background:
+                    "linear-gradient(135deg, #6B5FD4 0%, #534AB7 100%)",
+                }
+              : undefined
+          }
+        >
+          <EyeOff className="h-3.5 w-3.5" />
+          {t("profile.setPrivate", "Make private")}
+        </button>
+      </div>
+
       {showBulkHint ? (
-        <span className="flex items-center gap-1.5 animate-pulse text-xs text-amber-400">
-          <ArrowLeft className="h-3 w-3" />
+        <span className="flex animate-pulse items-center gap-1.5 text-[12px] font-medium text-amber-300">
+          <ArrowLeft className="h-3.5 w-3.5" />
           {t("profile.selectBulkActionFirst", "Choose a public/private action first")}
         </span>
       ) : null}
-      <div className="ml-auto flex items-center gap-2">
+
+      <div className="ml-auto flex items-center gap-2.5">
         <button
           type="button"
           onClick={onSelectAllToggle}
-          className="text-xs text-muted-foreground transition hover:text-white"
+          className="rounded-full px-3 py-1.5 text-[12px] font-medium text-white/45 transition hover:bg-white/[0.05] hover:text-white/80"
         >
           {allDisplayedSelected
             ? t("profile.deselectAll", "Deselect all")
@@ -144,7 +177,11 @@ export function ProfileBulkToolbar({
           type="button"
           disabled={bulkSaving}
           onClick={onApply}
-          className="rounded-md bg-primary px-3 py-1 text-xs font-medium text-white transition hover:bg-primary/90"
+          className="rounded-full px-4 py-1.5 text-[12px] font-bold text-white transition-all duration-200 hover:brightness-110 disabled:opacity-50"
+          style={{
+            background: "linear-gradient(135deg, #6B5FD4 0%, #534AB7 70%, #3F36A3 100%)",
+            boxShadow: "0 2px 12px rgba(83,74,183,0.35), inset 0 1px 0 rgba(255,255,255,0.15)",
+          }}
         >
           {bulkSaving
             ? t("settings.saving", "Saving…")
@@ -155,7 +192,7 @@ export function ProfileBulkToolbar({
         <button
           type="button"
           onClick={onCancel}
-          className="rounded-md border border-border px-3 py-1 text-xs text-white/70 transition hover:bg-white/5 hover:text-white"
+          className="rounded-full border border-white/[0.1] bg-white/[0.04] px-3.5 py-1.5 text-[12px] font-semibold text-white/60 backdrop-blur-md transition hover:border-white/20 hover:text-white"
         >
           {t("common.cancel", "Cancel")}
         </button>

@@ -115,9 +115,18 @@ function ProfileVideoCard({ video, t, isOwner, onEdit }: { video: any; t: (key: 
               onEdit(video.id);
             }}
             title={t("profile.editVideo", "영상 편집")}
-            className="absolute top-2 right-2 z-10 flex h-7 w-7 items-center justify-center rounded-full border border-white/[0.1] bg-[#0a0a0a]/80 text-white/70 opacity-0 backdrop-blur-md transition hover:bg-[#534AB7] hover:text-white group-hover/card:opacity-100"
+            className="group/edit absolute right-2.5 top-2.5 z-10 flex h-9 items-center gap-1.5 overflow-hidden rounded-full border border-white/15 px-2.5 text-white/80 opacity-0 backdrop-blur-xl transition-all duration-300 -translate-y-1 group-hover/card:translate-y-0 group-hover/card:opacity-100 hover:border-[#7F77DD]/50 hover:text-white"
+            style={{
+              background:
+                "linear-gradient(135deg, rgba(127,119,221,0.18) 0%, rgba(10,10,10,0.72) 60%)",
+              boxShadow:
+                "0 4px 16px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.12)",
+            }}
           >
-            <Pencil className="h-3.5 w-3.5" />
+            <Pencil className="h-3.5 w-3.5 shrink-0" />
+            <span className="max-w-0 overflow-hidden whitespace-nowrap text-[11px] font-semibold opacity-0 transition-all duration-300 group-hover/edit:max-w-[48px] group-hover/edit:opacity-100">
+              {t("profile.editShort", "편집")}
+            </span>
           </button>
         )}
 
