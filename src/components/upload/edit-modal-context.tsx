@@ -116,20 +116,43 @@ export function EditModalProvider({ children }: { children: React.ReactNode }) {
             </div>
 
             {loading ? (
-              <div className="flex items-center justify-center py-12 text-white/45">
-                {t("common.loading", "불러오는 중...")}
+              <div className="animate-pulse space-y-5" aria-hidden>
+                <div className="aspect-video w-full rounded-xl bg-white/[0.04]" />
+                <div className="space-y-2">
+                  <div className="h-3 w-20 rounded bg-white/[0.05]" />
+                  <div className="h-10 w-full rounded-lg bg-white/[0.04]" />
+                </div>
+                <div className="space-y-2">
+                  <div className="h-3 w-16 rounded bg-white/[0.05]" />
+                  <div className="flex gap-2">
+                    {[64, 88, 72, 60, 68].map((w, i) => (
+                      <div
+                        key={i}
+                        className="h-9 rounded-full bg-white/[0.04]"
+                        style={{ width: w }}
+                      />
+                    ))}
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <div className="h-3 w-24 rounded bg-white/[0.05]" />
+                  <div className="h-20 w-full rounded-lg bg-white/[0.04]" />
+                </div>
+                <div className="h-11 w-full rounded-full bg-white/[0.05]" />
               </div>
             ) : error ? (
               <div className="flex items-center justify-center py-12 text-red-400">
                 {error}
               </div>
             ) : video && userId ? (
-              <EditVideoFormSimple
-                video={video}
-                userId={userId}
-                competitions={competitions}
-                activeCompetitionId={activeCompetitionId}
-              />
+              <div className="anim-fade">
+                <EditVideoFormSimple
+                  video={video}
+                  userId={userId}
+                  competitions={competitions}
+                  activeCompetitionId={activeCompetitionId}
+                />
+              </div>
             ) : null}
           </div>
         </div>,

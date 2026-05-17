@@ -47,7 +47,7 @@ export function UploadLotteryBadge() {
   const depleted = used >= 5;
 
   return (
-    <div className="mb-4 flex items-center gap-2 rounded-lg border border-white/[0.08] bg-white/[0.02] px-3 py-2 text-[12px]">
+    <div className="anim-fade mb-4 flex items-center gap-2 rounded-lg border border-white/[0.08] bg-white/[0.02] px-3 py-2 text-[12px]">
       <Ticket className="h-3.5 w-3.5 text-[#AFA9EC]/80" aria-hidden />
       <span className="text-white/45">
         {t("lottery.title", "이번 달 응모권")}

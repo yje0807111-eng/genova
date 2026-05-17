@@ -659,12 +659,19 @@ body {
   from { opacity: 1; transform: translateY(0) scale(1); }
   to   { opacity: 0; transform: translateY(4px) scale(0.98); }
 }
+/* 내용 교체(스켈레톤→실데이터)용 부드러운 페이드. */
+@keyframes fadeSwapIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+.anim-fade { animation: fadeSwapIn 0.28s ease-out both; }
+
 .anim-scrim-out { animation: scrimOut 0.18s ease-in both; }
 .anim-modal-out { animation: modalOut 0.2s ease-in both; }
 .anim-pop-out   { animation: popOut 0.16s ease-in both; }
 
 @media (prefers-reduced-motion: reduce) {
-  .anim-scrim, .anim-modal, .anim-pop,
+  .anim-scrim, .anim-modal, .anim-pop, .anim-fade,
   .anim-scrim-out, .anim-modal-out, .anim-pop-out { animation: none; }
 }
 
