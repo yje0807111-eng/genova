@@ -608,18 +608,13 @@ export function CompetitionDetailClient({
                 key={s.id}
                 type="button"
                 onClick={() => {
-                  // 모바일: 활성 섹션 전환. 데스크톱: 해당 섹션으로 스크롤.
+                  // 전 뷰포트 탭 전환 — 스크롤 이동 없이 하단 콘텐츠만 교체.
                   setSection(s.id as typeof section);
-                  if (window.matchMedia("(min-width: 768px)").matches) {
-                    document.getElementById(s.id)?.scrollIntoView({ behavior: "smooth", block: "start" });
-                  } else {
-                    window.scrollTo({ top: 0, behavior: "smooth" });
-                  }
                 }}
                 className={cn(
                   "-mb-px shrink-0 whitespace-nowrap border-b-2 px-4 py-3.5 text-[13px] font-medium transition-all duration-200 hover:text-white md:px-5",
                   section === s.id
-                    ? "border-[#7F77DD] text-white md:border-transparent md:text-white/45 md:hover:text-white"
+                    ? "border-[#7F77DD] text-white"
                     : "border-transparent text-white/45",
                 )}
               >
@@ -661,7 +656,7 @@ export function CompetitionDetailClient({
       <div className="relative z-10 mx-auto min-h-[58vh] max-w-[1400px] space-y-20 px-4 py-12 md:px-8">
 
         {/* 개요 */}
-        <section id="overview" className={cn("scroll-mt-24 md:block", section === "overview" ? "block" : "hidden")}>
+        <section id="overview" className={cn(section === "overview" ? "block" : "hidden")}>
           <div className="space-y-6">
 
             {/* 공모전 소개 + 참가 규칙 */}
@@ -1277,7 +1272,7 @@ export function CompetitionDetailClient({
         </section>
 
         {/* 심사 및 시상 */}
-        <section id="judging" className={cn("scroll-mt-24 md:block", section === "judging" ? "block" : "hidden")}>
+        <section id="judging" className={cn(section === "judging" ? "block" : "hidden")}>
           <div className="grid grid-cols-1 gap-6 lg:grid-cols-[1fr_320px]">
             <div className="space-y-6">
               <div
@@ -1449,7 +1444,7 @@ export function CompetitionDetailClient({
         </section>
 
         {/* 문의 */}
-        <section id="faq" className={cn("scroll-mt-24 md:block", section === "faq" ? "block" : "hidden")}>
+        <section id="faq" className={cn(section === "faq" ? "block" : "hidden")}>
           <div className="max-w-2xl space-y-5">
             {(competition.announcement_ko || competition.announcement_en || competition.announcement_ja || competition.announcement) && (
               <div className="rounded-2xl p-6" style={{ background: "linear-gradient(135deg, var(--tint-accent-15) 0%, rgba(40,35,100,0.1) 100%)", border: "1px solid rgba(127,119,221,0.2)" }}>
@@ -1505,7 +1500,7 @@ export function CompetitionDetailClient({
         </section>
 
         {/* 출품작 */}
-        <section id="entries" className={cn("scroll-mt-24 md:block", section === "entries" ? "block" : "hidden")}>
+        <section id="entries" className={cn(section === "entries" ? "block" : "hidden")}>
           <div className="space-y-8">
             {featuredVideos.length > 0 && (
               <div>
