@@ -4,9 +4,10 @@ import { createServiceSupabaseClient } from "@/lib/supabase/service";
 /**
  * 영상 상세 페이지 로드 시 조회수 +1.
  *
- * - per-user 3회 캡: watch_history 를 service-role 로 읽고/쓰기
- *   (세션 클라이언트는 RLS 에 막혀 캡이 안 먹던 문제 → 무제한
- *   증가하던 버그 방지).
+ * - per-user 3회 캡: watch_history 에 (user, video) 행이 여러 개
+ *   존재할 수 있어(진행률 추적 등) 단일 행 기준으로는 누적이 안 돼
+ *   캡이 안 먹던 문제 → 전체 행의 view_count_increments 합으로
+ *   판정.  RLS 우회 위해 service-role 로 읽고/쓴다.
  * - 핵심 증가: `increment_video_view_count` RPC → 실패 시
  *   service-role 직접 업데이트(RLS 우회).
  */
@@ -21,34 +22,40 @@ export async function incrementVideoViewCount(videoId: string): Promise<boolean>
   const service = createServiceSupabaseClient();
 
   if (user) {
-    // 캡 판정은 RLS 우회가 필요 → service 우선, 없으면 세션.
     const capClient = service ?? supabase;
-    const { data: history, error: historyError } = await capClient
+    // (user, video) 의 모든 행 — 합산으로 누적 캡 판정.
+    const { data: rows, error: historyError } = await capClient
       .from("watch_history")
-      .select("view_count_increments")
+      .select("id, view_count_increments, watched_at")
       .eq("user_id", user.id)
       .eq("video_id", videoId)
-      .maybeSingle();
+      .order("watched_at", { ascending: false });
 
     if (!historyError) {
-      const currentIncrements =
-        (history as { view_count_increments?: number | null } | null)
-          ?.view_count_increments ?? 0;
+      const list = (rows ?? []) as {
+        id: string | number;
+        view_count_increments?: number | null;
+        watched_at?: string | null;
+      }[];
+      const total = list.reduce(
+        (s, r) => s + (r.view_count_increments ?? 0),
+        0,
+      );
       // 이미 3회 도달 → 더 올리지 않음.
-      if (currentIncrements >= 3) {
+      if (total >= 3) {
         return false;
       }
-      const nextIncrements = currentIncrements + 1;
       const watchedAt = new Date().toISOString();
-      if (history) {
+      const latest = list[0];
+      if (latest) {
+        // 가장 최근 행의 카운터만 +1 (합계가 3 도달 시 자동 캡).
         await capClient
           .from("watch_history")
           .update({
-            view_count_increments: nextIncrements,
+            view_count_increments: (latest.view_count_increments ?? 0) + 1,
             watched_at: watchedAt,
           })
-          .eq("user_id", user.id)
-          .eq("video_id", videoId);
+          .eq("id", latest.id);
       } else {
         await capClient.from("watch_history").insert({
           user_id: user.id,
