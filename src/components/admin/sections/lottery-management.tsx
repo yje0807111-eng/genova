@@ -114,6 +114,16 @@ export function LotteryManagement({
     });
   };
 
+  const statusLabel = (s: string): string =>
+    ({
+      pending: "대기",
+      submitted: "제출",
+      confirmed: "확인",
+      paid: "지급",
+      expired: "만료",
+      invalidated: "무효",
+    })[s] ?? s;
+
   const filtered = winners.filter((w) =>
     filter === "all" ? true : w.claimStatus === filter,
   );
@@ -172,19 +182,25 @@ export function LotteryManagement({
           </h3>
           <div className="flex items-center gap-2">
             <div className="flex gap-1">
-              {["all", "pending", "submitted", "confirmed", "paid"].map((f) => (
+              {[
+                { key: "all", label: "전체" },
+                { key: "pending", label: "대기" },
+                { key: "submitted", label: "제출" },
+                { key: "confirmed", label: "확인" },
+                { key: "paid", label: "지급" },
+              ].map((f) => (
                 <button
-                  key={f}
+                  key={f.key}
                   type="button"
-                  onClick={() => setFilter(f)}
+                  onClick={() => setFilter(f.key)}
                   className={cn(
                     "rounded-md px-2.5 py-1 text-[11px] font-semibold transition",
-                    filter === f
+                    filter === f.key
                       ? "bg-white text-[#0a0a0a]"
                       : "border border-white/10 text-white/55",
                   )}
                 >
-                  {f}
+                  {f.label}
                 </button>
               ))}
             </div>
@@ -216,7 +232,7 @@ export function LotteryManagement({
                   ${w.prizeAmountUsd}
                 </span>
                 <span className="rounded bg-white/[0.06] px-1.5 py-0.5 text-[10px] text-white/55">
-                  {w.claimStatus}
+                  {statusLabel(w.claimStatus)}
                 </span>
                 {w.info ? (
                   <span className="text-white/40">
