@@ -1873,6 +1873,7 @@ export const koOverrides: Record<string, string> = {
   "profile.editVideo": "영상 편집",
   "profile.editShort": "편집",
   "profile.submission": "출품작",
+  "profile.finalist": "결선작",
   "resetPassword.confirm": "비밀번호 확인",
   "resetPassword.mismatch": "비밀번호가 일치하지 않습니다",
   "resetPassword.newPassword": "새 비밀번호",

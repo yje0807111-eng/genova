@@ -209,6 +209,7 @@ const en: Messages = {
   "profile.editVideo": "Edit Video",
   "profile.editShort": "Edit",
   "profile.submission": "Submission",
+  "profile.finalist": "Finalist",
   "resetPassword.confirm": "Confirm Password",
   "resetPassword.mismatch": "Passwords do not match",
   "resetPassword.newPassword": "New Password",

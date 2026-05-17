@@ -1805,6 +1805,7 @@ export const jaOverrides: Record<string, string> = {
   "profile.editVideo": "動画を編集",
   "profile.editShort": "編集",
   "profile.submission": "出品作",
+  "profile.finalist": "ファイナリスト",
   "resetPassword.confirm": "パスワード確認",
   "resetPassword.mismatch": "パスワードが一致しません",
   "resetPassword.newPassword": "新しいパスワード",

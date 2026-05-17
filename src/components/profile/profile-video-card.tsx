@@ -110,24 +110,52 @@ export function ProfileVideoCard({
           </button>
         )}
 
-        {/* Series episode badge — replaces competition badge in
-            the Series tab context. */}
-        {episodeNumber ? (
-          <div className="absolute left-2 top-2">
-            <span
-              className="inline-flex items-center rounded-md bg-[#534AB7] px-2 py-0.5 text-[10px] font-black uppercase tracking-wider text-white ring-1 ring-white/20"
-              style={{ boxShadow: "0 2px 10px rgba(0,0,0,0.55)" }}
-            >
-              EP {episodeNumber}
+        {/* 홈 카드와 동일한 글래스 배지 + 발광 닷.
+            Series 탭은 EP 번호, 그 외는 시리즈/출품작 표시. */}
+        {(() => {
+          const seriesName = video.series_name ?? video.seriesName;
+          const isComp = video.purpose === "competition";
+          const isFinalist = video.is_finalist ?? video.isFinalist;
+          const badge = episodeNumber
+            ? {
+                label: t("series.episodeShort", "EP.{n}").replace(
+                  "{n}",
+                  String(episodeNumber),
+                ),
+                kind: "series" as const,
+              }
+            : seriesName
+              ? {
+                  label: t("series.sectionLabel", "Series"),
+                  kind: "series" as const,
+                }
+              : isComp
+                ? {
+                    label: isFinalist
+                      ? t("profile.finalist", "Finalist")
+                      : t("profile.submission", "Submission"),
+                    kind: "comp" as const,
+                  }
+                : null;
+          if (!badge) return null;
+          return (
+            <span className="absolute left-2.5 top-2.5 inline-flex items-center gap-1.5 rounded-full bg-black/35 px-2.5 py-1 text-[10.5px] font-semibold text-white/90 backdrop-blur-md ring-1 ring-white/10">
+              <span
+                className="h-1.5 w-1.5 rounded-full"
+                style={{
+                  background: badge.kind === "series" ? "#9D95F0" : "#F5C451",
+                  boxShadow: `0 0 6px ${
+                    badge.kind === "series"
+                      ? "rgba(157,149,240,0.8)"
+                      : "rgba(245,196,81,0.8)"
+                  }`,
+                }}
+                aria-hidden
+              />
+              {badge.label}
             </span>
-          </div>
-        ) : video.purpose === "competition" ? (
-          <div className="absolute left-2 top-2">
-            <span className="inline-flex items-center gap-0.5 rounded-md bg-amber-400/15 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider text-amber-300">
-              {video.is_finalist ? "FINALIST" : t("profile.submission", "출품작")}
-            </span>
-          </div>
-        ) : null}
+          );
+        })()}
       </div>
     </Link>
   );
