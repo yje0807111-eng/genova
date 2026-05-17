@@ -79,24 +79,6 @@ export async function fetchLotteryMonthlySummary(
 
   const poolCount = tickets?.length ?? 0;
 
-  // Decisive diagnostic: if poolCount is 0, is it RLS (admin client
-  // can't see ANY rows) or a month_key mismatch (rows exist under a
-  // different key)?  One extra unfiltered probe answers it.
-  if (poolCount === 0) {
-    const { data: probe, error: probeErr } = await service
-      .from("entry_tickets")
-      .select("month_key")
-      .limit(50);
-    console.error(
-      `[lottery-summary] poolCount=0 for jsMonthKey=${monthKey}. ` +
-        `unfilteredVisibleRows=${probe?.length ?? 0} ` +
-        `distinctMonthKeys=${JSON.stringify([
-          ...new Set((probe ?? []).map((r) => r.month_key as string)),
-        ])} ` +
-        `probeErr=${probeErr?.message ?? "none"}`,
-    );
-  }
-
   const poolUserCount = new Set(
     (tickets ?? []).map((t) => t.user_id as string),
   ).size;

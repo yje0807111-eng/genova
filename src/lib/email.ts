@@ -58,7 +58,7 @@ export async function sendWinnerCodeEmail(input: {
     // disallowed `from`, etc.) — it resolves with { error }.  Treat a
     // present error as failure so the UI/admin don't report a false
     // success and we log the real reason.
-    const { data, error } = await resend.emails.send({
+    const { error } = await resend.emails.send({
       from,
       to: input.to,
       subject,
@@ -71,9 +71,6 @@ export async function sendWinnerCodeEmail(input: {
       );
       return false;
     }
-    console.log(
-      `Winner code email accepted by Resend id=${data?.id ?? "?"} to=${input.to}`,
-    );
     return true;
   } catch (error) {
     console.error("Winner code email send threw:", error);
@@ -202,7 +199,7 @@ export async function sendWinnerNotificationEmail(input: {
   `;
 
   try {
-    const { data, error } = await resend.emails.send({
+    const { error } = await resend.emails.send({
       from,
       to: input.to,
       subject,
@@ -215,9 +212,6 @@ export async function sendWinnerNotificationEmail(input: {
       );
       return false;
     }
-    console.log(
-      `Winner notification email accepted by Resend id=${data?.id ?? "?"} to=${input.to}`,
-    );
     return true;
   } catch (error) {
     console.error("Winner notification email send threw:", error);
