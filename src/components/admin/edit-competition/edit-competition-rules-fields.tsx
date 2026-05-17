@@ -4,6 +4,7 @@ import { adminTokens } from "@/lib/admin-styles";
 import { useI18n } from "@/components/genova/language-provider";
 import type { EditCompetitionFormState } from "./types";
 import { JudgingRoundsEditor } from "./judging-rounds-editor";
+import { JudgingWeightsEditor } from "./judging-weights-editor";
 
 const inp =
   "w-full rounded-lg border border-white/[0.08] bg-[#0a0a0a] px-3.5 py-2.5 text-[13px] text-white outline-none transition-colors placeholder:text-white/25 focus:border-[#7F77DD]/45";
@@ -116,6 +117,9 @@ export function EditCompetitionRulesFields({
       </div>
       <div>
         <JudgingRoundsEditor form={form} setForm={setForm} langTab={langTab} />
+      </div>
+      <div>
+        <JudgingWeightsEditor form={form} setForm={setForm} langTab={langTab} />
       </div>
       <div>
         <label className={adminTokens.inputLabel}>{t("adminCompEditRules.rulesLabel", "Rules")} {suffix}</label>

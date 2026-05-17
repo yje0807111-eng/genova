@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import { requireAdminWithService } from "@/lib/auth/admin-actions";
 import { logAdminAction } from "@/lib/audit";
 import { createNotification } from "@/lib/notifications";
-import type { JudgingRound } from "@/components/admin/edit-competition/types";
+import type { JudgingRound, JudgingWeight } from "@/components/admin/edit-competition/types";
 
 type AdminResult = { ok: true } | { ok: false; message: string };
 
@@ -118,6 +118,7 @@ export async function updateCompetitionAction(
     judging_process_en?: string;
     judging_process_ja?: string;
     judging_rounds?: JudgingRound[];
+    judging_weights?: JudgingWeight[];
     submission_guidelines_ko?: string;
     submission_guidelines_en?: string;
     submission_guidelines_ja?: string;
@@ -203,6 +204,10 @@ export async function updateCompetitionAction(
       judging_rounds:
         Array.isArray(form.judging_rounds) && form.judging_rounds.length > 0
           ? form.judging_rounds
+          : null,
+      judging_weights:
+        Array.isArray(form.judging_weights) && form.judging_weights.length > 0
+          ? form.judging_weights
           : null,
       eligibility:
         form.eligibility_ko?.trim() ||

@@ -10,7 +10,7 @@ import { cn } from "@/lib/utils/cn";
 import { EditCompetitionImageFields } from "./edit-competition/edit-competition-image-fields";
 import { EditCompetitionPrizeFields } from "./edit-competition/edit-competition-prize-fields";
 import { EditCompetitionRulesFields } from "./edit-competition/edit-competition-rules-fields";
-import type { JudgingRound } from "./edit-competition/types";
+import type { JudgingRound, JudgingWeight } from "./edit-competition/types";
 
 const inp =
   "w-full rounded-lg border border-white/[0.08] bg-[#0a0a0a] px-3.5 py-2.5 text-[13px] text-white outline-none transition-colors placeholder:text-white/25 focus:border-[#7F77DD]/45";
@@ -67,6 +67,9 @@ export function EditCompetitionForm({ competition }: { competition: any }) {
     judging_rounds: (Array.isArray(competition.judging_rounds)
       ? (competition.judging_rounds as JudgingRound[])
       : []) as JudgingRound[],
+    judging_weights: (Array.isArray(competition.judging_weights)
+      ? (competition.judging_weights as JudgingWeight[])
+      : []) as JudgingWeight[],
     submission_guidelines_ko: competition.submission_guidelines_ko ?? competition.submission_guidelines ?? "",
     submission_guidelines_en: competition.submission_guidelines_en ?? "",
     submission_guidelines_ja: competition.submission_guidelines_ja ?? "",

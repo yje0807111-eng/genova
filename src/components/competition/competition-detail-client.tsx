@@ -11,7 +11,7 @@ import { cn } from "@/lib/utils/cn";
 import { HoverPreviewCard } from "@/components/genova/hover-preview-card";
 import { useUploadModal } from "@/components/upload/upload-modal-context";
 import type { Video as AppVideo } from "@/lib/types";
-import type { JudgingRound, JudgingEvaluatorType } from "@/components/admin/edit-competition/types";
+import type { JudgingRound, JudgingEvaluatorType, JudgingWeight } from "@/components/admin/edit-competition/types";
 import { Trophy, ChevronLeft, Upload, Star, Grid, List, Award, Medal, ArrowRight } from "lucide-react";
 
 function isVideoUrl(url: string): boolean {
@@ -51,6 +51,7 @@ type Competition = {
   judging_process_en?: string | null;
   judging_process_ja?: string | null;
   judging_rounds?: JudgingRound[] | null;
+  judging_weights?: JudgingWeight[] | null;
   submission_guidelines?: string | null;
   submission_guidelines_ko?: string | null;
   submission_guidelines_en?: string | null;
@@ -1397,13 +1398,26 @@ export function CompetitionDetailClient({
                 <div className="mt-6 rounded-xl border border-white/10 bg-[#0a0a0a]/40 p-5 backdrop-blur-xl">
                   <p className="mb-3 text-[10px] uppercase tracking-[0.2em] text-[#7F77DD]">{t("competition.detail.evaluationWeights", "Evaluation weights")}</p>
                   <div className="space-y-3">
-                    {[
-                      { label: t("competition.detail.weightCreativity"), weight: 35 },
-                      { label: t("competition.detail.weightTechnical"), weight: 25 },
-                      { label: t("competition.detail.weightStory"), weight: 25 },
-                      { label: t("competition.detail.weightImpact"), weight: 15 },
-                    ].map((metric) => (
-                      <div key={metric.label}>
+                    {(() => {
+                      const customW = Array.isArray(competition.judging_weights)
+                        ? competition.judging_weights
+                        : [];
+                      const list =
+                        customW.length > 0
+                          ? customW.map((w) => ({
+                              label:
+                                getText(w.label_ko, w.label_en, w.label_ja, "") ||
+                                t("competition.detail.weightCreativity"),
+                              weight: Math.max(0, Math.min(100, Number(w.percent) || 0)),
+                            }))
+                          : [
+                              { label: t("competition.detail.weightCreativity"), weight: 35 },
+                              { label: t("competition.detail.weightTechnical"), weight: 25 },
+                              { label: t("competition.detail.weightStory"), weight: 25 },
+                              { label: t("competition.detail.weightImpact"), weight: 15 },
+                            ];
+                      return list.map((metric, mi) => (
+                      <div key={`${metric.label}-${mi}`}>
                         <div className="mb-1 flex items-center justify-between text-xs text-white/65">
                           <span>{metric.label}</span>
                           <span className="font-mono text-white/45">{metric.weight}%</span>
@@ -1418,7 +1432,8 @@ export function CompetitionDetailClient({
                           />
                         </div>
                       </div>
-                    ))}
+                      ));
+                    })()}
                   </div>
                 </div>
 
