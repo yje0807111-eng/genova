@@ -302,7 +302,7 @@ export function SlimSidebar({ onOpenChat, unreadMessageCount = 0 }: SlimSidebarP
             <img src="/genova-logo.png" alt="Genova" className="h-[52px] w-[52px] object-contain mt-2" />
           </Link>
 
-          <nav className="mt-8 flex w-full flex-col items-center gap-5" aria-label="Main">
+          <nav className="mt-3 flex w-full flex-col items-center gap-5" aria-label="Main">
             {TOP_NAV.map(({ href, labelKey, labelFb, icon: Icon, match }) => {
               const active = match(pathname);
               const label = t(labelKey, labelFb);
