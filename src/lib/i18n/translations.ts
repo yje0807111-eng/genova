@@ -1700,6 +1700,11 @@ const en: Messages = {
   "claim.step3.submitting": "Submitting…",
   "claim.step3.success": "Submitted! We'll review and reach out soon.",
   "claim.error.unknown": "Something went wrong. Please try again.",
+  "claim.error.emailFailed": "We couldn't send the verification email. Please try again in a moment — if it keeps failing, contact the operator.",
+  "claim.error.emailMissing": "No email is registered on your Genova account. Please contact the operator.",
+  "claim.error.service": "The service is temporarily unavailable. Please try again shortly.",
+  "claim.error.noActiveCode": "No active code. Please request a new verification code.",
+  "claim.error.notVerified": "Email not verified yet. Please complete email verification first.",
 
   "meta.title.home": "Home",
   "meta.title.films": "Films",

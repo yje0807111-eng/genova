@@ -435,9 +435,21 @@ function ReasonHint({
     token_already_used: "claim.alreadySubmitted",
     invalid_token: "claim.invalidToken",
     missing_consent: "claim.step3.consent",
+    email_dispatch_failed: "claim.error.emailFailed",
+    user_email_missing: "claim.error.emailMissing",
+    service_unavailable: "claim.error.service",
+    no_active_code: "claim.error.noActiveCode",
+    email_not_verified: "claim.error.notVerified",
   };
   const key = map[reason];
-  const copy = key ? t(key) : t("claim.error.unknown", "Something went wrong. Please try again.");
+  const copy = key
+    ? t(
+        key,
+        reason === "email_dispatch_failed"
+          ? "Couldn't send the verification email. Please try again shortly, or contact the operator."
+          : "",
+      )
+    : t("claim.error.unknown", "Something went wrong. Please try again.");
   return (
     <p className="mt-2 text-[12px] text-amber-300/85">{copy}</p>
   );

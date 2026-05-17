@@ -156,6 +156,11 @@ export const jaOverrides: Record<string, string> = {
   "claim.step3.submitting": "提出中…",
   "claim.step3.success": "提出完了! 運営側で確認後ご連絡いたします。",
   "claim.error.unknown": "エラーが発生しました。再試行してください。",
+  "claim.error.emailFailed": "認証メールを送信できませんでした。しばらくしてから再試行してください。繰り返し失敗する場合は運営にお問い合わせください。",
+  "claim.error.emailMissing": "Genovaアカウントに登録されたメールがありません。運営にお問い合わせください。",
+  "claim.error.service": "サービスが一時的に利用できません。しばらくしてから再試行してください。",
+  "claim.error.noActiveCode": "有効なコードがありません。認証コードを再リクエストしてください。",
+  "claim.error.notVerified": "メール認証がまだ完了していません。先にメール認証を完了してください。",
 
   "meta.title.home": "ホーム",
   "meta.title.films": "フィルム",

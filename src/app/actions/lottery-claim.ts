@@ -52,7 +52,13 @@ export async function requestWinnerEmailCodeAction(
       user_email: string;
     }>();
 
-  if (error || !data) return mapRpcError(error?.message);
+  if (error || !data) {
+    console.error(
+      "[winner-claim] request_winner_email_code RPC failed:",
+      error?.message ?? "no data returned",
+    );
+    return mapRpcError(error?.message);
+  }
 
   // Best-effort email send.  Returning ok:true even if the email
   // fails would mislead the user — but raising would expose
@@ -64,7 +70,13 @@ export async function requestWinnerEmailCodeAction(
     code: data.code,
     expiresAt: data.expires_at,
   });
-  if (!sent) return { ok: false, reason: "email_dispatch_failed" };
+  if (!sent) {
+    console.error(
+      "[winner-claim] verification email dispatch failed (check RESEND_API_KEY / NOTIFY_FROM_EMAIL verified domain). recipient=",
+      data.user_email,
+    );
+    return { ok: false, reason: "email_dispatch_failed" };
+  }
 
   return { ok: true, expiresAt: data.expires_at };
 }

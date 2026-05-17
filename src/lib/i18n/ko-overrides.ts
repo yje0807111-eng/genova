@@ -156,6 +156,11 @@ export const koOverrides: Record<string, string> = {
   "claim.step3.submitting": "제출 중…",
   "claim.step3.success": "제출 완료! 운영진이 확인 후 연락드리겠습니다.",
   "claim.error.unknown": "오류가 발생했습니다. 다시 시도해주세요.",
+  "claim.error.emailFailed": "인증 메일을 보내지 못했습니다. 잠시 후 다시 시도해주세요. 계속 실패하면 운영자에게 문의해주세요.",
+  "claim.error.emailMissing": "Genova 계정에 등록된 이메일이 없습니다. 운영자에게 문의해주세요.",
+  "claim.error.service": "서비스가 일시적으로 불가합니다. 잠시 후 다시 시도해주세요.",
+  "claim.error.noActiveCode": "유효한 코드가 없습니다. 인증 코드를 다시 요청해주세요.",
+  "claim.error.notVerified": "이메일 인증이 아직 완료되지 않았습니다. 먼저 이메일 인증을 완료해주세요.",
 
   "meta.title.home": "홈",
   "meta.title.films": "영화",
