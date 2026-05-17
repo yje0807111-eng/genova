@@ -115,8 +115,11 @@ export function SeriesEpisodesSlider({
 
   return (
     <section
-      className="mt-4 rounded-2xl border border-white/[0.07] bg-white/[0.015] p-4 sm:p-5"
-      style={{ boxShadow: "inset 0 1px 0 rgba(127,119,221,0.06)" }}
+      className="mt-4 rounded-2xl p-4 sm:p-5"
+      style={{
+        background:
+          "linear-gradient(180deg, rgba(255,255,255,0.045) 0%, rgba(255,255,255,0.012) 100%)",
+      }}
     >
       {/* Header */}
       <div className="mb-4 flex items-center gap-3">
@@ -155,10 +158,10 @@ export function SeriesEpisodesSlider({
                 href={`/watch/${ep.id}`}
                 aria-current={isCurrent ? "true" : undefined}
                 className={cn(
-                  "group/card relative w-[230px] shrink-0 overflow-hidden rounded-xl border transition-all duration-200",
+                  "group/card relative w-[230px] shrink-0 overflow-hidden rounded-xl transition-all duration-200",
                   isCurrent
-                    ? "border-[#7F77DD] ring-1 ring-[#7F77DD]/40"
-                    : "border-white/[0.08] hover:-translate-y-0.5 hover:border-[#7F77DD]/50",
+                    ? "ring-2 ring-[#7F77DD]"
+                    : "ring-1 ring-white/[0.04] hover:-translate-y-1 hover:ring-white/15",
                 )}
               >
                 <div className="relative aspect-video overflow-hidden bg-black/40">
@@ -248,11 +251,11 @@ export function SeriesEpisodesSlider({
           aria-modal="true"
         >
           <div
-            className="anim-modal flex max-h-[86vh] w-full max-w-3xl flex-col overflow-hidden rounded-2xl border border-white/[0.08] bg-[#0b0b14] shadow-2xl"
+            className="anim-modal flex max-h-[86vh] w-full max-w-3xl flex-col overflow-hidden rounded-2xl bg-[#0b0b14] shadow-2xl ring-1 ring-white/[0.07]"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Header — only real data */}
-            <div className="relative shrink-0 border-b border-white/[0.07] px-6 py-5">
+            <div className="relative shrink-0 border-b border-white/[0.05] px-6 py-5">
               <div className="flex items-start gap-3 pr-10">
                 <AccentBar className="mt-0.5 h-12" />
                 <div className="min-w-0 flex-1">
@@ -321,10 +324,10 @@ export function SeriesEpisodesSlider({
                       href={`/watch/${ep.id}`}
                       onClick={() => setShowAll(false)}
                       className={cn(
-                        "group flex gap-4 rounded-xl border p-3 transition",
+                        "group flex gap-4 rounded-xl p-3 transition",
                         isCurrent
-                          ? "border-[#7F77DD]/60 bg-[#534AB7]/[0.12]"
-                          : "border-white/[0.06] bg-white/[0.015] hover:border-[#7F77DD]/35 hover:bg-white/[0.04]",
+                          ? "bg-[#534AB7]/[0.16] ring-1 ring-[#7F77DD]/50"
+                          : "bg-white/[0.025] hover:bg-white/[0.05]",
                       )}
                     >
                       <div className="relative aspect-video w-40 shrink-0 overflow-hidden rounded-lg bg-black/40">

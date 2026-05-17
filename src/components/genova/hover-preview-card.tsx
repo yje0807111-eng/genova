@@ -4,6 +4,7 @@ import Link from "next/link";
 import { Heart } from "lucide-react";
 import { parseRuntimeToSeconds } from "@/components/video/video-card";
 import { useHoverThumbnail } from "@/components/video/use-hover-thumbnail";
+import { useI18n } from "@/components/genova/language-provider";
 import type { Video } from "@/lib/types";
 
 function formatRuntimeDisplay(seconds: number): string {
@@ -19,9 +20,16 @@ function formatRuntimeDisplay(seconds: number): string {
  * mouse move don't bubble up to the home-page shell.
  */
 export function HoverPreviewCard({ video }: { video: Video }) {
+  const { t } = useI18n();
   const creatorName =
     video.creatorName?.trim() || video.uploaderDisplayName?.trim() || "";
   const runtimeSec = parseRuntimeToSeconds(video.runtime);
+  // 시리즈 우선, 아니면 공모전 출품작 표시 (둘 다면 시리즈).
+  const tag = video.seriesName
+    ? { label: t("series.sectionLabel", "Series"), kind: "series" as const }
+    : video.purpose === "competition"
+      ? { label: t("profile.submission", "Submission"), kind: "comp" as const }
+      : null;
   const { src, onMouseEnter, onMouseLeave } = useHoverThumbnail({
     thumbnailUrl: video.thumbnailUrl,
     muxPlaybackId: video.muxPlaybackId,
@@ -45,6 +53,18 @@ export function HoverPreviewCard({ video }: { video: Video }) {
           className="absolute inset-0"
           style={{ background: "var(--gradient-card-overlay)" }}
         />
+        {tag ? (
+          <span
+            className={
+              tag.kind === "series"
+                ? "absolute left-2.5 top-2.5 rounded-md bg-[#534AB7] px-2 py-0.5 text-[10px] font-black uppercase tracking-wider text-white ring-1 ring-white/20"
+                : "absolute left-2.5 top-2.5 rounded-md bg-amber-400/90 px-2 py-0.5 text-[10px] font-black uppercase tracking-wider text-black ring-1 ring-amber-200/40"
+            }
+            style={{ boxShadow: "0 2px 10px rgba(0,0,0,0.45)" }}
+          >
+            {tag.label}
+          </span>
+        ) : null}
         <div className="absolute inset-x-0 bottom-0 p-3">
           <p className="line-clamp-1 text-[13px] font-bold text-white">{video.title}</p>
           <div className="mt-1 flex items-center gap-2 text-[11px] text-white/55">
