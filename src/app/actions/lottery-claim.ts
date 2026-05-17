@@ -42,6 +42,33 @@ export async function requestWinnerEmailCodeAction(
   const service = createServiceSupabaseClient();
   if (!service) return { ok: false, reason: "service_unavailable" };
 
+  // Abuse/cost guard: one verification email per token per 60s.
+  // Resolve the winner by token, then reject if a code was issued
+  // within the cooldown window (prevents email-bombing the winner
+  // and runaway Resend spend from repeated requests).
+  const COOLDOWN_MS = 60_000;
+  const { data: w } = await service
+    .from("competition_winners")
+    .select("id")
+    .eq("claim_token", trimmed)
+    .maybeSingle();
+  if (w?.id) {
+    const { data: last } = await service
+      .from("winner_email_verifications")
+      .select("created_at")
+      .eq("winner_id", w.id as string)
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    if (
+      last?.created_at &&
+      Date.now() - new Date(last.created_at as string).getTime() <
+        COOLDOWN_MS
+    ) {
+      return { ok: false, reason: "rate_limited" };
+    }
+  }
+
   const { data, error } = await service
     .rpc("request_winner_email_code", { p_claim_token: trimmed })
     .single<{

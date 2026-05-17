@@ -491,6 +491,7 @@ function ReasonHint({
     invalid_token: "claim.invalidToken",
     missing_consent: "claim.step3.consent",
     email_dispatch_failed: "claim.error.emailFailed",
+    rate_limited: "claim.error.rateLimited",
     user_email_missing: "claim.error.emailMissing",
     service_unavailable: "claim.error.service",
     no_active_code: "claim.error.noActiveCode",
