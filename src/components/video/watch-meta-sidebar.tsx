@@ -197,46 +197,51 @@ export function WatchMetaSidebar({
         </div>
       </div>
 
-      {/* Tab bar */}
-      <div className="flex shrink-0 items-center border-b border-white/10 pr-2">
-        {(hasSeries
-          ? (["episodes", "comments", "details"] as const)
-          : (["comments", "details"] as const)
-        ).map((tab) => (
-          <button
-            key={tab}
-            type="button"
-            onClick={() => setActiveTab(tab)}
-            className={cn(
-              "flex-1 py-2.5 text-xs font-semibold transition",
-              activeTab === tab
-                ? "border-b-2 border-[#7F77DD] text-white"
-                : "text-white/45 hover:text-white/80",
-            )}
-          >
-            {tab === "episodes"
-              ? `${t("watch.tab.episodes", "Episodes")} (${seriesEpisodes?.length ?? 0})`
-              : tab === "comments"
-                ? `${t("watch.tab.comments", "Comments")} (${commentCount})`
-                : t("watch.tab.details", "Details")}
-          </button>
-        ))}
+      {/* Tab bar — 세그먼트 알약형 + 자동재생 토글 */}
+      <div className="flex shrink-0 items-center gap-2 px-2 py-2">
+        <div className="flex flex-1 items-center gap-0.5 rounded-xl bg-white/[0.03] p-1">
+          {(hasSeries
+            ? (["episodes", "comments", "details"] as const)
+            : (["comments", "details"] as const)
+          ).map((tab) => (
+            <button
+              key={tab}
+              type="button"
+              onClick={() => setActiveTab(tab)}
+              className={cn(
+                "flex-1 rounded-lg py-1.5 text-[12px] font-semibold transition",
+                activeTab === tab
+                  ? "bg-white/[0.08] text-white shadow-[0_1px_0_rgba(255,255,255,0.04)_inset]"
+                  : "text-white/40 hover:text-white/75",
+              )}
+            >
+              {tab === "episodes"
+                ? `${t("watch.tab.episodes", "Episodes")} · ${seriesEpisodes?.length ?? 0}`
+                : tab === "comments"
+                  ? `${t("watch.tab.comments", "Comments")} · ${commentCount}`
+                  : t("watch.tab.details", "Details")}
+            </button>
+          ))}
+        </div>
 
         <button
           type="button"
           onClick={toggleAutoplay}
-          title={autoplay ? t("watch.autoplay.on", "자동재생 켜짐") : t("watch.autoplay.off", "자동재생 꺼짐")}
-          className={cn(
-            "ml-auto hidden shrink-0 items-center gap-1.5 rounded-md px-2 py-1 transition lg:inline-flex",
+          title={
             autoplay
-              ? "bg-white/[0.04] text-[#AFA9EC]"
-              : "text-white/40 hover:text-white/70",
+              ? t("watch.autoplay.on", "자동재생 켜짐")
+              : t("watch.autoplay.off", "자동재생 꺼짐")
+          }
+          aria-pressed={autoplay}
+          className={cn(
+            "hidden shrink-0 items-center gap-1.5 rounded-full py-1.5 pl-2 pr-2.5 text-[11px] font-semibold transition lg:inline-flex",
+            autoplay
+              ? "bg-[#7F77DD]/[0.16] text-[#C7C2F0] ring-1 ring-[#7F77DD]/30"
+              : "text-white/35 ring-1 ring-white/[0.07] hover:text-white/60 hover:ring-white/15",
           )}
         >
           <Repeat className="h-3 w-3" />
-          <span className="text-[10px] font-bold uppercase tracking-[0.1em]">
-            {t("watch.autoplay.short", "자동")}
-          </span>
+          {t("watch.autoplay.short", "자동")}
         </button>
       </div>
 
