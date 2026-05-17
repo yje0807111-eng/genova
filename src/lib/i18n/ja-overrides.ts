@@ -545,6 +545,7 @@ export const jaOverrides: Record<string, string> = {
   "competition.detail.judgingStepLabel03": "ステップ 03",
   "competition.detail.judgingFinalTitle": "最終発表",
   "competition.detail.judgingFinalDesc": "最終結果は投票終了日（{date}）以降に公開されます。",
+  "competition.detail.evaluationWeights": "評価配点",
   "competition.detail.weightCreativity": "創造性",
   "competition.detail.weightTechnical": "技術完成度",
   "competition.detail.weightStory": "ストーリー",

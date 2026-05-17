@@ -1349,7 +1349,7 @@ export function CompetitionDetailClient({
                 </div>
 
                 <div className="mt-6 rounded-xl border border-white/10 bg-[#0a0a0a]/40 p-5 backdrop-blur-xl">
-                  <p className="mb-3 text-[10px] uppercase tracking-[0.2em] text-[#7F77DD]">EVALUATION WEIGHTS</p>
+                  <p className="mb-3 text-[10px] uppercase tracking-[0.2em] text-[#7F77DD]">{t("competition.detail.evaluationWeights", "Evaluation weights")}</p>
                   <div className="space-y-3">
                     {[
                       { label: t("competition.detail.weightCreativity"), weight: 35 },

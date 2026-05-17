@@ -426,6 +426,7 @@ const en: Messages = {
   "competition.detail.judgingStepLabel03": "Step 03",
   "competition.detail.judgingFinalTitle": "Final results",
   "competition.detail.judgingFinalDesc": "Final results are announced after voting closes on {date}.",
+  "competition.detail.evaluationWeights": "Evaluation weights",
   "competition.detail.weightCreativity": "Creativity",
   "competition.detail.weightTechnical": "Technical execution",
   "competition.detail.weightStory": "Storytelling",

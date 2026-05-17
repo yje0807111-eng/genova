@@ -575,6 +575,7 @@ export const koOverrides: Record<string, string> = {
   "competition.detail.judgingStepLabel03": "단계 03",
   "competition.detail.judgingFinalTitle": "최종 발표",
   "competition.detail.judgingFinalDesc": "최종 결과는 투표 마감일({date}) 이후 공개됩니다.",
+  "competition.detail.evaluationWeights": "평가 배점",
   "competition.detail.weightCreativity": "창의성",
   "competition.detail.weightTechnical": "기술 완성도",
   "competition.detail.weightStory": "스토리텔링",
