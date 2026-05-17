@@ -192,12 +192,8 @@ export function WatchMetaSidebar({
             />
             {playerActions}
           </div>
-          {/* 더보기 — 우측 구석 고정, 동일 톤 */}
-          {moreAction && (
-            <div className="shrink-0 [&_button]:!h-9 [&_button]:!w-9 [&_button>svg]:!h-3.5 [&_button>svg]:!w-3.5">
-              {moreAction}
-            </div>
-          )}
+          {/* 더보기 — 우측 구석 고정 (스타일은 컴포넌트 자체에서) */}
+          {moreAction && <div className="shrink-0">{moreAction}</div>}
         </div>
       </div>
 

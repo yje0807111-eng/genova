@@ -62,7 +62,7 @@ export function WatchMoreMenu({ videoId }: { videoId: string }) {
         const rect = buttonRef.current.getBoundingClientRect();
         setDropdownPos({
           top: rect.bottom + 8,
-          left: rect.right - 160,
+          left: rect.right - 180,
         });
       }
       setOpen(true);
@@ -75,14 +75,14 @@ export function WatchMoreMenu({ videoId }: { videoId: string }) {
         ref={buttonRef}
         type="button"
         onClick={toggleMenu}
-        className="inline-flex items-center justify-center rounded-md border border-white/10 bg-white/5 px-2 py-1.5 text-white/55 transition hover:bg-white/10 hover:text-white"
+        className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-md border border-white/10 bg-white/5 text-white/55 transition hover:bg-white/10 hover:text-white"
         aria-label={t("watchMore.report", "Report")}
       >
         <MoreHorizontal className="h-3.5 w-3.5" />
       </button>
       {open && dropdownPos ? (
         <div
-          className="anim-pop fixed z-[100] min-w-[160px] origin-top rounded-xl border border-white/10 bg-[#1A1535] p-1.5 shadow-xl"
+          className="anim-pop fixed z-[100] w-[180px] origin-top-right overflow-hidden rounded-xl border border-white/[0.08] bg-[#0c0c12] p-1 shadow-2xl ring-1 ring-black/40"
           style={{ top: dropdownPos.top, left: dropdownPos.left }}
         >
           <button
@@ -91,9 +91,9 @@ export function WatchMoreMenu({ videoId }: { videoId: string }) {
               setOpen(false);
               setReportOpen(true);
             }}
-            className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm text-red-400 hover:bg-white/5 transition"
+            className="flex w-full items-center gap-2.5 whitespace-nowrap rounded-lg px-3 py-2.5 text-[13px] font-medium text-white/75 transition hover:bg-red-500/10 hover:text-red-300"
           >
-            <Flag className="h-4 w-4" />
+            <Flag className="h-3.5 w-3.5 shrink-0" />
             {t("watchMore.report", "Report")}
           </button>
         </div>
@@ -170,7 +170,7 @@ export function WatchMoreMenu({ videoId }: { videoId: string }) {
               <button
                 type="button"
                 onClick={() => { setReportOpen(false); setDetail(""); }}
-                className="rounded-lg border border-white/[0.08] bg-white/[0.02] px-4 py-2 text-[13px] font-bold text-white/80 transition hover:bg-white/[0.06]"
+                className="whitespace-nowrap rounded-lg border border-white/[0.08] bg-white/[0.02] px-4 py-2 text-[13px] font-bold text-white/80 transition hover:bg-white/[0.06]"
                 disabled={pending}
               >
                 {t("watchMore.cancel", "Cancel")}
@@ -189,7 +189,7 @@ export function WatchMoreMenu({ videoId }: { videoId: string }) {
                   setDetail("");
                   alert(t("watchMore.reportThanks", "Thanks for your report. We'll review it shortly."));
                 }}
-                className="rounded-lg bg-red-500 px-4 py-2 text-[13px] font-bold text-white transition hover:bg-red-600 disabled:opacity-50"
+                className="whitespace-nowrap rounded-lg bg-red-500 px-4 py-2 text-[13px] font-bold text-white transition hover:bg-red-600 disabled:opacity-50"
                 disabled={pending}
               >
                 {pending ? t("watchMore.submitting", "Submitting...") : t("watchMore.submit", "Submit report")}
