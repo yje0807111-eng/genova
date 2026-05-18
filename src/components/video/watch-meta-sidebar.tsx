@@ -9,7 +9,6 @@ import {
   VideoCommentsSection,
 } from "@/components/comments/video-comments-section";
 import { useI18n } from "@/components/genova/language-provider";
-import { FollowButton } from "@/components/profile/follow-button";
 import { VideoLikeButton } from "@/components/video/video-like-button";
 import { VideoSaveButton } from "@/components/video/video-save-button";
 import { SeriesEpisodesList } from "@/components/video/series-episodes-list";
@@ -168,50 +167,9 @@ export function WatchMetaSidebar({
           </div>
         </div>
 
-        {/* 모바일 — 유튜브식: [아바타+이름→프로필] + [좋아요·저장·공유·⋯]
-            (작품/팔로워·팔로우 버튼 없음) */}
-        <div className="flex items-center gap-2 md:hidden">
-          <Link
-            href={creatorHref ?? "#"}
-            className="group flex min-w-0 flex-1 items-center gap-2.5"
-          >
-            <div className="h-9 w-9 shrink-0 overflow-hidden rounded-full bg-white/[0.06] ring-1 ring-white/[0.10]">
-              <Image
-                src={creatorAvatarUrl || "/default-avatar.png"}
-                alt={creatorName}
-                width={36}
-                height={36}
-                className="h-full w-full object-cover"
-              />
-            </div>
-            <p className="line-clamp-1 text-[13px] font-bold text-white">
-              {creatorName}
-            </p>
-          </Link>
-          <div className="flex shrink-0 items-center gap-1.5 [&>button]:!h-7 [&>button]:!flex-none [&>button]:!justify-center [&>button]:!gap-0.5 [&>button]:!rounded-full [&>button]:!px-2.5 [&>button]:!text-[11px] [&>button>svg]:!h-3 [&>button>svg]:!w-3">
-            <VideoLikeButton
-              videoId={videoId}
-              initialCount={video.likeCount ?? 0}
-              initialLiked={video.likedByMe ?? false}
-            />
-            <VideoSaveButton
-              videoId={videoId}
-              initialSaved={video.savedByMe ?? false}
-              initialCount={video.saveCount ?? 0}
-            />
-            {playerActions}
-            {moreAction}
-          </div>
-        </div>
-
-        {/* Creator row (데스크톱) — 아바타·이름·작품·팔로워·팔로우 */}
-        <div
-          className="hidden items-center gap-3 rounded-xl border border-white/[0.06] px-3 py-2.5 md:flex"
-          style={{
-            background:
-              "linear-gradient(150deg, rgba(127,119,221,0.07) 0%, rgba(255,255,255,0.015) 55%)",
-          }}
-        >
+        {/* 유튜브식 간소화 — 데스크톱·모바일 공통: [아바타+이름→프로필]
+            + [좋아요·저장·공유·⋯]. 작품/팔로워 통계·팔로우 버튼 없음. */}
+        <div className="flex items-center gap-2">
           <Link
             href={creatorHref ?? "#"}
             className="group flex min-w-0 flex-1 items-center gap-2.5"
@@ -229,41 +187,7 @@ export function WatchMetaSidebar({
               {creatorName}
             </p>
           </Link>
-
-          <div className="flex shrink-0 items-center gap-3">
-            <div className="text-center leading-none">
-              <p className="text-[13px] font-black tabular-nums text-white">
-                {creatorVideoCount.toLocaleString()}
-              </p>
-              <p className="mt-0.5 text-[9px] font-semibold uppercase tracking-[0.1em] text-white/40">
-                {t("watch.works", "작품")}
-              </p>
-            </div>
-            <span className="h-6 w-px bg-white/[0.08]" aria-hidden />
-            <div className="text-center leading-none">
-              <p className="text-[13px] font-black tabular-nums text-white">
-                {creatorFollowerCount.toLocaleString()}
-              </p>
-              <p className="mt-0.5 text-[9px] font-semibold uppercase tracking-[0.1em] text-white/40">
-                {t("watch.followers", "팔로워")}
-              </p>
-            </div>
-
-            {currentUserId && currentUserId !== creatorId && (
-              <FollowButton
-                targetUserId={creatorId}
-                initialFollowing={isFollowingCreator}
-              />
-            )}
-          </div>
-        </div>
-
-        {/* Engagement + actions — 풀폭 균등 액션 바 (좋아요·저장이
-            동일 너비로 늘어나고, 공유·더보기는 우측 고정). 기존의
-            왼쪽 정렬 축소 클러스터 구조 폐기. */}
-        <div className="hidden items-center gap-1.5 md:flex">
-          {/* 데스크톱 전용 — 풀폭 균등 액션 바 */}
-          <div className="flex min-w-0 flex-1 items-center gap-1.5 [&>button]:!h-9 [&>button]:!flex-1 [&>button]:!justify-center [&>button]:!gap-1 [&>button]:!rounded-md [&>button]:!px-2 [&>button]:!text-[12px] [&>button>svg]:!h-3.5 [&>button>svg]:!w-3.5">
+          <div className="flex shrink-0 items-center gap-1.5 [&>button]:!h-7 [&>button]:!flex-none [&>button]:!justify-center [&>button]:!gap-0.5 [&>button]:!rounded-full [&>button]:!px-2.5 [&>button]:!text-[11px] [&>button>svg]:!h-3 [&>button>svg]:!w-3">
             <VideoLikeButton
               videoId={videoId}
               initialCount={video.likeCount ?? 0}
@@ -275,9 +199,8 @@ export function WatchMetaSidebar({
               initialCount={video.saveCount ?? 0}
             />
             {playerActions}
+            {moreAction}
           </div>
-          {/* 더보기 — 우측 구석 고정 (스타일은 컴포넌트 자체에서) */}
-          {moreAction && <div className="shrink-0">{moreAction}</div>}
         </div>
       </div>
 
@@ -324,8 +247,8 @@ export function WatchMetaSidebar({
           className={cn(
             "hidden shrink-0 items-center gap-1.5 rounded-full py-1.5 pl-2 pr-2.5 text-[11px] font-semibold transition lg:inline-flex",
             autoplay
-              ? "bg-[#7F77DD]/[0.16] text-[#C7C2F0] ring-1 ring-[#7F77DD]/30"
-              : "text-white/35 ring-1 ring-white/[0.07] hover:text-white/60 hover:ring-white/15",
+              ? "bg-white/[0.06] text-white/70 ring-1 ring-white/[0.12]"
+              : "text-white/30 ring-1 ring-white/[0.06] hover:text-white/55 hover:ring-white/[0.12]",
           )}
         >
           <Repeat className="h-3 w-3" />
