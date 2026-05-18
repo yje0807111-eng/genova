@@ -38,17 +38,8 @@ export function WatchDescriptionInner({
           {tags.map((tag) => (
             <Link
               key={tag}
-              href={`/search?q=${encodeURIComponent(tag)}&tab=tags#search-tags-section`}
-              onClick={() => {
-                trackHashtagEvent(tag, "click");
-                setTimeout(() => {
-                  const el = document.getElementById("search-tags-section");
-                  if (el) {
-                    const top = el.getBoundingClientRect().top + window.scrollY - 80;
-                    window.scrollTo({ top, behavior: "smooth" });
-                  }
-                }, 400);
-              }}
+              href={`/?q=${encodeURIComponent(tag)}`}
+              onClick={() => trackHashtagEvent(tag, "click")}
               className="cursor-pointer text-[13px] text-[#7F77DD]/70 transition hover:text-[#7F77DD]"
             >
               #{tag}

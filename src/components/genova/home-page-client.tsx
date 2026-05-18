@@ -165,6 +165,10 @@ export function HomePageClient(props: HomePageClientProps) {
   }, [selectedGenre]);
 
   useEffect(() => {
+    // 상세정보 해시태그 클릭 → /?q=태그 로 진입 시 검색 프리필.
+    const qParam = searchParams.get("q");
+    if (qParam) setSearchQuery(qParam);
+
     const genre = searchParams.get("genre");
     if (genre) {
       setSelectedMood(genre);

@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
 import { Search } from "lucide-react";
@@ -17,9 +18,11 @@ type Sort = "latest" | "popular";
 // "시청 진입 최단화" 1열 세로 피드(풀폭 가로 카드). md:hidden 분기.
 export function HomeMobileFeed({ videosFromDb }: { videosFromDb: Video[] }) {
   const { t, locale } = useI18n();
+  const searchParams = useSearchParams();
   const [genre, setGenre] = useState<GenreChip>("all");
   const [sort, setSort] = useState<Sort>("latest");
-  const [query, setQuery] = useState("");
+  // 상세정보 해시태그 클릭 → /?q=태그 진입 시 검색 프리필.
+  const [query, setQuery] = useState(() => searchParams.get("q") ?? "");
 
   const [videos, setVideos] = useState<Video[]>(videosFromDb);
   const [page, setPage] = useState(0);
