@@ -9,6 +9,7 @@ import {
   VideoCommentsSection,
 } from "@/components/comments/video-comments-section";
 import { useI18n } from "@/components/genova/language-provider";
+import { FollowButton } from "@/components/profile/follow-button";
 import { VideoLikeButton } from "@/components/video/video-like-button";
 import { VideoSaveButton } from "@/components/video/video-save-button";
 import { SeriesEpisodesList } from "@/components/video/series-episodes-list";
@@ -164,30 +165,45 @@ export function WatchMetaSidebar({
             </span>
             <span className="text-white/15">·</span>
             <span>{formatDate(video.createdAt, t)}</span>
+            {moreAction && (
+              <div className="ml-auto shrink-0 [&>button]:!h-6 [&>button]:!w-6 [&>button>svg]:!h-3 [&>button>svg]:!w-3">
+                {moreAction}
+              </div>
+            )}
           </div>
         </div>
 
         {/* 유튜브식 간소화 — 데스크톱·모바일 공통: [아바타+이름→프로필]
             + [좋아요·저장·공유·⋯]. 작품/팔로워 통계·팔로우 버튼 없음. */}
         <div className="flex items-center gap-2">
-          <Link
-            href={creatorHref ?? "#"}
-            className="group flex min-w-0 flex-1 items-center gap-2.5"
-          >
-            <div className="h-9 w-9 shrink-0 overflow-hidden rounded-full bg-white/[0.06] ring-1 ring-white/[0.10]">
-              <Image
-                src={creatorAvatarUrl || "/default-avatar.png"}
-                alt={creatorName}
-                width={36}
-                height={36}
-                className="h-full w-full object-cover"
-              />
-            </div>
-            <p className="line-clamp-1 text-[13px] font-bold text-white transition group-hover:text-[#AFA9EC]">
-              {creatorName}
-            </p>
-          </Link>
-          <div className="flex shrink-0 items-center gap-1.5 [&>button]:!h-7 [&>button]:!flex-none [&>button]:!justify-center [&>button]:!gap-0.5 [&>button]:!rounded-full [&>button]:!px-2.5 [&>button]:!text-[11px] [&>button>svg]:!h-3 [&>button>svg]:!w-3">
+          <div className="flex min-w-0 flex-1 items-center gap-2">
+            <Link
+              href={creatorHref ?? "#"}
+              className="group flex min-w-0 items-center gap-2.5"
+            >
+              <div className="h-9 w-9 shrink-0 overflow-hidden rounded-full bg-white/[0.06] ring-1 ring-white/[0.10]">
+                <Image
+                  src={creatorAvatarUrl || "/default-avatar.png"}
+                  alt={creatorName}
+                  width={36}
+                  height={36}
+                  className="h-full w-full object-cover"
+                />
+              </div>
+              <p className="line-clamp-1 text-[13px] font-bold text-white transition group-hover:text-[#AFA9EC]">
+                {creatorName}
+              </p>
+            </Link>
+            {currentUserId && currentUserId !== creatorId && (
+              <div className="shrink-0 [&>button]:!h-6 [&>button]:!gap-1 [&>button]:!rounded-full [&>button]:!px-2.5 [&>button]:!py-0 [&>button]:!text-[10px] [&>button>svg]:!h-2.5 [&>button>svg]:!w-2.5">
+                <FollowButton
+                  targetUserId={creatorId}
+                  initialFollowing={isFollowingCreator}
+                />
+              </div>
+            )}
+          </div>
+          <div className="flex shrink-0 items-center gap-1 [&>button]:!h-6 [&>button]:!flex-none [&>button]:!justify-center [&>button]:!gap-0.5 [&>button]:!rounded-full [&>button]:!px-2 [&>button]:!text-[10px] [&>button>svg]:!h-2.5 [&>button>svg]:!w-2.5">
             <VideoLikeButton
               videoId={videoId}
               initialCount={video.likeCount ?? 0}
@@ -199,7 +215,6 @@ export function WatchMetaSidebar({
               initialCount={video.saveCount ?? 0}
             />
             {playerActions}
-            {moreAction}
           </div>
         </div>
       </div>
