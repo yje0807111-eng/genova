@@ -17,45 +17,6 @@ import type { Video } from "@/lib/types";
  */
 
 /**
- * Series rail: one representative entry per `series_name`.  We pick
- * the lowest episode_number for each series so the user lands on
- * episode 1 by default, then sort series alphabetically by name.
- *
- * Series mode = `series_name IS NOT NULL` (장르와 독립된 토글).
- * 과거엔 genre='series' 도 요구했으나 그런 장르가 없어 신규
- * 업로드 시리즈가 레일에 안 잡히던 문제로 조건을 완화.
- */
-export async function fetchSeriesRail(limit = 12): Promise<Video[]> {
-  const supabase = await createServerSupabaseClient();
-  if (!supabase) return [];
-
-  const { data, error } = await supabase
-    .from("videos")
-    .select("*")
-    .eq("visibility", "public")
-    .not("series_name", "is", null)
-    .order("series_name", { ascending: true })
-    .order("episode_number", { ascending: true, nullsFirst: false })
-    .limit(limit * 4); // fetch headroom, dedupe by series below
-  if (error || !data) return [];
-
-  const seenSeries = new Set<string>();
-  const oneEpisodePerSeries = [] as typeof data;
-  for (const row of data) {
-    const name = (row as { series_name?: string | null }).series_name;
-    if (!name || seenSeries.has(name)) continue;
-    seenSeries.add(name);
-    oneEpisodePerSeries.push(row);
-    if (oneEpisodePerSeries.length >= limit) break;
-  }
-
-  const enriched = await mergeVideoRows(
-    oneEpisodePerSeries as Parameters<typeof mapVideo>[0][],
-  );
-  return enriched.map((row) => mapVideo(row));
-}
-
-/**
  * Award Winners rail: any public video with `is_finalist = true` OR a
  * non-empty `award`.  Sorted by award presence first (finalists with
  * an explicit prize rank above plain finalists), then by view_count.
@@ -113,10 +74,12 @@ export async function fetchAwardWinnersRail(limit = 12): Promise<Video[]> {
  * Returns [] for unauthenticated callers — pure UX rail, never a
  * source of truth, so we don't surface auth errors here.
  */
+export type ContinueWatchingVideo = Video & { progressRatio?: number };
+
 export async function fetchContinueWatchingRail(
   userId: string | null | undefined,
   limit = 12,
-): Promise<Video[]> {
+): Promise<ContinueWatchingVideo[]> {
   if (!userId) return [];
   const supabase = await createServerSupabaseClient();
   if (!supabase) return [];
@@ -159,8 +122,24 @@ export async function fetchContinueWatchingRail(
     .filter((row): row is NonNullable<typeof row> => Boolean(row))
     .slice(0, limit);
 
+  // 시청 진행률(0~1) — 이어보기 카드 프로그레스 바용.
+  const ratioById = new Map<string, number>();
+  for (const h of filtered) {
+    const prog = Number(h.progress_seconds ?? 0);
+    const dur = Number(h.duration_seconds ?? 0);
+    if (dur > 0) {
+      ratioById.set(
+        h.video_id as string,
+        Math.min(1, Math.max(0, prog / dur)),
+      );
+    }
+  }
+
   const enriched = await mergeVideoRows(
     ordered as Parameters<typeof mapVideo>[0][],
   );
-  return enriched.map((row) => mapVideo(row));
+  return enriched.map((row) => {
+    const v = mapVideo(row);
+    return { ...v, progressRatio: ratioById.get(v.id) ?? 0 };
+  });
 }

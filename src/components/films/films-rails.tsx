@@ -2,14 +2,14 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { Trophy, PlayCircle, Clapperboard } from "lucide-react";
+import { Trophy, PlayCircle } from "lucide-react";
 import { useI18n } from "@/components/genova/language-provider";
+import type { ContinueWatchingVideo } from "@/lib/queries/films-rails";
 import type { Video } from "@/lib/types";
 
 interface FilmsRailsProps {
-  series: Video[];
   awardWinners: Video[];
-  continueWatching: Video[];
+  continueWatching: ContinueWatchingVideo[];
 }
 
 /**
@@ -29,29 +29,25 @@ interface FilmsRailsProps {
  * first; returning viewers' resume queue is right below.
  */
 export function FilmsRails({
-  series,
   awardWinners,
   continueWatching,
 }: FilmsRailsProps) {
   const { t } = useI18n();
 
-  // Nothing to render — collapse the whole slot.  Avoids an empty
-  // 80-pixel gap above the regular Films grid.
-  if (
-    series.length === 0 &&
-    awardWinners.length === 0 &&
-    continueWatching.length === 0
-  ) {
+  // Nothing to render — collapse the whole slot.  (시리즈 레일은
+  // 별도 '시리즈' 서브탭으로 분리되어 발견 화면에서는 제외.)
+  if (awardWinners.length === 0 && continueWatching.length === 0) {
     return null;
   }
 
   return (
     <div className="space-y-10">
-      {series.length > 0 && (
+      {continueWatching.length > 0 && (
         <FilmsRailRow
-          icon={<Clapperboard className="h-4 w-4 text-[#AFA9EC]" />}
-          title={t("films.series", "Series")}
-          videos={series}
+          icon={<PlayCircle className="h-4 w-4 text-[#AFA9EC]" />}
+          title={t("films.continueWatching", "Continue Watching")}
+          videos={continueWatching}
+          showProgress
         />
       )}
       {awardWinners.length > 0 && (
@@ -61,13 +57,6 @@ export function FilmsRails({
           videos={awardWinners}
         />
       )}
-      {continueWatching.length > 0 && (
-        <FilmsRailRow
-          icon={<PlayCircle className="h-4 w-4 text-white/70" />}
-          title={t("films.continueWatching", "Continue Watching")}
-          videos={continueWatching}
-        />
-      )}
     </div>
   );
 }
@@ -75,10 +64,11 @@ export function FilmsRails({
 interface FilmsRailRowProps {
   icon: React.ReactNode;
   title: string;
-  videos: Video[];
+  videos: (Video | ContinueWatchingVideo)[];
+  showProgress?: boolean;
 }
 
-function FilmsRailRow({ icon, title, videos }: FilmsRailRowProps) {
+function FilmsRailRow({ icon, title, videos, showProgress }: FilmsRailRowProps) {
   return (
     <section>
       <div className="mb-3 flex items-center gap-2">
@@ -90,18 +80,36 @@ function FilmsRailRow({ icon, title, videos }: FilmsRailRowProps) {
           style — design can layer arrow controls later if needed). */}
       <div className="flex gap-3 overflow-x-auto pb-2 snap-x snap-mandatory scrollbar-thin">
         {videos.map((v) => (
-          <FilmsRailCard key={v.id} video={v} />
+          <FilmsRailCard
+            key={v.id}
+            video={v}
+            progressRatio={
+              showProgress
+                ? (v as ContinueWatchingVideo).progressRatio
+                : undefined
+            }
+          />
         ))}
       </div>
     </section>
   );
 }
 
-function FilmsRailCard({ video }: { video: Video }) {
+function FilmsRailCard({
+  video,
+  progressRatio,
+}: {
+  video: Video;
+  progressRatio?: number;
+}) {
   const creator =
     video.creatorName?.trim() ||
     video.uploaderDisplayName?.trim() ||
     "Creator";
+  const pct =
+    typeof progressRatio === "number"
+      ? Math.min(100, Math.max(0, progressRatio * 100))
+      : null;
 
   return (
     <Link
@@ -123,7 +131,9 @@ function FilmsRailCard({ video }: { video: Video }) {
 
       <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent" />
 
-      <div className="absolute inset-x-0 bottom-0 p-2.5">
+      <div
+        className={`absolute inset-x-0 bottom-0 p-2.5 ${pct !== null ? "pb-3" : ""}`}
+      >
         <h3 className="line-clamp-1 text-[13px] font-bold text-white">
           {video.title}
         </h3>
@@ -131,6 +141,19 @@ function FilmsRailCard({ video }: { video: Video }) {
           {creator}
         </p>
       </div>
+
+      {pct !== null && (
+        <div className="absolute inset-x-0 bottom-0 h-1 bg-white/15">
+          <div
+            className="h-full rounded-r-full"
+            style={{
+              width: `${pct}%`,
+              background:
+                "linear-gradient(to right, #7F77DD, #AFA9EC)",
+            }}
+          />
+        </div>
+      )}
     </Link>
   );
 }

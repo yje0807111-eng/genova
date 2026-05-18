@@ -6,7 +6,6 @@ import {
 } from "@/lib/queries";
 import { fetchHeroAwardVideosForCompetition } from "@/lib/queries/films-hero-award-videos";
 import {
-  fetchSeriesRail,
   fetchAwardWinnersRail,
   fetchContinueWatchingRail,
 } from "@/lib/queries/films-rails";
@@ -58,7 +57,7 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ t
   // Recommended tab doesn't surface them, so saving the round-trips
   // when not needed is the cleaner default.  Continue Watching is
   // user-specific and returns [] for signed-out callers.
-  const [heroAwardVideos, seriesRail, awardWinnersRail, continueWatchingRail] =
+  const [heroAwardVideos, awardWinnersRail, continueWatchingRail] =
     await Promise.all([
       competition?.id
         ? fetchHeroAwardVideosForCompetition(competition.id)
@@ -68,7 +67,6 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ t
             merit: null,
             audience: null,
           }),
-      initialTab === "films" ? fetchSeriesRail() : Promise.resolve([]),
       initialTab === "films" ? fetchAwardWinnersRail() : Promise.resolve([]),
       initialTab === "films"
         ? fetchContinueWatchingRail(currentUserId)
@@ -100,7 +98,6 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ t
            watch history. */
         initialTab === "films" ? (
           <FilmsRails
-            series={seriesRail}
             awardWinners={awardWinnersRail}
             continueWatching={continueWatchingRail}
           />
