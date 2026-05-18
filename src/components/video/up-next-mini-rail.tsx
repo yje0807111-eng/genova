@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import { Heart } from "lucide-react";
 import { useI18n } from "@/components/genova/language-provider";
 import { cn } from "@/lib/utils/cn";
 import type { Video } from "@/lib/types";
@@ -118,6 +119,22 @@ export function UpNextMiniRail({ related, currentVideoId }: Props) {
                 <p className="line-clamp-2 text-[14px] font-bold leading-tight text-white">
                   {v.title}
                 </p>
+                <div className="mt-1 flex items-center gap-2 text-[12px] text-white/55">
+                  {(v.creatorName?.trim() || v.uploaderDisplayName?.trim()) && (
+                    <span className="line-clamp-1">
+                      {v.creatorName?.trim() || v.uploaderDisplayName?.trim()}
+                    </span>
+                  )}
+                  {typeof v.likeCount === "number" && v.likeCount > 0 && (
+                    <>
+                      <span className="text-white/20">·</span>
+                      <span className="inline-flex items-center gap-0.5 tabular-nums">
+                        <Heart className="h-3 w-3" />
+                        {v.likeCount}
+                      </span>
+                    </>
+                  )}
+                </div>
               </div>
             </Link>
           );

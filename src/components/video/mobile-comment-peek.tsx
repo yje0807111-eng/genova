@@ -79,21 +79,21 @@ export function MobileCommentPeek({
               show ? "opacity-100" : "opacity-0"
             }`}
           >
-            <span className="h-6 w-6 shrink-0 overflow-hidden rounded-full bg-white/[0.06]">
+            <span className="h-7 w-7 shrink-0 overflow-hidden rounded-full bg-white/[0.06]">
               <Image
                 src={current.avatarUrl || "/default-avatar.png"}
                 alt=""
-                width={24}
-                height={24}
+                width={28}
+                height={28}
                 className="h-full w-full object-cover"
               />
             </span>
-            <span className="min-w-0 flex-1 truncate text-[13px] text-white/75">
+            <span className="min-w-0 flex-1 truncate text-[15px] text-white/80">
               {current.content}
             </span>
           </span>
         ) : (
-          <span className="min-w-0 flex-1 truncate text-[13px] text-white/40">
+          <span className="min-w-0 flex-1 truncate text-[15px] text-white/40">
             {t("comments.empty", "첫 댓글을 남겨 보세요.")}
           </span>
         )}

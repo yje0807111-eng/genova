@@ -147,6 +147,8 @@ export default async function WatchDetailPage({
   }
 
   related = related.slice(0, 8);
+  // 좋아요 수는 별도 테이블 — Up Next 카드 노출용으로 attach.
+  related = await attachEngagementToVideos(related);
 
   const creator = creatorResult;
   const seriesNav: SeriesEpisodesNav = seriesNavRaw;
