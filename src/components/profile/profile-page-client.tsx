@@ -234,13 +234,26 @@ export function GenovaProfileClient({
                     const v = e.target.value as "Newest" | "Oldest" | "Most Viewed";
                     setSortBy(v);
                   }}
-                  className="appearance-none rounded-lg border border-white/[0.06] bg-white/[0.02] px-3 py-1.5 pr-8 text-[12px] font-semibold text-white/65 outline-none transition hover:border-white/[0.12] hover:text-white/85 focus:border-[#7F77DD]/40"
+                  style={{ colorScheme: "dark" }}
+                  className="cursor-pointer appearance-none rounded-lg border border-white/[0.08] bg-white/[0.03] py-1.5 pl-3 pr-9 text-[12px] font-semibold text-white/75 outline-none transition hover:border-[#7F77DD]/40 hover:bg-white/[0.05] hover:text-white focus:border-[#7F77DD]/50"
                 >
-                  <option value="Newest">{t("profile.sortNewest")}</option>
-                  <option value="Oldest">{t("profile.sortOldest")}</option>
-                  <option value="Most Viewed">{t("profile.sortMostViewed")}</option>
+                  {(
+                    [
+                      ["Newest", t("profile.sortNewest")],
+                      ["Oldest", t("profile.sortOldest")],
+                      ["Most Viewed", t("profile.sortMostViewed")],
+                    ] as const
+                  ).map(([val, label]) => (
+                    <option
+                      key={val}
+                      value={val}
+                      style={{ background: "#141019", color: "#fff" }}
+                    >
+                      {label}
+                    </option>
+                  ))}
                 </select>
-                <ChevronDown className="pointer-events-none absolute right-2.5 top-1/2 h-3 w-3 -translate-y-1/2 text-white/45" />
+                <ChevronDown className="pointer-events-none absolute right-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-white/45" />
               </div>
               {isOwner ? (
                 <button
