@@ -846,6 +846,7 @@ export const jaOverrides: Record<string, string> = {
   "watch.creator": "クリエイター",
   "watch.follow": "フォロー",
   "watch.views": "回視聴",
+  "watch.viewsCount": "{n}回視聴",
   "watch.tab.details": "詳細情報",
   "watch.tab.episodes": "エピソード",
   "watch.tab.comments": "コメント",

@@ -870,6 +870,7 @@ export const koOverrides: Record<string, string> = {
   "watch.creator": "크리에이터",
   "watch.follow": "팔로우",
   "watch.views": "회 시청",
+  "watch.viewsCount": "조회수 {n}회",
   "watch.tab.details": "상세 정보",
   "watch.tab.episodes": "회차",
   "watch.tab.comments": "댓글",

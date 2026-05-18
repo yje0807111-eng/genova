@@ -63,7 +63,7 @@ export function WatchDesktopFlexRow({
   return (
     <div className="space-y-6">
       {/* Row 1: player + sidebar + mini queue */}
-      <div className="grid grid-cols-1 gap-4 lg:grid-cols-[1fr_380px_84px]">
+      <div className="grid grid-cols-1 gap-1.5 sm:gap-4 lg:grid-cols-[1fr_380px_84px]">
         <div className="min-w-0">
           {playerSlot}
         </div>

@@ -1393,6 +1393,7 @@ const en: Messages = {
   "watch.creator": "Creator",
   "watch.follow": "Follow",
   "watch.views": "views",
+  "watch.viewsCount": "{n} views",
   "watch.tab.details": "Details",
   "watch.tab.episodes": "Episodes",
   "watch.tab.comments": "Comments",

@@ -125,7 +125,7 @@ export function WatchMetaSidebar({
     <div className="flex h-full flex-col overflow-hidden">
 
       {/* Title + meta + creator + engagement */}
-      <div className="shrink-0 space-y-2.5 border-b border-white/[0.06] px-3 pb-2.5 pt-3 sm:space-y-4 sm:px-4 sm:pb-3 sm:pt-4">
+      <div className="shrink-0 space-y-2.5 border-b border-white/[0.06] px-3 pb-2.5 pt-1.5 sm:space-y-4 sm:px-4 sm:pb-3 sm:pt-4">
         {/* Video title (top) */}
         <div>
           <div className="flex items-start gap-2">
@@ -157,7 +157,12 @@ export function WatchMetaSidebar({
                 <span className="text-white/15">·</span>
               </>
             )}
-            <span>{(video.viewCount ?? 0).toLocaleString()} {t("watch.views", "회 시청")}</span>
+            <span>
+              {t("watch.viewsCount", "조회수 {n}회").replace(
+                "{n}",
+                (video.viewCount ?? 0).toLocaleString(),
+              )}
+            </span>
             <span className="text-white/15">·</span>
             <span>{formatDate(video.createdAt, t)}</span>
           </div>
@@ -276,6 +281,10 @@ export function WatchMetaSidebar({
         </div>
       </div>
 
+      {/* 모바일: 탭바+내용+입력을 한 박스로 묶어 통일감.
+          데스크톱은 md:contents 로 래퍼 해제(기존 레이아웃 유지). */}
+      <div className="mx-3 mb-3 flex min-h-0 flex-1 flex-col overflow-hidden rounded-xl border border-white/[0.07] bg-white/[0.015] md:mx-0 md:mb-0 md:rounded-none md:border-0 md:bg-transparent md:contents">
+
       {/* Tab bar — 세그먼트 알약형 + 자동재생 토글 */}
       <div className="flex shrink-0 items-center gap-2 px-2 py-2">
         <div className="flex flex-1 items-center gap-0.5 rounded-xl bg-white/[0.03] p-1">
@@ -370,6 +379,7 @@ export function WatchMetaSidebar({
           <CommentInput videoId={videoId} currentUserId={currentUserId} />
         </div>
       )}
+      </div>
     </div>
   );
 }
