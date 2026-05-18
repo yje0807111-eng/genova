@@ -53,6 +53,9 @@ export function HomeMobileFeed({ videosFromDb }: { videosFromDb: Video[] }) {
   const [sort, setSort] = useState<Sort>("latest");
   // 상세정보 해시태그 클릭 → /?q=태그 진입 시 검색 프리필.
   const [query, setQuery] = useState(() => searchParams.get("q") ?? "");
+  const [searchOpen, setSearchOpen] = useState(() =>
+    Boolean(searchParams.get("q")),
+  );
 
   const [videos, setVideos] = useState<Video[]>(videosFromDb);
   const [page, setPage] = useState(0);
@@ -239,96 +242,119 @@ export function HomeMobileFeed({ videosFromDb }: { videosFromDb: Video[] }) {
 
   return (
     <div className="overflow-x-hidden md:hidden">
-      {/* 검색 — 피드 내 실시간 필터 (제목·크리에이터) */}
-      <div className="mx-4 mt-3 flex items-center gap-2.5 rounded-2xl border border-white/[0.08] bg-white/[0.03] px-4 py-3">
-        <Search size={16} className="shrink-0 text-white/40" />
-        <input
-          type="text"
-          inputMode="search"
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          placeholder={t("search.placeholder", "Search videos")}
-          className="min-w-0 flex-1 bg-transparent text-[14px] text-white placeholder:text-white/35 outline-none"
-        />
-        {query ? (
+      {/* 상단: 필름 / 공모전 탭 + 우측 검색 버튼 */}
+      <div className="mt-3 flex items-center gap-4 border-b border-white/[0.06] px-4">
+        <div className="flex flex-1 items-center gap-6">
+          {(["films", "competition"] as const).map((tab) => (
+            <button
+              key={tab}
+              type="button"
+              onClick={() => setMainTab(tab)}
+              className={
+                "relative pb-2.5 text-[17px] font-bold tracking-tight transition-colors " +
+                (mainTab === tab ? "text-white" : "text-white/30")
+              }
+            >
+              {t(MAIN_TAB_KEY[tab])}
+              {mainTab === tab ? (
+                <span
+                  className="absolute inset-x-0 -bottom-px h-[2px] rounded-full"
+                  style={{
+                    background:
+                      "linear-gradient(90deg, #7F77DD 0%, #AFA9EC 100%)",
+                  }}
+                  aria-hidden
+                />
+              ) : null}
+            </button>
+          ))}
+        </div>
+        <button
+          type="button"
+          onClick={() => {
+            setSearchOpen((o) => {
+              const next = !o;
+              if (!next) setQuery("");
+              return next;
+            });
+          }}
+          aria-label={t("search.placeholder", "Search videos")}
+          className={
+            "shrink-0 pb-2.5 transition-colors " +
+            (searchOpen ? "text-white" : "text-white/40 hover:text-white/70")
+          }
+        >
+          <Search size={18} />
+        </button>
+      </div>
+
+      {/* 검색 입력 — 버튼 터치 시 펼침, 실시간 필터 */}
+      {searchOpen ? (
+        <div className="mx-4 mt-3 flex items-center gap-2.5 rounded-2xl border border-white/[0.08] bg-white/[0.03] px-4 py-2.5">
+          <Search size={16} className="shrink-0 text-white/40" />
+          <input
+            type="text"
+            inputMode="search"
+            autoFocus
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder={t("search.placeholder", "Search videos")}
+            className="min-w-0 flex-1 bg-transparent text-[14px] text-white placeholder:text-white/35 outline-none"
+          />
           <button
             type="button"
-            onClick={() => setQuery("")}
-            className="shrink-0 text-[12px] font-semibold text-white/40"
-            aria-label="Clear"
+            onClick={() => {
+              setQuery("");
+              setSearchOpen(false);
+            }}
+            className="shrink-0 text-[13px] font-semibold text-white/40"
+            aria-label="Close"
           >
             ✕
           </button>
-        ) : null}
-      </div>
+        </div>
+      ) : null}
 
-      {/* 메인 탭 — 필름 / 공모전 (언더라인 인디케이터) */}
-      <div className="mt-4 flex items-center gap-6 border-b border-white/[0.06] px-4">
-        {(["films", "competition"] as const).map((tab) => (
-          <button
-            key={tab}
-            type="button"
-            onClick={() => setMainTab(tab)}
-            className={
-              "relative pb-2.5 text-[17px] font-bold tracking-tight transition-colors " +
-              (mainTab === tab ? "text-white" : "text-white/30")
-            }
-          >
-            {t(MAIN_TAB_KEY[tab])}
-            {mainTab === tab ? (
-              <span
-                className="absolute inset-x-0 -bottom-px h-[2px] rounded-full"
-                style={{
-                  background:
-                    "linear-gradient(90deg, #7F77DD 0%, #AFA9EC 100%)",
-                }}
-                aria-hidden
-              />
-            ) : null}
-          </button>
-        ))}
-      </div>
-
-      {/* 하위 장르 — 텍스트 링크형 가로 스크롤 (선택된 메인 탭 기준) */}
-      <div className="mt-3.5 flex gap-5 overflow-x-auto px-4 pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-        {subChips.map((c) => (
-          <button
-            key={c}
-            type="button"
-            onClick={() =>
-              mainTab === "films"
-                ? setFilmsSub(c as FilmsSub)
-                : setCompSub(c as CompSub)
-            }
-            className={
-              "shrink-0 whitespace-nowrap text-[13.5px] font-semibold transition-colors " +
-              (sub === c
-                ? "text-white"
-                : "text-white/35 hover:text-white/65")
-            }
-          >
-            {t(SUB_KEY[c])}
-          </button>
-        ))}
-      </div>
-
-      {/* 정렬 토글 */}
-      <div className="mt-3 flex items-center gap-1.5 px-4">
-        {(["latest", "popular"] as const).map((s) => (
-          <button
-            key={s}
-            type="button"
-            onClick={() => setSort(s)}
-            className={
-              "rounded-full px-3 py-1 text-[11px] font-semibold transition-colors " +
-              (sort === s ? "bg-white/10 text-white" : "text-white/40")
-            }
-          >
-            {s === "latest"
-              ? t("home.sortLatest", "Latest")
-              : t("home.sortPopular", "Popular")}
-          </button>
-        ))}
+      {/* 하위 장르 (좌, 가로 스크롤) + 정렬 (우, 텍스트 토글) */}
+      <div className="mt-3.5 flex items-center gap-3 px-4">
+        <div className="flex flex-1 gap-5 overflow-x-auto pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+          {subChips.map((c) => (
+            <button
+              key={c}
+              type="button"
+              onClick={() =>
+                mainTab === "films"
+                  ? setFilmsSub(c as FilmsSub)
+                  : setCompSub(c as CompSub)
+              }
+              className={
+                "shrink-0 whitespace-nowrap text-[13.5px] font-semibold transition-colors " +
+                (sub === c
+                  ? "text-white"
+                  : "text-white/35 hover:text-white/65")
+              }
+            >
+              {t(SUB_KEY[c])}
+            </button>
+          ))}
+        </div>
+        <div className="flex shrink-0 items-center gap-2.5">
+          {(["latest", "popular"] as const).map((s) => (
+            <button
+              key={s}
+              type="button"
+              onClick={() => setSort(s)}
+              className={
+                "whitespace-nowrap text-[12px] font-semibold transition-colors " +
+                (sort === s ? "text-[#AFA9EC]" : "text-white/30")
+              }
+            >
+              {s === "latest"
+                ? t("homeTab.sort.latest", "Latest")
+                : t("homeTab.sort.viewed", "Most Viewed")}
+            </button>
+          ))}
+        </div>
       </div>
 
       {/* 시리즈 모드: 시리즈별 섹션 / 그 외: 1열 세로 피드 */}
