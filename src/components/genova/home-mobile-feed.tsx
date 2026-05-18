@@ -315,9 +315,9 @@ export function HomeMobileFeed({ videosFromDb }: { videosFromDb: Video[] }) {
         </div>
       ) : null}
 
-      {/* 하위 장르 (좌, 가로 스크롤) + 정렬 (우, 텍스트 토글) */}
+      {/* 하위 장르 (좌, 가로 스크롤) + 정렬 (우, 토글) */}
       <div className="mt-3.5 flex items-center gap-3 px-4">
-        <div className="flex flex-1 gap-5 overflow-x-auto pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+        <div className="flex min-w-0 flex-1 gap-5 overflow-x-auto pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
           {subChips.map((c) => (
             <button
               key={c}
@@ -338,22 +338,22 @@ export function HomeMobileFeed({ videosFromDb }: { videosFromDb: Video[] }) {
             </button>
           ))}
         </div>
-        <div className="flex shrink-0 items-center gap-2.5">
-          {(["latest", "popular"] as const).map((s) => (
-            <button
-              key={s}
-              type="button"
-              onClick={() => setSort(s)}
-              className={
-                "whitespace-nowrap text-[12px] font-semibold transition-colors " +
-                (sort === s ? "text-[#AFA9EC]" : "text-white/30")
-              }
-            >
-              {s === "latest"
-                ? t("homeTab.sort.latest", "Latest")
-                : t("homeTab.sort.viewed", "Most Viewed")}
-            </button>
-          ))}
+        <div className="flex shrink-0 items-center gap-3 pb-1 pl-3">
+          <span
+            className="h-3.5 w-px shrink-0 bg-white/[0.10]"
+            aria-hidden
+          />
+          <button
+            type="button"
+            onClick={() =>
+              setSort((s) => (s === "latest" ? "popular" : "latest"))
+            }
+            className="whitespace-nowrap text-[12px] font-semibold text-white/45 transition-colors hover:text-white/75"
+          >
+            {sort === "latest"
+              ? t("homeTab.sort.latest", "Latest")
+              : t("homeTab.sort.viewed", "Most Viewed")}
+          </button>
         </div>
       </div>
 
