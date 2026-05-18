@@ -174,32 +174,35 @@ export function WatchMetaSidebar({
         {/* 유튜브식 간소화 — 데스크톱·모바일 공통: [아바타+이름→프로필]
             + [좋아요·저장·공유·⋯]. 작품/팔로워 통계·팔로우 버튼 없음. */}
         <div className="flex items-center gap-2">
-          <div className="flex min-w-0 flex-1 items-center gap-2">
+          <div className="flex min-w-0 flex-1 items-center gap-2.5">
             <Link
               href={creatorHref ?? "#"}
-              className="group flex min-w-0 items-center gap-2.5"
+              className="h-9 w-9 shrink-0 overflow-hidden rounded-full bg-white/[0.06] ring-1 ring-white/[0.10]"
             >
-              <div className="h-9 w-9 shrink-0 overflow-hidden rounded-full bg-white/[0.06] ring-1 ring-white/[0.10]">
-                <Image
-                  src={creatorAvatarUrl || "/default-avatar.png"}
-                  alt={creatorName}
-                  width={36}
-                  height={36}
-                  className="h-full w-full object-cover"
-                />
-              </div>
-              <p className="line-clamp-1 text-[13px] font-bold text-white transition group-hover:text-[#AFA9EC]">
-                {creatorName}
-              </p>
+              <Image
+                src={creatorAvatarUrl || "/default-avatar.png"}
+                alt={creatorName}
+                width={36}
+                height={36}
+                className="h-full w-full object-cover"
+              />
             </Link>
-            {currentUserId && currentUserId !== creatorId && (
-              <div className="shrink-0 [&>button]:!h-6 [&>button]:!gap-1 [&>button]:!rounded-full [&>button]:!px-2.5 [&>button]:!py-0 [&>button]:!text-[10px] [&>button>svg]:!h-2.5 [&>button>svg]:!w-2.5">
-                <FollowButton
-                  targetUserId={creatorId}
-                  initialFollowing={isFollowingCreator}
-                />
-              </div>
-            )}
+            <div className="flex min-w-0 flex-col justify-center gap-0.5">
+              <Link
+                href={creatorHref ?? "#"}
+                className="line-clamp-1 text-[13px] font-bold leading-none text-white transition hover:text-[#AFA9EC]"
+              >
+                {creatorName}
+              </Link>
+              {currentUserId && currentUserId !== creatorId && (
+                <div className="[&>button]:!h-[18px] [&>button]:!gap-1 [&>button]:!self-start [&>button]:!rounded-full [&>button]:!px-2 [&>button]:!py-0 [&>button]:!text-[9px] [&>button>svg]:!h-2 [&>button>svg]:!w-2">
+                  <FollowButton
+                    targetUserId={creatorId}
+                    initialFollowing={isFollowingCreator}
+                  />
+                </div>
+              )}
+            </div>
           </div>
           <div className="flex shrink-0 items-center gap-1 [&>button]:!h-6 [&>button]:!flex-none [&>button]:!justify-center [&>button]:!gap-0.5 [&>button]:!rounded-full [&>button]:!px-2 [&>button]:!text-[10px] [&>button>svg]:!h-2.5 [&>button>svg]:!w-2.5">
             <VideoLikeButton
@@ -311,7 +314,7 @@ export function WatchMetaSidebar({
 
       {/* Comment input pinned at bottom — 모바일은 시트 내부 입력 사용 */}
       {activeTab === "comments" && (
-        <div className="hidden shrink-0 border-t border-white/10 px-4 py-3 md:block">
+        <div className="hidden shrink-0 border-t border-white/10 py-3 pl-4 pr-8 md:block">
           <CommentInput videoId={videoId} currentUserId={currentUserId} />
         </div>
       )}

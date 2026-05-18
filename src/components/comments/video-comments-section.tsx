@@ -16,10 +16,16 @@ function postBtnClass(active: boolean) {
   return cn(
     "shrink-0 rounded-full px-4 py-1.5 text-[12px] font-semibold transition",
     active
-      ? "bg-white text-[#0a0a0a] hover:bg-white/85"
+      ? "text-[#E6E3FA] hover:brightness-125"
       : "cursor-not-allowed text-white/25",
   );
 }
+
+/** 게시 버튼 활성 — 진한 다크 퍼플 그라데이션(인라인 style 컨벤션). */
+const POST_BTN_ACTIVE_STYLE = {
+  background: "linear-gradient(135deg, #4A3F9E 0%, #322A78 55%, #1E1A52 100%)",
+  boxShadow: "inset 0 1px 0 rgba(255,255,255,0.06)",
+} as const;
 
 /** CommentInput → 같은 영상의 댓글 리스트로 신규 댓글 즉시 전달. */
 const COMMENT_ADDED_EVENT = "genova:comment-added";
@@ -240,7 +246,7 @@ function CommentBlock({
 
         {/* Reply input */}
         {replyOpen && currentUserId && depth === 0 && (
-          <div className="mt-2 flex items-center gap-1.5 rounded-full bg-white/[0.04] py-1 pl-4 pr-1 transition focus-within:bg-white/[0.06]">
+          <div className="mr-6 mt-2 flex items-center gap-1.5 rounded-full bg-white/[0.04] py-1 pl-4 pr-1 transition focus-within:bg-white/[0.06]">
             <input
               type="text"
               value={replyText}
@@ -254,6 +260,11 @@ function CommentBlock({
               onClick={() => void submitReply()}
               disabled={pending || !replyText.trim()}
               className={postBtnClass(!pending && Boolean(replyText.trim()))}
+              style={
+                !pending && replyText.trim()
+                  ? POST_BTN_ACTIVE_STYLE
+                  : undefined
+              }
             >
               {pending ? t("comment.submitting", "게시 중...") : t("comment.submit", "게시")}
             </button>
@@ -473,7 +484,7 @@ export function VideoCommentsSection({
       {/* Input at the bottom */}
       {!hideInput ? (
         currentUserId ? (
-          <div className="mt-4 border-t border-white/10 pt-4">
+          <div className="mt-4 border-t border-white/10 pr-6 pt-4">
             <div className="flex items-center gap-1.5 rounded-full bg-white/[0.04] py-1.5 pl-4 pr-1.5 transition focus-within:bg-white/[0.06]">
               <input
                 type="text"
@@ -493,6 +504,9 @@ export function VideoCommentsSection({
                 onClick={() => void submit()}
                 disabled={!text.trim() || pending}
                 className={postBtnClass(Boolean(text.trim()) && !pending)}
+                style={
+                  text.trim() && !pending ? POST_BTN_ACTIVE_STYLE : undefined
+                }
               >
                 {pending ? t("comment.submitting", "게시 중...") : t("comment.submit", "게시")}
               </button>
@@ -576,6 +590,7 @@ export function CommentInput({
         onClick={() => void submit()}
         disabled={!text.trim() || pending}
         className={postBtnClass(Boolean(text.trim()) && !pending)}
+        style={text.trim() && !pending ? POST_BTN_ACTIVE_STYLE : undefined}
       >
         {pending ? t("comment.submitting", "게시 중...") : t("comment.submit", "게시")}
       </button>

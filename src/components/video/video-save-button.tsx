@@ -66,7 +66,9 @@ export function VideoSaveButton({ videoId, initialSaved, initialCount, className
       >
         <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z" strokeLinejoin="round" />
       </svg>
-      <span className="min-w-[1rem] font-medium tabular-nums text-sm">{count}</span>
+      <span className="min-w-[1rem] font-medium tabular-nums text-sm">
+        {count > 99 ? "99+" : count}
+      </span>
     </button>
   );
 }
