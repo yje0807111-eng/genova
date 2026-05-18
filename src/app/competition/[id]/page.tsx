@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { mapVideo } from "@/lib/mappers";
 import { mergeVideoRows } from "@/lib/queries";
+import { attachEngagementToVideos } from "@/lib/queries/engagement-queries";
+import type { Video } from "@/lib/types";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { CompetitionDetailClient } from "@/components/competition/competition-detail-client";
 import { getServerLocale } from "@/lib/i18n/server";
@@ -85,10 +87,15 @@ async function fetchCompetitionVideos(competitionId: string) {
     .eq("visibility", "public")
     .order("view_count", { ascending: false });
   if (error) console.error("[fetchCompetitionVideos]", error);
-  // Attach uploader display_name / avatar_url via public_profiles.
-  // Returns raw rows (snake_case) — CompetitionDetailClient owns its own
-  // row→AppVideo mapping via competitionRowToAppVideo().
-  return await mergeVideoRows((data ?? []) as Parameters<typeof mapVideo>[0][]);
+  // Attach uploader display_name / avatar_url via public_profiles, then
+  // stamp like/save counts (likes 는 별도 테이블이라 attachEngagement
+  // 필요 — 출품작 카드의 좋아요 수 표시용).
+  const merged = await mergeVideoRows(
+    (data ?? []) as Parameters<typeof mapVideo>[0][],
+  );
+  return (await attachEngagementToVideos(
+    merged as unknown as Video[],
+  )) as unknown as Parameters<typeof mapVideo>[0][];
 }
 
 async function fetchFeaturedVideos(competitionId: string) {
@@ -109,7 +116,12 @@ async function fetchFeaturedVideos(competitionId: string) {
     return [];
   }
 
-  return await mergeVideoRows((data ?? []) as Parameters<typeof mapVideo>[0][]);
+  const merged = await mergeVideoRows(
+    (data ?? []) as Parameters<typeof mapVideo>[0][],
+  );
+  return (await attachEngagementToVideos(
+    merged as unknown as Video[],
+  )) as unknown as Parameters<typeof mapVideo>[0][];
 }
 
 export default async function CompetitionDetailPage({

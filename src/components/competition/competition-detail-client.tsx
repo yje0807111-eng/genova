@@ -118,7 +118,12 @@ type CompetitionDetailProps = {
 };
 
 function competitionRowToAppVideo(video: Video): AppVideo {
-  const row = video as Video & { runtime?: string | null; like_count?: number | null; mux_playback_id?: string | null };
+  const row = video as Video & {
+    runtime?: string | null;
+    like_count?: number | null;
+    likeCount?: number | null;
+    mux_playback_id?: string | null;
+  };
   // `mergeVideoRows` writes profiles as a single object, but the type
   // union still admits the array form (FK-embed shape).  Peel here so
   // the field accesses below stay simple.
@@ -149,7 +154,7 @@ function competitionRowToAppVideo(video: Video): AppVideo {
     uploaderDisplayName: profile?.display_name ?? null,
     uploaderAvatarUrl: profile?.avatar_url ?? null,
     viewCount: video.view_count ?? 0,
-    likeCount: row.like_count ?? 0,
+    likeCount: row.likeCount ?? row.like_count ?? 0,
   };
 }
 
