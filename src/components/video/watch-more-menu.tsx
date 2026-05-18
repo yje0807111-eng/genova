@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
-import { AlertTriangle, Flag, MoreHorizontal } from "lucide-react";
+import { useState } from "react";
+import { AlertTriangle, Flag } from "lucide-react";
 import { useI18n } from "@/components/genova/language-provider";
 import { createVideoReportAction } from "@/app/actions/reports";
 
@@ -35,69 +35,23 @@ export function WatchMoreMenu({ videoId }: { videoId: string }) {
   type ReportScope = (typeof scopeOptions)[number]["value"];
   type ReportReason = (typeof reasonOptions)[number]["value"];
 
-  const [open, setOpen] = useState(false);
   const [reportOpen, setReportOpen] = useState(false);
   const [scope, setScope] = useState<ReportScope>("video");
   const [reason, setReason] = useState<ReportReason>("spam");
   const [detail, setDetail] = useState("");
   const [pending, setPending] = useState(false);
-  const ref = useRef<HTMLDivElement>(null);
-  const buttonRef = useRef<HTMLButtonElement>(null);
-  const [dropdownPos, setDropdownPos] = useState<{ top: number; left: number } | null>(null);
-
-  useEffect(() => {
-    if (!open) return;
-    const handler = (e: MouseEvent) => {
-      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
-    };
-    window.addEventListener("mousedown", handler);
-    return () => window.removeEventListener("mousedown", handler);
-  }, [open]);
-
-  const toggleMenu = () => {
-    if (open) {
-      setOpen(false);
-    } else {
-      if (buttonRef.current) {
-        const rect = buttonRef.current.getBoundingClientRect();
-        setDropdownPos({
-          top: rect.bottom + 8,
-          left: rect.right - 180,
-        });
-      }
-      setOpen(true);
-    }
-  };
 
   return (
-    <div ref={ref} className="relative">
+    <div className="relative">
       <button
-        ref={buttonRef}
         type="button"
-        onClick={toggleMenu}
-        className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-white/10 bg-white/5 text-white/55 transition hover:bg-white/10 hover:text-white sm:h-9 sm:w-9 sm:rounded-md"
+        onClick={() => setReportOpen(true)}
+        className="inline-flex h-5 w-5 shrink-0 items-center justify-center rounded text-white/25 transition hover:text-white/50"
         aria-label={t("watchMore.report", "Report")}
+        title={t("watchMore.report", "Report")}
       >
-        <MoreHorizontal className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
+        <Flag className="h-3 w-3" />
       </button>
-      {open && dropdownPos ? (
-        <div
-          className="anim-pop fixed z-[100] w-[180px] origin-top-right overflow-hidden rounded-xl border border-white/[0.08] bg-[#0c0c12] p-1 shadow-2xl ring-1 ring-black/40"
-          style={{ top: dropdownPos.top, left: dropdownPos.left }}
-        >
-          <button
-            type="button"
-            onClick={() => {
-              setOpen(false);
-              setReportOpen(true);
-            }}
-            className="flex w-full items-center gap-2.5 whitespace-nowrap rounded-lg px-3 py-2.5 text-[13px] font-medium text-white/75 transition hover:bg-red-500/10 hover:text-red-300"
-          >
-            <Flag className="h-3.5 w-3.5 shrink-0" />
-            {t("watchMore.report", "Report")}
-          </button>
-        </div>
-      ) : null}
       {reportOpen ? (
         <div className="anim-scrim fixed inset-0 z-[120] flex items-center justify-center bg-black/70 backdrop-blur-sm" onClick={() => { setReportOpen(false); setDetail(""); }}>
           <div
