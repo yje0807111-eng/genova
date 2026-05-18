@@ -4,20 +4,20 @@ import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState, useTransition } from "react";
-import { Heart, MoreHorizontal, Pin, Send, Trash2 } from "lucide-react";
+import { Heart, MoreHorizontal, Pin, Trash2 } from "lucide-react";
 import { createCommentAction, deleteCommentAction, pinCommentAction, toggleCommentLikeAction } from "@/app/actions/comments";
 import type { VideoComment } from "@/lib/types";
 import { useI18n } from "@/components/genova/language-provider";
 import { formatUploadedRelative } from "@/lib/format-uploaded-relative";
 import { cn } from "@/lib/utils/cn";
 
-/** 게시 버튼 — 활성 시 브랜드 그라데이션(btn-primary), 비활성 muted. */
+/** 게시 버튼 — 심플 솔리드(활성=화이트, 비활성=muted). */
 function postBtnClass(active: boolean) {
   return cn(
-    "inline-flex shrink-0 items-center gap-1.5 rounded-lg px-3.5 py-1.5 text-[12px] font-bold transition",
+    "shrink-0 rounded-lg px-3.5 py-1.5 text-[12px] font-bold transition",
     active
-      ? "btn-primary text-white"
-      : "cursor-not-allowed bg-white/[0.04] text-white/25",
+      ? "bg-white text-[#0a0a0a] hover:bg-white/85"
+      : "cursor-not-allowed bg-white/[0.06] text-white/25",
   );
 }
 
@@ -250,14 +250,7 @@ function CommentBlock({
               disabled={pending || !replyText.trim()}
               className={postBtnClass(!pending && Boolean(replyText.trim()))}
             >
-              {pending ? (
-                t("comment.submitting", "게시 중...")
-              ) : (
-                <>
-                  <Send className="h-3 w-3" />
-                  {t("comment.submit", "게시")}
-                </>
-              )}
+              {pending ? t("comment.submitting", "게시 중...") : t("comment.submit", "게시")}
             </button>
           </div>
         )}
@@ -483,14 +476,7 @@ export function VideoCommentsSection({
                 disabled={!text.trim() || pending}
                 className={postBtnClass(Boolean(text.trim()) && !pending)}
               >
-                {pending ? (
-                  t("comment.submitting", "게시 중...")
-                ) : (
-                  <>
-                    <Send className="h-3.5 w-3.5" />
-                    {t("comment.submit", "게시")}
-                  </>
-                )}
+                {pending ? t("comment.submitting", "게시 중...") : t("comment.submit", "게시")}
               </button>
             </div>
           </div>
@@ -573,14 +559,7 @@ export function CommentInput({
         disabled={!text.trim() || pending}
         className={postBtnClass(Boolean(text.trim()) && !pending)}
       >
-        {pending ? (
-          t("comment.submitting", "게시 중...")
-        ) : (
-          <>
-            <Send className="h-3.5 w-3.5" />
-            {t("comment.submit", "게시")}
-          </>
-        )}
+        {pending ? t("comment.submitting", "게시 중...") : t("comment.submit", "게시")}
       </button>
     </div>
   );
