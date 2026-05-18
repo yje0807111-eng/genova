@@ -2,8 +2,8 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { LotteryGuideInfoButton } from "@/components/lottery/lottery-guide-info-button";
-import { useState } from "react";
+import { ParticipantsInfo } from "@/components/competition/participants-info";
+import { useMemo, useState } from "react";
 import { useI18n } from "@/components/genova/language-provider";
 import { intlDateLocale } from "@/lib/i18n/browser-locale";
 import { formatPrizeWithConversion } from "@/lib/utils/format-prize";
@@ -161,7 +161,6 @@ export function CompetitionDetailClient({
   competition,
   videos,
   featuredVideos,
-  entryCount = 0,
 }: CompetitionDetailProps) {
   const { t, locale } = useI18n();
   const { open: openUploadModal } = useUploadModal();
@@ -170,6 +169,21 @@ export function CompetitionDetailClient({
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   // 모바일 전용: 섹션 탭 전환(활성 섹션만 표시). 데스크톱은 단일 스크롤 유지.
   const [section, setSection] = useState<"overview" | "judging" | "faq" | "entries">("overview");
+  // 참여자 수 = 출품작 업로더(중복 제거).  출품작 수(videos.length)와
+  // 다름 — 한 사람이 여러 작품 출품 가능.
+  const participantCount = useMemo(
+    () =>
+      new Set(
+        videos.map((v) => {
+          const r = v as Video & {
+            uploaded_by?: string | null;
+            creator_id?: string | null;
+          };
+          return r.uploaded_by ?? r.creator_id ?? r.id;
+        }),
+      ).size,
+    [videos],
+  );
 
   const getText = (ko: string | null | undefined, en: string | null | undefined, ja: string | null | undefined, fallback: string) => {
     if (locale === "ko") return ko || en || ja || fallback;
@@ -475,22 +489,16 @@ export function CompetitionDetailClient({
                     </span>
                   </div>
                 )}
-                {/* Phase 4-B: total eligible lottery entries.
-                    Only renders when at least one ticket entered
-                    the pool — keeps the stat row clean for fresh
-                    competitions. */}
-                {entryCount > 0 ? (
+                {/* 참여자 수 — 출품작 업로더(중복 제거).  출품작
+                    수와 다른 지표라 ⓘ 로 차이/1인1상 안내. */}
+                {videos.length > 0 ? (
                   <div className="flex flex-col">
                     <span className="inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-[0.18em] text-white/40">
-                      {t("lottery.poolLabel", "이번 달 응모권")}
-                      <LotteryGuideInfoButton
-                        ariaLabel={t("lottery.guideLink", "응모권 추첨 안내")}
-                        size={12}
-                        className="text-white/30 transition hover:text-[#AFA9EC]"
-                      />
+                      {t("competition.detail.participants", "참여자")}
+                      <ParticipantsInfo className="text-white/30 transition hover:text-[#AFA9EC]" />
                     </span>
                     <span className="mt-0.5 inline-flex items-center gap-1.5 text-[14px] font-bold tabular-nums text-[#AFA9EC]">
-                      {entryCount.toLocaleString()}
+                      {participantCount.toLocaleString()}
                     </span>
                   </div>
                 ) : null}

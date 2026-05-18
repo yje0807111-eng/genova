@@ -38,14 +38,14 @@ export function BusinessLandingClient() {
           className="absolute inset-0"
           style={{
             background:
-              "linear-gradient(180deg, rgba(83,74,183,0.14) 0%, rgba(83,74,183,0.04) 22%, rgba(127,119,221,0.05) 45%, rgba(83,74,183,0.10) 68%, rgba(127,119,221,0.06) 88%, transparent 100%)",
+              "linear-gradient(180deg, rgba(83,74,183,0.08) 0%, rgba(83,74,183,0.02) 22%, rgba(127,119,221,0.025) 45%, rgba(83,74,183,0.05) 68%, rgba(127,119,221,0.03) 88%, transparent 100%)",
           }}
         />
         <div
           className="absolute -left-32 top-[680px] h-[560px] w-[680px] rounded-full"
           style={{
             background:
-              "radial-gradient(circle, rgba(127,119,221,0.30) 0%, transparent 68%)",
+              "radial-gradient(circle, rgba(127,119,221,0.15) 0%, transparent 68%)",
             filter: "blur(110px)",
           }}
         />
@@ -53,7 +53,7 @@ export function BusinessLandingClient() {
           className="absolute -right-40 top-[1280px] h-[620px] w-[760px] rounded-full"
           style={{
             background:
-              "radial-gradient(circle, rgba(83,74,183,0.34) 0%, transparent 68%)",
+              "radial-gradient(circle, rgba(83,74,183,0.17) 0%, transparent 68%)",
             filter: "blur(120px)",
           }}
         />
@@ -61,7 +61,7 @@ export function BusinessLandingClient() {
           className="absolute -left-24 top-[2000px] h-[600px] w-[720px] rounded-full"
           style={{
             background:
-              "radial-gradient(circle, rgba(127,119,221,0.28) 0%, transparent 68%)",
+              "radial-gradient(circle, rgba(127,119,221,0.14) 0%, transparent 68%)",
             filter: "blur(120px)",
           }}
         />
@@ -69,7 +69,7 @@ export function BusinessLandingClient() {
           className="absolute -bottom-20 left-1/2 h-[560px] w-[1200px] -translate-x-1/2 rounded-full"
           style={{
             background:
-              "radial-gradient(ellipse, rgba(127,119,221,0.26) 0%, transparent 70%)",
+              "radial-gradient(ellipse, rgba(127,119,221,0.13) 0%, transparent 70%)",
             filter: "blur(110px)",
           }}
         />
