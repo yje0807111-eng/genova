@@ -8,7 +8,7 @@ import { Search, Heart } from "lucide-react";
 import type { Video } from "@/lib/types";
 import { useI18n } from "@/components/genova/language-provider";
 import { videoToCardProps } from "@/components/genova/video-card";
-import { MAIN_GENRE_KEYS, normalizeToMainGenre } from "@/lib/constants/genres";
+import { normalizeToMainGenre } from "@/lib/constants/genres";
 
 type MainTab = "films" | "competition";
 type FilmsSub = "all" | "film" | "animation" | "music" | "art" | "daily" | "series";
@@ -173,29 +173,6 @@ export function HomeMobileFeed({ videosFromDb }: { videosFromDb: Video[] }) {
           )
       : [];
 
-  // "전체" + 검색 없음 → 데스크톱처럼 메인 장르별 섹션으로 정돈.
-  // 특정 장르 칩 선택 시엔 단일 장르라 평탄 피드 유지.
-  const groupByGenre = mainTab === "films" && filmsSub === "all" && !q;
-  const genreGroups = groupByGenre
-    ? (() => {
-        const m = new Map<string, Video[]>();
-        for (const v of filtered) {
-          const k = normalizeToMainGenre(v.genre) || "other";
-          if (!m.has(k)) m.set(k, []);
-          m.get(k)!.push(v);
-        }
-        const known = MAIN_GENRE_KEYS.filter((k) => m.has(k));
-        const extra = [...m.keys()].filter(
-          (k) => !(MAIN_GENRE_KEYS as readonly string[]).includes(k),
-        );
-        return [...known, ...extra].map((k) => ({
-          key: k,
-          label: SUB_KEY[k] ? t(SUB_KEY[k]) : k,
-          videos: m.get(k)!,
-        }));
-      })()
-    : [];
-
   const subChips: (FilmsSub | CompSub)[] =
     mainTab === "films" ? FILMS_SUBS : COMP_SUBS;
 
@@ -285,27 +262,35 @@ export function HomeMobileFeed({ videosFromDb }: { videosFromDb: Video[] }) {
         ) : null}
       </div>
 
-      {/* 메인 탭 — 필름 / 공모전 (데스크톱과 동일 분리) */}
-      <div className="mt-4 flex items-center gap-2 px-4">
+      {/* 메인 탭 — 필름 / 공모전 (언더라인 인디케이터) */}
+      <div className="mt-4 flex items-center gap-6 border-b border-white/[0.06] px-4">
         {(["films", "competition"] as const).map((tab) => (
           <button
             key={tab}
             type="button"
             onClick={() => setMainTab(tab)}
             className={
-              "rounded-full px-5 py-1.5 text-[13px] font-bold transition-colors " +
-              (mainTab === tab
-                ? "bg-white text-[#0a0a0a]"
-                : "border border-white/[0.10] bg-white/[0.03] text-white/60")
+              "relative pb-2.5 text-[17px] font-bold tracking-tight transition-colors " +
+              (mainTab === tab ? "text-white" : "text-white/30")
             }
           >
             {t(MAIN_TAB_KEY[tab])}
+            {mainTab === tab ? (
+              <span
+                className="absolute inset-x-0 -bottom-px h-[2px] rounded-full"
+                style={{
+                  background:
+                    "linear-gradient(90deg, #7F77DD 0%, #AFA9EC 100%)",
+                }}
+                aria-hidden
+              />
+            ) : null}
           </button>
         ))}
       </div>
 
-      {/* 하위 장르 칩 — 가로 스크롤 (선택된 메인 탭 기준) */}
-      <div className="mt-3 flex gap-2 overflow-x-auto px-4 pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+      {/* 하위 장르 — 텍스트 링크형 가로 스크롤 (선택된 메인 탭 기준) */}
+      <div className="mt-3.5 flex gap-5 overflow-x-auto px-4 pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
         {subChips.map((c) => (
           <button
             key={c}
@@ -316,10 +301,10 @@ export function HomeMobileFeed({ videosFromDb }: { videosFromDb: Video[] }) {
                 : setCompSub(c as CompSub)
             }
             className={
-              "shrink-0 whitespace-nowrap rounded-full px-4 py-1.5 text-[12px] font-semibold transition-colors " +
+              "shrink-0 whitespace-nowrap text-[13.5px] font-semibold transition-colors " +
               (sub === c
-                ? "bg-white text-[#0a0a0a]"
-                : "border border-white/[0.10] bg-white/[0.03] text-white/60")
+                ? "text-white"
+                : "text-white/35 hover:text-white/65")
             }
           >
             {t(SUB_KEY[c])}
@@ -372,32 +357,6 @@ export function HomeMobileFeed({ videosFromDb }: { videosFromDb: Video[] }) {
               </div>
               <div className="flex flex-col gap-4">
                 {g.episodes.map((v) => renderCard(v))}
-              </div>
-            </section>
-          ))}
-        </div>
-      ) : groupByGenre ? (
-        <div className="flex flex-col gap-7 px-4 pb-10 pt-4">
-          {genreGroups.map((g) => (
-            <section key={g.key}>
-              <div className="mb-3 flex items-center gap-2.5">
-                <span
-                  className="h-5 w-1 shrink-0 rounded-full"
-                  style={{
-                    background:
-                      "linear-gradient(180deg, #7F77DD 0%, #534AB7 100%)",
-                  }}
-                  aria-hidden
-                />
-                <h3 className="min-w-0 flex-1 truncate text-[15px] font-bold text-white">
-                  {g.label}
-                </h3>
-                <span className="shrink-0 rounded-full bg-white/[0.05] px-2 py-0.5 text-[10px] font-semibold tabular-nums text-white/45">
-                  {g.videos.length}
-                </span>
-              </div>
-              <div className="flex flex-col gap-4">
-                {g.videos.map((v) => renderCard(v))}
               </div>
             </section>
           ))}
