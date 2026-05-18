@@ -103,6 +103,7 @@ function CommentBlock({
   isVideoOwner,
   onPinToggle,
   onReplyAdded,
+  onDeleted,
 }: {
   c: VideoComment;
   videoId: string;
@@ -111,6 +112,7 @@ function CommentBlock({
   isVideoOwner: boolean;
   onPinToggle: (commentId: string, pinned: boolean, pinOrder: number | null) => void;
   onReplyAdded: (parentId: string, reply: VideoComment) => void;
+  onDeleted: (commentId: string) => void;
 }) {
   const { t } = useI18n();
   const router = useRouter();
@@ -127,6 +129,8 @@ function CommentBlock({
 
   const confirmDelete = () => {
     setShowDeleteModal(false);
+    // 낙관적 즉시 제거 — 댓글 게시처럼 서버 라운드트립을 기다리지 않음.
+    onDeleted(c.id);
     startTransition(async () => {
       const res = await deleteCommentAction(c.id, videoId);
       if (!res.ok) {
@@ -273,6 +277,7 @@ function CommentBlock({
                 isVideoOwner={isVideoOwner}
                 onPinToggle={onPinToggle}
                 onReplyAdded={onReplyAdded}
+                onDeleted={onDeleted}
               />
             ))}
           </div>
@@ -292,31 +297,46 @@ function CommentBlock({
 
       {/* Delete confirmation modal */}
       {showDeleteModal && (
-        <div className="anim-scrim fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm">
+        <div
+          className="anim-scrim fixed inset-0 z-[100] flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm"
+          onClick={() => setShowDeleteModal(false)}
+        >
           <div
-            className="anim-modal w-full max-w-sm rounded-2xl border border-white/[0.08] p-6"
-            style={{
-              background: "linear-gradient(135deg, rgba(20,17,50,0.99) 0%, rgba(10,8,28,1) 100%)",
-              boxShadow: "0 0 0 1px rgba(127,119,221,0.1), 0 40px 80px rgba(0,0,0,0.6)",
-            }}
+            className="anim-modal w-full max-w-[340px] rounded-2xl border border-white/[0.08] bg-[#0a0a0a] p-5"
+            onClick={(e) => e.stopPropagation()}
           >
-            <h2 className="text-lg font-black text-white">{t("comments.deleteTitle", "Delete comment")}</h2>
-            <p className="mt-1 text-sm text-white/35">{t("comments.deleteConfirm", "Are you sure you want to delete this comment? This cannot be undone.")}</p>
-            <div className="mt-5 flex gap-3">
+            <div className="flex items-center gap-3">
+              <span
+                className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full"
+                style={{
+                  background: "rgba(239,68,68,0.12)",
+                  border: "1px solid rgba(239,68,68,0.25)",
+                }}
+                aria-hidden
+              >
+                <Trash2 className="h-4 w-4 text-red-400" />
+              </span>
+              <h2 className="text-[15px] font-bold text-white">
+                {t("comments.deleteTitle", "Delete comment")}
+              </h2>
+            </div>
+            <p className="mt-3 text-[13px] leading-relaxed text-white/45">
+              {t("comments.deleteConfirm", "Are you sure you want to delete this comment? This cannot be undone.")}
+            </p>
+            <div className="mt-5 flex gap-2">
               <button
                 type="button"
                 onClick={() => setShowDeleteModal(false)}
-                className="flex-1 rounded-xl border border-white/[0.08] py-2.5 text-sm font-semibold text-white/50 transition hover:border-white/20 hover:text-white"
+                className="flex-1 rounded-xl border border-white/[0.08] bg-white/[0.02] py-2.5 text-[13px] font-semibold text-white/55 transition hover:bg-white/[0.05] hover:text-white"
               >
                 {t("comments.cancel", "Cancel")}
               </button>
               <button
                 type="button"
                 onClick={confirmDelete}
-                className="flex-1 rounded-xl py-2.5 text-sm font-bold text-white transition hover:opacity-90"
+                className="flex-1 rounded-xl py-2.5 text-[13px] font-bold text-white transition hover:brightness-110"
                 style={{
                   background: "linear-gradient(135deg, #dc2626 0%, #ef4444 100%)",
-                  boxShadow: "0 4px 16px rgba(220,38,38,0.3)",
                 }}
               >
                 {t("comments.delete", "삭제")}
@@ -386,6 +406,18 @@ export function VideoCommentsSection({
     window.addEventListener(COMMENT_ADDED_EVENT, handler);
     return () => window.removeEventListener(COMMENT_ADDED_EVENT, handler);
   }, [videoId]);
+
+  const onDeleted = (commentId: string) => {
+    setComments((prev) =>
+      prev
+        .filter((c) => c.id !== commentId)
+        .map((c) =>
+          c.replies?.some((r) => r.id === commentId)
+            ? { ...c, replies: c.replies.filter((r) => r.id !== commentId) }
+            : c,
+        ),
+    );
+  };
 
   const onReplyAdded = (parentId: string, reply: VideoComment) => {
     setComments((prev) =>
@@ -465,6 +497,7 @@ export function VideoCommentsSection({
               isVideoOwner={isVideoOwner ?? false}
               onPinToggle={onPinToggle}
               onReplyAdded={onReplyAdded}
+              onDeleted={onDeleted}
             />
           ))
         )}

@@ -190,7 +190,7 @@ export function WatchMetaSidebar({
             <div className="flex min-w-0 flex-col justify-center gap-1">
               <Link
                 href={creatorHref ?? "#"}
-                className="line-clamp-1 text-[13px] font-bold leading-none text-white transition hover:text-[#AFA9EC]"
+                className="line-clamp-1 text-[14px] font-bold leading-none text-white transition hover:text-[#AFA9EC]"
               >
                 {creatorName}
               </Link>
