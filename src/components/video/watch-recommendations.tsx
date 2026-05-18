@@ -1,5 +1,6 @@
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { mergeVideoRows } from "@/lib/queries";
+import { attachEngagementToVideos } from "@/lib/queries/engagement-queries";
 import { mapVideo } from "@/lib/mappers";
 import { WatchRecommendationsSections } from "@/components/video/watch-detail-client";
 
@@ -53,14 +54,21 @@ export async function WatchRecommendations({
   const merged = await mergeVideoRows([...unionById.values()]);
   const mergedById = new Map(merged.map((r) => [r.id, r]));
 
-  const sameGenreVideos = sameGenreRows.map((r) =>
+  const sameGenreMapped = sameGenreRows.map((r) =>
     mapVideo(mergedById.get(r.id) ?? r),
   );
-  const sameGenreIds = new Set(sameGenreVideos.map((v) => v.id));
-  const trendingVideos = trendingRows
+  const sameGenreIds = new Set(sameGenreMapped.map((v) => v.id));
+  const trendingMapped = trendingRows
     .map((r) => mapVideo(mergedById.get(r.id) ?? r))
     .filter((v) => !sameGenreIds.has(v.id))
     .slice(0, 12);
+
+  // 좋아요 수 표시용 — likes 는 별도 테이블이라 attach 필요
+  // (하단 추천 카드도 홈 카드처럼 좋아요 노출).
+  const [sameGenreVideos, trendingVideos] = await Promise.all([
+    attachEngagementToVideos(sameGenreMapped),
+    attachEngagementToVideos(trendingMapped),
+  ]);
 
   return (
     <WatchRecommendationsSections

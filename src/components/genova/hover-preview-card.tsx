@@ -92,7 +92,7 @@ export function HoverPreviewCard({
               <>
                 <span>·</span>
                 <span className="flex items-center gap-0.5">
-                  <Heart size={10} className="fill-current" />
+                  <Heart size={10} />
                   {video.likeCount}
                 </span>
               </>
