@@ -120,20 +120,15 @@ export function UpNextMiniRail({ related, currentVideoId }: Props) {
                   {v.title}
                 </p>
                 <div className="mt-1 flex items-center gap-2 text-[12px] text-white/55">
-                  {(v.creatorName?.trim() || v.uploaderDisplayName?.trim()) && (
-                    <span className="line-clamp-1">
-                      {v.creatorName?.trim() || v.uploaderDisplayName?.trim()}
-                    </span>
-                  )}
-                  {typeof v.likeCount === "number" && v.likeCount > 0 && (
-                    <>
-                      <span className="text-white/20">·</span>
-                      <span className="inline-flex items-center gap-0.5 tabular-nums">
-                        <Heart className="h-3 w-3" />
-                        {v.likeCount}
-                      </span>
-                    </>
-                  )}
+                  <span className="min-w-0 flex-1 truncate">
+                    {v.creatorName?.trim() ||
+                      v.uploaderDisplayName?.trim() ||
+                      t("watch.unknownCreator", "Unknown")}
+                  </span>
+                  <span className="inline-flex shrink-0 items-center gap-0.5 tabular-nums">
+                    <Heart className="h-3 w-3" />
+                    {v.likeCount ?? 0}
+                  </span>
                 </div>
               </div>
             </Link>

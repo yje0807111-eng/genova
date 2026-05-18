@@ -887,6 +887,7 @@ export const koOverrides: Record<string, string> = {
   "watch.autoplay.on": "자동재생 켜짐",
   "watch.autoplay.off": "자동재생 꺼짐",
   "watch.now": "재생 중",
+  "watch.unknownCreator": "알 수 없음",
   "report.title": "신고하기",
   "report.description": "신고 범위와 사유를 선택해주세요",
   "report.scope.label": "신고 범위",

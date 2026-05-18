@@ -863,6 +863,7 @@ export const jaOverrides: Record<string, string> = {
   "watch.autoplay.on": "自動再生オン",
   "watch.autoplay.off": "自動再生オフ",
   "watch.now": "再生中",
+  "watch.unknownCreator": "不明",
   "report.title": "報告",
   "report.description": "報告範囲と理由を選択してください",
   "report.scope.label": "範囲",

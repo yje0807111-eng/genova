@@ -1410,6 +1410,7 @@ const en: Messages = {
   "watch.autoplay.on": "Autoplay on",
   "watch.autoplay.off": "Autoplay off",
   "watch.now": "Now",
+  "watch.unknownCreator": "Unknown",
   "report.title": "Report",
   "report.description": "Select the report scope and reason",
   "report.scope.label": "Scope",

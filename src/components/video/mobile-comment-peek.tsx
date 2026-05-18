@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import Image from "next/image";
-import { MessageCircle, X } from "lucide-react";
+import { X } from "lucide-react";
 import {
   CommentInput,
   VideoCommentsSection,
@@ -66,13 +66,12 @@ export function MobileCommentPeek({
   }, [open]);
 
   return (
-    <div className="px-2 py-3">
+    <div className="py-3 pl-4 pr-2">
       <button
         type="button"
         onClick={() => setOpen(true)}
         className="flex w-full items-center gap-2.5 text-left transition active:opacity-70"
       >
-        <MessageCircle className="h-4 w-4 shrink-0 text-white/40" />
         {current ? (
           <span
             className={`flex min-w-0 flex-1 items-center gap-2 transition-opacity duration-700 ease-in-out ${
