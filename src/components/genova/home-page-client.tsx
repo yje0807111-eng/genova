@@ -81,6 +81,7 @@ export function HomePageClient(props: HomePageClientProps) {
   const [activeSort, setActiveSort] = useState<SortKey>("latest");
   const [searchQuery, setSearchQuery] = useState("");
   const moodBarRef = useRef<HTMLDivElement>(null);
+  const searchSectionRef = useRef<HTMLDivElement>(null);
   const isFirstMount = useRef(true);
 
   const [allVideos, setAllVideos] = useState<Video[]>(videosFromDb);
@@ -165,9 +166,21 @@ export function HomePageClient(props: HomePageClientProps) {
   }, [selectedGenre]);
 
   useEffect(() => {
-    // 상세정보 해시태그 클릭 → /?q=태그 로 진입 시 검색 프리필.
+    // 상세정보 해시태그 클릭 → /?q=태그 로 진입 시 검색 프리필 +
+    // 검색 구역이 화면 최상단에 오도록 스크롤(아래로 결과 노출).
     const qParam = searchParams.get("q");
-    if (qParam) setSearchQuery(qParam);
+    if (qParam) {
+      setSearchQuery(qParam);
+      setTimeout(() => {
+        if (searchSectionRef.current) {
+          const top =
+            searchSectionRef.current.getBoundingClientRect().top +
+            window.scrollY -
+            72;
+          window.scrollTo({ top, behavior: "smooth" });
+        }
+      }, 120);
+    }
 
     const genre = searchParams.get("genre");
     if (genre) {
@@ -280,21 +293,23 @@ export function HomePageClient(props: HomePageClientProps) {
           <HomeGenreCarousel slides={carouselSlides} />
         </ScrollReveal>
 
-        <ScrollReveal delay={0.09} className="relative z-[60]">
-          <HomeTabNav
-            activeMainTab={activeMainTab}
-            activeSubGenre={activeSubGenre}
-            activeSort={activeSort}
-            searchQuery={searchQuery}
-            onMainTabChange={(tab) => {
-              setActiveMainTab(tab);
-              setActiveSubGenre("all");
-            }}
-            onSubGenreChange={setActiveSubGenre}
-            onSortChange={setActiveSort}
-            onSearchChange={setSearchQuery}
-          />
-        </ScrollReveal>
+        <div ref={searchSectionRef} className="scroll-mt-4">
+          <ScrollReveal delay={0.09} className="relative z-[60]">
+            <HomeTabNav
+              activeMainTab={activeMainTab}
+              activeSubGenre={activeSubGenre}
+              activeSort={activeSort}
+              searchQuery={searchQuery}
+              onMainTabChange={(tab) => {
+                setActiveMainTab(tab);
+                setActiveSubGenre("all");
+              }}
+              onSubGenreChange={setActiveSubGenre}
+              onSortChange={setActiveSort}
+              onSearchChange={setSearchQuery}
+            />
+          </ScrollReveal>
+        </div>
 
         <ScrollReveal delay={0.11} className="relative z-0">
          <div className="min-h-[800px]">
