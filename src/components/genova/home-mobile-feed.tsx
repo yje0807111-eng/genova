@@ -82,11 +82,14 @@ export function HomeMobileFeed({ videosFromDb }: { videosFromDb: Video[] }) {
         : genre === "series"
           ? Boolean(v.seriesName)
           : normalizeToMainGenre(v.genre) === genre;
+  // 태그 포함 + 선행 '#' 제거(태그는 저장 시 '#' 없음)로 해시태그
+  // 검색 지원.
+  const needle = q.replace(/^#+/, "");
   const matchesSearch = (v: Video) =>
-    q
-      ? `${v.title ?? ""} ${v.creatorName ?? v.uploaderDisplayName ?? ""} ${v.seriesName ?? ""}`
+    needle
+      ? `${v.title ?? ""} ${v.creatorName ?? v.uploaderDisplayName ?? ""} ${v.seriesName ?? ""} ${(v.tags ?? []).join(" ")}`
           .toLowerCase()
-          .includes(q)
+          .includes(needle)
       : true;
   const sortFn = (a: Video, b: Video) =>
     sort === "popular"

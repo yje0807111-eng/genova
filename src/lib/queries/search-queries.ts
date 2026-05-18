@@ -238,13 +238,18 @@ async function collectVideoCandidates(q: string, cap = 220): Promise<Video[]> {
     return filterMockVideosBySearch(term).slice(0, cap);
   }
 
-  // tags 별도 검색 (배열 컬럼이라 .or() 안에서 캐스팅 안 됨)
-  const tagsRes = await supabase
-    .from("videos")
-    .select("*, creators(*)")
-    .contains("tags", [term.toLowerCase()])
-    .order("created_at", { ascending: false })
-    .limit(cap);
+  // tags 별도 검색 (배열 컬럼이라 .or() 안에서 캐스팅 안 됨).
+  // 태그는 저장 시 `#` 제거 + 소문자 정규화(normalizeHashtags)되므로
+  // 검색어도 동일 정규화해야 '#해시태그' 입력도 매칭됨.
+  const tagTerm = term.replace(/^#+/, "").trim().toLowerCase();
+  const tagsRes = tagTerm
+    ? await supabase
+        .from("videos")
+        .select("*, creators(*)")
+        .contains("tags", [tagTerm])
+        .order("created_at", { ascending: false })
+        .limit(cap)
+    : { data: [] as Parameters<typeof mapVideo>[0][], error: null };
 
   const creatorIds = (creatorsRes.data ?? []).map((x: { id: string }) => x.id);
   const profileIds = (profileRes.data ?? []).map((x: { id: string }) => x.id);

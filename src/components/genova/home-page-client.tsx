@@ -220,13 +220,18 @@ export function HomePageClient(props: HomePageClientProps) {
     let result: Video[];
 
     const sq = searchQuery.trim().toLowerCase();
+    // 태그는 저장 시 '#' 제거되므로 검색어의 선행 '#' 도 제거해
+    // '#해시태그' 입력으로도 매칭되게 한다.
+    const sqTag = sq.replace(/^#+/, "");
     if (sq) {
       result = videos.filter(
         (v) =>
           v.title.toLowerCase().includes(sq) ||
           (v.creatorName ?? "").toLowerCase().includes(sq) ||
           (v.uploaderDisplayName ?? "").toLowerCase().includes(sq) ||
-          (v.tags ?? []).some((tag) => tag.toLowerCase().includes(sq)),
+          (v.tags ?? []).some((tag) =>
+            tag.toLowerCase().includes(sqTag),
+          ),
       );
     } else if (activeMainTab === "recommended") {
       const base = [...videos];
