@@ -13,6 +13,7 @@ import { FollowButton } from "@/components/profile/follow-button";
 import { VideoLikeButton } from "@/components/video/video-like-button";
 import { VideoSaveButton } from "@/components/video/video-save-button";
 import { SeriesEpisodesList } from "@/components/video/series-episodes-list";
+import { MobileCommentPeek } from "@/components/video/mobile-comment-peek";
 import type { Video, VideoComment } from "@/lib/types";
 import { cn } from "@/lib/utils/cn";
 
@@ -124,11 +125,11 @@ export function WatchMetaSidebar({
     <div className="flex h-full flex-col overflow-hidden">
 
       {/* Title + meta + creator + engagement */}
-      <div className="shrink-0 space-y-4 border-b border-white/[0.06] px-4 pb-3 pt-4">
+      <div className="shrink-0 space-y-2.5 border-b border-white/[0.06] px-3 pb-2.5 pt-3 sm:space-y-4 sm:px-4 sm:pb-3 sm:pt-4">
         {/* Video title (top) */}
         <div>
           <div className="flex items-start gap-2">
-            <h2 className="min-w-0 flex-1 text-[17px] font-bold leading-tight text-white">
+            <h2 className="min-w-0 flex-1 text-[16px] font-bold leading-tight text-white sm:text-[17px]">
               {video.title}
             </h2>
             {video.purpose === "competition" && (
@@ -147,7 +148,7 @@ export function WatchMetaSidebar({
               </span>
             )}
           </div>
-          <div className="mt-2 flex flex-wrap items-center gap-x-2 gap-y-1 text-[11px] text-white/45">
+          <div className="mt-1.5 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-[11px] text-white/45">
             {video.genre && (
               <>
                 <span className="font-semibold uppercase tracking-[0.1em] text-white/55">
@@ -164,7 +165,7 @@ export function WatchMetaSidebar({
 
         {/* Creator row — 한 줄: 아바타·이름·작품·팔로워·팔로우 */}
         <div
-          className="flex items-center gap-3 rounded-xl border border-white/[0.06] px-3 py-2.5"
+          className="flex items-center gap-3 rounded-xl border border-white/[0.06] px-3 py-2 sm:py-2.5"
           style={{
             background:
               "linear-gradient(150deg, rgba(127,119,221,0.07) 0%, rgba(255,255,255,0.015) 55%)",
@@ -301,23 +302,35 @@ export function WatchMetaSidebar({
             />
           </div>
         ) : activeTab === "comments" ? (
-          <div className="px-4 py-3">
-            <VideoCommentsSection
-              videoId={videoId}
-              initialComments={initialComments}
-              currentUserId={currentUserId}
-              hideInput
-              isVideoOwner={isVideoOwner}
-            />
-          </div>
+          <>
+            {/* 모바일: 한 줄 회전 미리보기 → 탭 시 하단 시트 */}
+            <div className="md:hidden">
+              <MobileCommentPeek
+                videoId={videoId}
+                comments={initialComments}
+                currentUserId={currentUserId}
+                isVideoOwner={isVideoOwner}
+              />
+            </div>
+            {/* 데스크톱: 기존 인라인 목록 */}
+            <div className="hidden px-4 py-3 md:block">
+              <VideoCommentsSection
+                videoId={videoId}
+                initialComments={initialComments}
+                currentUserId={currentUserId}
+                hideInput
+                isVideoOwner={isVideoOwner}
+              />
+            </div>
+          </>
         ) : (
           <div className="px-4 py-3">{descriptionInner}</div>
         )}
       </div>
 
-      {/* Comment input pinned at bottom */}
+      {/* Comment input pinned at bottom — 모바일은 시트 내부 입력 사용 */}
       {activeTab === "comments" && (
-        <div className="shrink-0 border-t border-white/10 px-4 py-3">
+        <div className="hidden shrink-0 border-t border-white/10 px-4 py-3 md:block">
           <CommentInput videoId={videoId} currentUserId={currentUserId} />
         </div>
       )}

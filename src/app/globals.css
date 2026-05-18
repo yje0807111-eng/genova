@@ -852,3 +852,19 @@ body {
 @media (prefers-reduced-motion: reduce) {
   .auth-mesh-a, .auth-mesh-b, .auth-mesh-c { animation: none; }
 }
+
+/* mobile-comment-sheet — 하단에서 올라오는 댓글 시트.
+   useExitAnimation 과 함께: anim-sheet(진입) / anim-sheet-out(닫힘). */
+@keyframes sheetUp {
+  from { transform: translateY(100%); }
+  to   { transform: translateY(0); }
+}
+@keyframes sheetDown {
+  from { transform: translateY(0); }
+  to   { transform: translateY(100%); }
+}
+.anim-sheet { animation: sheetUp 0.3s cubic-bezier(0.22, 1, 0.36, 1) both; }
+.anim-sheet-out { animation: sheetDown 0.25s ease-in both; }
+@media (prefers-reduced-motion: reduce) {
+  .anim-sheet, .anim-sheet-out { animation: none; }
+}

@@ -194,7 +194,7 @@ export default async function WatchDetailPage({
       {/* Top row: main + unified sidebar (Up Next + tabs + comments) */}
       <WatchDesktopFlexRow
         playerSlot={
-          <div className="aspect-video overflow-hidden rounded-2xl border border-white/10 bg-black">
+          <div className="-ml-5 -mr-3 -mt-6 aspect-video overflow-hidden border-0 bg-black sm:ml-0 sm:mr-0 sm:mt-0 sm:rounded-2xl sm:border sm:border-white/10">
             <WatchTracker videoId={video.id} />
             {video.muxPlaybackId && (
               <MuxPlayer
