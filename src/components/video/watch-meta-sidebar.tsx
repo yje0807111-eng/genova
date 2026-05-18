@@ -166,9 +166,7 @@ export function WatchMetaSidebar({
             <span className="text-white/15">·</span>
             <span>{formatDate(video.createdAt, t)}</span>
             {moreAction && (
-              <div className="ml-auto shrink-0 [&>button]:!h-6 [&>button]:!w-6 [&>button>svg]:!h-3 [&>button>svg]:!w-3">
-                {moreAction}
-              </div>
+              <div className="-my-1 ml-0.5 shrink-0">{moreAction}</div>
             )}
           </div>
         </div>

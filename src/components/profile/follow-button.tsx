@@ -42,10 +42,10 @@ export function FollowButton({
       onClick={onToggle}
       disabled={pending}
       className={cn(
-        "flex items-center gap-2 rounded-lg px-3 py-1.5 text-[12px] font-bold transition disabled:opacity-60",
+        "flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-[12px] font-bold transition disabled:opacity-60",
         following
-          ? "border border-white/[0.08] bg-white/[0.04] text-white/80 hover:bg-white/[0.06]"
-          : "bg-[#534AB7] text-white hover:bg-[#6b5fd4]",
+          ? "border border-white/[0.10] bg-white/[0.04] text-white/55 hover:bg-white/[0.07] hover:text-white/80"
+          : "border border-white/15 bg-white text-[#0a0a0a] hover:bg-white/85",
       )}
     >
       {following ? <UserCheck className="h-4 w-4" /> : <UserPlus className="h-4 w-4" />}

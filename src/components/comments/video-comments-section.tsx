@@ -14,10 +14,10 @@ import { cn } from "@/lib/utils/cn";
 /** 게시 버튼 — 심플 솔리드(활성=화이트, 비활성=muted). */
 function postBtnClass(active: boolean) {
   return cn(
-    "shrink-0 rounded-lg px-3.5 py-1.5 text-[12px] font-bold transition",
+    "shrink-0 rounded-full px-4 py-1.5 text-[12px] font-semibold transition",
     active
       ? "bg-white text-[#0a0a0a] hover:bg-white/85"
-      : "cursor-not-allowed bg-white/[0.06] text-white/25",
+      : "cursor-not-allowed text-white/25",
   );
 }
 
@@ -102,6 +102,7 @@ function CommentBlock({
   depth,
   isVideoOwner,
   onPinToggle,
+  onReplyAdded,
 }: {
   c: VideoComment;
   videoId: string;
@@ -109,6 +110,7 @@ function CommentBlock({
   depth: number;
   isVideoOwner: boolean;
   onPinToggle: (commentId: string, pinned: boolean, pinOrder: number | null) => void;
+  onReplyAdded: (parentId: string, reply: VideoComment) => void;
 }) {
   const { t } = useI18n();
   const router = useRouter();
@@ -169,6 +171,9 @@ function CommentBlock({
       }
       setReplyText("");
       setReplyOpen(false);
+      // 낙관적 즉시 반영 — 최상위 댓글 게시처럼 router.refresh
+      // 라운드트립을 기다리지 않는다.
+      if (res.comment) onReplyAdded(c.id, res.comment);
       router.refresh();
     });
   };
@@ -235,14 +240,14 @@ function CommentBlock({
 
         {/* Reply input */}
         {replyOpen && currentUserId && depth === 0 && (
-          <div className="mt-2 flex items-center gap-2 rounded-lg border border-white/[0.06] bg-white/[0.02] p-1 transition focus-within:border-[#7F77DD]/40">
+          <div className="mt-2 flex items-center gap-1.5 rounded-full bg-white/[0.04] py-1 pl-4 pr-1 transition focus-within:bg-white/[0.06]">
             <input
               type="text"
               value={replyText}
               onChange={(e) => setReplyText(e.target.value)}
               onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); void submitReply(); } }}
               placeholder={t("comment.replyPlaceholder", "답글 달기...")}
-              className="flex-1 bg-transparent px-2 text-[12px] text-white placeholder:text-white/30 outline-none"
+              className="min-w-0 flex-1 bg-transparent text-[12px] text-white placeholder:text-white/30 outline-none"
             />
             <button
               type="button"
@@ -267,6 +272,7 @@ function CommentBlock({
                 depth={depth + 1}
                 isVideoOwner={isVideoOwner}
                 onPinToggle={onPinToggle}
+                onReplyAdded={onReplyAdded}
               />
             ))}
           </div>
@@ -381,6 +387,17 @@ export function VideoCommentsSection({
     return () => window.removeEventListener(COMMENT_ADDED_EVENT, handler);
   }, [videoId]);
 
+  const onReplyAdded = (parentId: string, reply: VideoComment) => {
+    setComments((prev) =>
+      prev.map((c) => {
+        if (c.id !== parentId) return c;
+        const replies = c.replies ?? [];
+        if (replies.some((r) => r.id === reply.id)) return c;
+        return { ...c, replies: [...replies, reply] };
+      }),
+    );
+  };
+
   const onPinToggle = (commentId: string, pinned: boolean, pinOrder: number | null) => {
     setComments((prev) => {
       if (pinned) {
@@ -447,6 +464,7 @@ export function VideoCommentsSection({
               depth={0}
               isVideoOwner={isVideoOwner ?? false}
               onPinToggle={onPinToggle}
+              onReplyAdded={onReplyAdded}
             />
           ))
         )}
@@ -456,7 +474,7 @@ export function VideoCommentsSection({
       {!hideInput ? (
         currentUserId ? (
           <div className="mt-4 border-t border-white/10 pt-4">
-            <div className="flex items-center gap-2 rounded-xl border border-white/[0.06] bg-white/[0.02] p-1.5 transition focus-within:border-[#7F77DD]/40 focus-within:bg-white/[0.04]">
+            <div className="flex items-center gap-1.5 rounded-full bg-white/[0.04] py-1.5 pl-4 pr-1.5 transition focus-within:bg-white/[0.06]">
               <input
                 type="text"
                 value={text}
@@ -539,7 +557,7 @@ export function CommentInput({
   }
 
   return (
-    <div className="flex items-center gap-2 rounded-xl border border-white/[0.06] bg-white/[0.02] p-1.5 transition focus-within:border-[#7F77DD]/40 focus-within:bg-white/[0.04]">
+    <div className="flex items-center gap-1.5 rounded-full bg-white/[0.04] py-1.5 pl-4 pr-1.5 transition focus-within:bg-white/[0.06]">
       <input
         type="text"
         value={text}
