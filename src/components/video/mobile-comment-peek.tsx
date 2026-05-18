@@ -56,11 +56,11 @@ export function MobileCommentPeek({
   }, [open]);
 
   return (
-    <div className="px-3 py-2.5">
+    <div className="px-3 py-3">
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="flex w-full items-center gap-2.5 rounded-xl border border-white/[0.07] bg-white/[0.03] px-3 py-2.5 text-left transition active:bg-white/[0.06]"
+        className="flex w-full items-center gap-2.5 text-left transition active:opacity-70"
       >
         <MessageCircle className="h-4 w-4 shrink-0 text-white/40" />
         {current ? (

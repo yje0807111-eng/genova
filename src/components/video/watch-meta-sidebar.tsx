@@ -281,9 +281,9 @@ export function WatchMetaSidebar({
         </div>
       </div>
 
-      {/* 모바일: 탭바+내용+입력을 한 박스로 묶어 통일감.
-          데스크톱은 md:contents 로 래퍼 해제(기존 레이아웃 유지). */}
-      <div className="mx-3 mb-3 flex min-h-0 flex-1 flex-col overflow-hidden rounded-xl border border-white/[0.07] bg-white/[0.015] md:mx-0 md:mb-0 md:rounded-none md:border-0 md:bg-transparent md:contents">
+      {/* 모바일: 탭바+내용+입력이 별도 박스/여백 없이 본문에 자연스럽게
+          이어지도록(상세정보처럼). 데스크톱은 md:contents 로 래퍼 해제. */}
+      <div className="flex min-h-0 flex-1 flex-col overflow-hidden md:contents">
 
       {/* Tab bar — 세그먼트 알약형 + 자동재생 토글 */}
       <div className="flex shrink-0 items-center gap-2 px-2 py-2">
@@ -369,7 +369,7 @@ export function WatchMetaSidebar({
             </div>
           </>
         ) : (
-          <div className="px-4 py-3">{descriptionInner}</div>
+          <div className="px-3 py-3 sm:px-4">{descriptionInner}</div>
         )}
       </div>
 
