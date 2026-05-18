@@ -30,16 +30,26 @@ export function MobileCommentPeek({
 }) {
   const { t } = useI18n();
   const [idx, setIdx] = useState(0);
+  const [show, setShow] = useState(true);
   const [open, setOpen] = useState(false);
   const { render, closing } = useExitAnimation(open, 300);
 
   // 상단(0번)부터 순서대로 한 개씩 회전. 시트가 열려 있으면 멈춤.
+  // 다음 댓글로 넘어갈 때 천천히 사라졌다가(700ms) 교체 후 다시 나타남.
   useEffect(() => {
     if (open || comments.length <= 1) return;
+    let swapTimer: ReturnType<typeof setTimeout> | undefined;
     const id = setInterval(() => {
-      setIdx((p) => (p + 1) % comments.length);
-    }, 4000);
-    return () => clearInterval(id);
+      setShow(false);
+      swapTimer = setTimeout(() => {
+        setIdx((p) => (p + 1) % comments.length);
+        setShow(true);
+      }, 700);
+    }, 6500);
+    return () => {
+      clearInterval(id);
+      if (swapTimer) clearTimeout(swapTimer);
+    };
   }, [open, comments.length]);
 
   // 댓글 수가 줄어드는 등 경계 보정.
@@ -64,7 +74,11 @@ export function MobileCommentPeek({
       >
         <MessageCircle className="h-4 w-4 shrink-0 text-white/40" />
         {current ? (
-          <span className="flex min-w-0 flex-1 items-center gap-2">
+          <span
+            className={`flex min-w-0 flex-1 items-center gap-2 transition-opacity duration-700 ease-in-out ${
+              show ? "opacity-100" : "opacity-0"
+            }`}
+          >
             <span className="h-6 w-6 shrink-0 overflow-hidden rounded-full bg-white/[0.06]">
               <Image
                 src={current.avatarUrl || "/default-avatar.png"}
@@ -75,9 +89,6 @@ export function MobileCommentPeek({
               />
             </span>
             <span className="min-w-0 flex-1 truncate text-[13px] text-white/75">
-              <span className="font-semibold text-white/90">
-                {current.displayName ?? "—"}
-              </span>{" "}
               {current.content}
             </span>
           </span>
