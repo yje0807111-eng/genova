@@ -800,6 +800,7 @@ const en: Messages = {
   "profileSettings.avatar": "Profile photo",
   "profileSettings.resetAvatar": "Reset to default",
   "profileSettings.changeAvatar": "Change",
+  "profileSettings.previewAvatar": "Preview",
   "profileSettings.displayName": "Display name",
   "profileSettings.displayNamePlaceholder": "Name to display",
   "profileSettings.handle": "Username",

@@ -1204,6 +1204,7 @@ export const jaOverrides: Record<string, string> = {
   "profileSettings.avatar": "プロフィール写真",
   "profileSettings.resetAvatar": "デフォルトに戻す",
   "profileSettings.changeAvatar": "変更",
+  "profileSettings.previewAvatar": "プレビュー",
   "profileSettings.displayName": "表示名",
   "profileSettings.displayNamePlaceholder": "表示される名前",
   "profileSettings.handle": "ユーザー名",

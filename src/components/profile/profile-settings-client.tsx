@@ -8,7 +8,7 @@ import { useI18n } from "@/components/genova/language-provider";
 import type { Profile } from "@/lib/queries/profile-queries";
 import { cn } from "@/lib/utils/cn";
 import { createBrowserSupabaseClient } from "@/lib/supabase/browser";
-import { ArrowLeft, ChevronDown, X } from "lucide-react";
+import { ArrowLeft, ChevronDown, Eye, X } from "lucide-react";
 
 function determineMainPlatform(p: Profile): string {
   if (p.websiteUrl) return "website";
@@ -63,6 +63,7 @@ export function ProfileSettingsClient({
 
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
+  const [avatarPreviewOpen, setAvatarPreviewOpen] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
   const [uploadingBanner, setUploadingBanner] = useState(false);
@@ -217,7 +218,7 @@ export function ProfileSettingsClient({
             </label>
             <div className="relative flex flex-1 flex-col items-center justify-between rounded-lg border border-white/[0.06] bg-white/[0.02] p-2">
               <div className="relative">
-                <div className="group relative h-[72px] w-[72px] overflow-hidden rounded-full border border-white/[0.06] bg-white/[0.02] transition-transform duration-200 hover:scale-[2] hover:z-[200]">
+                <div className="relative h-[72px] w-[72px] overflow-hidden rounded-full border border-white/[0.06] bg-white/[0.02]">
                   <Image src={avatarUrl || "/default-avatar.png"} alt="" width={72} height={72} className="h-full w-full object-cover" />
                 </div>
                 {avatarUrl && (
@@ -226,10 +227,20 @@ export function ProfileSettingsClient({
                   </button>
                 )}
               </div>
-              <label className="cursor-pointer rounded-md border border-white/[0.06] bg-white/[0.02] px-2.5 py-0.5 text-[10px] font-semibold text-white/80 transition hover:border-[#7F77DD]/40 hover:text-white">
-                {t("profileSettings.changeAvatar", "Change")}
-                <input type="file" accept="image/*" onChange={(e) => { const f = e.target.files?.[0]; if (f) void handleAvatarUpload(f); }} className="hidden" />
-              </label>
+              <div className="flex items-center gap-1.5">
+                <label className="cursor-pointer rounded-md border border-white/[0.06] bg-white/[0.02] px-2.5 py-0.5 text-[10px] font-semibold text-white/80 transition hover:border-[#7F77DD]/40 hover:text-white">
+                  {t("profileSettings.changeAvatar", "Change")}
+                  <input type="file" accept="image/*" onChange={(e) => { const f = e.target.files?.[0]; if (f) void handleAvatarUpload(f); }} className="hidden" />
+                </label>
+                <button
+                  type="button"
+                  onClick={() => setAvatarPreviewOpen(true)}
+                  className="flex items-center gap-1 rounded-md border border-white/[0.06] bg-white/[0.02] px-2.5 py-0.5 text-[10px] font-semibold text-white/80 transition hover:border-[#7F77DD]/40 hover:text-white"
+                >
+                  <Eye className="h-2.5 w-2.5" />
+                  {t("profileSettings.previewAvatar", "Preview")}
+                </button>
+              </div>
               {uploadingAvatar && <span className="text-[10px] text-white/35">Uploading…</span>}
             </div>
           </div>
@@ -451,6 +462,38 @@ export function ProfileSettingsClient({
           {saving ? t("profileSettings.saving", "Saving...") : t("profileSettings.save", "Save")}
         </button>
       </div>
+
+      {avatarPreviewOpen && (
+        <div
+          className="anim-scrim fixed inset-0 z-[300] flex items-center justify-center bg-black/80 p-6 backdrop-blur-sm"
+          onClick={() => setAvatarPreviewOpen(false)}
+          role="dialog"
+          aria-modal="true"
+        >
+          <div
+            className="relative flex flex-col items-center"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="h-[min(70vw,360px)] w-[min(70vw,360px)] overflow-hidden rounded-2xl border border-white/[0.10] bg-white/[0.02]">
+              <Image
+                src={avatarUrl || "/default-avatar.png"}
+                alt=""
+                width={360}
+                height={360}
+                className="h-full w-full object-cover"
+              />
+            </div>
+            <button
+              type="button"
+              onClick={() => setAvatarPreviewOpen(false)}
+              aria-label={t("common.close", "Close")}
+              className="absolute -right-2 -top-2 flex h-8 w-8 items-center justify-center rounded-full border border-white/[0.12] bg-[#0a0a0a]/90 text-white/70 transition hover:text-white"
+            >
+              <X className="h-4 w-4" />
+            </button>
+          </div>
+        </div>
+      )}
     </form>
   );
 }

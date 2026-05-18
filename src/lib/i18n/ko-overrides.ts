@@ -1228,6 +1228,7 @@ export const koOverrides: Record<string, string> = {
   "profileSettings.avatar": "프로필",
   "profileSettings.resetAvatar": "기본으로",
   "profileSettings.changeAvatar": "변경",
+  "profileSettings.previewAvatar": "미리보기",
   "profileSettings.displayName": "닉네임",
   "profileSettings.displayNamePlaceholder": "표시될 이름",
   "profileSettings.handle": "아이디",
