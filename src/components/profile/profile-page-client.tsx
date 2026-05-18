@@ -291,7 +291,9 @@ export function GenovaProfileClient({
                         : "text-white/40 hover:text-white/70",
                     )}
                   >
-                    {t(`homeTab.subGenre.${sub}`, sub)}
+                    {sub === "all"
+                      ? t("homeTab.subRec.all", "전체")
+                      : t(`homeTab.subGenre.${sub}`, sub)}
                   </button>
                 ))}
               </div>
