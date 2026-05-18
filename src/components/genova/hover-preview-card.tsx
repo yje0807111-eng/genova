@@ -2,16 +2,10 @@
 
 import Link from "next/link";
 import { Heart } from "lucide-react";
-import { parseRuntimeToSeconds } from "@/components/video/video-card";
 import { useHoverThumbnail } from "@/components/video/use-hover-thumbnail";
 import { useI18n } from "@/components/genova/language-provider";
+import { formatViewCountShort } from "@/lib/view-count";
 import type { Video } from "@/lib/types";
-
-function formatRuntimeDisplay(seconds: number): string {
-  const m = Math.floor(seconds / 60);
-  const s = seconds % 60;
-  return `${m}:${s.toString().padStart(2, "0")}`;
-}
 
 /**
  * Home grid card with hover-swap: shows the Mux animated.gif preview
@@ -29,8 +23,9 @@ export function HoverPreviewCard({
 }) {
   const { t } = useI18n();
   const creatorName =
-    video.creatorName?.trim() || video.uploaderDisplayName?.trim() || "";
-  const runtimeSec = parseRuntimeToSeconds(video.runtime);
+    video.creatorName?.trim() ||
+    video.uploaderDisplayName?.trim() ||
+    t("watch.unknownCreator", "Unknown");
   // 시리즈 우선, 아니면 공모전 출품작 표시 (둘 다면 시리즈).
   const tag = hideTag
     ? null
@@ -80,23 +75,18 @@ export function HoverPreviewCard({
         ) : null}
         <div className="absolute inset-x-0 bottom-0 p-3">
           <p className="line-clamp-1 text-[13px] font-bold text-white">{video.title}</p>
-          <div className="mt-1 flex items-center gap-2 text-[11px] text-white/55">
-            {creatorName && <span className="line-clamp-1">{creatorName}</span>}
-            {runtimeSec > 0 && (
-              <>
-                <span>·</span>
-                <span>{formatRuntimeDisplay(runtimeSec)}</span>
-              </>
-            )}
-            {typeof video.likeCount === "number" && video.likeCount > 0 && (
-              <>
-                <span>·</span>
-                <span className="flex items-center gap-0.5">
-                  <Heart size={10} />
-                  {video.likeCount}
-                </span>
-              </>
-            )}
+          <div className="mt-1 flex items-center gap-1.5 text-[11px] text-white/55">
+            <span className="min-w-0 flex-1 truncate">{creatorName}</span>
+            <span className="shrink-0 text-white/20">·</span>
+            <span className="shrink-0 tabular-nums">
+              {formatViewCountShort(video.viewCount ?? 0)}{" "}
+              {t("watch.views", "views")}
+            </span>
+            <span className="text-white/20">·</span>
+            <span className="flex shrink-0 items-center gap-0.5 tabular-nums">
+              <Heart size={10} />
+              {video.likeCount ?? 0}
+            </span>
           </div>
         </div>
         <div className="absolute inset-0 rounded-xl ring-1 ring-inset ring-white/[0.06] transition group-hover:ring-white/15" />

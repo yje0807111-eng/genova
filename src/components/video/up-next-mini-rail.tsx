@@ -4,6 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { Heart } from "lucide-react";
 import { useI18n } from "@/components/genova/language-provider";
+import { formatViewCountShort } from "@/lib/view-count";
 import { cn } from "@/lib/utils/cn";
 import type { Video } from "@/lib/types";
 
@@ -119,12 +120,18 @@ export function UpNextMiniRail({ related, currentVideoId }: Props) {
                 <p className="line-clamp-2 text-[14px] font-bold leading-tight text-white">
                   {v.title}
                 </p>
-                <div className="mt-1 flex items-center gap-2 text-[12px] text-white/55">
+                <div className="mt-1 flex items-center gap-1.5 text-[12px] text-white/55">
                   <span className="min-w-0 flex-1 truncate">
                     {v.creatorName?.trim() ||
                       v.uploaderDisplayName?.trim() ||
                       t("watch.unknownCreator", "Unknown")}
                   </span>
+                  <span className="shrink-0 text-white/20">·</span>
+                  <span className="shrink-0 tabular-nums">
+                    {formatViewCountShort(v.viewCount ?? 0)}{" "}
+                    {t("watch.views", "views")}
+                  </span>
+                  <span className="text-white/20">·</span>
                   <span className="inline-flex shrink-0 items-center gap-0.5 tabular-nums">
                     <Heart className="h-3 w-3" />
                     {v.likeCount ?? 0}
