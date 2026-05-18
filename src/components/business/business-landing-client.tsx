@@ -31,7 +31,43 @@ export function BusinessLandingClient() {
   ];
 
   return (
-    <div className="-mt-16 min-h-screen bg-[#0a0a0a]">
+    <div className="relative -mt-16 min-h-screen overflow-hidden bg-[#0a0a0a]">
+      {/* 페이지 전체 앰비언트 배경 — 단조로운 블랙 완화 */}
+      <div className="pointer-events-none absolute inset-0 z-0">
+        <div
+          className="absolute inset-0"
+          style={{
+            background:
+              "linear-gradient(180deg, rgba(83,74,183,0.05) 0%, transparent 14%, transparent 50%, rgba(83,74,183,0.04) 70%, transparent 100%)",
+          }}
+        />
+        <div
+          className="absolute -left-40 top-[780px] h-[520px] w-[640px] rounded-full"
+          style={{
+            background:
+              "radial-gradient(circle, rgba(127,119,221,0.10) 0%, transparent 70%)",
+            filter: "blur(90px)",
+          }}
+        />
+        <div
+          className="absolute -right-48 top-[1500px] h-[560px] w-[680px] rounded-full"
+          style={{
+            background:
+              "radial-gradient(circle, rgba(83,74,183,0.12) 0%, transparent 70%)",
+            filter: "blur(100px)",
+          }}
+        />
+        <div
+          className="absolute bottom-0 left-1/2 h-[460px] w-[1100px] -translate-x-1/2 rounded-full"
+          style={{
+            background:
+              "radial-gradient(ellipse, rgba(127,119,221,0.10) 0%, transparent 72%)",
+            filter: "blur(90px)",
+          }}
+        />
+      </div>
+
+      <div className="relative z-10">
       {/* Hero */}
       <div className="relative pt-16">
         <div className="pointer-events-none absolute inset-0 overflow-hidden">
@@ -112,6 +148,16 @@ export function BusinessLandingClient() {
         </div>
       </div>
 
+      <div className="mx-auto max-w-6xl px-6">
+        <div
+          className="h-px w-full"
+          style={{
+            background:
+              "linear-gradient(to right, transparent, rgba(127,119,221,0.20), transparent)",
+          }}
+        />
+      </div>
+
       {/* Value Propositions */}
       <div className="mx-auto max-w-6xl px-6 pb-24">
         <AnimateIn delay={0.06}>
@@ -148,6 +194,16 @@ export function BusinessLandingClient() {
             ))}
           </div>
         </AnimateIn>
+      </div>
+
+      <div className="mx-auto max-w-6xl px-6">
+        <div
+          className="h-px w-full"
+          style={{
+            background:
+              "linear-gradient(to right, transparent, rgba(127,119,221,0.20), transparent)",
+          }}
+        />
       </div>
 
       {/* Process */}
@@ -200,6 +256,16 @@ export function BusinessLandingClient() {
         </AnimateIn>
       </div>
 
+      <div className="mx-auto max-w-6xl px-6">
+        <div
+          className="h-px w-full"
+          style={{
+            background:
+              "linear-gradient(to right, transparent, rgba(127,119,221,0.20), transparent)",
+          }}
+        />
+      </div>
+
       {/* FAQ */}
       <div className="mx-auto max-w-4xl px-6 pb-24">
         <AnimateIn delay={0.06}>
@@ -226,6 +292,16 @@ export function BusinessLandingClient() {
             ))}
           </div>
         </AnimateIn>
+      </div>
+
+      <div className="mx-auto max-w-6xl px-6">
+        <div
+          className="h-px w-full"
+          style={{
+            background:
+              "linear-gradient(to right, transparent, rgba(127,119,221,0.20), transparent)",
+          }}
+        />
       </div>
 
       {/* Bottom CTA */}
@@ -267,6 +343,7 @@ export function BusinessLandingClient() {
             </div>
           </div>
         </AnimateIn>
+      </div>
       </div>
     </div>
   );
