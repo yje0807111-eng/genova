@@ -148,7 +148,7 @@ export default async function ProfileByIdPage({ params }: { params: Promise<{ id
   const lotteryCount = isOwner ? await fetchMyMonthlyTicketCount(id) : null;
 
   const displayName = profile.displayName?.trim() || `user_${id.slice(0, 8)}`;
-  const handle = profileHandle(displayName, id);
+  const handle = profile.handle?.trim() || profileHandle(displayName, id);
   const avatarUrl = profile.avatarUrl?.trim() || "/default-avatar.png";
   const showFollow = Boolean(currentUser) && !isOwner;
 

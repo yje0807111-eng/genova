@@ -3,10 +3,12 @@
 import { revalidatePath } from "next/cache";
 import { createNotification } from "@/lib/notifications";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
+import { isValidHandle, normalizeHandleInput } from "@/lib/profile-handle";
 export type ActionResult = { ok: true } | { ok: false; message: string };
 
 export async function updateProfileAction(updates: {
   displayName?: string;
+  handle?: string | null;
   bio?: string;
   tools?: string[];
   avatarUrl?: string | null;
@@ -57,6 +59,33 @@ export async function updateProfileAction(updates: {
   if (updates.notifyLikes !== undefined) payload.notify_likes = updates.notifyLikes;
   if (updates.notifyComments !== undefined) payload.notify_comments = updates.notifyComments;
   if (updates.notifyFollows !== undefined) payload.notify_follows = updates.notifyFollows;
+
+  if (updates.handle !== undefined) {
+    const raw = updates.handle?.trim() ?? "";
+    if (raw === "") {
+      // 빈 값 → 자동 파생(닉네임 기반)으로 되돌림.
+      payload.handle = null;
+    } else {
+      const normalized = normalizeHandleInput(raw);
+      if (!isValidHandle(normalized)) {
+        return {
+          ok: false,
+          message:
+            "아이디는 영소문자·숫자·언더스코어(_) 3~20자만 가능합니다.",
+        };
+      }
+      const { data: taken } = await supabase
+        .from("profiles")
+        .select("id")
+        .ilike("handle", normalized)
+        .neq("id", user.id)
+        .maybeSingle();
+      if (taken) {
+        return { ok: false, message: "이미 사용 중인 아이디입니다." };
+      }
+      payload.handle = normalized;
+    }
+  }
 
   const { error } = await supabase.from("profiles").update(payload).eq("id", user.id);
   if (error) return { ok: false, message: error.message };

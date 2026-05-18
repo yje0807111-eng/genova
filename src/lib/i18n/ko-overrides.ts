@@ -1233,7 +1233,7 @@ export const koOverrides: Record<string, string> = {
   "profileSettings.displayNamePlaceholder": "표시될 이름",
   "profileSettings.handle": "아이디",
   "profileSettings.handleFixed": "고정",
-  "profileSettings.handleNote": "아이디는 닉네임을 영문으로 변경하면 자동 업데이트됩니다",
+  "profileSettings.handleNote": "영소문자·숫자·언더스코어(_) 3~20자. 비워두면 닉네임에서 자동 생성됩니다.",
   "profileSettings.bio": "소개",
   "profileSettings.bioPlaceholder": "자기소개를 작성해주세요",
   "profileSettings.mainGenre": "메인 장르",

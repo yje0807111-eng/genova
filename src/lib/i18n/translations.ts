@@ -805,7 +805,7 @@ const en: Messages = {
   "profileSettings.displayNamePlaceholder": "Name to display",
   "profileSettings.handle": "Username",
   "profileSettings.handleFixed": "Fixed",
-  "profileSettings.handleNote": "Your username updates automatically when you change your display name to English",
+  "profileSettings.handleNote": "Lowercase letters, numbers and underscore, 3–20 chars. Leave empty to auto-generate from your display name.",
   "profileSettings.bio": "Bio",
   "profileSettings.bioPlaceholder": "Write a short introduction about yourself",
   "profileSettings.mainGenre": "Main genre",

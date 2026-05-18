@@ -74,6 +74,8 @@ async function detectInitialLocale(): Promise<Locale> {
 export type Profile = {
   id: string;
   displayName: string | null;
+  /** 사용자 지정 아이디(@핸들). 미설정이면 null → 닉네임 파생값 사용. */
+  handle: string | null;
   avatarUrl: string | null;
   websiteUrl: string | null;
   twitterUrl: string | null;
@@ -117,6 +119,7 @@ export type Profile = {
 function mapProfile(row: {
   id: string;
   display_name: string | null;
+  handle?: string | null;
   avatar_url: string | null;
   website_url?: string | null;
   twitter_url?: string | null;
@@ -147,6 +150,7 @@ function mapProfile(row: {
   return {
     id: row.id,
     displayName: row.display_name,
+    handle: row.handle?.trim() ? row.handle.trim() : null,
     avatarUrl: row.avatar_url,
     websiteUrl: row.website_url?.trim() ? row.website_url : null,
     twitterUrl: row.twitter_url?.trim() ? row.twitter_url : null,

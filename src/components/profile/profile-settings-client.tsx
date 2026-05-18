@@ -52,6 +52,7 @@ export function ProfileSettingsClient({
   const router = useRouter();
   const { t } = useI18n();
   const [displayName, setDisplayName] = useState(profile.displayName ?? "");
+  const [handleInput, setHandleInput] = useState(profile.handle ?? "");
   const [bio, setBio] = useState(profile.bio ?? "");
   const [avatarUrl, setAvatarUrl] = useState(profile.avatarUrl ?? "");
   const [bannerUrl, setBannerUrl] = useState(profile.bannerUrl ?? "");
@@ -147,6 +148,7 @@ export function ProfileSettingsClient({
 
     const res = await updateProfileAction({
       displayName: displayName.trim() || "User",
+      handle: handleInput.trim() ? handleInput.trim() : null,
       bio,
       avatarUrl: avatarUrl.trim() ? avatarUrl.trim() : null,
       bannerUrl: bannerUrl.trim() ? bannerUrl.trim() : null,
@@ -261,20 +263,37 @@ export function ProfileSettingsClient({
         />
       </section>
 
-      {/* Handle (read-only) */}
+      {/* Handle (editable) */}
       <section>
         <label className="mb-1.5 block text-[11px] font-semibold text-white/55">
           {t("profileSettings.handle", "Username")}
         </label>
-        <div className="flex items-center gap-2 rounded-lg border border-white/[0.06] bg-white/[0.02] px-3 py-2">
+        <div className="flex items-center gap-2 rounded-lg border border-white/[0.06] bg-white/[0.02] px-3 py-2 transition focus-within:border-[#7F77DD]/40">
           <span className="text-[13px] text-white/45">@</span>
-          <span className="flex-1 text-[13px] text-white/70">{handle}</span>
-          <span className="rounded-md border border-white/[0.06] bg-white/[0.02] px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-white/45">
-            {t("profileSettings.handleFixed", "Fixed")}
-          </span>
+          <input
+            type="text"
+            value={handleInput}
+            onChange={(e) =>
+              setHandleInput(
+                e.target.value
+                  .toLowerCase()
+                  .replace(/\s+/g, "")
+                  .replace(/[^a-z0-9_]/g, "")
+                  .slice(0, 20),
+              )
+            }
+            placeholder={handle}
+            maxLength={20}
+            autoComplete="off"
+            spellCheck={false}
+            className="flex-1 bg-transparent text-[13px] text-white placeholder:text-white/30 outline-none"
+          />
         </div>
         <p className="mt-1 text-[11px] text-white/35">
-          {t("profileSettings.handleNote", "Your username updates automatically when you change your display name to English")}
+          {t(
+            "profileSettings.handleNote",
+            "Lowercase letters, numbers and underscore, 3–20 chars. Leave empty to auto-generate from your display name.",
+          )}
         </p>
       </section>
 
