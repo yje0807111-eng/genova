@@ -1233,7 +1233,7 @@ export const koOverrides: Record<string, string> = {
   "profileSettings.displayNamePlaceholder": "표시될 이름",
   "profileSettings.handle": "아이디",
   "profileSettings.handleFixed": "고정",
-  "profileSettings.handleNote": "이름 부분만 수정할 수 있어요 — 뒤 숫자는 가입 시 배정되어 고정됩니다. 영소문자·숫자·언더스코어(_) 3~20자. 비워두면 닉네임에서 자동 생성됩니다.",
+  "profileSettings.handleNote": "이름 부분만 수정할 수 있어요 — 뒤 숫자는 가입 시 배정되어 고정됩니다. 영소문자·숫자·언더스코어(_) 3~20자. 하루에 한 번만 변경 가능. 비워두면 닉네임에서 자동 생성됩니다.",
   "profileSettings.bio": "소개",
   "profileSettings.bioPlaceholder": "자기소개를 작성해주세요",
   "profileSettings.mainGenre": "메인 장르",

@@ -805,7 +805,7 @@ const en: Messages = {
   "profileSettings.displayNamePlaceholder": "Name to display",
   "profileSettings.handle": "Username",
   "profileSettings.handleFixed": "Fixed",
-  "profileSettings.handleNote": "Edit the name part only — the number is assigned at signup and stays fixed. Lowercase letters, numbers, underscore, 3–20 chars. Leave empty to auto-generate from your display name.",
+  "profileSettings.handleNote": "Edit the name part only — the number is assigned at signup and stays fixed. Lowercase letters, numbers, underscore, 3–20 chars. Can be changed once a day. Leave empty to auto-generate from your display name.",
   "profileSettings.bio": "Bio",
   "profileSettings.bioPlaceholder": "Write a short introduction about yourself",
   "profileSettings.mainGenre": "Main genre",

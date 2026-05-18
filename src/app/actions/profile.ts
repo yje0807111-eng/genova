@@ -62,10 +62,8 @@ export async function updateProfileAction(updates: {
 
   if (updates.handle !== undefined) {
     const raw = updates.handle?.trim() ?? "";
-    if (raw === "") {
-      // 빈 값 → 자동 파생(닉네임 기반)으로 되돌림.
-      payload.handle = null;
-    } else {
+    let nextHandle: string | null = null;
+    if (raw !== "") {
       const normalized = normalizeHandleInput(raw);
       if (!isValidHandle(normalized)) {
         return {
@@ -74,30 +72,61 @@ export async function updateProfileAction(updates: {
             "아이디는 영소문자·숫자·언더스코어(_) 3~20자만 가능합니다.",
         };
       }
-      // 최종 아이디는 (이름부분 + 고정 태그)라 같은 태그를 가진
-      // 사용자 중 동일 이름부분만 충돌. 태그가 달라 사실상 거의 없음.
-      const { data: me } = await supabase
-        .from("profiles")
-        .select("handle_tag")
-        .eq("id", user.id)
-        .maybeSingle();
-      const myTag = (me as { handle_tag?: number | null } | null)?.handle_tag;
-      if (myTag != null) {
-        const { data: taken } = await supabase
-          .from("profiles")
-          .select("id")
-          .ilike("handle", normalized)
-          .eq("handle_tag", myTag)
-          .neq("id", user.id)
-          .maybeSingle();
-        if (taken) {
-          return {
-            ok: false,
-            message: "이 이름은 같은 번호로 이미 사용 중입니다. 다른 이름을 선택해주세요.",
-          };
+      nextHandle = normalized;
+    }
+
+    const { data: me } = await supabase
+      .from("profiles")
+      .select("handle, handle_tag, handle_changed_at")
+      .eq("id", user.id)
+      .maybeSingle();
+    const meRow = me as {
+      handle?: string | null;
+      handle_tag?: number | null;
+      handle_changed_at?: string | null;
+    } | null;
+    const currentHandle = meRow?.handle?.trim() || null;
+
+    // 실제로 값이 바뀔 때만 검증·쿨다운 적용.
+    if (nextHandle !== currentHandle) {
+      // 변경 주기 제한 (기본 1일 — 숫자만 바꾸면 주기 조정 가능)
+      const COOLDOWN_MS = 24 * 60 * 60 * 1000;
+      const last = meRow?.handle_changed_at
+        ? new Date(meRow.handle_changed_at).getTime()
+        : 0;
+      const elapsed = Date.now() - last;
+      if (last > 0 && elapsed < COOLDOWN_MS) {
+        const hoursLeft = Math.ceil((COOLDOWN_MS - elapsed) / (60 * 60 * 1000));
+        return {
+          ok: false,
+          message: `아이디는 자주 변경할 수 없어요. ${hoursLeft}시간 후에 다시 시도해주세요.`,
+        };
+      }
+
+      if (nextHandle) {
+        // 최종 아이디는 (이름부분 + 고정 태그)라 같은 태그를 가진
+        // 사용자 중 동일 이름부분만 충돌. 태그가 달라 사실상 거의 없음.
+        const myTag = meRow?.handle_tag;
+        if (myTag != null) {
+          const { data: taken } = await supabase
+            .from("profiles")
+            .select("id")
+            .ilike("handle", nextHandle)
+            .eq("handle_tag", myTag)
+            .neq("id", user.id)
+            .maybeSingle();
+          if (taken) {
+            return {
+              ok: false,
+              message:
+                "이 이름은 같은 번호로 이미 사용 중입니다. 다른 이름을 선택해주세요.",
+            };
+          }
         }
       }
-      payload.handle = normalized;
+
+      payload.handle = nextHandle;
+      payload.handle_changed_at = new Date().toISOString();
     }
   }
 
