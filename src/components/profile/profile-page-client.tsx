@@ -191,7 +191,7 @@ export function GenovaProfileClient({
     <div className="relative min-h-screen w-full overflow-hidden bg-background text-foreground">
       <div className="relative z-10">
         {/* 모바일 전용 언어 선택 — 프로필 배너 우측 상단에 작게
-            (데스크톱은 사이드바 글로브) */}
+            (데스크톱은 사이드바 글로브). */}
         <div className="absolute right-3 top-3 z-30 flex gap-0.5 rounded-full border border-white/[0.10] bg-black/30 p-0.5 backdrop-blur-md md:hidden">
           {(["en", "ko", "ja"] as const).map((lng) => (
             <button
@@ -209,7 +209,8 @@ export function GenovaProfileClient({
             </button>
           ))}
         </div>
-        {headerSlot}
+        {/* headerSlot(RSC)을 단독 래퍼로 감싸 형제 배열 key 검증 회피 */}
+        <div>{headerSlot}</div>
 
       {/* Tabs + grid */}
       <AnimateIn delay={0.1}>
