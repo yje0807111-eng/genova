@@ -16,14 +16,14 @@ export default function AuthPage() {
           className="absolute inset-0"
           style={{
             background:
-              "radial-gradient(ellipse at 50% 32%, rgba(83,74,183,0.22) 0%, rgba(83,74,183,0.06) 45%, transparent 70%)",
+              "radial-gradient(ellipse at 50% 32%, rgba(83,74,183,0.13) 0%, rgba(83,74,183,0.04) 45%, transparent 70%)",
           }}
         />
         <div
           className="auth-mesh-a absolute left-[2%] top-[6%] h-[58vh] w-[58vh] rounded-full"
           style={{
             background:
-              "radial-gradient(circle, rgba(127,119,221,0.50) 0%, transparent 66%)",
+              "radial-gradient(circle, rgba(127,119,221,0.30) 0%, transparent 66%)",
             filter: "blur(80px)",
           }}
         />
@@ -31,7 +31,7 @@ export default function AuthPage() {
           className="auth-mesh-b absolute right-[0%] top-[18%] h-[64vh] w-[64vh] rounded-full"
           style={{
             background:
-              "radial-gradient(circle, rgba(83,74,183,0.52) 0%, transparent 66%)",
+              "radial-gradient(circle, rgba(83,74,183,0.32) 0%, transparent 66%)",
             filter: "blur(90px)",
           }}
         />
@@ -39,7 +39,7 @@ export default function AuthPage() {
           className="auth-mesh-c absolute bottom-[-8%] left-[24%] h-[56vh] w-[68vh] rounded-full"
           style={{
             background:
-              "radial-gradient(circle, rgba(175,169,236,0.34) 0%, transparent 66%)",
+              "radial-gradient(circle, rgba(175,169,236,0.22) 0%, transparent 66%)",
             filter: "blur(90px)",
           }}
         />
