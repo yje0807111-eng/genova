@@ -5,8 +5,8 @@ import { ChevronDown, Search } from "lucide-react";
 import { cn } from "@/lib/utils/cn";
 import { useI18n } from "@/components/genova/language-provider";
 
-export type MainTab = "recommended" | "films";
-export type SubGenre = "all" | "film" | "animation" | "music" | "art" | "daily" | "series" | "trending" | "awards" | "entries";
+export type MainTab = "films" | "competition";
+export type SubGenre = "all" | "film" | "animation" | "music" | "art" | "daily" | "series" | "awards" | "entries";
 export type SortKey = "latest" | "liked" | "viewed";
 
 export interface HomeTabNavProps {
@@ -20,11 +20,11 @@ export interface HomeTabNavProps {
   onSearchChange: (query: string) => void;
 }
 
-const MAIN_TABS: MainTab[] = ["recommended", "films"];
+const MAIN_TABS: MainTab[] = ["films", "competition"];
 
 const mainTabKeys: Record<MainTab, string> = {
-  recommended: "homeTab.recommended",
   films: "homeTab.films",
+  competition: "homeTab.competition",
 };
 
 const subGenreFilmsKeys: Record<string, string> = {
@@ -37,13 +37,9 @@ const subGenreFilmsKeys: Record<string, string> = {
   series: "homeTab.subGenre.series",
 };
 
-const subGenreRecKeys: Record<string, string> = {
-  all: "homeTab.subRec.all",
-  trending: "homeTab.subRec.trending",
-  new: "homeTab.subRec.new",
-  popular: "homeTab.subRec.popular",
-  awards: "homeTab.subRec.awards",
+const subGenreCompetitionKeys: Record<string, string> = {
   entries: "homeTab.subRec.entries",
+  awards: "homeTab.subRec.awards",
 };
 
 export function HomeTabNav({
@@ -79,16 +75,19 @@ export function HomeTabNav({
 
   const subOptions = useMemo((): SubGenre[] => {
     switch (activeMainTab) {
-      case "recommended":
-        return ["all", "trending", "awards", "entries"];
       case "films":
-        return ["all", "series", "film", "animation", "music", "art", "daily"];
+        return ["all", "film", "animation", "music", "art", "daily", "series"];
+      case "competition":
+        return ["entries", "awards"];
       default:
         return [];
     }
   }, [activeMainTab]);
 
-  const subKeys = activeMainTab === "recommended" ? subGenreRecKeys : subGenreFilmsKeys;
+  const subKeys =
+    activeMainTab === "competition"
+      ? subGenreCompetitionKeys
+      : subGenreFilmsKeys;
 
   return (
     <div className="relative z-[60]">

@@ -1982,6 +1982,7 @@ const en: Messages = {
   "profile.logoutAction": "Log out",
   "homeTab.recommended": "Recommended",
   "homeTab.films": "Films",
+  "homeTab.competition": "Competition",
   "homeTab.follows": "Follows",
   "homeTab.events": "Events",
   "homeTab.subGenre.all": "Discover",

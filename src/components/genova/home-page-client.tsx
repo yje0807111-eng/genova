@@ -39,7 +39,7 @@ type HomePageClientProps = {
   becauseYouWatched: Video[];
   isLoggedIn: boolean;
   heroAwardVideos?: HeroAwardVideos;
-  initialTab?: "recommended" | "films";
+  initialTab?: "films" | "competition";
   competitionStats: {
     activeCount: number;
     totalPrizeUSD: number;
@@ -76,8 +76,12 @@ export function HomePageClient(props: HomePageClientProps) {
   const searchParams = useSearchParams();
   const { selectedGenre, setSelectedGenre } = useGenreFilter();
   const [selectedMood, setSelectedMood] = useState<string>("all");
-  const [activeMainTab, setActiveMainTab] = useState<MainTab>(initialTab ?? "recommended");
-  const [activeSubGenre, setActiveSubGenre] = useState<SubGenre>("all");
+  const [activeMainTab, setActiveMainTab] = useState<MainTab>(
+    initialTab === "competition" ? "competition" : "films",
+  );
+  const [activeSubGenre, setActiveSubGenre] = useState<SubGenre>(
+    initialTab === "competition" ? "entries" : "all",
+  );
   const [activeSort, setActiveSort] = useState<SortKey>("latest");
   const [searchQuery, setSearchQuery] = useState("");
   const moodBarRef = useRef<HTMLDivElement>(null);
@@ -250,19 +254,17 @@ export function HomePageClient(props: HomePageClientProps) {
             tag.toLowerCase().includes(sqTag),
           ),
       );
-    } else if (activeMainTab === "recommended") {
-      const base = [...videos];
-      if (activeSubGenre === "trending") {
-        result = base.sort((a, b) => (b.likeCount ?? 0) - (a.likeCount ?? 0));
-      } else if (activeSubGenre === "awards") {
-        result = base.filter((v) => v.isFinalist || v.award);
-      } else if (activeSubGenre === "entries") {
-        result = base.filter((v) => v.purpose === "competition");
+    } else if (activeMainTab === "competition") {
+      // awards 는 AwardsGallery 로 렌더(그리드 미사용).  entries =
+      // 출품작.
+      if (activeSubGenre === "awards") {
+        result = videos.filter((v) => v.isFinalist || v.award);
       } else {
-        result = base.sort((a, b) => (b.likeCount ?? 0) - (a.likeCount ?? 0));
+        result = videos.filter((v) => v.purpose === "competition");
       }
     } else if (activeMainTab === "films") {
-      if (activeSubGenre === "all") {
+      if (activeSubGenre === "all" || activeSubGenre === "series") {
+        // series 는 HomeSeriesSection 으로 렌더.
         result = [...videos];
       } else {
         result = videos.filter((v) => normalizeToMainGenre(v.genre) === activeSubGenre);
@@ -302,7 +304,7 @@ export function HomePageClient(props: HomePageClientProps) {
               searchQuery={searchQuery}
               onMainTabChange={(tab) => {
                 setActiveMainTab(tab);
-                setActiveSubGenre("all");
+                setActiveSubGenre(tab === "competition" ? "entries" : "all");
               }}
               onSubGenreChange={setActiveSubGenre}
               onSortChange={setActiveSort}
@@ -331,7 +333,7 @@ export function HomePageClient(props: HomePageClientProps) {
           activeSubGenre === "series" &&
           !searchQuery.trim() ? (
             <HomeSeriesSection videos={videos} sort={activeSort} />
-          ) : activeSubGenre === "awards" && activeMainTab === "recommended" ? (
+          ) : activeMainTab === "competition" && activeSubGenre === "awards" ? (
             <AwardsGallery
               heroAwardVideos={heroAwardVideos ?? { grandPrize: null, excellence: null, merit: null, audience: null }}
               competitionTitle={competition?.title

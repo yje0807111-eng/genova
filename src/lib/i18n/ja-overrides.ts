@@ -747,6 +747,7 @@ export const jaOverrides: Record<string, string> = {
 
   "homeTab.recommended": "おすすめ",
   "homeTab.films": "フィルム",
+  "homeTab.competition": "コンペ",
   "homeTab.follows": "フォロー",
   "homeTab.events": "イベント",
   "homeTab.subGenre.all": "発見",

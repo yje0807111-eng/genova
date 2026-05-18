@@ -21,7 +21,7 @@ export const revalidate = 0;
 
 export default async function Home({ searchParams }: { searchParams: Promise<{ tab?: string }> }) {
   const params = await searchParams;
-  const initialTab = params.tab === "films" ? "films" : "recommended";
+  const initialTab = params.tab === "competition" ? "competition" : "films";
   const supabase = await createServerSupabaseClient();
   let isLoggedIn = false;
   let currentUserId: string | null = null;

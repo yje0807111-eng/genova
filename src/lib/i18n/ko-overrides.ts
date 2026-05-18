@@ -778,6 +778,7 @@ export const koOverrides: Record<string, string> = {
 
   "homeTab.recommended": "추천",
   "homeTab.films": "필름",
+  "homeTab.competition": "공모전",
   "homeTab.follows": "팔로우",
   "homeTab.events": "이벤트",
   "homeTab.subGenre.all": "발견",
