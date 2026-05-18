@@ -37,9 +37,9 @@ export function ParticipantsInfo({ className }: { className?: string }) {
       {open ? (
         <div
           role="tooltip"
-          className="anim-pop absolute left-0 top-[calc(100%+8px)] z-50 w-[260px] rounded-xl border border-white/[0.08] bg-[#0c0c12] p-3.5 text-left shadow-2xl ring-1 ring-black/40"
+          className="anim-pop absolute left-0 top-[calc(100%+8px)] z-50 w-[280px] rounded-xl border border-white/[0.1] bg-[#0c0c12] px-4 py-3.5 text-left shadow-2xl ring-1 ring-black/40"
         >
-          <p className="text-[12px] leading-relaxed text-white/70">
+          <p className="break-keep text-[12.5px] leading-[1.7] text-white/75">
             {t(
               "competition.detail.participantsInfo",
               "One creator can submit multiple entries, so the number of entries may exceed the number of participants. However, only one award per person is allowed.",
