@@ -154,7 +154,7 @@ export function NotificationsList({
       }}
     >
       {/* 헤더 */}
-      <div className="mb-5 flex items-center justify-between border-b border-white/[0.06] pb-4">
+      <div className="mb-5 flex flex-col gap-3 border-b border-white/[0.06] pb-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-[#7F77DD]/60">
             {t("notifications.inboxEyebrow", "INBOX")}
@@ -171,7 +171,7 @@ export function NotificationsList({
             )}
           </h1>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           {unreadCount > 0 && (
             <button
               type="button"
