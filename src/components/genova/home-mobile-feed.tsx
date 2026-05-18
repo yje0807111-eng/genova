@@ -4,7 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
-import { Search, Heart } from "lucide-react";
+import { Search, Heart, ArrowUpDown } from "lucide-react";
 import type { Video } from "@/lib/types";
 import { useI18n } from "@/components/genova/language-provider";
 import { videoToCardProps } from "@/components/genova/video-card";
@@ -338,23 +338,23 @@ export function HomeMobileFeed({ videosFromDb }: { videosFromDb: Video[] }) {
             </button>
           ))}
         </div>
-        <div className="flex shrink-0 items-center gap-3 pb-1 pl-3">
-          <span
-            className="h-3.5 w-px shrink-0 bg-white/[0.10]"
-            aria-hidden
-          />
-          <button
-            type="button"
-            onClick={() =>
-              setSort((s) => (s === "latest" ? "popular" : "latest"))
-            }
-            className="whitespace-nowrap text-[12px] font-semibold text-white/45 transition-colors hover:text-white/75"
-          >
-            {sort === "latest"
-              ? t("homeTab.sort.latest", "Latest")
-              : t("homeTab.sort.viewed", "Most Viewed")}
-          </button>
-        </div>
+        <button
+          type="button"
+          onClick={() =>
+            setSort((s) => (s === "latest" ? "popular" : "latest"))
+          }
+          className="ml-1 flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full px-3 py-1 text-[12px] font-semibold transition-colors"
+          style={{
+            color: "#AFA9EC",
+            background: "rgba(127,119,221,0.10)",
+            border: "1px solid rgba(127,119,221,0.28)",
+          }}
+        >
+          <ArrowUpDown className="h-3 w-3" />
+          {sort === "latest"
+            ? t("homeTab.sort.latest", "Latest")
+            : t("homeTab.sort.viewed", "Most Viewed")}
+        </button>
       </div>
 
       {/* 시리즈 모드: 시리즈별 섹션 / 그 외: 1열 세로 피드 */}
