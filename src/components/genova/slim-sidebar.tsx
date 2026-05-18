@@ -563,7 +563,7 @@ export function SlimSidebar({ onOpenChat, unreadMessageCount = 0 }: SlimSidebarP
             <div className="flex items-center gap-2">
               <p className="text-[13px] font-bold text-white">{t("notifications.title")}</p>
               {popupUnreadCount > 0 && (
-                <span className="flex h-5 min-w-[20px] items-center justify-center rounded-full bg-[#7F77DD] px-1.5 text-[10px] font-bold text-white">
+                <span className="text-[12px] font-bold tabular-nums text-white/35">
                   {popupUnreadCount}
                 </span>
               )}
@@ -633,7 +633,7 @@ export function SlimSidebar({ onOpenChat, unreadMessageCount = 0 }: SlimSidebarP
               notifications.map((n) => (
                 <div key={n.id} className="group">
                   <div
-                    className={`flex cursor-pointer items-start gap-3 px-4 py-3 transition hover:bg-white/[0.04] ${!n.isRead ? "bg-white/[0.03]" : "bg-transparent"}`}
+                    className={`relative flex cursor-pointer items-start gap-3 px-4 py-3 transition hover:bg-white/[0.04] ${!n.isRead ? "bg-white/[0.03]" : "bg-transparent"}`}
                     onClick={async () => {
                       if (!n.isRead) {
                         const supabase = getBrowserSupabaseClient();
@@ -651,7 +651,12 @@ export function SlimSidebar({ onOpenChat, unreadMessageCount = 0 }: SlimSidebarP
                       }
                     }}
                   >
-                    {!n.isRead && <span className="mt-2 h-2 w-2 shrink-0 rounded-full bg-[#7F77DD]" />}
+                    {!n.isRead && (
+                      <span
+                        className="absolute bottom-2 left-0 top-2 w-[2px] rounded-r-full bg-[#7F77DD]"
+                        aria-hidden
+                      />
+                    )}
                     <div
                       className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full"
                       style={{ background: n.isRead ? "rgba(255,255,255,0.04)" : "rgba(83,74,183,0.2)" }}
