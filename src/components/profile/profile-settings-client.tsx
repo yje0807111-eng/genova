@@ -7,6 +7,7 @@ import { updateProfileAction } from "@/app/actions/profile";
 import { useI18n } from "@/components/genova/language-provider";
 import type { Profile } from "@/lib/queries/profile-queries";
 import { cn } from "@/lib/utils/cn";
+import { profileHandle } from "@/lib/profile-handle";
 import { createBrowserSupabaseClient } from "@/lib/supabase/browser";
 import { ArrowLeft, ChevronDown, Eye, X } from "lucide-react";
 
@@ -268,7 +269,7 @@ export function ProfileSettingsClient({
         <label className="mb-1.5 block text-[11px] font-semibold text-white/55">
           {t("profileSettings.handle", "Username")}
         </label>
-        <div className="flex items-center gap-2 rounded-lg border border-white/[0.06] bg-white/[0.02] px-3 py-2 transition focus-within:border-[#7F77DD]/40">
+        <div className="flex items-center gap-1 rounded-lg border border-white/[0.06] bg-white/[0.02] px-3 py-2 transition focus-within:border-[#7F77DD]/40">
           <span className="text-[13px] text-white/45">@</span>
           <input
             type="text"
@@ -282,17 +283,25 @@ export function ProfileSettingsClient({
                   .slice(0, 20),
               )
             }
-            placeholder={handle}
+            placeholder={
+              profile.handle?.trim() ||
+              profileHandle(profile.displayName ?? "", profile.id)
+            }
             maxLength={20}
             autoComplete="off"
             spellCheck={false}
-            className="flex-1 bg-transparent text-[13px] text-white placeholder:text-white/30 outline-none"
+            className="min-w-0 flex-1 bg-transparent text-[13px] text-white placeholder:text-white/30 outline-none"
           />
+          {profile.handleTag != null && (
+            <span className="shrink-0 select-none text-[13px] font-semibold tabular-nums text-white/40">
+              -{profile.handleTag}
+            </span>
+          )}
         </div>
         <p className="mt-1 text-[11px] text-white/35">
           {t(
             "profileSettings.handleNote",
-            "Lowercase letters, numbers and underscore, 3–20 chars. Leave empty to auto-generate from your display name.",
+            "Edit the name part only — the number is assigned at signup and stays fixed. Lowercase letters, numbers, underscore, 3–20 chars. Leave empty to auto-generate from your display name.",
           )}
         </p>
       </section>

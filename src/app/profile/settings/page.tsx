@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { ProfileSettingsClient } from "@/components/profile/profile-settings-client";
-import { profileHandle } from "@/lib/profile-handle";
+import { fullHandle, profileHandle } from "@/lib/profile-handle";
 import { ensureProfile, fetchOwnProfile } from "@/lib/queries/profile-queries";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 
@@ -28,7 +28,10 @@ export default async function ProfileSettingsPage() {
   const userEmail = user.email ?? null;
   const provider = user.app_metadata?.provider ?? "email";
   const hasPassword = provider === "email";
-  const handle = profileHandle(profile.displayName ?? "", profile.id);
+  const handle = fullHandle(
+    profile.handle?.trim() || profileHandle(profile.displayName ?? "", profile.id),
+    profile.handleTag,
+  );
 
   return (
     <div className="min-h-screen bg-background py-8 text-foreground">

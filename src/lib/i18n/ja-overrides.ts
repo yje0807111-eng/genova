@@ -1209,7 +1209,7 @@ export const jaOverrides: Record<string, string> = {
   "profileSettings.displayNamePlaceholder": "表示される名前",
   "profileSettings.handle": "ユーザー名",
   "profileSettings.handleFixed": "固定",
-  "profileSettings.handleNote": "英小文字・数字・アンダースコア(_) 3〜20文字。空欄にすると表示名から自動生成されます。",
+  "profileSettings.handleNote": "名前部分のみ編集できます — 末尾の番号は登録時に割り当てられ固定されます。英小文字・数字・アンダースコア(_) 3〜20文字。空欄にすると表示名から自動生成されます。",
   "profileSettings.bio": "自己紹介",
   "profileSettings.bioPlaceholder": "自己紹介を入力してください",
   "profileSettings.mainGenre": "メインジャンル",

@@ -74,14 +74,28 @@ export async function updateProfileAction(updates: {
             "아이디는 영소문자·숫자·언더스코어(_) 3~20자만 가능합니다.",
         };
       }
-      const { data: taken } = await supabase
+      // 최종 아이디는 (이름부분 + 고정 태그)라 같은 태그를 가진
+      // 사용자 중 동일 이름부분만 충돌. 태그가 달라 사실상 거의 없음.
+      const { data: me } = await supabase
         .from("profiles")
-        .select("id")
-        .ilike("handle", normalized)
-        .neq("id", user.id)
+        .select("handle_tag")
+        .eq("id", user.id)
         .maybeSingle();
-      if (taken) {
-        return { ok: false, message: "이미 사용 중인 아이디입니다." };
+      const myTag = (me as { handle_tag?: number | null } | null)?.handle_tag;
+      if (myTag != null) {
+        const { data: taken } = await supabase
+          .from("profiles")
+          .select("id")
+          .ilike("handle", normalized)
+          .eq("handle_tag", myTag)
+          .neq("id", user.id)
+          .maybeSingle();
+        if (taken) {
+          return {
+            ok: false,
+            message: "이 이름은 같은 번호로 이미 사용 중입니다. 다른 이름을 선택해주세요.",
+          };
+        }
       }
       payload.handle = normalized;
     }

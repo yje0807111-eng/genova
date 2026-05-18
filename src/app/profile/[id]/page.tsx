@@ -6,7 +6,7 @@ import { GenovaProfileClient } from "@/components/profile/profile-page-client";
 import { ProfileHeader } from "@/components/profile/profile-header";
 import { fetchMyMonthlyTicketCount } from "@/lib/queries/lottery-queries";
 import { mapVideo } from "@/lib/mappers";
-import { profileHandle } from "@/lib/profile-handle";
+import { fullHandle, profileHandle } from "@/lib/profile-handle";
 import { mergeVideoRows } from "@/lib/queries";
 import { attachEngagementToVideos } from "@/lib/queries/engagement-queries";
 import {
@@ -148,7 +148,8 @@ export default async function ProfileByIdPage({ params }: { params: Promise<{ id
   const lotteryCount = isOwner ? await fetchMyMonthlyTicketCount(id) : null;
 
   const displayName = profile.displayName?.trim() || `user_${id.slice(0, 8)}`;
-  const handle = profile.handle?.trim() || profileHandle(displayName, id);
+  const handleBase = profile.handle?.trim() || profileHandle(displayName, id);
+  const handle = fullHandle(handleBase, profile.handleTag);
   const avatarUrl = profile.avatarUrl?.trim() || "/default-avatar.png";
   const showFollow = Boolean(currentUser) && !isOwner;
 

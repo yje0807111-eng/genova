@@ -74,8 +74,10 @@ async function detectInitialLocale(): Promise<Locale> {
 export type Profile = {
   id: string;
   displayName: string | null;
-  /** 사용자 지정 아이디(@핸들). 미설정이면 null → 닉네임 파생값 사용. */
+  /** 사용자 지정 아이디 이름부분. 미설정이면 null → 닉네임 파생값 사용. */
   handle: string | null;
+  /** 가입 시 1회 배정·고정되는 4자리 태그(@이름-1234). */
+  handleTag: number | null;
   avatarUrl: string | null;
   websiteUrl: string | null;
   twitterUrl: string | null;
@@ -120,6 +122,7 @@ function mapProfile(row: {
   id: string;
   display_name: string | null;
   handle?: string | null;
+  handle_tag?: number | null;
   avatar_url: string | null;
   website_url?: string | null;
   twitter_url?: string | null;
@@ -151,6 +154,8 @@ function mapProfile(row: {
     id: row.id,
     displayName: row.display_name,
     handle: row.handle?.trim() ? row.handle.trim() : null,
+    handleTag:
+      typeof row.handle_tag === "number" ? row.handle_tag : null,
     avatarUrl: row.avatar_url,
     websiteUrl: row.website_url?.trim() ? row.website_url : null,
     twitterUrl: row.twitter_url?.trim() ? row.twitter_url : null,

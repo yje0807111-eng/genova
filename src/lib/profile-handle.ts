@@ -24,3 +24,11 @@ export function normalizeHandleInput(raw: string): string {
 export function isValidHandle(value: string): boolean {
   return HANDLE_PATTERN.test(value);
 }
+
+/**
+ * 화면에 노출되는 최종 아이디 = 이름부분 + 고정 태그(@name-1234).
+ * 태그가 아직 없으면(백필 전 등) 이름부분만 반환.
+ */
+export function fullHandle(base: string, tag: number | null | undefined): string {
+  return tag != null ? `${base}-${tag}` : base;
+}
