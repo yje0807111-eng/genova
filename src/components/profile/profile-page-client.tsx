@@ -6,9 +6,9 @@ import { useI18n } from "@/components/genova/language-provider";
 import { useUploadModal } from "@/components/upload/upload-modal-context";
 import { useEditModal } from "@/components/upload/edit-modal-context";
 import {
+  ArrowUpDown,
   Bookmark,
   Check,
-  ChevronDown,
   Film,
   Pencil,
   Trophy,
@@ -247,34 +247,32 @@ export function GenovaProfileClient({
               </div>
               {/* 정렬 + 편집 — 우측 고정 1렬 (홈과 동일 배치) */}
               <div className="flex shrink-0 items-center gap-2">
-              <div className="relative shrink-0">
-                <select
-                  value={sortBy}
-                  onChange={(e) => {
-                    const v = e.target.value as "Newest" | "Oldest" | "Most Viewed";
-                    setSortBy(v);
-                  }}
-                  style={{ colorScheme: "dark" }}
-                  className="cursor-pointer appearance-none rounded-lg border border-white/[0.08] bg-white/[0.03] py-1.5 pl-3 pr-9 text-[12px] font-semibold text-white/75 outline-none transition hover:border-[#7F77DD]/40 hover:bg-white/[0.05] hover:text-white focus:border-[#7F77DD]/50"
-                >
-                  {(
-                    [
-                      ["Newest", t("profile.sortNewest")],
-                      ["Oldest", t("profile.sortOldest")],
-                      ["Most Viewed", t("profile.sortMostViewed")],
-                    ] as const
-                  ).map(([val, label]) => (
-                    <option
-                      key={val}
-                      value={val}
-                      style={{ background: "#141019", color: "#fff" }}
-                    >
-                      {label}
-                    </option>
-                  ))}
-                </select>
-                <ChevronDown className="pointer-events-none absolute right-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-white/45" />
-              </div>
+              {/* 정렬 — 홈처럼 터치 시 다음 옵션으로 순환 */}
+              <button
+                type="button"
+                onClick={() =>
+                  setSortBy((s) =>
+                    s === "Newest"
+                      ? "Oldest"
+                      : s === "Oldest"
+                        ? "Most Viewed"
+                        : "Newest",
+                  )
+                }
+                className="flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full px-3 py-1.5 text-[12px] font-semibold transition-colors"
+                style={{
+                  color: "#AFA9EC",
+                  background: "rgba(127,119,221,0.10)",
+                  border: "1px solid rgba(127,119,221,0.28)",
+                }}
+              >
+                <ArrowUpDown className="h-3 w-3" />
+                {sortBy === "Newest"
+                  ? t("profile.sortNewest")
+                  : sortBy === "Oldest"
+                    ? t("profile.sortOldest")
+                    : t("profile.sortMostViewed")}
+              </button>
               {isOwner ? (
                 <button
                   type="button"
