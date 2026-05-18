@@ -183,13 +183,8 @@ export function HomeMobileFeed({ videosFromDb }: { videosFromDb: Video[] }) {
             {cp.duration}
           </span>
         ) : null}
-        <div className="absolute inset-x-0 bottom-0 flex items-end gap-2.5 p-3">
-          {cp.avatar ? (
-            <span className="relative h-8 w-8 shrink-0 overflow-hidden rounded-full ring-1 ring-white/15">
-              <Image src={cp.avatar} alt="" fill sizes="32px" className="object-cover" />
-            </span>
-          ) : null}
-          <div className="min-w-0 flex-1">
+        <div className="absolute inset-x-0 bottom-0 p-3">
+          <div className="min-w-0">
             <h3 className="line-clamp-2 text-[14px] font-bold leading-tight text-white">
               {cp.title}
             </h3>

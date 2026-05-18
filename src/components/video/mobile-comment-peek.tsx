@@ -45,7 +45,7 @@ export function MobileCommentPeek({
         setIdx((p) => (p + 1) % comments.length);
         setShow(true);
       }, 700);
-    }, 6500);
+    }, 9000);
     return () => {
       clearInterval(id);
       if (swapTimer) clearTimeout(swapTimer);
@@ -87,12 +87,12 @@ export function MobileCommentPeek({
                 className="h-full w-full object-cover"
               />
             </span>
-            <span className="min-w-0 flex-1 truncate text-[15px] text-white/80">
+            <span className="min-w-0 flex-1 truncate text-[13px] text-white/80">
               {current.content}
             </span>
           </span>
         ) : (
-          <span className="min-w-0 flex-1 truncate text-[15px] text-white/40">
+          <span className="min-w-0 flex-1 truncate text-[13px] text-white/40">
             {t("comments.empty", "첫 댓글을 남겨 보세요.")}
           </span>
         )}
