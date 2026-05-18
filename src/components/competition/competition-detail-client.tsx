@@ -1642,7 +1642,7 @@ export function CompetitionDetailClient({
                 <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
                   {featuredVideos.map((video) => (
                     <div key={`featured-${video.id}`} className="relative">
-                      <HoverPreviewCard video={competitionRowToAppVideo(video)} />
+                      <HoverPreviewCard video={competitionRowToAppVideo(video)} hideTag />
 
                       <div className="pointer-events-none absolute left-2.5 top-2.5 z-20">
                         <span
@@ -1745,21 +1745,15 @@ export function CompetitionDetailClient({
                 </div>
               ) : viewMode === "grid" ? (
                 <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
-                  {sortedVideos.map((video, idx) => (
+                  {sortedVideos.map((video) => (
                     <div key={video.id} className="relative">
-                      <HoverPreviewCard video={competitionRowToAppVideo(video)} />
+                      <HoverPreviewCard video={competitionRowToAppVideo(video)} hideTag />
 
-                      <div className="pointer-events-none absolute left-2.5 top-2.5 z-20 flex items-center gap-1">
-                        <span
-                          className="flex h-5 min-w-5 items-center justify-center rounded-full px-1.5 text-[10px] font-black tabular-nums text-white backdrop-blur-md"
-                          style={{ background: "rgba(10,10,10,0.6)", border: "1px solid rgba(255,255,255,0.15)" }}
-                        >
-                          {idx + 1}
-                        </span>
-                        {video.is_competition_featured && (
-                          <Star size={12} className="fill-[#AFA9EC] text-[#AFA9EC] drop-shadow-[0_0_8px_rgba(127,119,221,0.6)]" />
-                        )}
-                      </div>
+                      {video.is_competition_featured && (
+                        <div className="pointer-events-none absolute left-2.5 top-2.5 z-20">
+                          <Star size={14} className="fill-[#AFA9EC] text-[#AFA9EC] drop-shadow-[0_0_8px_rgba(127,119,221,0.6)]" />
+                        </div>
+                      )}
 
                       {video.award && (
                         <div

@@ -19,17 +19,26 @@ function formatRuntimeDisplay(seconds: number): string {
  * otherwise.  Hover state lives inside the card so re-renders on
  * mouse move don't bubble up to the home-page shell.
  */
-export function HoverPreviewCard({ video }: { video: Video }) {
+export function HoverPreviewCard({
+  video,
+  hideTag,
+}: {
+  video: Video;
+  /** 공모전 출품작 그리드처럼 컨텍스트상 배지가 군더더기인 곳에서 숨김. */
+  hideTag?: boolean;
+}) {
   const { t } = useI18n();
   const creatorName =
     video.creatorName?.trim() || video.uploaderDisplayName?.trim() || "";
   const runtimeSec = parseRuntimeToSeconds(video.runtime);
   // 시리즈 우선, 아니면 공모전 출품작 표시 (둘 다면 시리즈).
-  const tag = video.seriesName
-    ? { label: t("series.sectionLabel", "Series"), kind: "series" as const }
-    : video.purpose === "competition"
-      ? { label: t("profile.submission", "Submission"), kind: "comp" as const }
-      : null;
+  const tag = hideTag
+    ? null
+    : video.seriesName
+      ? { label: t("series.sectionLabel", "Series"), kind: "series" as const }
+      : video.purpose === "competition"
+        ? { label: t("profile.submission", "Submission"), kind: "comp" as const }
+        : null;
   const { src, onMouseEnter, onMouseLeave } = useHoverThumbnail({
     thumbnailUrl: video.thumbnailUrl,
     muxPlaybackId: video.muxPlaybackId,
