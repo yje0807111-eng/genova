@@ -84,23 +84,29 @@ export function LandingClient({
     <div className="min-h-screen overflow-x-hidden bg-[#0a0a0a] text-white">
       {/* ── Nav ─────────────────────────────── */}
       <nav className="fixed inset-x-0 top-0 z-50 border-b border-white/[0.06] bg-[#0a0a0a]/70 backdrop-blur-xl">
-        <div className="mx-auto flex max-w-[1280px] items-center justify-between px-4 py-3 sm:px-8">
-          <Link href="/landing" className="flex items-center gap-2">
-            <img src="/genova-logo.png" alt="Genova" className="h-10 w-10 object-contain" />
-            <span className="text-[18px] font-black tracking-tight">Genova</span>
-            <span className="rounded-full border border-[#7F77DD]/30 bg-[#534AB7]/15 px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider text-[#AFA9EC]">
+        <div className="mx-auto flex max-w-[1280px] items-center justify-between gap-2 px-3 py-2 sm:px-8 sm:py-3">
+          <Link href="/landing" className="flex shrink-0 items-center gap-1.5 sm:gap-2">
+            <img
+              src="/genova-logo.png"
+              alt="Genova"
+              className="h-7 w-7 object-contain sm:h-10 sm:w-10"
+            />
+            <span className="text-[15px] font-black tracking-tight sm:text-[18px]">
+              Genova
+            </span>
+            <span className="hidden rounded-full border border-[#7F77DD]/30 bg-[#534AB7]/15 px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider text-[#AFA9EC] sm:inline-block">
               Beta
             </span>
           </Link>
-          <div className="flex items-center gap-2 sm:gap-3">
-            <div className="flex gap-1 rounded-full border border-white/[0.08] bg-white/[0.02] p-1">
+          <div className="flex min-w-0 items-center gap-1.5 sm:gap-3">
+            <div className="flex shrink-0 gap-0.5 rounded-full border border-white/[0.08] bg-white/[0.02] p-0.5 sm:gap-1 sm:p-1">
               {langs.map((l) => (
                 <button
                   key={l}
                   type="button"
                   onClick={() => setLocale(l)}
                   className={cn(
-                    "rounded-full px-2.5 py-1 text-[11px] font-bold transition-colors",
+                    "rounded-full px-2 py-0.5 text-[10px] font-bold transition-colors sm:px-2.5 sm:py-1 sm:text-[11px]",
                     locale === l ? "bg-white text-[#0a0a0a]" : "text-white/55 hover:text-white",
                   )}
                 >
@@ -121,13 +127,13 @@ export function LandingClient({
                   "genova_landing=1; max-age=31536000; path=/; samesite=lax";
                 window.location.href = "/";
               }}
-              className="hidden px-3 py-1.5 text-[12px] font-semibold text-white/40 transition hover:text-white sm:block"
+              className="shrink-0 whitespace-nowrap px-1.5 py-1.5 text-[10px] font-semibold text-white/40 transition hover:text-white sm:px-3 sm:text-[12px]"
             >
               {t("landing.dontShowAgain", "다시 보지 않기")}
             </button>
             <Link
               href="/auth"
-              className="rounded-full bg-white px-4 py-1.5 text-[12px] font-bold text-[#0a0a0a] transition hover:bg-white/90"
+              className="shrink-0 whitespace-nowrap rounded-full bg-white px-3 py-1.5 text-[11px] font-bold text-[#0a0a0a] transition hover:bg-white/90 sm:px-4 sm:text-[12px]"
             >
               {t("landing.navStart", "시작하기")}
             </Link>
@@ -136,7 +142,7 @@ export function LandingClient({
       </nav>
 
       {/* ── Cinematic hero ───────────────────── */}
-      <section className="relative flex min-h-[88vh] items-center overflow-hidden">
+      <section className="relative flex min-h-[72vh] items-center overflow-hidden sm:min-h-[88vh]">
         {/* backdrop — 프로필 기본 배너 + 슬로우 줌. z-0(루트 #0a0a0a
             배경에 가리지 않도록; 콘텐츠는 relative z-10). */}
         <div className="absolute inset-0 z-0">
@@ -177,38 +183,38 @@ export function LandingClient({
           />
         </div>
 
-        <div className="relative z-10 mx-auto w-full max-w-[1280px] px-4 py-24 sm:px-8">
+        <div className="relative z-10 mx-auto w-full max-w-[1280px] px-5 py-16 sm:px-8 sm:py-24">
           <ScrollReveal delay={0.05} className="max-w-[680px]">
-            <span className="mb-5 inline-flex items-center gap-1.5 rounded-full border border-white/[0.12] bg-white/[0.04] px-3 py-1 text-[10px] font-bold uppercase tracking-[0.22em] text-[#AFA9EC] backdrop-blur-sm">
+            <span className="mb-4 inline-flex items-center gap-1.5 rounded-full border border-white/[0.12] bg-white/[0.04] px-2.5 py-1 text-[9px] font-bold uppercase tracking-[0.2em] text-[#AFA9EC] backdrop-blur-sm sm:mb-5 sm:px-3 sm:text-[10px] sm:tracking-[0.22em]">
               <Sparkles className="h-3 w-3" />
               {t("landing.eyebrow", "The Home of AI Filmmakers")}
             </span>
-            <h1 className="bg-gradient-to-br from-white via-white to-[#AFA9EC] bg-clip-text pb-1 text-[40px] font-black leading-[1.05] tracking-[-0.035em] text-transparent sm:text-[72px]">
+            <h1 className="bg-gradient-to-br from-white via-white to-[#AFA9EC] bg-clip-text pb-1 text-[30px] font-black leading-[1.08] tracking-[-0.035em] text-transparent sm:text-[72px] sm:leading-[1.05]">
               {t("landing.heroTitle", "AI가 만드는\n영화의 시대")}
             </h1>
-            <p className="mt-5 max-w-[520px] text-[15px] leading-relaxed text-white/65 sm:text-[17px]">
+            <p className="mt-4 max-w-[520px] text-[14px] leading-relaxed text-white/65 sm:mt-5 sm:text-[17px]">
               {t(
                 "landing.heroSub",
                 "전 세계 AI 크리에이터들이 작품을 스트리밍하고, 공모전에서 경쟁하는 영화 플랫폼.",
               )}
             </p>
-            <div className="mt-8 flex flex-col gap-2.5 sm:flex-row">
+            <div className="mt-6 flex flex-col gap-2.5 sm:mt-8 sm:flex-row">
               <Link
                 href="/"
-                className="group inline-flex items-center justify-center gap-2 rounded-full bg-white px-7 py-3.5 text-[14px] font-bold text-[#0a0a0a] transition hover:bg-white/90"
+                className="group inline-flex items-center justify-center gap-2 rounded-full bg-white px-6 py-3 text-[13px] font-bold text-[#0a0a0a] transition hover:bg-white/90 sm:px-7 sm:py-3.5 sm:text-[14px]"
               >
                 <Play className="h-4 w-4 fill-current" />
                 {t("landing.heroCtaPrimary", "지금 감상하기")}
               </Link>
               <Link
                 href="/competition"
-                className="group inline-flex items-center justify-center gap-2 rounded-full border border-white/15 bg-white/[0.04] px-7 py-3.5 text-[14px] font-bold text-white backdrop-blur-xl transition hover:border-[#7F77DD]/50 hover:bg-[#534AB7]/15"
+                className="group inline-flex items-center justify-center gap-2 rounded-full border border-white/15 bg-white/[0.04] px-6 py-3 text-[13px] font-bold text-white backdrop-blur-xl transition hover:border-[#7F77DD]/50 hover:bg-[#534AB7]/15 sm:px-7 sm:py-3.5 sm:text-[14px]"
               >
                 {t("landing.heroCtaSecondary", "공모전 보기")}
                 <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
               </Link>
             </div>
-            <div className="mt-7 inline-flex items-center gap-2 text-[12px] text-white/45">
+            <div className="mt-5 inline-flex items-center gap-2 text-[11px] text-white/45 sm:mt-7 sm:text-[12px]">
               <span className="relative flex h-2 w-2">
                 <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400/60" />
                 <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-400" />
