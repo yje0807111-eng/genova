@@ -9,7 +9,6 @@ import type { Video } from "@/lib/types";
 import { useI18n } from "@/components/genova/language-provider";
 import { videoToCardProps } from "@/components/genova/video-card";
 import { MAIN_GENRE_KEYS, MAIN_GENRE_LABELS, normalizeToMainGenre } from "@/lib/constants/genres";
-import { ScrollReveal } from "@/components/scroll-reveal";
 
 type GenreChip = "all" | "series" | "entries" | (typeof MAIN_GENRE_KEYS)[number];
 type Sort = "latest" | "popular";
@@ -146,7 +145,7 @@ export function HomeMobileFeed({ videosFromDb }: { videosFromDb: Video[] }) {
     ...MAIN_GENRE_KEYS.map((k) => ({ key: k, label: MAIN_GENRE_LABELS[k] })),
   ];
 
-  const renderCard = (v: Video, i: number) => {
+  const renderCard = (v: Video) => {
     const cp = videoToCardProps(v, locale);
     const tag = v.seriesName
       ? { label: t("series.sectionLabel", "Series"), series: true }
@@ -154,8 +153,7 @@ export function HomeMobileFeed({ videosFromDb }: { videosFromDb: Video[] }) {
         ? { label: t("profile.submission", "Submission"), series: false }
         : null;
     return (
-      <ScrollReveal key={v.id} delay={Math.min(i, 6) * 0.05}>
-        <Link href={`/watch/${v.id}`} className="block">
+      <Link key={v.id} href={`/watch/${v.id}`} className="block">
           <div className="relative aspect-video w-full overflow-hidden rounded-xl border border-white/[0.06]">
             <Image src={cp.thumbnail} alt="" fill sizes="100vw" className="object-cover" />
             {tag ? (
@@ -197,8 +195,7 @@ export function HomeMobileFeed({ videosFromDb }: { videosFromDb: Video[] }) {
               </p>
             </div>
           </div>
-        </Link>
-      </ScrollReveal>
+      </Link>
     );
   };
 
@@ -290,14 +287,14 @@ export function HomeMobileFeed({ videosFromDb }: { videosFromDb: Video[] }) {
                 </span>
               </div>
               <div className="flex flex-col gap-4">
-                {g.episodes.map((v, i) => renderCard(v, i))}
+                {g.episodes.map((v) => renderCard(v))}
               </div>
             </section>
           ))}
         </div>
       ) : (
         <div className="flex flex-col gap-5 px-4 pb-10 pt-4">
-          {filtered.map((v, i) => renderCard(v, i))}
+          {filtered.map((v) => renderCard(v))}
         </div>
       )}
 
