@@ -4,12 +4,26 @@ import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState, useTransition } from "react";
-import { Heart, MoreHorizontal, Pin, Trash2 } from "lucide-react";
+import { Heart, MoreHorizontal, Pin, Send, Trash2 } from "lucide-react";
 import { createCommentAction, deleteCommentAction, pinCommentAction, toggleCommentLikeAction } from "@/app/actions/comments";
 import type { VideoComment } from "@/lib/types";
 import { useI18n } from "@/components/genova/language-provider";
 import { formatUploadedRelative } from "@/lib/format-uploaded-relative";
 import { cn } from "@/lib/utils/cn";
+
+/** 게시 버튼 — 활성 시 브랜드 그라데이션(btn-primary), 비활성 muted. */
+function postBtnClass(active: boolean) {
+  return cn(
+    "inline-flex shrink-0 items-center gap-1.5 rounded-lg px-3.5 py-1.5 text-[12px] font-bold transition",
+    active
+      ? "btn-primary text-white"
+      : "cursor-not-allowed bg-white/[0.04] text-white/25",
+  );
+}
+
+/** CommentInput → 같은 영상의 댓글 리스트로 신규 댓글 즉시 전달. */
+const COMMENT_ADDED_EVENT = "genova:comment-added";
+type CommentAddedDetail = { videoId: string; comment: VideoComment };
 
 /** Avoid hydration mismatch across locales */
 function TimeLabel({ iso }: { iso: string }) {
@@ -234,9 +248,16 @@ function CommentBlock({
               type="button"
               onClick={() => void submitReply()}
               disabled={pending || !replyText.trim()}
-              className="shrink-0 rounded-md bg-[#534AB7] px-2.5 py-1 text-[11px] font-bold text-white hover:bg-[#6b5fd4] disabled:opacity-50 transition"
+              className={postBtnClass(!pending && Boolean(replyText.trim()))}
             >
-              {pending ? t("comment.submitting", "게시 중...") : t("comment.submit", "게시")}
+              {pending ? (
+                t("comment.submitting", "게시 중...")
+              ) : (
+                <>
+                  <Send className="h-3 w-3" />
+                  {t("comment.submit", "게시")}
+                </>
+              )}
             </button>
           </div>
         )}
@@ -341,9 +362,31 @@ export function VideoCommentsSection({
         return;
       }
       setText("");
+      // 낙관적 즉시 반영 — router.refresh 라운드트립을 기다리지 않음.
+      if (res.comment) {
+        const added = res.comment;
+        setComments((prev) =>
+          prev.some((c) => c.id === added.id) ? prev : [...prev, added],
+        );
+      }
       router.refresh();
     });
   };
+
+  // CommentInput(분리 컴포넌트)에서 단 댓글을 같은 영상이면 즉시 반영.
+  useEffect(() => {
+    const handler = (e: Event) => {
+      const detail = (e as CustomEvent<CommentAddedDetail>).detail;
+      if (!detail || detail.videoId !== videoId) return;
+      setComments((prev) =>
+        prev.some((c) => c.id === detail.comment.id)
+          ? prev
+          : [...prev, detail.comment],
+      );
+    };
+    window.addEventListener(COMMENT_ADDED_EVENT, handler);
+    return () => window.removeEventListener(COMMENT_ADDED_EVENT, handler);
+  }, [videoId]);
 
   const onPinToggle = (commentId: string, pinned: boolean, pinOrder: number | null) => {
     setComments((prev) => {
@@ -438,14 +481,16 @@ export function VideoCommentsSection({
                 type="button"
                 onClick={() => void submit()}
                 disabled={!text.trim() || pending}
-                className={cn(
-                  "shrink-0 rounded-lg px-3 py-1.5 text-[12px] font-bold transition",
-                  text.trim() && !pending
-                    ? "bg-[#534AB7] text-white hover:bg-[#6b5fd4]"
-                    : "bg-white/[0.04] text-white/30 cursor-not-allowed"
-                )}
+                className={postBtnClass(Boolean(text.trim()) && !pending)}
               >
-                {pending ? t("comment.submitting", "게시 중...") : t("comment.submit", "게시")}
+                {pending ? (
+                  t("comment.submitting", "게시 중...")
+                ) : (
+                  <>
+                    <Send className="h-3.5 w-3.5" />
+                    {t("comment.submit", "게시")}
+                  </>
+                )}
               </button>
             </div>
           </div>
@@ -484,6 +529,14 @@ export function CommentInput({
         return;
       }
       setText("");
+      // 같은 영상의 댓글 리스트(분리 렌더)에 즉시 반영.
+      if (res.comment) {
+        window.dispatchEvent(
+          new CustomEvent<CommentAddedDetail>(COMMENT_ADDED_EVENT, {
+            detail: { videoId, comment: res.comment },
+          }),
+        );
+      }
       router.refresh();
     });
   };
@@ -518,14 +571,16 @@ export function CommentInput({
         type="button"
         onClick={() => void submit()}
         disabled={!text.trim() || pending}
-        className={cn(
-          "shrink-0 rounded-lg px-3 py-1.5 text-[12px] font-bold transition",
-          text.trim() && !pending
-            ? "bg-[#534AB7] text-white hover:bg-[#6b5fd4]"
-            : "bg-white/[0.04] text-white/30 cursor-not-allowed"
-        )}
+        className={postBtnClass(Boolean(text.trim()) && !pending)}
       >
-        {pending ? t("comment.submitting", "게시 중...") : t("comment.submit", "게시")}
+        {pending ? (
+          t("comment.submitting", "게시 중...")
+        ) : (
+          <>
+            <Send className="h-3.5 w-3.5" />
+            {t("comment.submit", "게시")}
+          </>
+        )}
       </button>
     </div>
   );

@@ -3,8 +3,11 @@
 import { revalidatePath } from "next/cache";
 import { createNotification } from "@/lib/notifications";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
+import type { VideoComment } from "@/lib/types";
 
-export type CommentActionResult = { ok: true } | { ok: false; needAuth?: boolean; message: string };
+export type CommentActionResult =
+  | { ok: true; comment?: VideoComment }
+  | { ok: false; needAuth?: boolean; message: string };
 export type PinCommentResult = { ok: true; pinOrder: number | null } | { ok: false; needAuth?: boolean; message: string };
 
 export async function createCommentAction(videoId: string, content: string, parentId: string | null): Promise<CommentActionResult> {
@@ -25,13 +28,39 @@ export async function createCommentAction(videoId: string, content: string, pare
     }
   }
 
-  const { error } = await supabase.from("comments").insert({
-    user_id: user.id,
-    video_id: videoId,
-    parent_id: parentId,
-    content: trimmed,
-  });
+  const { data: inserted, error } = await supabase
+    .from("comments")
+    .insert({
+      user_id: user.id,
+      video_id: videoId,
+      parent_id: parentId,
+      content: trimmed,
+    })
+    .select("id, user_id, video_id, parent_id, content, created_at, is_pinned, pin_order")
+    .single();
   if (error) return { ok: false, message: error.message };
+
+  // 작성자 프로필 — 클라이언트 낙관적 삽입에 필요(즉시 표시).
+  const { data: prof } = await supabase
+    .from("public_profiles")
+    .select("display_name, avatar_url")
+    .eq("id", user.id)
+    .maybeSingle();
+  const createdComment: VideoComment = {
+    id: inserted.id as string,
+    userId: inserted.user_id as string,
+    videoId: inserted.video_id as string,
+    parentId: (inserted.parent_id as string | null) ?? null,
+    content: inserted.content as string,
+    isPinned: Boolean(inserted.is_pinned),
+    pinOrder: (inserted.pin_order as number | null) ?? null,
+    createdAt: inserted.created_at as string,
+    displayName: (prof?.display_name as string | null) ?? null,
+    avatarUrl: (prof?.avatar_url as string | null) ?? null,
+    likeCount: 0,
+    likedByMe: false,
+    replies: [],
+  };
 
   const { data: video } = await supabase
     .from("videos")
@@ -56,7 +85,7 @@ export async function createCommentAction(videoId: string, content: string, pare
   }
 
   revalidatePath(`/watch/${videoId}`);
-  return { ok: true };
+  return { ok: true, comment: createdComment };
 }
 
 export async function deleteCommentAction(commentId: string, videoId: string): Promise<CommentActionResult> {
