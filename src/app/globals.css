@@ -830,3 +830,25 @@ body {
     box-shadow: var(--shadow-hero-glow-hover);
   }
 }
+
+/* auth-mesh — 로그인/회원가입 화면 살아있는 그라데이션 메시.
+   대형 브랜드 보라 blob 3개가 서로 다른 주기로 느리게 표류·스케일
+   해 단조로운 블랙을 깨운다. 접근성: prefers-reduced-motion 정지. */
+@keyframes authMeshA {
+  0%, 100% { transform: translate3d(-8%, -6%, 0) scale(1); }
+  50%      { transform: translate3d(10%, 8%, 0) scale(1.18); }
+}
+@keyframes authMeshB {
+  0%, 100% { transform: translate3d(9%, 5%, 0) scale(1.12); }
+  50%      { transform: translate3d(-11%, -9%, 0) scale(0.95); }
+}
+@keyframes authMeshC {
+  0%, 100% { transform: translate3d(0, 9%, 0) scale(1); }
+  50%      { transform: translate3d(7%, -7%, 0) scale(1.22); }
+}
+.auth-mesh-a { animation: authMeshA 24s ease-in-out infinite; will-change: transform; }
+.auth-mesh-b { animation: authMeshB 30s ease-in-out infinite; will-change: transform; }
+.auth-mesh-c { animation: authMeshC 36s ease-in-out infinite; will-change: transform; }
+@media (prefers-reduced-motion: reduce) {
+  .auth-mesh-a, .auth-mesh-b, .auth-mesh-c { animation: none; }
+}

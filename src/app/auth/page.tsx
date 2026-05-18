@@ -10,15 +10,40 @@ export default function AuthPage() {
 
   return (
     <div className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden px-4 py-12">
-      <div
-        className="pointer-events-none absolute left-1/2 top-1/4 -translate-x-1/2 -translate-y-1/2"
-        style={{
-          width: "800px",
-          height: "800px",
-          background: "radial-gradient(circle, rgba(83,74,183,0.08) 0%, transparent 60%)",
-          filter: "blur(60px)",
-        }}
-      />
+      {/* 살아있는 그라데이션 메시 — 느리게 표류하는 보라 blob 3개 */}
+      <div className="pointer-events-none absolute inset-0 overflow-hidden">
+        <div
+          className="absolute inset-0"
+          style={{
+            background:
+              "radial-gradient(ellipse at 50% 28%, rgba(83,74,183,0.10) 0%, transparent 60%)",
+          }}
+        />
+        <div
+          className="auth-mesh-a absolute -left-[12%] top-[2%] h-[62vh] w-[62vh] rounded-full"
+          style={{
+            background:
+              "radial-gradient(circle, rgba(127,119,221,0.22) 0%, transparent 70%)",
+            filter: "blur(90px)",
+          }}
+        />
+        <div
+          className="auth-mesh-b absolute -right-[14%] top-[14%] h-[68vh] w-[68vh] rounded-full"
+          style={{
+            background:
+              "radial-gradient(circle, rgba(83,74,183,0.24) 0%, transparent 70%)",
+            filter: "blur(100px)",
+          }}
+        />
+        <div
+          className="auth-mesh-c absolute bottom-[-18%] left-[18%] h-[60vh] w-[72vh] rounded-full"
+          style={{
+            background:
+              "radial-gradient(circle, rgba(175,169,236,0.16) 0%, transparent 70%)",
+            filter: "blur(100px)",
+          }}
+        />
+      </div>
 
       <Link
         href="/"
