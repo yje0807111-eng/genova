@@ -8,17 +8,48 @@ import { Search, Heart } from "lucide-react";
 import type { Video } from "@/lib/types";
 import { useI18n } from "@/components/genova/language-provider";
 import { videoToCardProps } from "@/components/genova/video-card";
-import { MAIN_GENRE_KEYS, MAIN_GENRE_LABELS, normalizeToMainGenre } from "@/lib/constants/genres";
+import { MAIN_GENRE_KEYS, normalizeToMainGenre } from "@/lib/constants/genres";
 
-type GenreChip = "all" | "series" | "entries" | (typeof MAIN_GENRE_KEYS)[number];
+type MainTab = "films" | "competition";
+type FilmsSub = "all" | "film" | "animation" | "music" | "art" | "daily" | "series";
+type CompSub = "entries" | "awards";
 type Sort = "latest" | "popular";
+
+const MAIN_TAB_KEY: Record<MainTab, string> = {
+  films: "homeTab.films",
+  competition: "homeTab.competition",
+};
+const SUB_KEY: Record<string, string> = {
+  all: "homeTab.subGenre.all",
+  film: "homeTab.subGenre.film",
+  animation: "homeTab.subGenre.animation",
+  music: "homeTab.subGenre.music",
+  art: "homeTab.subGenre.art",
+  daily: "homeTab.subGenre.daily",
+  series: "homeTab.subGenre.series",
+  entries: "homeTab.subRec.entries",
+  awards: "homeTab.subRec.awards",
+};
+const FILMS_SUBS: FilmsSub[] = [
+  "all",
+  "film",
+  "animation",
+  "music",
+  "art",
+  "daily",
+  "series",
+];
+const COMP_SUBS: CompSub[] = ["entries", "awards"];
 
 // 모바일 전용 홈 — 데스크톱의 탭/캐러셀/필름레일 복합 UI 대신
 // "시청 진입 최단화" 1열 세로 피드(풀폭 가로 카드). md:hidden 분기.
 export function HomeMobileFeed({ videosFromDb }: { videosFromDb: Video[] }) {
   const { t, locale } = useI18n();
   const searchParams = useSearchParams();
-  const [genre, setGenre] = useState<GenreChip>("all");
+  const [mainTab, setMainTab] = useState<MainTab>("films");
+  const [filmsSub, setFilmsSub] = useState<FilmsSub>("all");
+  const [compSub, setCompSub] = useState<CompSub>("entries");
+  const sub: FilmsSub | CompSub = mainTab === "films" ? filmsSub : compSub;
   const [sort, setSort] = useState<Sort>("latest");
   // 상세정보 해시태그 클릭 → /?q=태그 진입 시 검색 프리필.
   const [query, setQuery] = useState(() => searchParams.get("q") ?? "");
@@ -76,14 +107,16 @@ export function HomeMobileFeed({ videosFromDb }: { videosFromDb: Video[] }) {
   }, [hasMore, loadMore]);
 
   const q = query.trim().toLowerCase();
-  const matchesGenre = (v: Video) =>
-    genre === "all"
-      ? true
-      : genre === "entries"
-        ? v.purpose === "competition"
-        : genre === "series"
-          ? Boolean(v.seriesName)
-          : normalizeToMainGenre(v.genre) === genre;
+  const matchesGenre = (v: Video) => {
+    if (mainTab === "competition") {
+      return compSub === "awards"
+        ? Boolean(v.isFinalist || v.award)
+        : v.purpose === "competition";
+    }
+    // films
+    if (filmsSub === "all" || filmsSub === "series") return true;
+    return normalizeToMainGenre(v.genre) === filmsSub;
+  };
   // 태그 포함 + 선행 '#' 제거(태그는 저장 시 '#' 없음)로 해시태그
   // 검색 지원.
   const needle = q.replace(/^#+/, "");
@@ -105,10 +138,12 @@ export function HomeMobileFeed({ videosFromDb }: { videosFromDb: Video[] }) {
     .sort(sortFn);
 
   // 시리즈 모드: seriesName 기준 그룹핑 + 합산 정렬(데스크톱과 동일).
+  const seriesMode = mainTab === "films" && filmsSub === "series";
   const seriesGroups =
-    genre === "series"
+    seriesMode
       ? Array.from(
           filtered
+            .filter((v) => Boolean(v.seriesName?.trim()))
             .reduce((m, v) => {
               const key = v.seriesName!.trim();
               if (!m.has(key)) m.set(key, []);
@@ -140,7 +175,7 @@ export function HomeMobileFeed({ videosFromDb }: { videosFromDb: Video[] }) {
 
   // "전체" + 검색 없음 → 데스크톱처럼 메인 장르별 섹션으로 정돈.
   // 특정 장르 칩 선택 시엔 단일 장르라 평탄 피드 유지.
-  const groupByGenre = genre === "all" && !q;
+  const groupByGenre = mainTab === "films" && filmsSub === "all" && !q;
   const genreGroups = groupByGenre
     ? (() => {
         const m = new Map<string, Video[]>();
@@ -155,19 +190,14 @@ export function HomeMobileFeed({ videosFromDb }: { videosFromDb: Video[] }) {
         );
         return [...known, ...extra].map((k) => ({
           key: k,
-          label:
-            MAIN_GENRE_LABELS[k as (typeof MAIN_GENRE_KEYS)[number]] ?? k,
+          label: SUB_KEY[k] ? t(SUB_KEY[k]) : k,
           videos: m.get(k)!,
         }));
       })()
     : [];
 
-  const chips: { key: GenreChip; label: string }[] = [
-    { key: "all", label: t("home.filterAll", "All") },
-    { key: "series", label: t("homeTab.subGenre.series", "Series") },
-    { key: "entries", label: t("homeTab.subRec.entries", "Entries") },
-    ...MAIN_GENRE_KEYS.map((k) => ({ key: k, label: MAIN_GENRE_LABELS[k] })),
-  ];
+  const subChips: (FilmsSub | CompSub)[] =
+    mainTab === "films" ? FILMS_SUBS : COMP_SUBS;
 
   const renderCard = (v: Video) => {
     const cp = videoToCardProps(v, locale);
@@ -255,21 +285,44 @@ export function HomeMobileFeed({ videosFromDb }: { videosFromDb: Video[] }) {
         ) : null}
       </div>
 
-      {/* 장르 칩 — 가로 스크롤 */}
-      <div className="mt-4 flex gap-2 overflow-x-auto px-4 pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-        {chips.map((c) => (
+      {/* 메인 탭 — 필름 / 공모전 (데스크톱과 동일 분리) */}
+      <div className="mt-4 flex items-center gap-2 px-4">
+        {(["films", "competition"] as const).map((tab) => (
           <button
-            key={c.key}
+            key={tab}
             type="button"
-            onClick={() => setGenre(c.key)}
+            onClick={() => setMainTab(tab)}
             className={
-              "shrink-0 whitespace-nowrap rounded-full px-4 py-1.5 text-[12px] font-semibold transition-colors " +
-              (genre === c.key
+              "rounded-full px-5 py-1.5 text-[13px] font-bold transition-colors " +
+              (mainTab === tab
                 ? "bg-white text-[#0a0a0a]"
                 : "border border-white/[0.10] bg-white/[0.03] text-white/60")
             }
           >
-            {c.label}
+            {t(MAIN_TAB_KEY[tab])}
+          </button>
+        ))}
+      </div>
+
+      {/* 하위 장르 칩 — 가로 스크롤 (선택된 메인 탭 기준) */}
+      <div className="mt-3 flex gap-2 overflow-x-auto px-4 pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+        {subChips.map((c) => (
+          <button
+            key={c}
+            type="button"
+            onClick={() =>
+              mainTab === "films"
+                ? setFilmsSub(c as FilmsSub)
+                : setCompSub(c as CompSub)
+            }
+            className={
+              "shrink-0 whitespace-nowrap rounded-full px-4 py-1.5 text-[12px] font-semibold transition-colors " +
+              (sub === c
+                ? "bg-white text-[#0a0a0a]"
+                : "border border-white/[0.10] bg-white/[0.03] text-white/60")
+            }
+          >
+            {t(SUB_KEY[c])}
           </button>
         ))}
       </div>
@@ -294,7 +347,7 @@ export function HomeMobileFeed({ videosFromDb }: { videosFromDb: Video[] }) {
       </div>
 
       {/* 시리즈 모드: 시리즈별 섹션 / 그 외: 1열 세로 피드 */}
-      {genre === "series" ? (
+      {seriesMode ? (
         <div className="flex flex-col gap-7 px-4 pb-10 pt-4">
           {seriesGroups.map((g) => (
             <section key={g.name}>
@@ -355,9 +408,9 @@ export function HomeMobileFeed({ videosFromDb }: { videosFromDb: Video[] }) {
         </div>
       )}
 
-      {(genre === "series" ? seriesGroups.length === 0 : filtered.length === 0) ? (
+      {(seriesMode ? seriesGroups.length === 0 : filtered.length === 0) ? (
         <p className="px-4 pb-12 text-center text-[13px] text-white/35">
-          {genre === "series"
+          {seriesMode
             ? t("home.series.empty", "No series yet.")
             : t("home.emptyState", "No videos yet")}
         </p>
