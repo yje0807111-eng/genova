@@ -75,10 +75,10 @@ export function WatchMoreMenu({ videoId }: { videoId: string }) {
         ref={buttonRef}
         type="button"
         onClick={toggleMenu}
-        className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-md border border-white/10 bg-white/5 text-white/55 transition hover:bg-white/10 hover:text-white"
+        className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-white/10 bg-white/5 text-white/55 transition hover:bg-white/10 hover:text-white sm:h-9 sm:w-9 sm:rounded-md"
         aria-label={t("watchMore.report", "Report")}
       >
-        <MoreHorizontal className="h-3.5 w-3.5" />
+        <MoreHorizontal className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
       </button>
       {open && dropdownPos ? (
         <div

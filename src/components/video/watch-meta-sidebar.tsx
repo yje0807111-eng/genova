@@ -221,8 +221,8 @@ export function WatchMetaSidebar({
             동일 너비로 늘어나고, 공유·더보기는 우측 고정). 기존의
             왼쪽 정렬 축소 클러스터 구조 폐기. */}
         <div className="flex items-center gap-1.5">
-          {/* 좋아요·저장·공유 — 동일 크기(flex-1, 가운데 정렬) */}
-          <div className="flex min-w-0 flex-1 items-center gap-1.5 [&>button]:!h-9 [&>button]:!flex-1 [&>button]:!justify-center [&>button]:!gap-1 [&>button]:!rounded-md [&>button]:!px-2 [&>button]:!text-[12px] [&>button>svg]:!h-3.5 [&>button>svg]:!w-3.5">
+          {/* 모바일: 유튜브식 작은 알약(내용폭). 데스크톱: 풀폭 균등. */}
+          <div className="flex min-w-0 flex-1 items-center gap-1.5 [&>button]:!h-7 [&>button]:!flex-none [&>button]:!justify-center [&>button]:!gap-0.5 [&>button]:!rounded-full [&>button]:!px-2.5 [&>button]:!text-[11px] [&>button>svg]:!h-3 [&>button>svg]:!w-3 md:[&>button]:!h-9 md:[&>button]:!flex-1 md:[&>button]:!gap-1 md:[&>button]:!rounded-md md:[&>button]:!px-2 md:[&>button]:!text-[12px] md:[&>button>svg]:!h-3.5 md:[&>button>svg]:!w-3.5">
             <VideoLikeButton
               videoId={videoId}
               initialCount={video.likeCount ?? 0}
