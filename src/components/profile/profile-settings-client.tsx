@@ -227,17 +227,17 @@ export function ProfileSettingsClient({
                   </button>
                 )}
               </div>
-              <div className="flex items-center gap-1.5">
-                <label className="cursor-pointer rounded-md border border-white/[0.06] bg-white/[0.02] px-2.5 py-0.5 text-[10px] font-semibold text-white/80 transition hover:border-[#7F77DD]/40 hover:text-white">
+              <div className="mt-2 flex w-full flex-col gap-1">
+                <label className="flex w-full cursor-pointer items-center justify-center whitespace-nowrap rounded-md border border-white/[0.06] bg-white/[0.02] px-2 py-1 text-[10px] font-semibold text-white/80 transition hover:border-[#7F77DD]/40 hover:text-white">
                   {t("profileSettings.changeAvatar", "Change")}
                   <input type="file" accept="image/*" onChange={(e) => { const f = e.target.files?.[0]; if (f) void handleAvatarUpload(f); }} className="hidden" />
                 </label>
                 <button
                   type="button"
                   onClick={() => setAvatarPreviewOpen(true)}
-                  className="flex items-center gap-1 rounded-md border border-white/[0.06] bg-white/[0.02] px-2.5 py-0.5 text-[10px] font-semibold text-white/80 transition hover:border-[#7F77DD]/40 hover:text-white"
+                  className="flex w-full items-center justify-center gap-1 whitespace-nowrap rounded-md border border-white/[0.06] bg-white/[0.02] px-2 py-1 text-[10px] font-semibold text-white/80 transition hover:border-[#7F77DD]/40 hover:text-white"
                 >
-                  <Eye className="h-2.5 w-2.5" />
+                  <Eye className="h-2.5 w-2.5 shrink-0" />
                   {t("profileSettings.previewAvatar", "Preview")}
                 </button>
               </div>
@@ -474,7 +474,7 @@ export function ProfileSettingsClient({
             className="relative flex flex-col items-center"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="h-[min(70vw,360px)] w-[min(70vw,360px)] overflow-hidden rounded-2xl border border-white/[0.10] bg-white/[0.02]">
+            <div className="h-[min(70vw,360px)] w-[min(70vw,360px)] overflow-hidden rounded-full border border-white/[0.10] bg-white/[0.02] ring-1 ring-white/[0.06]">
               <Image
                 src={avatarUrl || "/default-avatar.png"}
                 alt=""
