@@ -138,6 +138,30 @@ export function HomeMobileFeed({ videosFromDb }: { videosFromDb: Video[] }) {
           )
       : [];
 
+  // "전체" + 검색 없음 → 데스크톱처럼 메인 장르별 섹션으로 정돈.
+  // 특정 장르 칩 선택 시엔 단일 장르라 평탄 피드 유지.
+  const groupByGenre = genre === "all" && !q;
+  const genreGroups = groupByGenre
+    ? (() => {
+        const m = new Map<string, Video[]>();
+        for (const v of filtered) {
+          const k = normalizeToMainGenre(v.genre) || "other";
+          if (!m.has(k)) m.set(k, []);
+          m.get(k)!.push(v);
+        }
+        const known = MAIN_GENRE_KEYS.filter((k) => m.has(k));
+        const extra = [...m.keys()].filter(
+          (k) => !(MAIN_GENRE_KEYS as readonly string[]).includes(k),
+        );
+        return [...known, ...extra].map((k) => ({
+          key: k,
+          label:
+            MAIN_GENRE_LABELS[k as (typeof MAIN_GENRE_KEYS)[number]] ?? k,
+          videos: m.get(k)!,
+        }));
+      })()
+    : [];
+
   const chips: { key: GenreChip; label: string }[] = [
     { key: "all", label: t("home.filterAll", "All") },
     { key: "series", label: t("homeTab.subGenre.series", "Series") },
@@ -295,6 +319,32 @@ export function HomeMobileFeed({ videosFromDb }: { videosFromDb: Video[] }) {
               </div>
               <div className="flex flex-col gap-4">
                 {g.episodes.map((v) => renderCard(v))}
+              </div>
+            </section>
+          ))}
+        </div>
+      ) : groupByGenre ? (
+        <div className="flex flex-col gap-7 px-4 pb-10 pt-4">
+          {genreGroups.map((g) => (
+            <section key={g.key}>
+              <div className="mb-3 flex items-center gap-2.5">
+                <span
+                  className="h-5 w-1 shrink-0 rounded-full"
+                  style={{
+                    background:
+                      "linear-gradient(180deg, #7F77DD 0%, #534AB7 100%)",
+                  }}
+                  aria-hidden
+                />
+                <h3 className="min-w-0 flex-1 truncate text-[15px] font-bold text-white">
+                  {g.label}
+                </h3>
+                <span className="shrink-0 rounded-full bg-white/[0.05] px-2 py-0.5 text-[10px] font-semibold tabular-nums text-white/45">
+                  {g.videos.length}
+                </span>
+              </div>
+              <div className="flex flex-col gap-4">
+                {g.videos.map((v) => renderCard(v))}
               </div>
             </section>
           ))}

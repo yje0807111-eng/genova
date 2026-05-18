@@ -96,9 +96,6 @@ export function MobileCommentPeek({
             {t("comments.empty", "첫 댓글을 남겨 보세요.")}
           </span>
         )}
-        <span className="shrink-0 text-[11px] font-semibold tabular-nums text-white/35">
-          {comments.length}
-        </span>
       </button>
 
       {render &&

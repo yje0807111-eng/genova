@@ -125,7 +125,7 @@ export function WatchMetaSidebar({
     <div className="flex h-full flex-col overflow-hidden">
 
       {/* Title + meta + creator + engagement */}
-      <div className="shrink-0 space-y-2.5 border-b border-white/[0.06] px-2 pb-2.5 pt-1.5 sm:space-y-4 sm:px-4 sm:pb-3 sm:pt-4">
+      <div className="shrink-0 space-y-2.5 border-b border-white/[0.06] px-2 pb-1 pt-1.5 sm:space-y-4 sm:px-4 sm:pb-3 sm:pt-4">
         {/* Video title (top) */}
         <div>
           <div className="flex items-start gap-2">
@@ -286,7 +286,7 @@ export function WatchMetaSidebar({
       <div className="flex min-h-0 flex-1 flex-col overflow-hidden md:contents">
 
       {/* Tab bar — 세그먼트 알약형 + 자동재생 토글 */}
-      <div className="flex shrink-0 items-center gap-2 px-2 py-2">
+      <div className="flex shrink-0 items-center gap-2 px-2 pb-2 pt-1 sm:py-2">
         <div className="flex flex-1 items-center gap-0.5 rounded-xl bg-white/[0.03] p-1">
           {(hasSeries
             ? (["episodes", "comments", "details"] as const)
