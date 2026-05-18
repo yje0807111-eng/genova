@@ -10,7 +10,6 @@ import {
   Check,
   ChevronDown,
   Film,
-  Grid,
   Pencil,
   Trophy,
 } from "lucide-react";
@@ -30,9 +29,14 @@ const ProfileBulkToolbar = dynamic(
 import type { Video } from "@/lib/types";
 import { AnimateIn } from "@/components/animate-in";
 import { addWindowCustomListener } from "@/lib/dom/window-custom-events";
+import {
+  MAIN_GENRE_KEYS,
+  normalizeToMainGenre,
+} from "@/lib/constants/genres";
 import { cn } from "@/lib/utils/cn";
 
-type TabKey = "Videos" | "Competition" | "Series" | "Saved";
+type MainTab = "films" | "competition" | "saved";
+type FilmSub = "all" | (typeof MAIN_GENRE_KEYS)[number] | "series";
 type CompetitionMeta = {
   id: string;
   title: string;
@@ -74,7 +78,8 @@ export function GenovaProfileClient({
   const { t, locale, setLocale } = useI18n();
   const { open: openUploadModal } = useUploadModal();
   const { open: openEditModal } = useEditModal();
-  const [activeTab, setActiveTab] = useState<TabKey>("Videos");
+  const [mainTab, setMainTab] = useState<MainTab>("films");
+  const [filmSub, setFilmSub] = useState<FilmSub>("all");
   const [sortBy, setSortBy] = useState<"Newest" | "Oldest" | "Most Viewed">("Newest");
   const [editMode, setEditMode] = useState(false);
   const [bulkAction, setBulkAction] = useState<"private" | "public" | null>(null);
@@ -85,17 +90,26 @@ export function GenovaProfileClient({
   const [bulkSaving, setBulkSaving] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
 
-  const tabs = useMemo(() => {
-    const base: TabKey[] = ["Videos", "Competition", "Series"];
-    if (isOwner) base.push("Saved");
+  const mainTabs = useMemo(() => {
+    const base: MainTab[] = ["films", "competition"];
+    if (isOwner) base.push("saved");
     return base;
   }, [isOwner]);
 
-  // Reset to page 1 whenever tab/sort changes — documented
+  const filmSubs = useMemo(
+    (): FilmSub[] => ["all", ...MAIN_GENRE_KEYS, "series"],
+    [],
+  );
+
+  // Reset to page 1 whenever tab/sub/sort changes — documented
   // "store previous value, adjust during render" pattern.
-  const [prevPageKey, setPrevPageKey] = useState({ activeTab, sortBy });
-  if (prevPageKey.activeTab !== activeTab || prevPageKey.sortBy !== sortBy) {
-    setPrevPageKey({ activeTab, sortBy });
+  const [prevPageKey, setPrevPageKey] = useState({ mainTab, filmSub, sortBy });
+  if (
+    prevPageKey.mainTab !== mainTab ||
+    prevPageKey.filmSub !== filmSub ||
+    prevPageKey.sortBy !== sortBy
+  ) {
+    setPrevPageKey({ mainTab, filmSub, sortBy });
     setCurrentPage(1);
   }
 
@@ -108,9 +122,12 @@ export function GenovaProfileClient({
 
   useEffect(() => {
     return addWindowCustomListener<string>("profile-tab-change", (tab) => {
-      if (tab === "works") setActiveTab("Videos");
-      if (tab === "awards") setActiveTab("Competition");
-      if (tab === "saved") setActiveTab("Saved");
+      if (tab === "works") {
+        setMainTab("films");
+        setFilmSub("all");
+      }
+      if (tab === "awards") setMainTab("competition");
+      if (tab === "saved") setMainTab("saved");
     });
   }, []);
 
@@ -124,13 +141,17 @@ export function GenovaProfileClient({
 
   const sortedVideos = useMemo(() => {
     const sourceList =
-      activeTab === "Videos"
-        ? localWorks
-        : activeTab === "Competition"
-          ? localCompetitionVideos
-          : activeTab === "Series"
-            ? localWorks.filter((v) => v.seriesName)
-            : savedVideos;
+      mainTab === "competition"
+        ? localCompetitionVideos
+        : mainTab === "saved"
+          ? savedVideos
+          : filmSub === "all"
+            ? localWorks
+            : filmSub === "series"
+              ? localWorks.filter((v) => v.seriesName)
+              : localWorks.filter(
+                  (v) => normalizeToMainGenre(v.genre) === filmSub,
+                );
     const visibilityFiltered =
       bulkAction === "private"
         ? sourceList.filter((v) => v.visibility === "public")
@@ -150,7 +171,7 @@ export function GenovaProfileClient({
       return sortBy === "Newest" ? tb - ta : ta - tb;
     });
     return arr;
-  }, [activeTab, sortBy, bulkAction, editMode, localWorks, localCompetitionVideos, savedVideos]);
+  }, [mainTab, filmSub, sortBy, bulkAction, editMode, localWorks, localCompetitionVideos, savedVideos]);
 
   // Re-sync local competition videos when the server set changes —
   // documented "store previous value, adjust during render" pattern.
@@ -177,29 +198,31 @@ export function GenovaProfileClient({
         <div className="mx-auto min-w-0 w-full max-w-[1800px] px-6 sm:px-10 lg:px-14">
             <div className="flex flex-col gap-3 py-3 md:flex-row md:items-center md:justify-between md:gap-6">
               <div className="flex w-full items-center gap-2 overflow-x-auto [scrollbar-width:none] md:w-auto md:overflow-visible [&::-webkit-scrollbar]:hidden">
-                {tabs.map((tab) => (
+                {mainTabs.map((tab) => (
                   <button
                     key={tab}
                     type="button"
-                    onClick={() => setActiveTab(tab)}
+                    onClick={() => {
+                      setMainTab(tab);
+                      if (tab === "films") setFilmSub("all");
+                    }}
                     className={cn(
                       "flex min-w-[88px] shrink-0 items-center justify-center gap-1.5 whitespace-nowrap rounded-lg px-3 py-1.5 text-[12px] transition",
-                      activeTab === tab
+                      mainTab === tab
                         ? "border border-white/[0.08] bg-gradient-to-br from-white/[0.06] to-white/[0.02] font-bold text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]"
                         : "border border-transparent font-semibold text-white/45 hover:bg-white/[0.03] hover:text-white/80",
                     )}
                   >
-                    {tab === "Videos" ? <Grid className="h-3.5 w-3.5" /> : null}
-                    {tab === "Competition" ? <Trophy className="h-3.5 w-3.5" /> : null}
-                    {tab === "Series" ? <Film className="h-3.5 w-3.5" /> : null}
-                    {tab === "Saved" ? <Bookmark className="h-3.5 w-3.5" /> : null}
-                    {tab === "Videos"
-                      ? t("profile.tabVideos")
-                      : tab === "Competition"
-                        ? t("profile.tabCompetition")
-                        : tab === "Series"
-                          ? t("profile.tabSeries")
-                          : t("profile.tabSaved")}
+                    {tab === "films" ? <Film className="h-3.5 w-3.5" /> : null}
+                    {tab === "competition" ? (
+                      <Trophy className="h-3.5 w-3.5" />
+                    ) : null}
+                    {tab === "saved" ? <Bookmark className="h-3.5 w-3.5" /> : null}
+                    {tab === "films"
+                      ? t("homeTab.films", "필름")
+                      : tab === "competition"
+                        ? t("homeTab.competition", "공모전")
+                        : t("profile.tabSaved")}
                   </button>
                 ))}
               </div>
@@ -253,6 +276,27 @@ export function GenovaProfileClient({
               </div>
             </div>
 
+            {/* 필름 세부 섹션 — 장르 + 시리즈 (공모전/저장은 섹션 없음) */}
+            {mainTab === "films" ? (
+              <div className="mt-1 flex flex-wrap gap-x-4 gap-y-2 px-0.5">
+                {filmSubs.map((sub) => (
+                  <button
+                    key={sub}
+                    type="button"
+                    onClick={() => setFilmSub(sub)}
+                    className={cn(
+                      "text-[13px] font-semibold transition",
+                      filmSub === sub
+                        ? "text-white"
+                        : "text-white/40 hover:text-white/70",
+                    )}
+                  >
+                    {t(`homeTab.subGenre.${sub}`, sub)}
+                  </button>
+                ))}
+              </div>
+            ) : null}
+
             {isOwner && editMode ? (
               <ProfileBulkToolbar
                 bulkAction={bulkAction}
@@ -268,7 +312,7 @@ export function GenovaProfileClient({
               />
             ) : null}
 
-            {activeTab === "Series" ? (
+            {mainTab === "films" && filmSub === "series" ? (
               <ProfileSeriesView videos={localWorks} />
             ) : (
               <div className="mt-4 grid min-h-[700px] grid-cols-2 gap-5 md:grid-cols-3 lg:grid-cols-4 2xl:grid-cols-5 content-start">
@@ -298,7 +342,7 @@ export function GenovaProfileClient({
                 ) : null}
                 {displayVideos.videos.map((video) => (
                   <div
-                    key={`${activeTab}-${video.id}`}
+                    key={`${mainTab}-${filmSub}-${video.id}`}
                     className={cn(
                       "relative",
                       editMode && selectedVideoIds.includes(video.id) && "scale-95 ring-2 ring-primary rounded-xl",
