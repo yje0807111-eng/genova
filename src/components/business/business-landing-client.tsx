@@ -38,31 +38,39 @@ export function BusinessLandingClient() {
           className="absolute inset-0"
           style={{
             background:
-              "linear-gradient(180deg, rgba(83,74,183,0.05) 0%, transparent 14%, transparent 50%, rgba(83,74,183,0.04) 70%, transparent 100%)",
+              "linear-gradient(180deg, rgba(83,74,183,0.14) 0%, rgba(83,74,183,0.04) 22%, rgba(127,119,221,0.05) 45%, rgba(83,74,183,0.10) 68%, rgba(127,119,221,0.06) 88%, transparent 100%)",
           }}
         />
         <div
-          className="absolute -left-40 top-[780px] h-[520px] w-[640px] rounded-full"
+          className="absolute -left-32 top-[680px] h-[560px] w-[680px] rounded-full"
           style={{
             background:
-              "radial-gradient(circle, rgba(127,119,221,0.10) 0%, transparent 70%)",
-            filter: "blur(90px)",
+              "radial-gradient(circle, rgba(127,119,221,0.30) 0%, transparent 68%)",
+            filter: "blur(110px)",
           }}
         />
         <div
-          className="absolute -right-48 top-[1500px] h-[560px] w-[680px] rounded-full"
+          className="absolute -right-40 top-[1280px] h-[620px] w-[760px] rounded-full"
           style={{
             background:
-              "radial-gradient(circle, rgba(83,74,183,0.12) 0%, transparent 70%)",
-            filter: "blur(100px)",
+              "radial-gradient(circle, rgba(83,74,183,0.34) 0%, transparent 68%)",
+            filter: "blur(120px)",
           }}
         />
         <div
-          className="absolute bottom-0 left-1/2 h-[460px] w-[1100px] -translate-x-1/2 rounded-full"
+          className="absolute -left-24 top-[2000px] h-[600px] w-[720px] rounded-full"
           style={{
             background:
-              "radial-gradient(ellipse, rgba(127,119,221,0.10) 0%, transparent 72%)",
-            filter: "blur(90px)",
+              "radial-gradient(circle, rgba(127,119,221,0.28) 0%, transparent 68%)",
+            filter: "blur(120px)",
+          }}
+        />
+        <div
+          className="absolute -bottom-20 left-1/2 h-[560px] w-[1200px] -translate-x-1/2 rounded-full"
+          style={{
+            background:
+              "radial-gradient(ellipse, rgba(127,119,221,0.26) 0%, transparent 70%)",
+            filter: "blur(110px)",
           }}
         />
       </div>
