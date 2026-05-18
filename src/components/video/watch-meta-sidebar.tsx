@@ -177,7 +177,7 @@ export function WatchMetaSidebar({
           <div className="flex min-w-0 flex-1 items-center gap-3">
             <Link
               href={creatorHref ?? "#"}
-              className="-mt-4 h-12 w-12 shrink-0 self-start overflow-hidden rounded-full bg-white/[0.06] ring-1 ring-white/[0.10]"
+              className="h-12 w-12 shrink-0 self-center overflow-hidden rounded-full bg-white/[0.06] ring-1 ring-white/[0.10]"
             >
               <Image
                 src={creatorAvatarUrl || "/default-avatar.png"}
@@ -314,7 +314,7 @@ export function WatchMetaSidebar({
 
       {/* Comment input pinned at bottom — 모바일은 시트 내부 입력 사용 */}
       {activeTab === "comments" && (
-        <div className="hidden shrink-0 border-t border-white/10 py-2 pl-4 pr-8 md:block">
+        <div className="hidden shrink-0 border-t border-white/10 px-3 py-2 md:block">
           <CommentInput videoId={videoId} currentUserId={currentUserId} />
         </div>
       )}

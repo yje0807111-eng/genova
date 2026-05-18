@@ -240,7 +240,7 @@ function CommentBlock({
 
         {/* Reply input */}
         {replyOpen && currentUserId && depth === 0 && (
-          <div className="mr-6 mt-2 flex items-center gap-1.5 rounded-full bg-white/[0.04] py-1 pl-4 pr-1 transition focus-within:bg-white/[0.06]">
+          <div className="mr-2 mt-2 flex items-center gap-1.5 rounded-xl bg-white/[0.04] py-1 pl-3 pr-1 transition focus-within:bg-white/[0.06]">
             <input
               type="text"
               value={replyText}
@@ -473,8 +473,8 @@ export function VideoCommentsSection({
       {/* Input at the bottom */}
       {!hideInput ? (
         currentUserId ? (
-          <div className="mt-3 border-t border-white/10 pr-6 pt-3">
-            <div className="flex items-center gap-1.5 rounded-full bg-white/[0.04] py-1 pl-4 pr-1.5 transition focus-within:bg-white/[0.06]">
+          <div className="mt-3 border-t border-white/10 pt-3">
+            <div className="flex items-center gap-1.5 rounded-xl bg-white/[0.04] py-1 pl-3 pr-1.5 transition focus-within:bg-white/[0.06]">
               <input
                 type="text"
                 value={text}
@@ -557,7 +557,7 @@ export function CommentInput({
   }
 
   return (
-    <div className="flex items-center gap-1.5 rounded-full bg-white/[0.04] py-1 pl-4 pr-1.5 transition focus-within:bg-white/[0.06]">
+    <div className="flex items-center gap-1.5 rounded-xl bg-white/[0.04] py-1 pl-3 pr-1.5 transition focus-within:bg-white/[0.06]">
       <input
         type="text"
         value={text}
