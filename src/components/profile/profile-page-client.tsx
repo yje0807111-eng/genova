@@ -196,8 +196,8 @@ export function GenovaProfileClient({
       <AnimateIn delay={0.1}>
       <div className="pb-12 pt-6">
         <div className="mx-auto min-w-0 w-full max-w-[1800px] px-6 sm:px-10 lg:px-14">
-            <div className="flex flex-col gap-3 py-3 md:flex-row md:items-center md:justify-between md:gap-6">
-              <div className="flex w-full items-center gap-2 overflow-x-auto [scrollbar-width:none] md:w-auto md:overflow-visible [&::-webkit-scrollbar]:hidden">
+            <div className="flex flex-wrap items-center gap-2 py-3">
+              <div className="flex items-center gap-2 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
                 {mainTabs.map((tab) => (
                   <button
                     key={tab}
@@ -226,53 +226,52 @@ export function GenovaProfileClient({
                   </button>
                 ))}
               </div>
-              <div className="flex shrink-0 items-center gap-2">
-                {/* 모바일 전용 언어 선택 (데스크톱은 사이드바 글로브) */}
-                <div className="mr-auto flex gap-1 rounded-full border border-white/[0.08] bg-white/[0.03] p-1 md:hidden">
-                  {(["en", "ko", "ja"] as const).map((lng) => (
-                    <button
-                      key={lng}
-                      type="button"
-                      onClick={() => setLocale(lng)}
-                      className={cn(
-                        "rounded-full px-3 py-1 text-[11px] font-bold transition-colors",
-                        locale === lng ? "bg-white text-[#0a0a0a]" : "text-white/55",
-                      )}
-                    >
-                      {lng.toUpperCase()}
-                    </button>
-                  ))}
-                </div>
-                <div className="relative">
-                  <select
-                    value={sortBy}
-                    onChange={(e) => {
-                      const v = e.target.value as "Newest" | "Oldest" | "Most Viewed";
-                      setSortBy(v);
-                    }}
-                    className="appearance-none rounded-lg border border-white/[0.06] bg-white/[0.02] px-3 py-1.5 pr-8 text-[12px] font-semibold text-white/65 outline-none transition hover:border-white/[0.12] hover:text-white/85 focus:border-[#7F77DD]/40"
-                  >
-                    <option value="Newest">{t("profile.sortNewest")}</option>
-                    <option value="Oldest">{t("profile.sortOldest")}</option>
-                    <option value="Most Viewed">{t("profile.sortMostViewed")}</option>
-                  </select>
-                  <ChevronDown className="pointer-events-none absolute right-2.5 top-1/2 h-3 w-3 -translate-y-1/2 text-white/45" />
-                </div>
-                {isOwner ? (
+              {/* 정렬 — 구역 버튼 바로 오른쪽 (홈과 동일 배치) */}
+              <div className="relative shrink-0">
+                <select
+                  value={sortBy}
+                  onChange={(e) => {
+                    const v = e.target.value as "Newest" | "Oldest" | "Most Viewed";
+                    setSortBy(v);
+                  }}
+                  className="appearance-none rounded-lg border border-white/[0.06] bg-white/[0.02] px-3 py-1.5 pr-8 text-[12px] font-semibold text-white/65 outline-none transition hover:border-white/[0.12] hover:text-white/85 focus:border-[#7F77DD]/40"
+                >
+                  <option value="Newest">{t("profile.sortNewest")}</option>
+                  <option value="Oldest">{t("profile.sortOldest")}</option>
+                  <option value="Most Viewed">{t("profile.sortMostViewed")}</option>
+                </select>
+                <ChevronDown className="pointer-events-none absolute right-2.5 top-1/2 h-3 w-3 -translate-y-1/2 text-white/45" />
+              </div>
+              {isOwner ? (
+                <button
+                  type="button"
+                  onClick={() => setEditMode((prev) => !prev)}
+                  className={cn(
+                    "inline-flex h-[30px] w-[30px] shrink-0 items-center justify-center rounded-lg border transition",
+                    editMode
+                      ? "border-[#7F77DD]/40 bg-[#534AB7]/15 text-[#AFA9EC]"
+                      : "border-white/[0.06] bg-white/[0.02] text-white/55 hover:border-white/[0.12] hover:text-white/85",
+                  )}
+                  aria-label={t("profile.toggleEditMode", "Toggle edit mode")}
+                >
+                  <Pencil className="h-3.5 w-3.5" />
+                </button>
+              ) : null}
+              {/* 모바일 전용 언어 선택 (데스크톱은 사이드바 글로브) */}
+              <div className="ml-auto flex shrink-0 gap-1 rounded-full border border-white/[0.08] bg-white/[0.03] p-1 md:hidden">
+                {(["en", "ko", "ja"] as const).map((lng) => (
                   <button
+                    key={lng}
                     type="button"
-                    onClick={() => setEditMode((prev) => !prev)}
+                    onClick={() => setLocale(lng)}
                     className={cn(
-                      "inline-flex h-[30px] w-[30px] items-center justify-center rounded-lg border transition",
-                      editMode
-                        ? "border-[#7F77DD]/40 bg-[#534AB7]/15 text-[#AFA9EC]"
-                        : "border-white/[0.06] bg-white/[0.02] text-white/55 hover:border-white/[0.12] hover:text-white/85",
+                      "rounded-full px-3 py-1 text-[11px] font-bold transition-colors",
+                      locale === lng ? "bg-white text-[#0a0a0a]" : "text-white/55",
                     )}
-                    aria-label={t("profile.toggleEditMode", "Toggle edit mode")}
                   >
-                    <Pencil className="h-3.5 w-3.5" />
+                    {lng.toUpperCase()}
                   </button>
-                ) : null}
+                ))}
               </div>
             </div>
 
