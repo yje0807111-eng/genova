@@ -9,21 +9,21 @@ export default function AuthPage() {
   const { locale, setLocale, t } = useI18n();
 
   return (
-    <div className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden px-4 py-12">
+    <div className="relative flex min-h-screen flex-col items-center justify-start overflow-hidden px-4 pb-12 pt-[11vh]">
       {/* 살아있는 그라데이션 메시 — 느리게 표류하는 보라 blob 3개 */}
       <div className="pointer-events-none absolute inset-0 overflow-hidden">
         <div
           className="absolute inset-0"
           style={{
             background:
-              "radial-gradient(ellipse at 50% 32%, rgba(83,74,183,0.13) 0%, rgba(83,74,183,0.04) 45%, transparent 70%)",
+              "radial-gradient(ellipse at 50% 32%, rgba(83,74,183,0.08) 0%, rgba(83,74,183,0.025) 45%, transparent 70%)",
           }}
         />
         <div
           className="auth-mesh-a absolute left-[2%] top-[6%] h-[58vh] w-[58vh] rounded-full"
           style={{
             background:
-              "radial-gradient(circle, rgba(127,119,221,0.30) 0%, transparent 66%)",
+              "radial-gradient(circle, rgba(127,119,221,0.17) 0%, transparent 66%)",
             filter: "blur(80px)",
           }}
         />
@@ -31,7 +31,7 @@ export default function AuthPage() {
           className="auth-mesh-b absolute right-[0%] top-[18%] h-[64vh] w-[64vh] rounded-full"
           style={{
             background:
-              "radial-gradient(circle, rgba(83,74,183,0.32) 0%, transparent 66%)",
+              "radial-gradient(circle, rgba(83,74,183,0.18) 0%, transparent 66%)",
             filter: "blur(90px)",
           }}
         />
@@ -39,7 +39,7 @@ export default function AuthPage() {
           className="auth-mesh-c absolute bottom-[-8%] left-[24%] h-[56vh] w-[68vh] rounded-full"
           style={{
             background:
-              "radial-gradient(circle, rgba(175,169,236,0.22) 0%, transparent 66%)",
+              "radial-gradient(circle, rgba(175,169,236,0.12) 0%, transparent 66%)",
             filter: "blur(90px)",
           }}
         />
