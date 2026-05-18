@@ -163,9 +163,45 @@ export function WatchMetaSidebar({
           </div>
         </div>
 
-        {/* Creator row — 한 줄: 아바타·이름·작품·팔로워·팔로우 */}
+        {/* 모바일 — 유튜브식: [아바타+이름→프로필] + [좋아요·저장·공유·⋯]
+            (작품/팔로워·팔로우 버튼 없음) */}
+        <div className="flex items-center gap-2 md:hidden">
+          <Link
+            href={creatorHref ?? "#"}
+            className="group flex min-w-0 flex-1 items-center gap-2.5"
+          >
+            <div className="h-9 w-9 shrink-0 overflow-hidden rounded-full bg-white/[0.06] ring-1 ring-white/[0.10]">
+              <Image
+                src={creatorAvatarUrl || "/default-avatar.png"}
+                alt={creatorName}
+                width={36}
+                height={36}
+                className="h-full w-full object-cover"
+              />
+            </div>
+            <p className="line-clamp-1 text-[13px] font-bold text-white">
+              {creatorName}
+            </p>
+          </Link>
+          <div className="flex shrink-0 items-center gap-1.5 [&>button]:!h-7 [&>button]:!flex-none [&>button]:!justify-center [&>button]:!gap-0.5 [&>button]:!rounded-full [&>button]:!px-2.5 [&>button]:!text-[11px] [&>button>svg]:!h-3 [&>button>svg]:!w-3">
+            <VideoLikeButton
+              videoId={videoId}
+              initialCount={video.likeCount ?? 0}
+              initialLiked={video.likedByMe ?? false}
+            />
+            <VideoSaveButton
+              videoId={videoId}
+              initialSaved={video.savedByMe ?? false}
+              initialCount={video.saveCount ?? 0}
+            />
+            {playerActions}
+            {moreAction}
+          </div>
+        </div>
+
+        {/* Creator row (데스크톱) — 아바타·이름·작품·팔로워·팔로우 */}
         <div
-          className="flex items-center gap-3 rounded-xl border border-white/[0.06] px-3 py-2 sm:py-2.5"
+          className="hidden items-center gap-3 rounded-xl border border-white/[0.06] px-3 py-2.5 md:flex"
           style={{
             background:
               "linear-gradient(150deg, rgba(127,119,221,0.07) 0%, rgba(255,255,255,0.015) 55%)",
@@ -220,9 +256,9 @@ export function WatchMetaSidebar({
         {/* Engagement + actions — 풀폭 균등 액션 바 (좋아요·저장이
             동일 너비로 늘어나고, 공유·더보기는 우측 고정). 기존의
             왼쪽 정렬 축소 클러스터 구조 폐기. */}
-        <div className="flex items-center gap-1.5">
-          {/* 모바일: 유튜브식 작은 알약(내용폭). 데스크톱: 풀폭 균등. */}
-          <div className="flex min-w-0 flex-1 items-center gap-1.5 [&>button]:!h-7 [&>button]:!flex-none [&>button]:!justify-center [&>button]:!gap-0.5 [&>button]:!rounded-full [&>button]:!px-2.5 [&>button]:!text-[11px] [&>button>svg]:!h-3 [&>button>svg]:!w-3 md:[&>button]:!h-9 md:[&>button]:!flex-1 md:[&>button]:!gap-1 md:[&>button]:!rounded-md md:[&>button]:!px-2 md:[&>button]:!text-[12px] md:[&>button>svg]:!h-3.5 md:[&>button>svg]:!w-3.5">
+        <div className="hidden items-center gap-1.5 md:flex">
+          {/* 데스크톱 전용 — 풀폭 균등 액션 바 */}
+          <div className="flex min-w-0 flex-1 items-center gap-1.5 [&>button]:!h-9 [&>button]:!flex-1 [&>button]:!justify-center [&>button]:!gap-1 [&>button]:!rounded-md [&>button]:!px-2 [&>button]:!text-[12px] [&>button>svg]:!h-3.5 [&>button>svg]:!w-3.5">
             <VideoLikeButton
               videoId={videoId}
               initialCount={video.likeCount ?? 0}
