@@ -738,6 +738,7 @@ export const koOverrides: Record<string, string> = {
   "notifications.viewAllNotifications": "전체 알림 보기 →",
   "notifications.settings.eyebrow": "설정",
   "notifications.settings.title": "알림 설정",
+  "notifications.settings.short": "설정",
   "notifications.toggle.likes": "좋아요",
   "notifications.toggle.likesDesc": "내 작품에 좋아요가 달리면",
   "notifications.toggle.comments": "댓글",

@@ -707,6 +707,7 @@ export const jaOverrides: Record<string, string> = {
   "notifications.viewAllNotifications": "すべての通知を見る →",
   "notifications.settings.eyebrow": "設定",
   "notifications.settings.title": "通知設定",
+  "notifications.settings.short": "設定",
   "notifications.toggle.likes": "いいね",
   "notifications.toggle.likesDesc": "作品にいいねがついた時",
   "notifications.toggle.comments": "コメント",

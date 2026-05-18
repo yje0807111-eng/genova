@@ -1809,6 +1809,7 @@ const en: Messages = {
   "notifications.viewAllNotifications": "View all notifications →",
   "notifications.settings.eyebrow": "SETTINGS",
   "notifications.settings.title": "Notification settings",
+  "notifications.settings.short": "Settings",
   "notifications.toggle.likes": "Likes",
   "notifications.toggle.likesDesc": "When someone likes your film",
   "notifications.toggle.comments": "Comments",

@@ -345,9 +345,9 @@ export function HomeMobileFeed({ videosFromDb }: { videosFromDb: Video[] }) {
           }
           className="ml-1 flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full px-3 py-1 text-[12px] font-semibold transition-colors"
           style={{
-            color: "#AFA9EC",
-            background: "rgba(127,119,221,0.10)",
-            border: "1px solid rgba(127,119,221,0.28)",
+            color: "rgba(255,255,255,0.50)",
+            background: "rgba(255,255,255,0.035)",
+            border: "1px solid rgba(255,255,255,0.10)",
           }}
         >
           <ArrowUpDown className="h-3 w-3" />

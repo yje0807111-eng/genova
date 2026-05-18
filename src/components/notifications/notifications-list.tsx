@@ -2,8 +2,10 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { Bell, MessageCircle, UserPlus, Star, Trash2, X } from "lucide-react";
+import { createPortal } from "react-dom";
+import { Bell, MessageCircle, UserPlus, Star, Trash2, X, Settings } from "lucide-react";
 import { cn } from "@/lib/utils/cn";
+import { useExitAnimation } from "@/lib/hooks/use-exit-animation";
 import { markAllNotificationsReadAction } from "@/app/actions/notifications";
 import { updateProfileAction } from "@/app/actions/profile";
 import type { AppNotification } from "@/lib/queries/notifications-queries";
@@ -84,6 +86,9 @@ export function NotificationsList({
   const [notifyLikes, setNotifyLikes] = useState(initialNotifyLikes);
   const [notifyComments, setNotifyComments] = useState(initialNotifyComments);
   const [notifyFollows, setNotifyFollows] = useState(initialNotifyFollows);
+  const [settingsOpen, setSettingsOpen] = useState(false);
+  const { render: settingsRender, closing: settingsClosing } =
+    useExitAnimation(settingsOpen, 200);
 
   const handleToggle = async (field: "notifyLikes" | "notifyComments" | "notifyFollows", value: boolean) => {
     if (field === "notifyLikes") setNotifyLikes(value);
@@ -186,40 +191,75 @@ export function NotificationsList({
               {t("notifications.deleteAll", "전체 삭제")}
             </button>
           )}
+          <button
+            type="button"
+            onClick={() => setSettingsOpen(true)}
+            className="flex items-center gap-1.5 rounded-lg border border-white/[0.08] px-3 py-1.5 text-xs font-medium text-white/35 transition hover:border-[#7F77DD]/30 hover:text-white/70"
+          >
+            <Settings className="h-3 w-3" />
+            {t("notifications.settings.short", "Settings")}
+          </button>
         </div>
       </div>
 
-      {/* 알림 설정 */}
-      <div className="mb-8 rounded-xl border border-white/[0.06] bg-white/[0.02] p-5">
-        <div className="mb-4">
-          <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-[#AFA9EC]/70">
-            ✦ {t("notifications.settings.eyebrow", "SETTINGS")}
-          </p>
-          <h3 className="mt-1 text-[15px] font-bold text-white">
-            {t("notifications.settings.title", "Notification settings")}
-          </h3>
-        </div>
-        <div className="space-y-2">
-          <NotificationToggle
-            label={t("notifications.toggle.likes", "Likes")}
-            description={t("notifications.toggle.likesDesc", "When someone likes your film")}
-            value={notifyLikes}
-            onChange={(v) => void handleToggle("notifyLikes", v)}
-          />
-          <NotificationToggle
-            label={t("notifications.toggle.comments", "Comments")}
-            description={t("notifications.toggle.commentsDesc", "When someone comments on your film")}
-            value={notifyComments}
-            onChange={(v) => void handleToggle("notifyComments", v)}
-          />
-          <NotificationToggle
-            label={t("notifications.toggle.follows", "Followers")}
-            description={t("notifications.toggle.followsDesc", "When someone follows you")}
-            value={notifyFollows}
-            onChange={(v) => void handleToggle("notifyFollows", v)}
-          />
-        </div>
-      </div>
+      {/* 알림 설정 — 팝업 모달 (헤더 '설정' 버튼으로 진입) */}
+      {settingsRender &&
+        typeof window !== "undefined" &&
+        createPortal(
+          <div
+            className={`fixed inset-0 z-[140] flex items-center justify-center p-4 ${
+              settingsClosing ? "anim-scrim-out" : "anim-scrim"
+            } bg-black/70 backdrop-blur-sm`}
+            onClick={() => setSettingsOpen(false)}
+            role="dialog"
+            aria-modal="true"
+          >
+            <div
+              onClick={(e) => e.stopPropagation()}
+              className="w-full max-w-md rounded-2xl border border-white/[0.08] bg-[#0a0a0a] p-5"
+            >
+              <div className="mb-4 flex items-start justify-between">
+                <div>
+                  <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-[#AFA9EC]/70">
+                    ✦ {t("notifications.settings.eyebrow", "SETTINGS")}
+                  </p>
+                  <h3 className="mt-1 text-[15px] font-bold text-white">
+                    {t("notifications.settings.title", "Notification settings")}
+                  </h3>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setSettingsOpen(false)}
+                  aria-label="Close"
+                  className="flex h-8 w-8 items-center justify-center rounded-full border border-white/[0.08] bg-white/[0.03] text-white/55 transition hover:text-white"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              </div>
+              <div className="space-y-2">
+                <NotificationToggle
+                  label={t("notifications.toggle.likes", "Likes")}
+                  description={t("notifications.toggle.likesDesc", "When someone likes your film")}
+                  value={notifyLikes}
+                  onChange={(v) => void handleToggle("notifyLikes", v)}
+                />
+                <NotificationToggle
+                  label={t("notifications.toggle.comments", "Comments")}
+                  description={t("notifications.toggle.commentsDesc", "When someone comments on your film")}
+                  value={notifyComments}
+                  onChange={(v) => void handleToggle("notifyComments", v)}
+                />
+                <NotificationToggle
+                  label={t("notifications.toggle.follows", "Followers")}
+                  description={t("notifications.toggle.followsDesc", "When someone follows you")}
+                  value={notifyFollows}
+                  onChange={(v) => void handleToggle("notifyFollows", v)}
+                />
+              </div>
+            </div>
+          </div>,
+          document.body,
+        )}
 
       {/* 필터 탭 */}
       <div
