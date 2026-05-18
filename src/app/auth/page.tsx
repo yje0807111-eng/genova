@@ -16,31 +16,31 @@ export default function AuthPage() {
           className="absolute inset-0"
           style={{
             background:
-              "radial-gradient(ellipse at 50% 28%, rgba(83,74,183,0.10) 0%, transparent 60%)",
+              "radial-gradient(ellipse at 50% 32%, rgba(83,74,183,0.22) 0%, rgba(83,74,183,0.06) 45%, transparent 70%)",
           }}
         />
         <div
-          className="auth-mesh-a absolute -left-[12%] top-[2%] h-[62vh] w-[62vh] rounded-full"
+          className="auth-mesh-a absolute left-[2%] top-[6%] h-[58vh] w-[58vh] rounded-full"
           style={{
             background:
-              "radial-gradient(circle, rgba(127,119,221,0.22) 0%, transparent 70%)",
+              "radial-gradient(circle, rgba(127,119,221,0.50) 0%, transparent 66%)",
+            filter: "blur(80px)",
+          }}
+        />
+        <div
+          className="auth-mesh-b absolute right-[0%] top-[18%] h-[64vh] w-[64vh] rounded-full"
+          style={{
+            background:
+              "radial-gradient(circle, rgba(83,74,183,0.52) 0%, transparent 66%)",
             filter: "blur(90px)",
           }}
         />
         <div
-          className="auth-mesh-b absolute -right-[14%] top-[14%] h-[68vh] w-[68vh] rounded-full"
+          className="auth-mesh-c absolute bottom-[-8%] left-[24%] h-[56vh] w-[68vh] rounded-full"
           style={{
             background:
-              "radial-gradient(circle, rgba(83,74,183,0.24) 0%, transparent 70%)",
-            filter: "blur(100px)",
-          }}
-        />
-        <div
-          className="auth-mesh-c absolute bottom-[-18%] left-[18%] h-[60vh] w-[72vh] rounded-full"
-          style={{
-            background:
-              "radial-gradient(circle, rgba(175,169,236,0.16) 0%, transparent 70%)",
-            filter: "blur(100px)",
+              "radial-gradient(circle, rgba(175,169,236,0.34) 0%, transparent 66%)",
+            filter: "blur(90px)",
           }}
         />
       </div>
