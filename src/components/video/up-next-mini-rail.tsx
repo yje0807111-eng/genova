@@ -63,50 +63,57 @@ export function UpNextMiniRail({ related, currentVideoId }: Props) {
 
   return (
     <>
-      {/* 모바일 — 제목이 썸네일 위 */}
-      <div className="flex flex-col gap-4 md:hidden">
+      {/* 모바일 — 제목이 카드 내부(하단 오버레이) */}
+      <div className="flex flex-col gap-3 md:hidden">
         {related.map((v) => {
           const tag = tagFor(v);
+          const isCurrent = v.id === currentVideoId;
           return (
-            <Link key={`m-${v.id}`} href={`/watch/${v.id}`} className="block">
-              <div className="mb-1.5 flex items-center gap-2">
-                {tag ? <GlassBadge tag={tag} /> : null}
-                <p className="line-clamp-1 text-[14px] font-bold text-white">
+            <Link
+              key={`m-${v.id}`}
+              href={`/watch/${v.id}`}
+              className={cn(
+                "relative block aspect-video w-full overflow-hidden rounded-lg ring-1",
+                isCurrent ? "ring-[#9D95F0]/70" : "ring-white/[0.06]",
+              )}
+              style={
+                isCurrent
+                  ? {
+                      boxShadow:
+                        "0 0 0 1px rgba(157,149,240,0.5), 0 8px 26px -8px rgba(127,119,221,0.55)",
+                    }
+                  : undefined
+              }
+            >
+              {v.thumbnailUrl ? (
+                <Image
+                  src={v.thumbnailUrl}
+                  alt={v.title}
+                  fill
+                  sizes="100vw"
+                  className="object-cover"
+                />
+              ) : (
+                <div className="h-full w-full bg-white/[0.04]" />
+              )}
+              <div
+                className="absolute inset-0"
+                style={{ background: "var(--gradient-card-overlay)" }}
+              />
+              {tag ? (
+                <div className="absolute left-2.5 top-2.5">
+                  <GlassBadge tag={tag} />
+                </div>
+              ) : null}
+              {v.runtime && (
+                <div className="absolute right-2.5 top-2.5 rounded bg-black/60 px-1.5 py-0.5 text-[10px] font-bold tabular-nums text-white/85 backdrop-blur-sm">
+                  {v.runtime}
+                </div>
+              )}
+              <div className="absolute inset-x-0 bottom-0 p-3">
+                <p className="line-clamp-2 text-[14px] font-bold leading-tight text-white">
                   {v.title}
                 </p>
-              </div>
-              <div
-                className={cn(
-                  "relative aspect-video w-full overflow-hidden rounded-lg ring-1",
-                  v.id === currentVideoId
-                    ? "ring-[#9D95F0]/70"
-                    : "ring-white/[0.06]",
-                )}
-                style={
-                  v.id === currentVideoId
-                    ? {
-                        boxShadow:
-                          "0 0 0 1px rgba(157,149,240,0.5), 0 8px 26px -8px rgba(127,119,221,0.55)",
-                      }
-                    : undefined
-                }
-              >
-                {v.thumbnailUrl ? (
-                  <Image
-                    src={v.thumbnailUrl}
-                    alt={v.title}
-                    fill
-                    sizes="100vw"
-                    className="object-cover"
-                  />
-                ) : (
-                  <div className="h-full w-full bg-white/[0.04]" />
-                )}
-                {v.runtime && (
-                  <div className="absolute bottom-1.5 right-1.5 rounded bg-black/60 px-1.5 py-0.5 text-[10px] font-bold tabular-nums text-white/85 backdrop-blur-sm">
-                    {v.runtime}
-                  </div>
-                )}
               </div>
             </Link>
           );

@@ -125,7 +125,7 @@ export function WatchMetaSidebar({
     <div className="flex h-full flex-col overflow-hidden">
 
       {/* Title + meta + creator + engagement */}
-      <div className="shrink-0 space-y-2.5 border-b border-white/[0.06] px-3 pb-2.5 pt-1.5 sm:space-y-4 sm:px-4 sm:pb-3 sm:pt-4">
+      <div className="shrink-0 space-y-2.5 border-b border-white/[0.06] px-2 pb-2.5 pt-1.5 sm:space-y-4 sm:px-4 sm:pb-3 sm:pt-4">
         {/* Video title (top) */}
         <div>
           <div className="flex items-start gap-2">
@@ -336,7 +336,7 @@ export function WatchMetaSidebar({
       {/* Tab content — 모바일은 댓글이 무한히 아래로 늘어나지 않도록
           최대 높이 제한 + 내부 스크롤. 데스크톱은 기존 flex 채움. */}
       <div
-        className="max-h-[65vh] min-h-0 flex-1 overflow-y-auto overscroll-contain md:max-h-none"
+        className="max-h-[74vh] min-h-0 flex-1 overflow-y-auto overscroll-contain md:max-h-none"
         onWheel={(e) => e.stopPropagation()}
       >
         {activeTab === "episodes" && seriesEpisodes ? (
@@ -369,7 +369,7 @@ export function WatchMetaSidebar({
             </div>
           </>
         ) : (
-          <div className="px-3 py-3 sm:px-4">{descriptionInner}</div>
+          <div className="px-2 py-3 sm:px-4">{descriptionInner}</div>
         )}
       </div>
 

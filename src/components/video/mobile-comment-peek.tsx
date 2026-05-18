@@ -66,7 +66,7 @@ export function MobileCommentPeek({
   }, [open]);
 
   return (
-    <div className="px-3 py-3">
+    <div className="px-2 py-3">
       <button
         type="button"
         onClick={() => setOpen(true)}
