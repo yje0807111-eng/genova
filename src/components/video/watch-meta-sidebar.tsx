@@ -129,7 +129,7 @@ export function WatchMetaSidebar({
         {/* Video title (top) */}
         <div>
           <div className="flex items-start gap-2">
-            <h2 className="min-w-0 flex-1 text-[16px] font-bold leading-tight text-white sm:text-[17px]">
+            <h2 className="min-w-0 flex-1 text-[18px] font-bold leading-tight text-white sm:text-[19px]">
               {video.title}
             </h2>
             {video.purpose === "competition" && (

@@ -93,7 +93,7 @@ export function WatchDesktopFlexRow({
         </aside>
 
         <aside className="relative">
-          <div className="flex flex-col gap-1.5 overflow-x-hidden lg:absolute lg:inset-0 lg:overflow-y-auto">
+          <div className="-ml-5 -mr-3 mt-3 flex flex-col gap-1.5 overflow-x-hidden border-t border-white/[0.08] pt-5 sm:ml-0 sm:mr-0 sm:mt-0 sm:border-0 sm:pt-0 lg:absolute lg:inset-0 lg:overflow-y-auto">
             {upNextSlot}
           </div>
         </aside>

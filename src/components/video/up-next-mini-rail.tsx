@@ -64,7 +64,11 @@ export function UpNextMiniRail({ related, currentVideoId }: Props) {
   return (
     <>
       {/* 모바일 — 제목이 카드 내부(하단 오버레이) */}
-      <div className="flex flex-col gap-3 md:hidden">
+      <div className="flex flex-col gap-3 px-2 md:hidden">
+        <p className="inline-flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-[0.18em] text-[#AFA9EC]/70">
+          <span>✦</span>
+          {t("watch.recommend.eyebrow", "MORE TO WATCH")}
+        </p>
         {related.map((v) => {
           const tag = tagFor(v);
           const isCurrent = v.id === currentVideoId;
