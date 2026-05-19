@@ -128,7 +128,7 @@ export function WorkflowForm({ initial }: { initial?: WorkflowGuide }) {
           rows={6}
           placeholder={t(
             "workflows.stepsPlaceholder",
-            "한 줄에 한 단계씩",
+            "1) Midjourney로 키프레임 이미지 생성\n2) Runway Gen-3로 모션 적용\n3) Topaz Video AI로 업스케일\n4) DaVinci에서 색보정·사운드 믹싱",
           )}
           className={`${inputCls} resize-none`}
         />
@@ -149,7 +149,7 @@ export function WorkflowForm({ initial }: { initial?: WorkflowGuide }) {
         <input
           value={models}
           onChange={(e) => setModels(e.target.value)}
-          placeholder={t("workflows.modelsPlaceholder", "예: Kling 1.6, Flux dev, seed 고정")}
+          placeholder={t("workflows.modelsPlaceholder", "각 단계에서 쓴 AI 모델 + 핵심 세팅 — 예: Kling 1.6 (5초, CFG 0.5) / Flux dev / seed 12345 고정 / 1080p")}
           className={inputCls}
         />
       </div>
@@ -159,7 +159,7 @@ export function WorkflowForm({ initial }: { initial?: WorkflowGuide }) {
           value={links}
           onChange={(e) => setLinks(e.target.value)}
           rows={2}
-          placeholder={t("workflows.linksPlaceholder", "한 줄에 하나씩 (선택)")}
+          placeholder={t("workflows.linksPlaceholder", "참고한 튜토리얼·소스 이미지·BGM/에셋 출처 URL — 한 줄에 하나씩 (선택)")}
           className={`${inputCls} resize-none`}
         />
       </div>
