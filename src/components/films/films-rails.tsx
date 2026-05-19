@@ -2,7 +2,8 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { Trophy, PlayCircle } from "lucide-react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { Trophy, PlayCircle, ChevronLeft, ChevronRight } from "lucide-react";
 import { useI18n } from "@/components/genova/language-provider";
 import type { ContinueWatchingVideo } from "@/lib/queries/films-rails";
 import type { Video } from "@/lib/types";
@@ -69,27 +70,80 @@ interface FilmsRailRowProps {
 }
 
 function FilmsRailRow({ icon, title, videos, showProgress }: FilmsRailRowProps) {
+  const scrollerRef = useRef<HTMLDivElement>(null);
+  const [canLeft, setCanLeft] = useState(false);
+  const [canRight, setCanRight] = useState(false);
+
+  const updateArrows = useCallback(() => {
+    const el = scrollerRef.current;
+    if (!el) return;
+    setCanLeft(el.scrollLeft > 8);
+    setCanRight(el.scrollLeft + el.clientWidth < el.scrollWidth - 8);
+  }, []);
+
+  useEffect(() => {
+    updateArrows();
+    const el = scrollerRef.current;
+    if (!el) return;
+    el.addEventListener("scroll", updateArrows, { passive: true });
+    window.addEventListener("resize", updateArrows);
+    return () => {
+      el.removeEventListener("scroll", updateArrows);
+      window.removeEventListener("resize", updateArrows);
+    };
+  }, [updateArrows, videos.length]);
+
+  const scrollByDir = (dir: -1 | 1) => {
+    const el = scrollerRef.current;
+    if (!el) return;
+    el.scrollBy({ left: dir * el.clientWidth * 0.9, behavior: "smooth" });
+  };
+
   return (
-    <section>
+    <section className="group/rail">
       <div className="mb-3 flex items-center gap-2">
         {icon}
         <h2 className="text-[15px] font-bold text-white">{title}</h2>
       </div>
-      {/* Native horizontal scroll: snap-x for the carousel feel, no
-          arrow buttons (matches the home-page-client minimal rail
-          style — design can layer arrow controls later if needed). */}
-      <div className="flex gap-3 overflow-x-auto pb-2 snap-x snap-mandatory scrollbar-thin">
-        {videos.map((v) => (
-          <FilmsRailCard
-            key={v.id}
-            video={v}
-            progressRatio={
-              showProgress
-                ? (v as ContinueWatchingVideo).progressRatio
-                : undefined
-            }
-          />
-        ))}
+      {/* Netflix식 좌/우 화살표 — 스크롤바 대신. 끝에 닿으면 숨김,
+          레일 hover 시에만 노출(데스크톱). */}
+      <div className="relative">
+        {canLeft && (
+          <button
+            type="button"
+            aria-label="Scroll left"
+            onClick={() => scrollByDir(-1)}
+            className="absolute left-0 top-1/2 z-10 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full border border-white/[0.12] bg-black/60 text-white opacity-0 backdrop-blur-md transition hover:bg-black/80 group-hover/rail:opacity-100"
+          >
+            <ChevronLeft className="h-5 w-5" />
+          </button>
+        )}
+        <div
+          ref={scrollerRef}
+          className="flex gap-3 overflow-x-auto pb-2 snap-x snap-mandatory [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+        >
+          {videos.map((v) => (
+            <FilmsRailCard
+              key={v.id}
+              video={v}
+              progressRatio={
+                showProgress
+                  ? (v as ContinueWatchingVideo).progressRatio
+                  : undefined
+              }
+            />
+          ))}
+        </div>
+        {canRight && (
+          <button
+            type="button"
+            aria-label="Scroll right"
+            onClick={() => scrollByDir(1)}
+            className="absolute right-0 top-1/2 z-10 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full border border-white/[0.12] bg-black/60 text-white opacity-0 backdrop-blur-md transition hover:bg-black/80 group-hover/rail:opacity-100"
+          >
+            <ChevronRight className="h-5 w-5" />
+          </button>
+        )}
       </div>
     </section>
   );
