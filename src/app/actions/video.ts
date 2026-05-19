@@ -50,6 +50,7 @@ export async function createVideoAction(form: {
   additionalGenres?: string[];
   purpose: "personal" | "competition";
   aiTools: string[];
+  workflow?: import("@/lib/types").VideoWorkflow | null;
   tags: string[];
   seriesName: string | null;
   episodeNumber: number | null;
@@ -148,6 +149,7 @@ export async function createVideoAction(form: {
     visibility: form.visibility,
     description: (form.description ?? "").trim(),
     ai_tools: form.aiTools,
+    ...(form.workflow != null ? { workflow: form.workflow } : {}),
     tags: normalizedTags,
     series_name: seriesName,
     episode_number: episodeNumber,
