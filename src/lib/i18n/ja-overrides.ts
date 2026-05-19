@@ -48,6 +48,13 @@ export const jaOverrides: Record<string, string> = {
 
   "sidebar.home": "ホーム",
   "sidebar.competition": "コンペ",
+  "sidebar.workflows": "ワークフロー",
+  "workflows.eyebrow": "メイキング",
+  "workflows.pageTitle": "ワークフロー",
+  "workflows.pageDesc": "AIフィルムメイカーがどう作ったかを共有する制作ガイド。",
+  "workflows.new": "新規ワークフロー",
+  "workflows.empty": "まだワークフローがありません。",
+  "workflows.emptyHint": "最初の制作ガイドを共有しましょう。",
   "sidebar.notifications": "通知",
   "sidebar.language": "言語",
   "sidebar.logout": "ログアウト",

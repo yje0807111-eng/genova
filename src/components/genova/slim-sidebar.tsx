@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import type { LucideIcon } from "lucide-react";
-import { Bell, Home, LifeBuoy, LogIn, LogOut, MoreHorizontal, Shield, Ticket, Trophy, Upload, User, X } from "lucide-react";
+import { Bell, Home, LifeBuoy, LogIn, LogOut, MoreHorizontal, Shield, Ticket, Trophy, Upload, User, Workflow, X } from "lucide-react";
 import { markAllNotificationsReadAction } from "@/app/actions/notifications";
 import { useI18n } from "@/components/genova/language-provider";
 import { getBrowserSupabaseClient } from "@/lib/supabase/browser";
@@ -45,6 +45,13 @@ const TOP_NAV: {
     labelFb: "Contest",
     icon: Trophy,
     match: (p) => p === "/competition" || p.startsWith("/competition/"),
+  },
+  {
+    href: "/workflows",
+    labelKey: "sidebar.workflows",
+    labelFb: "Workflows",
+    icon: Workflow,
+    match: (p) => p === "/workflows" || p.startsWith("/workflows/"),
   },
   {
     href: "/upload",

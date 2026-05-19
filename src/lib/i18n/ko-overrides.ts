@@ -48,6 +48,13 @@ export const koOverrides: Record<string, string> = {
 
   "sidebar.home": "홈",
   "sidebar.competition": "공모전",
+  "sidebar.workflows": "워크플로우",
+  "workflows.eyebrow": "제작 과정",
+  "workflows.pageTitle": "워크플로우",
+  "workflows.pageDesc": "AI 필름메이커들이 어떻게 만들었는지 공유하는 제작 가이드.",
+  "workflows.new": "새 워크플로우",
+  "workflows.empty": "아직 등록된 워크플로우가 없어요.",
+  "workflows.emptyHint": "첫 제작 가이드를 공유해보세요.",
   "sidebar.notifications": "알림",
   "sidebar.language": "언어",
   "sidebar.logout": "로그아웃",
