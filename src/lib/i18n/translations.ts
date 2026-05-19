@@ -2012,6 +2012,7 @@ const en: Messages = {
   "homeTab.subGenre.art": "Art",
   "homeTab.subGenre.daily": "Daily",
   "homeTab.subGenre.series": "Series",
+  "homeTab.subGenre.workflow": "Workflows",
   "homeTab.subRec.all": "All",
   "homeTab.subRec.trending": "Trending",
   "homeTab.subRec.new": "New",

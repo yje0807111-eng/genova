@@ -789,6 +789,7 @@ export const koOverrides: Record<string, string> = {
   "homeTab.subGenre.art": "아트",
   "homeTab.subGenre.daily": "일상",
   "homeTab.subGenre.series": "시리즈",
+  "homeTab.subGenre.workflow": "워크플로우",
   "homeTab.subRec.all": "전체",
   "homeTab.subRec.trending": "트렌딩",
   "homeTab.subRec.new": "신작",

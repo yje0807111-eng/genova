@@ -9,9 +9,10 @@ import type { Video } from "@/lib/types";
 import { useI18n } from "@/components/genova/language-provider";
 import { videoToCardProps } from "@/components/genova/video-card";
 import { normalizeToMainGenre } from "@/lib/constants/genres";
+import { hasWorkflowContent } from "@/lib/video-workflow";
 
 type MainTab = "films" | "competition";
-type FilmsSub = "all" | "film" | "animation" | "music" | "art" | "daily" | "series";
+type FilmsSub = "all" | "film" | "animation" | "music" | "art" | "daily" | "series" | "workflow";
 type CompSub = "entries" | "awards";
 type Sort = "latest" | "popular";
 
@@ -27,6 +28,7 @@ const SUB_KEY: Record<string, string> = {
   art: "homeTab.subGenre.art",
   daily: "homeTab.subGenre.daily",
   series: "homeTab.subGenre.series",
+  workflow: "homeTab.subGenre.workflow",
   entries: "homeTab.subRec.entries",
   awards: "homeTab.subRec.awards",
 };
@@ -38,6 +40,7 @@ const FILMS_SUBS: FilmsSub[] = [
   "art",
   "daily",
   "series",
+  "workflow",
 ];
 const COMP_SUBS: CompSub[] = ["entries", "awards"];
 
@@ -118,6 +121,7 @@ export function HomeMobileFeed({ videosFromDb }: { videosFromDb: Video[] }) {
     }
     // films
     if (filmsSub === "all" || filmsSub === "series") return true;
+    if (filmsSub === "workflow") return hasWorkflowContent(v);
     return normalizeToMainGenre(v.genre) === filmsSub;
   };
   // 태그 포함 + 선행 '#' 제거(태그는 저장 시 '#' 없음)로 해시태그

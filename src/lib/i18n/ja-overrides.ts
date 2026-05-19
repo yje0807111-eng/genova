@@ -758,6 +758,7 @@ export const jaOverrides: Record<string, string> = {
   "homeTab.subGenre.art": "アート",
   "homeTab.subGenre.daily": "日常",
   "homeTab.subGenre.series": "シリーズ",
+  "homeTab.subGenre.workflow": "ワークフロー",
   "homeTab.subRec.all": "すべて",
   "homeTab.subRec.trending": "トレンド",
   "homeTab.subRec.new": "新作",

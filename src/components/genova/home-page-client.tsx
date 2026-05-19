@@ -12,6 +12,7 @@ import { HomeGenreCarousel } from "@/components/genova/home-genre-carousel";
 import { HoverPreviewCard } from "@/components/genova/hover-preview-card";
 import { parseRuntimeToSeconds } from "@/components/video/video-card";
 import { normalizeToMainGenre } from "@/lib/constants/genres";
+import { hasWorkflowContent } from "@/lib/video-workflow";
 import type { GenreFilter } from "@/lib/genova-genre";
 // HomeCompetitionBanner is a client component (reads useI18n so the
 // hero re-localizes instantly on language switch); the route page
@@ -266,6 +267,8 @@ export function HomePageClient(props: HomePageClientProps) {
       if (activeSubGenre === "all" || activeSubGenre === "series") {
         // series 는 HomeSeriesSection 으로 렌더.
         result = [...videos];
+      } else if (activeSubGenre === "workflow") {
+        result = videos.filter((v) => hasWorkflowContent(v));
       } else {
         result = videos.filter((v) => normalizeToMainGenre(v.genre) === activeSubGenre);
       }
