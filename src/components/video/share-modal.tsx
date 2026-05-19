@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import { useEffect, useState } from "react";
-import { Check, ChevronLeft, Facebook, Link as LinkIcon, Search, Send, Share2, Twitter, X } from "lucide-react";
+import { Check, ChevronLeft, ChevronRight, Facebook, Link as LinkIcon, MessageCircle, Search, Send, Share2, Twitter, X } from "lucide-react";
 import { useI18n } from "@/components/genova/language-provider";
 import { cn } from "@/lib/utils/cn";
 import { getBrowserSupabaseClient } from "@/lib/supabase/browser";
@@ -199,8 +199,31 @@ export function ShareButton({
                   </p>
                 )}
 
-                {/* Genova 내부 메시지 전송 진입점은 베타 동안 숨김
-                    (메시지 기능 보류 — friends 뷰 코드는 보존). */}
+                {/* Send to friend (Genova chat) */}
+                {videoId && (
+                  <button
+                    type="button"
+                    onClick={() => setView("friends")}
+                    className="group mb-3 flex w-full items-center gap-3 rounded-xl px-4 py-3 text-left ring-1 ring-[#7F77DD]/25 transition hover:ring-[#7F77DD]/45"
+                    style={{
+                      background:
+                        "linear-gradient(135deg, rgba(127,119,221,0.16) 0%, rgba(255,255,255,0.02) 70%)",
+                    }}
+                  >
+                    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#534AB7]/40 ring-1 ring-[#7F77DD]/30">
+                      <MessageCircle className="h-4 w-4 text-[#C7C2F0]" />
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <p className="text-[13px] font-bold text-white">
+                        {t("share.sendToGenovaFriend", "Genova 친구에게 보내기")}
+                      </p>
+                      <p className="text-[11px] text-white/45">
+                        {t("share.sendToGenovaFriendDesc", "팔로잉 사용자에게 채팅으로 전송")}
+                      </p>
+                    </div>
+                    <ChevronRight className="h-4 w-4 shrink-0 text-white/30 transition group-hover:translate-x-0.5 group-hover:text-white/55" />
+                  </button>
+                )}
 
                 {/* Copy link */}
                 <div className="mb-4 flex items-center gap-2 rounded-xl bg-white/[0.03] py-1.5 pl-3 pr-1.5 ring-1 ring-white/[0.06]">

@@ -6,7 +6,7 @@ import { cn } from "@/lib/utils/cn";
 import { useI18n } from "@/components/genova/language-provider";
 
 export type MainTab = "films" | "competition";
-export type SubGenre = "all" | "film" | "animation" | "music" | "art" | "daily" | "series" | "workflow" | "awards" | "entries";
+export type SubGenre = "all" | "film" | "animation" | "music" | "art" | "daily" | "series" | "awards" | "entries";
 export type SortKey = "latest" | "liked" | "viewed";
 
 export interface HomeTabNavProps {
@@ -35,7 +35,6 @@ const subGenreFilmsKeys: Record<string, string> = {
   art: "homeTab.subGenre.art",
   daily: "homeTab.subGenre.daily",
   series: "homeTab.subGenre.series",
-  workflow: "homeTab.subGenre.workflow",
 };
 
 const subGenreCompetitionKeys: Record<string, string> = {
@@ -77,7 +76,7 @@ export function HomeTabNav({
   const subOptions = useMemo((): SubGenre[] => {
     switch (activeMainTab) {
       case "films":
-        return ["all", "film", "animation", "music", "art", "daily", "series", "workflow"];
+        return ["all", "film", "animation", "music", "art", "daily", "series"];
       case "competition":
         return ["entries", "awards"];
       default:

@@ -13,17 +13,6 @@ export type Creator = {
   followerCount?: number;
 };
 
-export type VideoWorkflow = {
-  /** 순서형 제작 단계 */
-  steps?: string[];
-  /** 핵심 프롬프트(자유 텍스트) */
-  prompts?: string;
-  /** 사용 모델/세팅 메모 */
-  models?: string;
-  /** 레퍼런스/리소스 링크 */
-  links?: string[];
-};
-
 export type Video = {
   id: string;
   title: string;
@@ -49,8 +38,6 @@ export type Video = {
   visibility: "public" | "private";
   description: string;
   aiTools: string[];
-  /** 제작 워크플로우(선택) — 영상별 '워크플로우' 탭에 노출. */
-  workflow?: VideoWorkflow | null;
   /** Hashtags stored without leading # */
   tags: string[];
   /** Series grouping when `genre` is series-style content */

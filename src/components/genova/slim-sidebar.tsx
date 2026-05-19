@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import type { LucideIcon } from "lucide-react";
-import { Bell, Home, LifeBuoy, LogIn, LogOut, MoreHorizontal, Shield, Ticket, Trophy, Upload, User, X } from "lucide-react";
+import { Bell, Home, LifeBuoy, LogIn, LogOut, MessageCircle, MoreHorizontal, Shield, Ticket, Trophy, Upload, User, X } from "lucide-react";
 import { markAllNotificationsReadAction } from "@/app/actions/notifications";
 import { useI18n } from "@/components/genova/language-provider";
 import { getBrowserSupabaseClient } from "@/lib/supabase/browser";
@@ -390,8 +390,29 @@ export function SlimSidebar({ onOpenChat, unreadMessageCount = 0 }: SlimSidebarP
         <div className="flex w-full flex-col items-center gap-3">
           <div className="my-2 h-px w-6 bg-white/[0.05]" aria-hidden />
 
-          {/* 메시지 진입점은 베타 동안 숨김 — ChatDrawer 코드/DB 는
-              보존(향후 '협업 워크플로우' 맥락으로 재설계 예정). */}
+          <button
+            type="button"
+            onClick={() => {
+              setShowNotifications(false);
+              setShowLang(false);
+              onOpenChat();
+            }}
+            className="relative flex h-12 w-12 flex-col items-center justify-center gap-0.5 rounded-xl text-white/35 transition-colors hover:bg-white/[0.04] hover:text-white/80"
+            aria-label={t("layout.messages", "Messages")}
+          >
+            <MessageCircle className="h-5 w-5 shrink-0" aria-hidden />
+            <span className="max-w-[64px] whitespace-nowrap text-center text-[9px] font-semibold uppercase tracking-wider">
+              {t("layout.messages", "Messages")}
+            </span>
+            {unreadMessageCount > 0 ? (
+              <span
+                className="absolute right-0.5 top-1 flex h-4 min-w-4 items-center justify-center rounded-full px-0.5 text-[9px] font-bold text-white"
+                style={{ background: "#534AB7" }}
+              >
+                {unreadMessageCount > 9 ? "9+" : unreadMessageCount}
+              </span>
+            ) : null}
+          </button>
 
           <Link
             href={profileHref}

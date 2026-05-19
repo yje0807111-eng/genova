@@ -18,7 +18,6 @@ export interface UploadJob {
     competitionId?: string | null;
     description?: string;
     tags?: string[];
-    workflow?: import("@/lib/types").VideoWorkflow | null;
     additionalGenres?: string[];
     isSeriesMode?: boolean;
     seriesName?: string | null;
@@ -137,7 +136,6 @@ export function UploadProvider({ children }: { children: React.ReactNode }) {
         additionalGenres: job.metadata.additionalGenres ?? [],
         purpose: job.metadata.purpose,
         aiTools: [],
-        workflow: job.metadata.workflow ?? null,
         tags: job.metadata.tags ?? [],
         seriesName: job.metadata.seriesName ?? null,
         episodeNumber: job.metadata.episodeNumber ?? null,

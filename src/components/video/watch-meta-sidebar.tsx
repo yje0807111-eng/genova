@@ -95,17 +95,8 @@ export function WatchMetaSidebar({
   seriesEpisodes,
 }: Props) {
   const hasSeries = (seriesEpisodes?.length ?? 0) > 1;
-  const wf = video.workflow ?? null;
-  const hasWorkflow = Boolean(
-    (video.aiTools && video.aiTools.length > 0) ||
-      (wf &&
-        ((wf.steps && wf.steps.length > 0) ||
-          wf.prompts?.trim() ||
-          wf.models?.trim() ||
-          (wf.links && wf.links.length > 0))),
-  );
   const [activeTab, setActiveTab] = useState<
-    "episodes" | "comments" | "details" | "workflow"
+    "episodes" | "comments" | "details"
   >(hasSeries ? "episodes" : "comments");
   const { t } = useI18n();
   const [autoplay, setAutoplay] = useState(false);
@@ -236,13 +227,9 @@ export function WatchMetaSidebar({
       {/* Tab bar — 세그먼트 알약형 + 자동재생 토글 */}
       <div className="flex shrink-0 items-center gap-2 px-2 pb-2 pt-1 sm:py-2">
         <div className="flex flex-1 items-center gap-0.5 rounded-xl bg-white/[0.03] p-1">
-          {(
-            [
-              ...(hasSeries ? (["episodes"] as const) : []),
-              "comments",
-              ...(hasWorkflow ? (["workflow"] as const) : []),
-              "details",
-            ] as ("episodes" | "comments" | "workflow" | "details")[]
+          {(hasSeries
+            ? (["episodes", "comments", "details"] as const)
+            : (["comments", "details"] as const)
           ).map((tab) => (
             <button
               key={tab}
@@ -259,9 +246,7 @@ export function WatchMetaSidebar({
                 ? `${t("watch.tab.episodes", "Episodes")} · ${seriesEpisodes?.length ?? 0}`
                 : tab === "comments"
                   ? `${t("watch.tab.comments", "Comments")} · ${commentCount}`
-                  : tab === "workflow"
-                    ? t("watch.tab.workflow", "워크플로우")
-                    : t("watch.tab.details", "Details")}
+                  : t("watch.tab.details", "Details")}
             </button>
           ))}
         </div>
@@ -322,86 +307,6 @@ export function WatchMetaSidebar({
               />
             </div>
           </>
-        ) : activeTab === "workflow" ? (
-          <div className="space-y-5 px-3 py-4 sm:px-4">
-            {video.aiTools && video.aiTools.length > 0 && (
-              <div>
-                <p className="mb-1.5 text-[10px] font-bold uppercase tracking-[0.18em] text-[#AFA9EC]/70">
-                  {t("workflow.tools", "AI 툴")}
-                </p>
-                <div className="flex flex-wrap gap-1.5">
-                  {video.aiTools.map((tool) => (
-                    <span
-                      key={tool}
-                      className="rounded-md border border-white/[0.08] bg-white/[0.03] px-2 py-0.5 text-[11px] text-white/70"
-                    >
-                      {tool}
-                    </span>
-                  ))}
-                </div>
-              </div>
-            )}
-            {wf?.steps && wf.steps.length > 0 && (
-              <div>
-                <p className="mb-1.5 text-[10px] font-bold uppercase tracking-[0.18em] text-[#AFA9EC]/70">
-                  {t("workflow.steps", "제작 단계")}
-                </p>
-                <ol className="space-y-1.5">
-                  {wf.steps.map((step, i) => (
-                    <li
-                      key={`${i}-${step.slice(0, 12)}`}
-                      className="flex gap-2 text-[13px] leading-relaxed text-white/80"
-                    >
-                      <span className="shrink-0 font-bold tabular-nums text-[#AFA9EC]/70">
-                        {i + 1}.
-                      </span>
-                      <span className="min-w-0">{step}</span>
-                    </li>
-                  ))}
-                </ol>
-              </div>
-            )}
-            {wf?.prompts?.trim() && (
-              <div>
-                <p className="mb-1.5 text-[10px] font-bold uppercase tracking-[0.18em] text-[#AFA9EC]/70">
-                  {t("workflow.prompts", "핵심 프롬프트")}
-                </p>
-                <p className="whitespace-pre-wrap rounded-lg border border-white/[0.06] bg-white/[0.02] px-3 py-2 text-[12.5px] leading-relaxed text-white/75">
-                  {wf.prompts}
-                </p>
-              </div>
-            )}
-            {wf?.models?.trim() && (
-              <div>
-                <p className="mb-1.5 text-[10px] font-bold uppercase tracking-[0.18em] text-[#AFA9EC]/70">
-                  {t("workflow.models", "사용한 AI 모델")}
-                </p>
-                <p className="whitespace-pre-wrap text-[13px] leading-relaxed text-white/75">
-                  {wf.models}
-                </p>
-              </div>
-            )}
-            {wf?.links && wf.links.length > 0 && (
-              <div>
-                <p className="mb-1.5 text-[10px] font-bold uppercase tracking-[0.18em] text-[#AFA9EC]/70">
-                  {t("workflow.links", "레퍼런스")}
-                </p>
-                <div className="space-y-1">
-                  {wf.links.map((href) => (
-                    <a
-                      key={href}
-                      href={href}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="block truncate text-[12.5px] text-[#AFA9EC] underline-offset-2 hover:underline"
-                    >
-                      {href}
-                    </a>
-                  ))}
-                </div>
-              </div>
-            )}
-          </div>
         ) : (
           <div className="px-2 py-3 sm:px-4">{descriptionInner}</div>
         )}
