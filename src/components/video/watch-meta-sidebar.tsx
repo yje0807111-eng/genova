@@ -374,9 +374,11 @@ export function WatchMetaSidebar({
             {wf?.models?.trim() && (
               <div>
                 <p className="mb-1.5 text-[10px] font-bold uppercase tracking-[0.18em] text-[#AFA9EC]/70">
-                  {t("workflow.models", "모델 / 세팅")}
+                  {t("workflow.models", "사용한 AI 모델")}
                 </p>
-                <p className="text-[13px] text-white/75">{wf.models}</p>
+                <p className="whitespace-pre-wrap text-[13px] leading-relaxed text-white/75">
+                  {wf.models}
+                </p>
               </div>
             )}
             {wf?.links && wf.links.length > 0 && (

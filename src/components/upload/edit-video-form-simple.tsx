@@ -91,9 +91,6 @@ export function EditVideoFormSimple({ video, userId, competitions, activeCompeti
   );
   const [wfPrompts, setWfPrompts] = useState(video.workflow?.prompts ?? "");
   const [wfModels, setWfModels] = useState(video.workflow?.models ?? "");
-  const [wfLinks, setWfLinks] = useState(
-    (video.workflow?.links ?? []).join("\n"),
-  );
 
   const [seriesOpen, setSeriesOpen] = useState(false);
   const [isSeriesMode, setIsSeriesMode] = useState(Boolean(video.series_name));
@@ -202,25 +199,15 @@ export function EditVideoFormSimple({ video, userId, competitions, activeCompeti
             .split("\n")
             .map((s) => s.trim())
             .filter(Boolean);
-          const links = wfLinks
-            .split("\n")
-            .map((s) => s.trim())
-            .filter(Boolean);
           const prompts = wfPrompts.trim();
           const models = wfModels.trim();
-          if (
-            steps.length === 0 &&
-            links.length === 0 &&
-            !prompts &&
-            !models
-          ) {
+          if (steps.length === 0 && !prompts && !models) {
             return null;
           }
           return {
             ...(steps.length ? { steps } : {}),
             ...(prompts ? { prompts } : {}),
             ...(models ? { models } : {}),
-            ...(links.length ? { links } : {}),
           };
         })(),
         tags,
@@ -616,25 +603,16 @@ export function EditVideoFormSimple({ video, userId, competitions, activeCompeti
             </div>
             <div>
               <label className="mb-2 block text-[12px] font-bold uppercase tracking-[0.18em] text-white/70">
-                {t("upload.workflow.models", "모델 / 세팅")}
-              </label>
-              <input
-                type="text"
-                value={wfModels}
-                onChange={(e) => setWfModels(e.target.value)}
-                placeholder={t("upload.workflow.modelsPlaceholder", "예: Kling 1.6, Flux dev, seed 고정")}
-                className="w-full rounded-xl border border-white/[0.08] bg-white/[0.02] px-4 py-3 text-[14px] text-white placeholder:text-white/30 outline-none transition focus:border-[#7F77DD]/40 focus:bg-white/[0.04]"
-              />
-            </div>
-            <div>
-              <label className="mb-2 block text-[12px] font-bold uppercase tracking-[0.18em] text-white/70">
-                {t("upload.workflow.links", "레퍼런스 링크")}
+                {t("upload.workflow.models", "사용한 AI 모델")}
               </label>
               <textarea
-                value={wfLinks}
-                onChange={(e) => setWfLinks(e.target.value)}
-                rows={2}
-                placeholder={t("upload.workflow.linksPlaceholder", "한 줄에 하나씩 (선택)")}
+                value={wfModels}
+                onChange={(e) => setWfModels(e.target.value)}
+                rows={4}
+                placeholder={t(
+                  "upload.workflow.modelsPlaceholder",
+                  "이미지) 미드저니\n동영상) 클링3.0\n음향) 수노\n사이트) 힉스필드",
+                )}
                 className="w-full resize-none rounded-xl border border-white/[0.08] bg-white/[0.02] px-4 py-3 text-[14px] text-white placeholder:text-white/30 outline-none transition focus:border-[#7F77DD]/40 focus:bg-white/[0.04]"
               />
             </div>

@@ -33,7 +33,6 @@ export function WorkflowForm({ initial }: { initial?: WorkflowGuide }) {
   const [steps, setSteps] = useState((initial?.steps ?? []).join("\n"));
   const [prompts, setPrompts] = useState(initial?.prompts ?? "");
   const [models, setModels] = useState(initial?.models ?? "");
-  const [links, setLinks] = useState((initial?.links ?? []).join("\n"));
   const [visibility, setVisibility] = useState<"public" | "private">(
     initial?.visibility ?? "public",
   );
@@ -56,7 +55,7 @@ export function WorkflowForm({ initial }: { initial?: WorkflowGuide }) {
       steps: splitLines(steps),
       prompts,
       models,
-      links: splitLines(links),
+      links: [],
       visibility,
     };
     const res = initial
@@ -145,21 +144,17 @@ export function WorkflowForm({ initial }: { initial?: WorkflowGuide }) {
         />
       </div>
       <div>
-        <label className={labelCls}>{t("workflows.models", "모델 / 세팅")}</label>
-        <input
+        <label className={labelCls}>
+          {t("workflows.models", "사용한 AI 모델")}
+        </label>
+        <textarea
           value={models}
           onChange={(e) => setModels(e.target.value)}
-          placeholder={t("workflows.modelsPlaceholder", "각 단계에서 쓴 AI 모델 + 핵심 세팅 — 예: Kling 1.6 (5초, CFG 0.5) / Flux dev / seed 12345 고정 / 1080p")}
-          className={inputCls}
-        />
-      </div>
-      <div>
-        <label className={labelCls}>{t("workflows.links", "레퍼런스 링크")}</label>
-        <textarea
-          value={links}
-          onChange={(e) => setLinks(e.target.value)}
-          rows={2}
-          placeholder={t("workflows.linksPlaceholder", "참고한 튜토리얼·소스 이미지·BGM/에셋 출처 URL — 한 줄에 하나씩 (선택)")}
+          rows={4}
+          placeholder={t(
+            "workflows.modelsPlaceholder",
+            "이미지) 미드저니\n동영상) 클링3.0\n음향) 수노\n사이트) 힉스필드",
+          )}
           className={`${inputCls} resize-none`}
         />
       </div>

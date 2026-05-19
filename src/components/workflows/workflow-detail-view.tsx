@@ -124,8 +124,10 @@ export function WorkflowDetailView({
         )}
         {wf.models.trim() && (
           <section>
-            <p className={sectionTitle}>{t("workflow.models", "모델 / 세팅")}</p>
-            <p className="text-[14px] text-white/75">{wf.models}</p>
+            <p className={sectionTitle}>{t("workflow.models", "사용한 AI 모델")}</p>
+            <p className="whitespace-pre-wrap text-[14px] leading-relaxed text-white/75">
+              {wf.models}
+            </p>
           </section>
         )}
         {wf.links.length > 0 && (
