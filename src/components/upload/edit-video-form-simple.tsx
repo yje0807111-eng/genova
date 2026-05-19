@@ -34,6 +34,7 @@ type VideoData = {
   additional_genres?: string[] | null;
   purpose: string;
   ai_tools: string[];
+  workflow?: import("@/lib/types").VideoWorkflow | null;
   tags: string[];
   series_name: string | null;
   episode_number: number | null;
@@ -82,6 +83,17 @@ export function EditVideoFormSimple({ video, userId, competitions, activeCompeti
   const [description, setDescription] = useState(video.description ?? "");
   const [tags, setTags] = useState<string[]>(video.tags ?? []);
   const [tagInput, setTagInput] = useState("");
+
+  // 제작 워크플로우(선택) — 영상별 '워크플로우' 탭 노출용.
+  const [workflowOpen, setWorkflowOpen] = useState(false);
+  const [wfSteps, setWfSteps] = useState(
+    (video.workflow?.steps ?? []).join("\n"),
+  );
+  const [wfPrompts, setWfPrompts] = useState(video.workflow?.prompts ?? "");
+  const [wfModels, setWfModels] = useState(video.workflow?.models ?? "");
+  const [wfLinks, setWfLinks] = useState(
+    (video.workflow?.links ?? []).join("\n"),
+  );
 
   const [seriesOpen, setSeriesOpen] = useState(false);
   const [isSeriesMode, setIsSeriesMode] = useState(Boolean(video.series_name));
@@ -185,6 +197,32 @@ export function EditVideoFormSimple({ video, userId, competitions, activeCompeti
         // doesn't accept it (the DB column isn't mutated on edit).
         // It's still used locally below to gate `submittedCompetitionId`.
         aiTools: video.ai_tools ?? [],
+        workflow: (() => {
+          const steps = wfSteps
+            .split("\n")
+            .map((s) => s.trim())
+            .filter(Boolean);
+          const links = wfLinks
+            .split("\n")
+            .map((s) => s.trim())
+            .filter(Boolean);
+          const prompts = wfPrompts.trim();
+          const models = wfModels.trim();
+          if (
+            steps.length === 0 &&
+            links.length === 0 &&
+            !prompts &&
+            !models
+          ) {
+            return null;
+          }
+          return {
+            ...(steps.length ? { steps } : {}),
+            ...(prompts ? { prompts } : {}),
+            ...(models ? { models } : {}),
+            ...(links.length ? { links } : {}),
+          };
+        })(),
         tags,
         seriesName: isSeriesMode ? seriesName.trim() : null,
         episodeNumber: isSeriesMode ? episodeNumber : null,
@@ -520,6 +558,85 @@ export function EditVideoFormSimple({ video, userId, competitions, activeCompeti
                   className="flex-1 min-w-[120px] bg-transparent text-[13px] text-white placeholder:text-white/30 outline-none"
                 />
               </div>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* 6.5 제작 워크플로우 (collapsible) */}
+      <div className="rounded-xl border border-white/[0.06] bg-white/[0.01] overflow-hidden">
+        <button
+          type="button"
+          onClick={() => setWorkflowOpen((prev) => !prev)}
+          className="flex w-full items-center justify-between px-4 py-3 text-left transition hover:bg-white/[0.02]"
+        >
+          <div className="flex flex-col">
+            <span className="text-[13px] font-bold text-white">
+              {t("upload.workflow.title", "제작 워크플로우")}
+            </span>
+            <span className="text-[11px] text-white/40">
+              {t("upload.workflow.hint", "어떻게 만들었는지 — 단계·프롬프트·모델 (선택)")}
+            </span>
+          </div>
+          {workflowOpen ? (
+            <ChevronUp className="h-4 w-4 text-white/55" />
+          ) : (
+            <ChevronDown className="h-4 w-4 text-white/55" />
+          )}
+        </button>
+
+        {workflowOpen && (
+          <div className="space-y-5 border-t border-white/[0.04] px-4 py-5">
+            <div>
+              <label className="mb-2 block text-[12px] font-bold uppercase tracking-[0.18em] text-white/70">
+                {t("upload.workflow.steps", "제작 단계")}
+              </label>
+              <textarea
+                value={wfSteps}
+                onChange={(e) => setWfSteps(e.target.value)}
+                rows={5}
+                placeholder={t(
+                  "upload.workflow.stepsPlaceholder",
+                  "한 줄에 한 단계씩 (예: 1) Midjourney 키프레임 → 2) Runway 모션 → 3) Topaz 업스케일)",
+                )}
+                className="w-full resize-none rounded-xl border border-white/[0.08] bg-white/[0.02] px-4 py-3 text-[14px] text-white placeholder:text-white/30 outline-none transition focus:border-[#7F77DD]/40 focus:bg-white/[0.04]"
+              />
+            </div>
+            <div>
+              <label className="mb-2 block text-[12px] font-bold uppercase tracking-[0.18em] text-white/70">
+                {t("upload.workflow.prompts", "핵심 프롬프트")}
+              </label>
+              <textarea
+                value={wfPrompts}
+                onChange={(e) => setWfPrompts(e.target.value)}
+                rows={3}
+                placeholder={t("upload.workflow.promptsPlaceholder", "주요 프롬프트나 노하우 (선택)")}
+                className="w-full resize-none rounded-xl border border-white/[0.08] bg-white/[0.02] px-4 py-3 text-[14px] text-white placeholder:text-white/30 outline-none transition focus:border-[#7F77DD]/40 focus:bg-white/[0.04]"
+              />
+            </div>
+            <div>
+              <label className="mb-2 block text-[12px] font-bold uppercase tracking-[0.18em] text-white/70">
+                {t("upload.workflow.models", "모델 / 세팅")}
+              </label>
+              <input
+                type="text"
+                value={wfModels}
+                onChange={(e) => setWfModels(e.target.value)}
+                placeholder={t("upload.workflow.modelsPlaceholder", "예: Kling 1.6, Flux dev, seed 고정")}
+                className="w-full rounded-xl border border-white/[0.08] bg-white/[0.02] px-4 py-3 text-[14px] text-white placeholder:text-white/30 outline-none transition focus:border-[#7F77DD]/40 focus:bg-white/[0.04]"
+              />
+            </div>
+            <div>
+              <label className="mb-2 block text-[12px] font-bold uppercase tracking-[0.18em] text-white/70">
+                {t("upload.workflow.links", "레퍼런스 링크")}
+              </label>
+              <textarea
+                value={wfLinks}
+                onChange={(e) => setWfLinks(e.target.value)}
+                rows={2}
+                placeholder={t("upload.workflow.linksPlaceholder", "한 줄에 하나씩 (선택)")}
+                className="w-full resize-none rounded-xl border border-white/[0.08] bg-white/[0.02] px-4 py-3 text-[14px] text-white placeholder:text-white/30 outline-none transition focus:border-[#7F77DD]/40 focus:bg-white/[0.04]"
+              />
             </div>
           </div>
         )}

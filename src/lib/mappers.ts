@@ -59,6 +59,7 @@ type VideoRow = {
   visibility?: string;
   description?: string | null;
   ai_tools?: string[] | null;
+  workflow?: import("@/lib/types").VideoWorkflow | null;
   tags?: string[] | null;
   series_name?: string | null;
   episode_number?: number | null;
@@ -135,6 +136,7 @@ export function mapVideo(row: VideoRow): Video {
     visibility: vis,
     description: row.description ?? "",
     aiTools: row.ai_tools ?? [],
+    workflow: row.workflow ?? null,
     tags: Array.isArray(row.tags) ? row.tags : [],
     seriesName: row.series_name ?? null,
     episodeNumber: typeof row.episode_number === "number" ? row.episode_number : null,
