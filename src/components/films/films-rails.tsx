@@ -120,7 +120,7 @@ function FilmsRailRow({ icon, title, videos, showProgress }: FilmsRailRowProps) 
         )}
         <div
           ref={scrollerRef}
-          className="flex gap-3 overflow-x-auto pb-2 snap-x snap-mandatory [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+          className="hide-scrollbar flex gap-3 overflow-x-auto pb-2 snap-x snap-mandatory"
         >
           {videos.map((v) => (
             <FilmsRailCard
